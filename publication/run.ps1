@@ -55,6 +55,7 @@ function Invoke-Job {
 }
 if (-not $ValidateOnly) {
 if (-not $SkipBuild) { Invoke-Compose build worker }
+Invoke-Compose run --rm --entrypoint python check -m publication.runtime
 Invoke-Compose up --detach db api gateway geoserver
 Invoke-Compose run --rm init-assets
 for ($t4Attempt=0; $t4Attempt -lt 60; $t4Attempt++) {

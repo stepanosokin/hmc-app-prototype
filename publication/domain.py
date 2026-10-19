@@ -5,26 +5,53 @@ import json
 import os
 from contextlib import contextmanager
 from pathlib import Path
+from functools import lru_cache
 
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import pg8000.dbapi
 
 from decoder.sampling import ManifestSampler, asset_path, canonical, file_hash
+from decoder.inspect_forecast import ValidationError
 
 ROOT = Path('/assets')
 PIPELINE = 't4.1'
 STATES = ['discovered', 'staged', 'decoded', 'normalized', 'derivatives_ready', 'validated', 'published']
 
 
+class PublicationUnavailable(RuntimeError):
+    """A known selection exists but its durable storage or GIS is not ready."""
+
+
+class Records:
+    """Map PostgreSQL column names to the shared domain record shape."""
+
+    def __init__(self, cursor):
+        self.cursor = cursor
+
+    def execute(self, query: str, parameters: tuple = ()) -> None:
+        self.cursor.execute(query, parameters)
+
+    def fetchone(self) -> dict | None:
+        row = self.cursor.fetchone()
+        return None if row is None else dict(zip((item[0] for item in self.cursor.description), row))
+
+    def fetchall(self) -> list[dict]:
+        names = [item[0] for item in self.cursor.description]
+        return [dict(zip(names, row)) for row in self.cursor.fetchall()]
+
+
 @contextmanager
 def database():
-    connection = psycopg2.connect(host='db', dbname='hmc', user=os.environ['DB_USER'],
-                                 password=os.environ['DB_PASSWORD'], connect_timeout=5)
+    connection = pg8000.dbapi.connect(host='db', database='hmc', user=os.environ['DB_USER'],
+                                     password=os.environ['DB_PASSWORD'], timeout=5, ssl_context=False)
+    cursor = connection.cursor()
     try:
-        with connection:
-            with connection.cursor(cursor_factory=RealDictCursor) as cursor:
-                yield cursor
+        yield Records(cursor)
+        connection.commit()
+    except BaseException:
+        connection.rollback()
+        raise
     finally:
+        cursor.close()
         connection.close()
 
 
@@ -43,6 +70,7 @@ def write_once(path: Path, value: dict) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+@lru_cache(maxsize=8)
 def load_manifest(relative: str, checksum: str) -> dict:
     path = asset_path(ROOT, relative)
     if file_hash(path) != checksum:
@@ -63,8 +91,23 @@ def resolve(selection: str) -> dict:
         row = cursor.fetchone()
     if row is None:
         raise KeyError('unavailable published selection')
-    return load_manifest(row['manifest_path'], row['manifest_sha256'])
+    try:
+        return load_manifest(row['manifest_path'], row['manifest_sha256'])
+    except (OSError, ValueError, KeyError, TypeError, ValidationError) as error:
+        raise PublicationUnavailable('published assets unavailable') from error
 
 
 def sampler(manifest: dict) -> ManifestSampler:
-    return ManifestSampler(asset_path(ROOT, manifest['numerical_manifest']))
+    relative = manifest['numerical_manifest']
+    try:
+        return _verified_sampler(relative, manifest['assets'][relative]['sha256'])
+    except (OSError, ValueError, KeyError, TypeError, ValidationError) as error:
+        raise PublicationUnavailable('numerical assets unavailable') from error
+
+
+@lru_cache(maxsize=8)
+def _verified_sampler(relative: str, checksum: str) -> ManifestSampler:
+    path = asset_path(ROOT, relative)
+    if file_hash(path) != checksum:
+        raise ValueError('numerical manifest integrity failed')
+    return ManifestSampler(path)

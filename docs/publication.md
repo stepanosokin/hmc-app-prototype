@@ -35,6 +35,9 @@ gateway. Backend REST/web, staging, raw arrays and arbitrary proxy routes have n
 gateway entry point. Readers mount immutable assets read-only. Application and
 mosaic schemas have distinct PostgreSQL roles; the API has no mosaic access.
 Local secrets are test credentials, never organization deployment credentials.
+The PostgreSQL client is pure-Python pg8000 1.31.5, chosen after a retained native
+client/PROJ shutdown incompatibility. Runtime probes check interpreter exit codes
+in both import orders; a test printing `OK` with a failed process exit is rejected.
 
 Operator commands, with the same environment/project options used by the runner:
 

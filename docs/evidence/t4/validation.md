@@ -77,9 +77,30 @@ transaction is never offered as proof of GeoServer synchronization.
 
 ## Validation and remaining boundaries
 
-[Full validation](full-validation.log): **14 tests passed**, including the actual
-decoder/storage suite and five new numerical/publication contracts. Pinned mypy
-passes all 28 Python source files. [Storage](storage.json) retains all 24 actual
+Acceptance review for #16:
+
+| Required scope | Final local evidence |
+| --- | --- |
+| Compose gateway/worker/API/PostGIS/GeoServer; persistent volumes and separate roles | Clean project and [host snapshot](host.json); reader mounts and internal backend network |
+| Durable progress, checksum, pipeline, provenance and immutable references | [Job cases](job-cases.json) and [publication manifest](publication-manifest.json) |
+| Required derivative readiness before publication; real discovery/granule filtering | Deterministic representative hashes and actual GIS positive/negative counts `[1,0]` |
+| Actual catalogue, explicit point, scoped maps/capabilities and common resolution | Real gateway tests in [full validation](full-validation.log); full-resolution native/GIS value agreement |
+| Hide staging/admin/unfinished selections; failed readiness/indexing | Monitored real missing-metadata and PostGIS-index jobs; previous selection preserved |
+| Agreed precision and frozen numeric contract before engine selection | Owner replies recorded above; immutable rejected v1 and selected v2 |
+| GeoServer/toolkit/project comparison and browser decode/upload | Candidate JSON, current fixture hash and [browser evidence](browser.json) |
+| Manifest-selected metadata/tiles; eager/lazy semantics and deterministic probes | Published metadata, representative tile hashes and bounded lazy requests |
+| Encode/quantization, projection, seams/halos and masks; separate COG bound | Independent actual-source calculations, supplementary mask/edge tests and retained T2 checks |
+
+The approved local scope is complete. [Independent review](review.md) has no
+unresolved findings. #25 retains GPU visual/interpolation checks; the downstream
+external/operational gates listed below remain outside this slice.
+
+[Full validation](full-validation.log): **15 tests passed**, including the actual
+decoder/storage suite and six numerical/publication contracts. Successful
+completion records **process exit 0** as well as passing assertions. Pinned mypy
+passes all **29 Python source files**. The final [host/image/lock snapshot](host.json)
+identifies clean project `hmc-publication-t4-accepted`, loopback gateway port 8099
+and the tested image. [Storage](storage.json) retains all 24 actual
 source messages and the separate T2 precision checks; synthetic mask/edge tests
 are explicitly supplemental. Reproduce with `./publication/run.ps1` using a
 fresh project name/port; this does not delete previous sources/volumes.
@@ -93,6 +114,27 @@ attempts failed until the documented absolute filesystem path was used. An early
 browser rerun found a stale DevTools endpoint; profiles are now unique and
 selection checks the exact browser fixture hash, preventing stale evidence from
 authorizing an encoding/CRS revision. None of these attempts establishes success.
+
+The additional real post-publication test disables the GeoServer coverage, checks
+sanitized gateway 503 while numerical metadata remains eligible, restores it and
+checks map 200. Review also required caching verified immutable objects; bounded
+eight-entry caches now reuse manifest/sampler verification while checking current
+catalogue eligibility before every request.
+
+A later [native runtime failure](rejected-native-shutdown.json) demonstrated why
+assertion output alone is insufficient: after creating a PROJ transformer and
+loading psycopg2-binary, Python printed `OK` but exited with signal 11 (shell
+139). The runner rejected that [suite](rejected-native-shutdown.log). Its exact
+C-level cause is unproven; the minimal order-dependent reproduction is retained.
+The PostgreSQL client was changed to hash-pinned **pg8000 1.31.5**, a
+[pure-Python DB-API driver](https://pypi.org/project/pg8000/1.31.5/), removing that
+native client dependency without changing PostgreSQL/PostGIS or the selected
+numerical libraries. Both import orders and API startup/shutdown must pass
+[runtime probes](native-runtime.json), followed by a clean-volume full Compose
+repeat; all passed with pg8000, including final suite process exit 0.
+[Psycopg's installation documentation](https://www.psycopg.org/docs/install.html)
+describes a possible bundled-library segfault risk; that is context, not proof
+of this crash's exact cause.
 
 The approved local slice does not establish desktop QGIS, the complete protected
 GIS profile, producer-confirmed datum accuracy, hardware/browser GPU rendering,

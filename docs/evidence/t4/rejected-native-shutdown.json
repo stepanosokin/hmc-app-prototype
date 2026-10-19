@@ -1,0 +1,15 @@
+{
+  "status": "failed",
+  "gate": "pinned Python native runtime compatibility",
+  "image_config_sha256": "5e26162d9592c0ef909b2c1c7e1da055a56655ec2cf0a8abd08991858fdabf27",
+  "observations": {
+    "full_suite": "15 assertions passed, but the process terminated abnormally; runner correctly rejected it",
+    "targeted_real_gis_test": "printed OK, process exit 139",
+    "tiles_then_psycopg2": "child exit -11 / shell 139",
+    "domain_then_tiles": "exit 0",
+    "plain_pyproj_then_psycopg2": "exit 0"
+  },
+  "minimal_failed_python": "from publication.tiles import MAP_TO_NATIVE; import psycopg2",
+  "diagnosis": "Order-dependent native teardown incompatibility after PROJ transformer creation and psycopg2-binary loading. The exact C-level cause is not established; import-only control without transformer creation does not fail.",
+  "decision": "Reject this runtime, preserve failed evidence and replace the PostgreSQL client with a hash-pinned pure-Python driver. Keep PostgreSQL/PostGIS, native numerical libraries and the approved tile architecture unchanged. Recheck startup/shutdown in both orders and repeat real publication, failure, restart and full-suite gates."
+}

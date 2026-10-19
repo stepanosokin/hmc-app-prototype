@@ -1,3 +1,8 @@
 # Measurement artifacts are byte-addressed by artifact-index.json.
 # Preserve their exact recorded bytes across Windows/Linux checkouts.
 docs/evidence/t3/** -text whitespace=cr-at-eol
+
+# Shell execution and retained JSON hashes must survive Windows checkouts.
+publication/** text eol=lf
+requirements.publication.lock text eol=lf
+docs/evidence/t4/** text eol=lf
