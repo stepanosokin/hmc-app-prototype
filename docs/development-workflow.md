@@ -6,7 +6,11 @@ The [checks workflow](../.github/workflows/checks.yml) builds the existing
 hash-locked publication image and runs mypy, numeric boundary tests, interpreter
 startup/shutdown probes and archived-evidence integrity checks. Its Windows job
 checks the actual publication process launcher with successful and failing child
-processes, spaced paths/arguments and captured stdout/stderr. Run
+processes, spaced paths/arguments and captured stdout/stderr. The Ubuntu job also
+runs the existing retirement check against disposable Docker resources using
+the same locked validation image and `pwsh`; the
+[runner inventory](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md#powershell-tools)
+documents the host tooling. Run
 `powershell -NoProfile -File tools/check-publication-process.ps1` when changing
 that launcher. Use the workflow's commands for checks that do not need private
 sample data. Inspect native process exit
@@ -47,6 +51,34 @@ After changing API or gateway code, restart each affected long-lived service
 before HTTP validation. A source bind mount changes files but does not reload
 Gunicorn workers; #17's ETag check initially exercised an old gateway process.
 
+### Focused checks and final evidence
+
+Use unittest discovery for this repository's test files, for example
+`python -m unittest discover -s tests -p test_publication_recovery.py -k capture_crash -v`.
+The tests directory is not a Python package. When changing public error handling,
+run the existing `test_publication_http.py` case matching
+`-k sanitized_service_failure` against the isolated published service before
+starting the full acceptance run. Enable `T6_HTTP=1` for the capture example and
+`T4_HTTP=1` for the HTTP test in the check container; verify the selected tests
+execute rather than skip. Preserve established response bodies unless
+the ticket explicitly changes their contract; add retry headers independently.
+
+Finish focused implementation checks and review fixes before the final Compose
+run. Commit the implementation and freeze its bind-mounted inputs for the whole
+run. Capture the exact source/configuration hashes at the start and compare them
+with the final input inventory. Read-only mounts still see host edits, and loaded
+API workers can retain earlier code. If an input changes, archive that attempt
+as development evidence and retire it; rerun the affected final gate from a
+fresh project. Select evidence only when every required phase used the recorded
+configuration. Do not combine a passing phase from one source revision with a
+passing phase from another to establish a final result.
+
+For recovery reviews, trace capture before queue processing as well as every
+worker stage: durable intent before managed writes, byte/time bounds during
+hashing and copying, and collection of abandoned fragments. T6's existing
+`capture_crash` case exercises the public worker/retirement boundary; extend that
+seam when adding capture paths and cover crashes before submission completes.
+
 ## Test environment cleanup
 
 At the end of every validation attempt, including a failed probe, archive evidence
@@ -71,6 +103,8 @@ the helper discovers the conventional T4/T5/T6 report path; use
 Run `powershell -NoProfile -File tools/check-publication-retirement.ps1` after
 changing the helper. This exercises real disposable resources, failed archival,
 named/anonymous-volume removal and preservation of unrelated resources.
+CI invokes the same check with `-Image hmc-publication:checks`; it requires no
+private source sample. Reuse this check for cleanup regressions.
 
 Keep committed historical evidence unchanged. Local report directories and
 source mounts remain available; shared images/build cache are reusable Docker
@@ -79,6 +113,14 @@ ownership checks; global prune commands are outside this cleanup scope. Include
 the verified retired-project count, archive location and any explicitly retained
 live project in the final handoff. Validate cleanup-helper changes against real
 disposable Docker resources; publication behavior remains covered by T5/T6.
+
+For Docker inventory, start with `docker compose ls --all --format json` and
+`docker ps --all --format '{{.Names}}|{{.State}}|{{.Ports}}'`. List volume/network
+names with an exact project-label filter. For deeper inspection, select only
+the needed fields before returning output; full container JSON contains large
+label sets and environment values. After network address-pool exhaustion,
+finish archival/retirement of completed attempts before allocating another
+test project.
 
 ## Scientific contracts and evidence
 
@@ -98,7 +140,7 @@ request; compare numerical/GIS identity and placement through the gateway.
 Before changing shared configuration, read its current contents. Existing
 `.gitattributes` rules preserve historical evidence bytes; append compatible
 rules rather than replacing them. `tools/check_evidence.py` verifies the T3
-artifact index, T4's archived selection/contract hashes and T5's report/input
+artifact index, T4's archived selection/contract hashes and T5/T6 report/input
 artifact index. These are historical records: compare each against its recorded
 inputs, rather than against future
 dependency locks or a new contract revision. New evidence must bind its exact
@@ -132,3 +174,14 @@ isolation, port availability and real service readiness. The Windows CI check
 now exercises its shared launcher without Docker or private data; the retained
 T5 hashes remain historical. The [review](evidence/t5/review.md) found no missing
 coding standard; its two duplication findings were resolved in the code.
+
+The [#18 failures](evidence/t6/failed-probes.md) and
+[review](evidence/t6/review.md) exposed capture crash windows, unbounded source
+hashing, uncollectable capture fragments and a changed public 503 body. Existing
+capture and HTTP checks cover those behaviors; the workflow now brings them
+forward and freezes inputs before final evidence. The subsequent
+[retirement inventory](evidence/retirement/2026-10-19.json) records removal of
+12 superseded stacks. Their retained networks exhausted Docker's address pool
+during cleanup validation. Retirement now has a standing completion rule and its
+existing real-resource check is wired into CI. The changes reuse behavioral
+checks and keep project-specific guidance in this repository.
