@@ -18,7 +18,7 @@ x-app: &app
     GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:?required}
   volumes:
     - assets:/assets
-    - ./data/grib:/input:ro
+    - ${PUBLICATION_INPUT_DIR:-./data/grib}:/input:ro
     - ${PUBLICATION_EVIDENCE_DIR:-./data/reports/t4}:/evidence
     - ./publication:/app/publication:ro
     - ./tests:/app/tests:ro
@@ -66,6 +66,8 @@ services:
       TZ: UTC
       DB_USER: hmc_api
       DB_PASSWORD: ${API_PASSWORD:?required}
+      T6_TEST_FAULTS: ${T6_TEST_FAULTS:-0}
+      TILE_CACHE_BYTES: ${TILE_CACHE_BYTES:-16777216}
     volumes:
       - assets:/assets:ro
       - ./publication:/app/publication:ro
@@ -81,6 +83,8 @@ services:
     entrypoint: ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--threads=8", "--timeout=100", "publication.gateway:create_app()"]
   worker:
     <<: *app
+    mem_limit: 2g
+    cpus: 2
     entrypoint: ["python", "-m", "publication.worker"]
     command: ["run"]
   check:

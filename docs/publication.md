@@ -205,3 +205,107 @@ possible use of that product. GeoServer remains the GIS renderer; numeric WCS
 downloads are private comparison tooling, with no public route. Hardware GPU
 rendering/interpolation, mobile/browser targets and operational Linux-host sizing
 remain #25/#31 and later gates. T4 does not complete M2/M3 as a whole.
+# Recover interrupted deliveries (T6 / #18)
+
+Run `powershell -NoProfile -File publication/run-recovery.ps1 -Project hmc-publication-t6-check1 -Port 8104`.
+The runner requires the unchanged actual sample in `data/grib`, creates isolated
+input fixtures and service volumes, checks project/port availability and waits
+for real service readiness. It preserves reports and volumes on failure. Reports
+are under `data/reports/t6/<project>`; use a fresh project for each full run.
+
+The operator interface is `python -m publication.worker` inside the worker image:
+
+```text
+submit --recoverable --clock 2026-10-19T07:00:00Z --hours 1,2 --source-name ICON_EU_T_G_2026101500.grib2 --delivery-sha256 dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a
+once --migrate
+run
+retry --job <failed-job-uuid>
+collect
+collect --apply
+```
+
+Prefer a producer completion manifest or an atomic rename/delivery signal and
+pass its SHA256 with `--delivery-sha256`. Without that signal, the default
+`--stability-seconds 2` compares size and mtime before capture (allowed 1..300
+seconds). **Stable size is not proof of completeness.** The worker validates all
+24 GRIB envelopes, decodes every message and checks the approved actual-sample
+checksum before publishing any hour. This remains a sample-only pipeline;
+additional products require a compatibility decision, rather than relaxing the
+checksum gate. Source mounts, configured by `PUBLICATION_INPUT_DIR`, are local
+and read-only. Symlinks escaping the mount and non-basename inputs are rejected.
+
+Submission durably captures original bytes under the managed asset volume before
+creating the job. Partial, truncated and unsupported deliveries become terminal
+quarantined jobs (`failed`, `retryable=false`, failed stage/error class), with
+their original captured bytes retained. Correct the producer delivery and submit
+its new checksum; quarantined bytes are never overwritten. A checksum mismatch
+against a producer declaration is quarantined during capture. Oversize or still
+changing deliveries are rejected before queueing; retry discovery after fixing
+the source. The source mount is never cleaned or used as retry storage.
+
+T6 source-checksum/pipeline/request identity has a unique durable delivery key.
+Reordered hour lists are canonicalized; repeats return the same job, including
+after publication. Producer-declaration identity is also included so a corrected
+completion declaration can be assessed. Existing T4/T5 CLI commands remain
+available for archived reproduction; use `--recoverable` for new ingestion.
+The additive migration preserves existing rows and immutable manifests.
+
+One PostgreSQL advisory lock serializes capture, worker attempts, operator retry
+and staging collection. A lost worker connection releases the lock. A restarted
+worker retries an interrupted job with a fresh immutable attempt; previously
+committed hours are reused by source-message checksum, processing version and
+fixture. A revision and its job selection commit in one database transaction.
+Uncommitted revisions and batches have no gateway route. Failed attempts have
+separate GeoServer workspaces and PostGIS indexes, preventing retry collisions.
+This does not promise a multi-hour job is atomic: each independently validated
+hour can publish, and a failed later hour preserves the previous usable batch.
+
+Processing exceptions retain the stage, class, attempt count and failed-stage
+history in `/api/v1/jobs/<uuid>`. Automatic retries wait two real seconds, with
+three attempts per job, counting killed processes; each attempt has a 600-second
+alarm. `run` continues after failures. Once the budget is exhausted, an operator
+can repair the service and explicitly `retry --job ...` to start a new bounded
+cycle. This cannot rearm an invalid source. Forecast/demo clocks are explicit
+UTC inputs; retry delays use elapsed wall time and do not alter forecast times.
+
+Resource bounds are prototype limits: one processing attempt, 64 MiB captured
+source, 8 MiB per GRIB frame, 24 messages, 1..24 selected hours, 128 unresolved
+jobs including quarantine, 2 GiB/2 CPUs for the Compose worker, and a default
+16 GiB managed asset budget (`PUBLICATION_STORAGE_BYTES`). Capture reserves
+64 MiB and processing reserves 128 MiB per selected hour, including temporary
+derivatives. Published, quarantined and abandoned bytes all count. A full budget
+fails safely and requires operator collection/capacity repair. Source copies are
+retained even when staging collection runs. These bounds are not operational
+capacity measurements or the retention policy scheduled in #19.
+
+Numeric tile cache keys include the entire published selection, matrix
+coordinates and encoding. Every hit first resolves catalogue eligibility and
+the manifest. One lazy generator serves the API process; competing cold misses
+return `503`, `Retry-After: 2`, `Cache-Control: no-store`. The LRU cache defaults
+to 16 MiB per API process (`TILE_CACHE_BYTES`, allowed 0..256 MiB); each payload
+is exactly 332820 bytes. Only completed payloads enter it. Generation/storage or
+cache-population failures return the same transient response without switching
+selection. Existing cached old tiles remain readable; a restarted API regenerates
+identical bytes from retained manifests. There is no disk tile cache to leave
+partially populated. Zoom remains 0..6, tile dimensions and numeric contract v2
+are unchanged. `T6_TEST_FAULTS=1` enables explicit isolated-stack fault markers
+only for the acceptance harness; keep its default `0` for normal service.
+
+`collect` reports unreferenced attempts and abandoned hours without changing
+anything. `collect --apply` runs under the writer lock, roots reachability in
+**all** published revisions and legacy selections, removes only private
+unreferenced workspaces/indexes and then managed staging directories. It keeps
+managed originals, every referenced batch, and the immutable old reader graph.
+Invalid published manifests abort collection. GeoServer or index cleanup
+failures leave staging bytes available for a later retry. Published-data expiry,
+source-copy retention and old-revision grace remain #19's scope.
+
+The A6 runner kills actual worker processes during decode, normalization,
+numeric tile creation, COG staging, GIS indexing/readiness, metadata publication,
+before commit and after commit. It observes old point/tile/WMS readers through
+the gateway, tests real derivative/index failures, quarantine, bounded retries,
+partial-job collection, source disappearance, lazy tile/cache faults and service
+restart. Synthetic malformed deliveries supplement the original sample. Local
+Compose establishes this recovery behavior; it does not establish desktop QGIS,
+new CRS/encoding compatibility or organization-host capacity.
+

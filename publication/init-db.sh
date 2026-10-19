@@ -17,6 +17,8 @@ CREATE TABLE app.jobs (
   state text NOT NULL CHECK (state IN ('discovered','staged','decoded','normalized','derivatives_ready','validated','published','failed')),
   history jsonb NOT NULL, selection text, manifest_path text, manifest_sha256 text,
   error text, scenario text NOT NULL DEFAULT 'actual', request jsonb
+  , attempts integer NOT NULL DEFAULT 0, stage text, retry_at timestamptz,
+  retryable boolean NOT NULL DEFAULT false, delivery_key text, managed_source text
 );
 CREATE TABLE app.catalogue (
   selection text PRIMARY KEY, job_id uuid UNIQUE NOT NULL REFERENCES app.jobs,
