@@ -1,6 +1,7 @@
 """Real HTTP trial adapters; no production application is installed here."""
 
 import json
+import hashlib
 
 from flask import Flask, Response, g, jsonify, request
 
@@ -34,6 +35,11 @@ def create_app(candidate: str) -> Flask:
     @app.get('/metrics')
     def metrics():
         return jsonify(snapshot())
+
+    @app.get('/generation')
+    def generation():
+        catalog.refresh()
+        return jsonify(generation=hashlib.sha256(catalog.raw).hexdigest(), refresh_error=catalog.refresh_error)
 
     @app.get('/api/v1/point')
     def point():
