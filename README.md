@@ -11,6 +11,7 @@ Planning a self-hosted weather map and external GIS/API service using organizati
 - [OGC API alternatives comparison](docs/research/ogc-api-alternatives.md)
 - [Forecast decoder, reproducible commands and A1 evidence](docs/decoder.md)
 - [Zarr/COG round trip, shared sampler and A2 evidence](docs/storage.md)
+- [M1 numerical-adapter comparison preparation and pending measurement agreement](docs/adapter-comparison.md)
 - [Исходные GRIB, PostgreSQL, Zarr и COG: сравнение и обоснование](docs/source-storage-comparison.ru.md)
 
 The user accepted both specification copies (revision 0.2) for implementation on 2026-10-19; the wayfinder planning effort is complete. The agreed baseline is a Zarr numerical core, selected COG products, GeoServer for temporal WMS/QGIS and MapLibre for the web map. Revision 0.2 compares OGC API alternatives; the user accepted selecting the numerical adapter through the M1 implementation measurement gate. Martin is deferred until vector layers arrive. GitHub Issues is the canonical tracker; local ticket Markdown files are snapshots.
