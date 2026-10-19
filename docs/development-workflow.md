@@ -148,6 +148,14 @@ inputs, configuration, browser fixture and process results before selection.
 
 ## Issue tracking
 
+Maintain acceptance checkboxes throughout implementation: mark a criterion only
+after its required behavior and validation are supported by evidence. Attach or
+link the relevant evidence in the ticket. Leave blocked/unvalidated criteria
+unchecked and explain what remains. Read back the updated body before handoff;
+when closure is authorized, verify the closed state and completed checklist
+together. Checklist maintenance is already authorized; closure still follows the
+separate authorization rule in `AGENTS.md`.
+
 Use the GitHub connector for issue reads. In this session it allowed reads but
 returned `403 Resource not accessible by integration` on writes. When an
 authorized issue update encounters that limitation, use the existing
