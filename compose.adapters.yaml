@@ -1,0 +1,26 @@
+name: hmc-adapter-preparation
+x-trial: &trial
+  image: hmc-adapters:t3
+  platform: linux/amd64
+  user: "${DECODER_UID:-65532}:${DECODER_GID:-65532}"
+  network_mode: none
+  read_only: true
+  tmpfs:
+    - /tmp:size=512m,mode=1777
+  environment:
+    TZ: UTC
+  volumes:
+    - ./data/grib:/input:ro
+services:
+  preflight:
+    <<: *trial
+    build:
+      context: .
+      dockerfile: Dockerfile.adapters
+    command: ["/app/trials/agreement.pending.json"]
+  typecheck:
+    <<: *trial
+    entrypoint: ["mypy", "--ignore-missing-imports", "--check-untyped-defs", "--cache-dir=/tmp/mypy", "decoder", "tests", "trials"]
+  test:
+    <<: *trial
+    entrypoint: ["python", "-m", "unittest", "discover", "-s", "tests", "-v"]
