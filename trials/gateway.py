@@ -116,11 +116,12 @@ def create_app() -> Flask:
             if len(body) > 65536:
                 return jsonify(code='ServiceUnavailable', description='bounded response exceeded'), 503
             content_type = response.headers.get('Content-Type', 'application/json')
-            if use_cache and response.status == 200:
+            origin_generation = response.headers.get('X-Manifest-Generation')
+            if use_cache and response.status == 200 and origin_generation:
                 with lock:
                     if len(cache) >= 128:
                         cache.pop(next(iter(cache)))
-                    cache[cache_key] = (time.monotonic(), body, content_type)
+                    cache[origin_generation + ':' + request.full_path] = (time.monotonic(), body, content_type)
             return Response(body, status=response.status, content_type=content_type)
 
     return app

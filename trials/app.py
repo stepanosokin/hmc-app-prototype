@@ -28,6 +28,16 @@ def create_app(candidate: str) -> Flask:
     def query_error(error):
         return jsonify(code=error.code, description=error.detail), error.status
 
+    def bind_generation():
+        # Capture the generation of this selection, not a later probe.
+        g.accepted_generation = hashlib.sha256(catalog.raw).hexdigest()
+
+    @app.after_request
+    def selection_generation(response):
+        if hasattr(g, 'accepted_generation'):
+            response.headers['X-Manifest-Generation'] = g.accepted_generation
+        return response
+
     @app.get('/health')
     def health():
         return jsonify(status='ready', candidate=candidate, refresh_error=catalog.refresh_error)
@@ -43,7 +53,9 @@ def create_app(candidate: str) -> Flask:
 
     @app.get('/api/v1/point')
     def point():
-        return jsonify(select(catalog, request.args, False).sample())
+        selected = select(catalog, request.args, False)
+        bind_generation()
+        return jsonify(selected.sample())
 
     @app.get('/ogc/collections')
     @app.get(f'/ogc/collections/{COLLECTION}')
@@ -51,6 +63,7 @@ def create_app(candidate: str) -> Flask:
         if set(request.args) != {'run', 'revision'} or any(len(request.args.getlist(key)) != 1 for key in request.args):
             raise QueryError(400, 'InvalidParameterValue', 'exact run/revision required')
         selected = catalog.metadata(request.args)
+        bind_generation()
         if api is not None:
             headers, status, body = describe_collections(api, APIRequest.from_flask(request, api.locales), COLLECTION)
             if status != 200:
@@ -79,6 +92,7 @@ def create_app(candidate: str) -> Flask:
     @app.get(f'/ogc/collections/{COLLECTION}/position')
     def position():
         g.selection = select(catalog, request.args, True)
+        bind_generation()
         if api is None:
             return Response(app.json.dumps(coverage(g.selection)), content_type='application/vnd.cov+json')
         api_request = APIRequest.from_flask(request, api.locales)
