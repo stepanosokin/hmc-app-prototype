@@ -74,6 +74,32 @@ class PublishedSelection(unittest.TestCase):
                      '/staging','/api/v1/selections/'+'0'*64+'/tiles.json']:
             self.assertEqual(requests.get(self.base+path,timeout=90).status_code,404,path)
 
+    def test_post_publication_gis_exception_is_a_sanitized_service_failure(self):
+        # Test control changes a real GeoServer resource, then all observations
+        # use the public gateway. No fake upstream or mocked indexing is involved.
+        from publication.domain import resolve
+        from publication.geoserver import admin
+        selected=requests.get(self.base+'/api/v1/catalogue',timeout=90).json()['selections'][0]
+        gis=resolve(selected['selection'])['gis']
+        path=f"/workspaces/{gis['workspace']}/coveragestores/temperature/coverages/{gis['coverage']}.json"
+        params={'SERVICE':'WMS','VERSION':'1.3.0','REQUEST':'GetMap','LAYERS':'temperature',
+                'TIME':selected['valid_time'],'CRS':'EPSG:3857','BBOX':'-1000000,5000000,3000000,9000000',
+                'WIDTH':64,'HEIGHT':64,'STYLES':'','FORMAT':'image/png'}
+        admin('PUT',path,json={'coverage':{'enabled':False}})
+        try:
+            failed=requests.get(self.base+selected['wms'],params=params,timeout=90)
+            self.assertEqual(failed.status_code,503,failed.text[:300])
+            self.assertEqual(failed.json(),{'code':'Unavailable','description':'published service temporarily unavailable'})
+            self.assertEqual(requests.get(self.base+selected['tiles'],timeout=90).status_code,200)
+        finally:
+            admin('PUT',path,json={'coverage':{'enabled':True}})
+        recovered=requests.get(self.base+selected['wms'],params=params,timeout=90)
+        self.assertEqual(recovered.status_code,200,recovered.text[:200])
+        Path('/evidence/backend-failure.json').write_text(json.dumps({
+            'status':'passed','failure':'real GeoServer coverage disabled after publication',
+            'failed_http_status':failed.status_code,'restored_http_status':recovered.status_code,
+            'selection':selected['selection']}))
+
     @unittest.skipUnless(Path('/evidence/job-cases.json').exists(),'failure runner supplies durable job IDs')
     def test_failed_readiness_and_real_indexing_preserve_published_selection(self):
         cases=json.loads(Path('/evidence/job-cases.json').read_bytes())

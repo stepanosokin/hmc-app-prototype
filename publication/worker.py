@@ -10,8 +10,6 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-from psycopg2.extras import Json
-
 from decoder.inspect_forecast import SAMPLE_SHA256
 from decoder.sampling import ManifestSampler, canonical, file_hash
 from decoder.storage import build, bounded_frames, field_metadata, decoded_arrays
@@ -24,7 +22,7 @@ def transition(job: str, state: str, **extra) -> None:
     entry = {'state': state, 'observed_at': datetime.now().astimezone().isoformat(), **extra}
     with database() as cursor:
         cursor.execute('UPDATE app.jobs SET state=%s, history=history || %s WHERE id=%s',
-                       (state, Json([entry]), job))
+                       (state, json.dumps([entry]), job))
 
 
 def submit(clock: str) -> str:
@@ -36,7 +34,7 @@ def submit(clock: str) -> str:
         cursor.execute('INSERT INTO app.jobs(id,submitted_at,source_name,pipeline_version,state,history) '
                        'VALUES(%s,%s,%s,%s,%s,%s)',
                        (job, clock, 'ICON_EU_T_G_2026101500.grib2', PIPELINE, 'discovered',
-                        Json([{'state': 'discovered', 'clock': clock}])))
+                        json.dumps([{'state': 'discovered', 'clock': clock}])))
     return job
 
 
@@ -154,7 +152,7 @@ def process(job: dict) -> None:
                        (selection, identifier, relative, checksum, job['submitted_at']))
         cursor.execute('UPDATE app.jobs SET state=%s, selection=%s, manifest_path=%s, manifest_sha256=%s, '
                        'history=history || %s WHERE id=%s',
-                       ('published', selection, relative, checksum, Json([{'state': 'published'}]), identifier))
+                       ('published', selection, relative, checksum, json.dumps([{'state': 'published'}]), identifier))
 
 
 def once() -> bool:

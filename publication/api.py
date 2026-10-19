@@ -5,10 +5,12 @@ import xml.etree.ElementTree as ET
 from urllib.parse import quote
 
 import requests
+import pg8000.dbapi
 from flask import Flask, Response, jsonify, request
 
 from decoder.sampling import asset_path
-from publication.domain import ROOT, database, resolve, sampler
+from publication.domain import ROOT, database, resolve, sampler, PublicationUnavailable
+from decoder.inspect_forecast import ValidationError
 from publication.tiles import render, encode, CONTRACT
 from publication import geoserver
 
@@ -30,12 +32,16 @@ def create_app() -> Flask:
         return jsonify(code='NotFound', description='unavailable published selection'), 404
 
     @app.errorhandler(ValueError)
+    @app.errorhandler(ValidationError)
     def invalid(error):
         return jsonify(code='InvalidParameterValue', description=str(error)[:200]), 400
 
     @app.errorhandler(requests.RequestException)
+    @app.errorhandler(PublicationUnavailable)
+    @app.errorhandler(pg8000.dbapi.Error)
+    @app.errorhandler(OSError)
     def upstream(error):
-        return jsonify(code='Unavailable', description='GIS temporarily unavailable'), 503
+        return jsonify(code='Unavailable', description='published service temporarily unavailable'), 503
 
     @app.get('/health')
     def health():

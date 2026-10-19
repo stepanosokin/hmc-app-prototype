@@ -6,6 +6,7 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from PIL import Image
+from publication.domain import PublicationUnavailable
 from urllib.parse import urlencode
 
 import requests
@@ -42,7 +43,7 @@ def wms(gis: dict, parameters: dict) -> requests.Response:
     response = requests.get(BASE + '/' + gis['workspace'] + '/wms', params=parameters, timeout=60)
     response.raise_for_status()
     if b'ServiceException' in response.content or b'ExceptionReport' in response.content:
-        raise ValueError(response.text[:1200])
+        raise PublicationUnavailable('GIS returned an exception document')
     return response
 
 
