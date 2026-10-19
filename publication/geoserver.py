@@ -10,6 +10,7 @@ from publication.domain import PublicationUnavailable
 from urllib.parse import urlencode
 
 import requests
+import pg8000.dbapi
 
 BASE = 'http://geoserver:8080/geoserver'
 
@@ -20,6 +21,26 @@ def admin(method: str, path: str, **kwargs) -> requests.Response:
                                 timeout=60, **kwargs)
     response.raise_for_status()
     return response
+
+
+def discard_staging(workspace: str) -> None:
+    """Remove one unreferenced attempt's private workspace and owned index."""
+    if re.fullmatch(r'p[0-9a-f]{24}', workspace) is None:
+        raise ValueError('invalid managed workspace')
+    response = admin('GET', '/workspaces.json')
+    workspaces = response.json().get('workspaces', {}).get('workspace', [])
+    if any(item['name'] == workspace for item in workspaces):
+        admin('DELETE', '/workspaces/' + workspace + '?recurse=true')
+    connection = pg8000.dbapi.connect(host='db', database='hmc', user='hmc_mosaic',
+                                     password=os.environ['MOSAIC_PASSWORD'], timeout=5, ssl_context=False)
+    try:
+        cursor = connection.cursor()
+        # Identifier is validated above and is derived only from the recorded
+        # workspace. The mosaic owner cannot alter application catalogue tables.
+        cursor.execute('DROP TABLE IF EXISTS mosaic."g' + workspace[1:] + '"')
+        connection.commit()
+    finally:
+        connection.close()
 
 
 def prepare(workspace: str, directory: str, valid_time: str) -> dict:

@@ -25,6 +25,13 @@ isolated by project; T4 reports remain shared, so run T4 experiments sequentiall
 The runner checks native exit codes, observes publication during real failures
 and preserves service volumes.
 
+For ingestion/recovery or tile-cache changes, also run the isolated actual-sample
+[T6 recovery runner](publication.md#recover-interrupted-deliveries-t6--18):
+`powershell -NoProfile -File publication/run-recovery.ps1 -Project <fresh-project> -Port <free-port>`.
+It includes killed workers, real GIS failures, managed-source recovery, staging
+collection, cold/warm numeric tiles and retained readers after service restart.
+Its fault markers are enabled only in the explicitly isolated T6 API stack.
+
 PowerShell wrappers with declared parameters can interpret short native options
 as their own parameters. Use long Compose options and pass embedded Python
 `-c` commands through the wrapper's explicit argument array, as the publication

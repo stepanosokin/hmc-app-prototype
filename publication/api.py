@@ -15,6 +15,7 @@ from decoder.inspect_forecast import ValidationError
 from publication.tiles import render, encode, CONTRACT
 from publication import geoserver
 from publication import revisions
+from publication.tile_cache import TileCache
 
 
 def links(manifest: dict) -> dict:
@@ -39,6 +40,7 @@ def revision_links(row: dict) -> list[dict]:
 
 def create_app() -> Flask:
     app = Flask('hmc-publication')
+    tile_cache = TileCache()
 
     @app.errorhandler(KeyError)
     def unavailable(error):
@@ -54,7 +56,11 @@ def create_app() -> Flask:
     @app.errorhandler(pg8000.dbapi.Error)
     @app.errorhandler(OSError)
     def upstream(error):
-        return jsonify(code='Unavailable', description='published service temporarily unavailable'), 503
+        response = jsonify(code='Unavailable', description='published service temporarily unavailable; retry same selection')
+        response.status_code = 503
+        response.headers['Retry-After'] = '2'
+        response.headers['Cache-Control'] = 'no-store'
+        return response
 
     @app.get('/health')
     def health():
@@ -77,12 +83,15 @@ def create_app() -> Flask:
     @app.get('/api/v1/jobs/<uuid:job>')
     def job_status(job):
         with database() as cursor:
-            cursor.execute('SELECT id,state,history,checksum,pipeline_version,selection,error FROM app.jobs WHERE id=%s', (str(job),))
+            cursor.execute('SELECT id,state,history,checksum,pipeline_version,selection,error,attempts,stage,retryable,retry_at '
+                           'FROM app.jobs WHERE id=%s', (str(job),))
             row = cursor.fetchone()
         if row is None:
             raise KeyError('job')
         # Expose progress and immutable identifiers, never paths/private GIS config.
-        row['history'] = [{'state': item['state']} for item in row['history']]
+        row['history'] = [{key: value for key, value in item.items()
+                           if key in ('state', 'observed_at', 'error_type', 'failed_stage', 'attempt')}
+                          for item in row['history']]
         return jsonify(row)
 
     def arguments(required: set, optional: set | None = None) -> dict:
@@ -121,7 +130,8 @@ def create_app() -> Flask:
         manifest = resolve(selection)
         numerical = sampler(manifest)
         item = next(item for item in numerical.manifest['fields'] if item['metadata']['valid_time'] == manifest['identity']['valid_time'])
-        payload = encode(*render(numerical.root, item, z, x, y), manifest['encoding'])
+        payload = tile_cache.get((selection, z, x, y, manifest['encoding']),
+                                 lambda: encode(*render(numerical.root, item, z, x, y), manifest['encoding']))
         response = Response(payload, content_type=CONTRACT['encodings']['f32']['content_type'])
         response.headers['Cache-Control'] = 'private, no-cache'
         response.set_etag(hashlib.sha256(payload).hexdigest())
