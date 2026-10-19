@@ -1,0 +1,114 @@
+[
+  {
+    "fixture": "Actual sample deliberately shortened by 32 bytes",
+    "synthetic_corruption": true,
+    "exit_code": 1,
+    "report": {
+      "schema_version": 1,
+      "pipeline_version": "t1.1",
+      "gate": "A1",
+      "status": "failed",
+      "clock": "2026-10-19T00:00:00Z",
+      "messages": [],
+      "input": {
+        "name": "truncated.grib2",
+        "size_bytes": 26658554,
+        "sha256": "1d0a99d292fa20373170c49c34d2a5fb2a4f37315db40211d6536b5ba92987fb"
+      },
+      "tools": {
+        "python": "3.12.12",
+        "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+        "packages": {
+          "eccodes": "2.44.0",
+          "eccodeslib": "2.44.0.7",
+          "eckitlib": "1.32.3.7",
+          "fckitlib": "0.14.1.7",
+          "numpy": "2.3.4"
+        },
+        "eccodes_api": "2.44.0",
+        "features": [
+          "AEC",
+          "MEMFS",
+          "JPG",
+          "PNG",
+          "ECCODES_THREADS",
+          "ECCODES_OMP_THREADS",
+          "NETCDF",
+          "FORTRAN",
+          "GEOGRAPHY"
+        ],
+        "definitions": {
+          "path": "/MEMFS/definitions",
+          "release": "2.44.0",
+          "sha256_binary": "210c8862761a1ffea1f0ec9c3ce2b07d1bca9c12c260a055cc18eb3a48c5cb2e"
+        },
+        "binary_sha256": {
+          "libeccodes.so": "7d649e7bea27db753b36dd010b8b98d10a612cca37224bac40de84802cc7c0fa",
+          "libeccodes_memfs.so": "210c8862761a1ffea1f0ec9c3ce2b07d1bca9c12c260a055cc18eb3a48c5cb2e",
+          "libaec.so": "0d44e7ecabc2d7b667dccd2224dd853e5e8a1101664c531947c465a47a81c8e7"
+        }
+      },
+      "error": {
+        "type": "ValidationError",
+        "message": "truncated GRIB message at byte 25518773: expected 1139813 bytes"
+      },
+      "decision": "Block A1; retain source and diagnostics. If decoder compatibility failed, reopen storage decision #3 before proceeding."
+    }
+  },
+  {
+    "fixture": "Actual sample first packing template changed from 5.42 to 5.99",
+    "synthetic_corruption": true,
+    "exit_code": 1,
+    "report": {
+      "schema_version": 1,
+      "pipeline_version": "t1.1",
+      "gate": "A1",
+      "status": "failed",
+      "clock": "2026-10-19T00:00:00Z",
+      "messages": [],
+      "input": {
+        "name": "unsupported.grib2",
+        "size_bytes": 26658586,
+        "sha256": "6f32c575454574a1d41dbc2b636f3531781fc5d1e34d4f201dc919baf0235582"
+      },
+      "tools": {
+        "python": "3.12.12",
+        "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+        "packages": {
+          "eccodes": "2.44.0",
+          "eccodeslib": "2.44.0.7",
+          "eckitlib": "1.32.3.7",
+          "fckitlib": "0.14.1.7",
+          "numpy": "2.3.4"
+        },
+        "eccodes_api": "2.44.0",
+        "features": [
+          "AEC",
+          "MEMFS",
+          "JPG",
+          "PNG",
+          "ECCODES_THREADS",
+          "ECCODES_OMP_THREADS",
+          "NETCDF",
+          "FORTRAN",
+          "GEOGRAPHY"
+        ],
+        "definitions": {
+          "path": "/MEMFS/definitions",
+          "release": "2.44.0",
+          "sha256_binary": "210c8862761a1ffea1f0ec9c3ce2b07d1bca9c12c260a055cc18eb3a48c5cb2e"
+        },
+        "binary_sha256": {
+          "libeccodes.so": "7d649e7bea27db753b36dd010b8b98d10a612cca37224bac40de84802cc7c0fa",
+          "libeccodes_memfs.so": "210c8862761a1ffea1f0ec9c3ce2b07d1bca9c12c260a055cc18eb3a48c5cb2e",
+          "libaec.so": "0d44e7ecabc2d7b667dccd2224dd853e5e8a1101664c531947c465a47a81c8e7"
+        }
+      },
+      "error": {
+        "type": "ValidationError",
+        "message": "unsupported packing template: expected CCSDS 5.42"
+      },
+      "decision": "Block A1; retain source and diagnostics. If decoder compatibility failed, reopen storage decision #3 before proceeding."
+    }
+  }
+]
