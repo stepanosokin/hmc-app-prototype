@@ -1,12 +1,12 @@
 name: hmc-decode
 x-decoder: &decoder
-  image: hmc-decoder:t1
+  image: hmc-decoder:t2
   platform: linux/amd64
   user: "${DECODER_UID:-65532}:${DECODER_GID:-65532}"
   network_mode: none
   read_only: true
   tmpfs:
-    - /tmp:size=128m,mode=1777
+    - /tmp:size=512m,mode=1777
   volumes:
     - ./data/grib:/input:ro
   environment:
@@ -22,6 +22,14 @@ services:
   test:
     <<: *decoder
     entrypoint: ["python", "-m", "unittest", "discover", "-s", "tests", "-v"]
+  storage:
+    <<: *decoder
+    entrypoint: ["python", "-m", "decoder.storage"]
+    volumes:
+      - ./data/grib:/input:ro
+      - ./data/reports:/reports
+      - ./data/storage:/storage
+    command: ["build", "/input/ICON_EU_T_G_2026101500.grib2", "/storage/sample-t2", "--clock", "2026-10-19T00:00:00Z", "--report", "/reports/a2.json"]
   typecheck:
     <<: *decoder
     entrypoint: ["mypy", "--ignore-missing-imports", "--check-untyped-defs", "--cache-dir=/tmp/mypy", "decoder", "tests"]
