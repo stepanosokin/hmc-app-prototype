@@ -6,6 +6,17 @@ permissions:
   contents: read
 
 jobs:
+  windows-process:
+    runs-on: windows-2022
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check publication process exit handling
+        shell: powershell
+        run: ./tools/check-publication-process.ps1
+
   source-and-runtime:
     runs-on: ubuntu-24.04
     timeout-minutes: 15

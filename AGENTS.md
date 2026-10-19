@@ -6,8 +6,10 @@ After implementing a ticket, check its acceptance criteria and required validati
 
 Close an issue when the user has authorized closure, then read it back and report the verified state. If it is already closed, report that state instead of suggesting closure. Keep parent issues and unrelated milestones unchanged unless they are also in scope.
 
+Commit and push completed changes on the current branch. Verify that the remote branch points to the local HEAD before reporting the push as complete.
+
 ## Workflow customization
 
 Keep project-specific workflow changes in this repository's agent instructions. Leave original third-party skills, including Matt Pocock's skills, unchanged unless the user explicitly requests edits to those skills.
 
-For validation, scientific compatibility changes, or issue-tracker permission failures, read [the development workflow](docs/development-workflow.md).
+For validation, Compose runner changes, scientific compatibility changes, or issue-tracker permission failures, read [the development workflow](docs/development-workflow.md).
