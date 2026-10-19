@@ -25,20 +25,29 @@ def transition(job: str, state: str, **extra) -> None:
                        (state, json.dumps([entry]), job))
 
 
-def submit(clock: str) -> str:
+def submit(clock: str, request: dict | None = None) -> str:
     if not clock.endswith('Z'):
         raise ValueError('explicit UTC demo clock required')
     datetime.fromisoformat(clock.replace('Z', '+00:00'))
     job = str(uuid.uuid4())
+    if request is not None:
+        from publication.revisions import migrate
+        migrate()
     with database() as cursor:
         cursor.execute('INSERT INTO app.jobs(id,submitted_at,source_name,pipeline_version,state,history) '
                        'VALUES(%s,%s,%s,%s,%s,%s)',
-                       (job, clock, 'ICON_EU_T_G_2026101500.grib2', PIPELINE, 'discovered',
+                       (job, clock, 'ICON_EU_T_G_2026101500.grib2', PIPELINE if request is None else 't5.1', 'discovered',
                         json.dumps([{'state': 'discovered', 'clock': clock}])))
+        if request is not None:
+            cursor.execute('UPDATE app.jobs SET request=%s WHERE id=%s', (json.dumps(request), job))
     return job
 
 
 def process(job: dict) -> None:
+    if job.get('request') is not None:
+        from publication.revisions import process as incremental
+        incremental(job)
+        return
     identifier = str(job['id'])
     # A restart creates a new immutable attempt; no old bytes are overwritten.
     attempt = ROOT / identifier / uuid.uuid4().hex
@@ -65,12 +74,23 @@ def process(job: dict) -> None:
     report = build(staged, attempt / 'numerical', job['submitted_at'].isoformat().replace('+00:00', 'Z'))
     transition(identifier, 'normalized', zarr_max_abs_error_K=report['zarr_max_abs_error'])
     numerical = ManifestSampler(attempt / 'numerical/manifest.json')
+    publish_batch(job, attempt, numerical, commit=True)
+
+
+def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commit: bool) -> tuple[dict, str, str]:
+    """Gate one immutable compatible batch through numeric and real GIS readiness."""
+    identifier = str(job['id'])
     item = numerical.manifest['fields'][0]
+    failure = os.environ.get('T4_TEST_FAILURE')
+    if os.environ.get('T5_FAIL_HOUR') not in (None, str(item['metadata']['message'])):
+        failure = None
     selection_body = {key: numerical.manifest[key] for key in ['model', 'run', 'member']}
     selection_body.update(revision=numerical.revision, field=item['field'], level=0,
                           valid_time=item['metadata']['valid_time'],
                           native_grid_sha256=item['metadata']['native_grid_sha256'],
                           publication_job=identifier, contract=CONTRACT['contract'])
+    selection_body.update(matrix=CONTRACT['matrix'], resampling='bilinear', encoding_version=CONTRACT['contract'] + '/f32',
+                          engine='project-bilinear/1')
     selection = hashlib.sha256(canonical(selection_body)).hexdigest()
     # The engine is selected only by a retained successful comparison report.
     decision = json.loads(Path('/evidence/selection.json').read_bytes())
@@ -100,17 +120,20 @@ def process(job: dict) -> None:
         tile_path.write_bytes(payload)
         tile_path.chmod(0o444)
         tile_checks.append({'zxy': [z, x, y], 'sha256': file_hash(tile_path)})
-    if os.environ.get('T4_TEST_FAILURE') == 'tiles':
+    if failure == 'tiles':
         # Explicit failure injection: real durable metadata is absent at readiness.
         (attempt / 'tiles.json').unlink()
     if not (attempt / 'tiles.json').is_file():
         raise ValueError('durable numeric metadata missing')
     mosaic = attempt / 'mosaic'
     mosaic.mkdir()
-    shutil.copyfile(numerical.root / item['cog'], mosaic / 'temperature_20261015T010000.tif')
+    stamp = datetime.fromisoformat(item['metadata']['valid_time'].replace('Z', '+00:00')).strftime('%Y%m%dT%H%M%S')
+    cog_path = mosaic / f'temperature_{stamp}.tif'
+    # Same filesystem/immutable inode: do not copy the batch COG into each GIS index.
+    os.link(numerical.root / item['cog'], cog_path)
     (mosaic / 'datastore.properties').write_text('\n'.join([
         'SPI=org.geotools.data.postgis.PostgisNGDataStoreFactory', 'host=db', 'port=5432',
-        'database=hmc', 'schema=' + ('nonexistent' if os.environ.get('T4_TEST_FAILURE') == 'index' else 'mosaic'), 'user=hmc_mosaic',
+        'database=hmc', 'schema=' + ('nonexistent' if failure == 'index' else 'mosaic'), 'user=hmc_mosaic',
         'passwd=' + os.environ['MOSAIC_PASSWORD'], 'Loose bbox=true', 'preparedStatements=true']))
     (mosaic / 'indexer.properties').write_text('TimeAttribute=time\nMosaicCRS=EPSG:100001\nName=g' + selection[:24] + '\nTypeName=g' + selection[:24] + '\nSchema=*the_geom:Polygon,location:String,time:java.util.Date\nPropertyCollectors=TimestampFileNameExtractorSPI[timeregex](time)\n')
     (mosaic / 'timeregex.properties').write_text('regex=[0-9]{8}T[0-9]{6}\nformat=yyyyMMdd\'T\'HHmmss\n')
@@ -120,7 +143,7 @@ def process(job: dict) -> None:
     gis['probe'] = {'lon':point['cell']['lon'],'lat':point['cell']['lat'],'value':point['value']}
     transition(identifier, 'derivatives_ready', representative_tiles=tile_checks)
     gis_checks = geoserver.verify(gis)
-    (mosaic / 'temperature_20261015T010000.tif').chmod(0o444)
+    cog_path.chmod(0o444)
     # Administrative mutable mosaic metadata is outside the immutable asset inventory.
     inventory = {}
     for path in sorted(attempt.rglob('*')):
@@ -134,6 +157,7 @@ def process(job: dict) -> None:
             'tile_engine': decision['engine'], 'encoding': decision['encoding'],
             'gis': gis, 'gis_checks': gis_checks, 'tile_checks': tile_checks,
             'source': numerical.manifest['source'], 'assets': inventory}
+    body['fixture'] = numerical.manifest.get('fixture', 'actual')
     manifest_path = attempt / 'publication.json'
     checksum = write_once(manifest_path, body)
     for directory in [path for path in attempt.rglob('*') if path.is_dir()] + [attempt, attempt.parent, ROOT]:
@@ -147,12 +171,14 @@ def process(job: dict) -> None:
     transition(identifier, 'validated', manifest_path=relative, manifest_sha256=checksum, gis=gis_checks)
     # Re-read discovery immediately before the only catalogue visibility switch.
     geoserver.verify(gis)
-    with database() as cursor:
-        cursor.execute('INSERT INTO app.catalogue VALUES(%s,%s,%s,%s,%s)',
-                       (selection, identifier, relative, checksum, job['submitted_at']))
-        cursor.execute('UPDATE app.jobs SET state=%s, selection=%s, manifest_path=%s, manifest_sha256=%s, '
-                       'history=history || %s WHERE id=%s',
-                       ('published', selection, relative, checksum, json.dumps([{'state': 'published'}]), identifier))
+    if commit:
+        with database() as cursor:
+            cursor.execute('INSERT INTO app.catalogue VALUES(%s,%s,%s,%s,%s)',
+                           (selection, identifier, relative, checksum, job['submitted_at']))
+            cursor.execute('UPDATE app.jobs SET state=%s, selection=%s, manifest_path=%s, manifest_sha256=%s, '
+                           'history=history || %s WHERE id=%s',
+                           ('published', selection, relative, checksum, json.dumps([{'state': 'published'}]), identifier))
+    return body, relative, checksum
 
 
 def once() -> bool:
@@ -181,12 +207,27 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=['submit', 'once', 'run'])
     parser.add_argument('--clock')
+    parser.add_argument('--hours', default=','.join(map(str, range(1, 25))),
+                        help='Validated source hours to ingest; default all 24 actual sample times')
+    parser.add_argument('--fixture', choices=['actual', 'correction', 'overlap'], default='actual',
+                        help='Synthetic supplements are explicitly labelled; actual is unchanged producer input')
+    parser.add_argument('--legacy-one-time', action='store_true', help='Reproduce archived T4 one-time workflow')
+    parser.add_argument('--migrate', action='store_true', help='Apply additive T5 schema before consuming existing volumes')
     args = parser.parse_args()
     if args.command == 'submit':
         if not args.clock:
             parser.error('--clock required')
-        print(submit(args.clock))
+        try:
+            hours = [int(value) for value in args.hours.split(',')]
+            if not hours or len(set(hours)) != len(hours) or any(not 1 <= hour <= 24 for hour in hours):
+                raise ValueError()
+        except ValueError:
+            parser.error('--hours must be unique sample hours in 1..24')
+        print(submit(args.clock, None if args.legacy_one_time else {'hours': hours, 'fixture': args.fixture}))
     elif args.command == 'once':
+        if args.migrate:
+            from publication.revisions import migrate
+            migrate()
         once()
     else:
         while True:

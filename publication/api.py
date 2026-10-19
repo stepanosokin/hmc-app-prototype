@@ -1,6 +1,7 @@
 """Published-only catalogue, canonical point, numeric tiles and scoped WMS."""
 
 import json
+import hashlib
 import xml.etree.ElementTree as ET
 from urllib.parse import quote
 
@@ -13,12 +14,16 @@ from publication.domain import ROOT, database, resolve, sampler, PublicationUnav
 from decoder.inspect_forecast import ValidationError
 from publication.tiles import render, encode, CONTRACT
 from publication import geoserver
+from publication import revisions
 
 
 def links(manifest: dict) -> dict:
     selection, identity = manifest['selection'], manifest['identity']
     return {'selection': selection, **identity, 'units': 'K', 'state': 'published',
-            'valid_times': [identity['valid_time']],
+            'valid_times': manifest.get('revision_times', [identity['valid_time']]),
+            'completeness': manifest.get('completeness', 'unknown'),
+            'fixture': manifest.get('fixture', 'actual'),
+            'batch': manifest.get('batch_selection', selection),
             'point': '/api/v1/point',
             'tiles': f'/api/v1/selections/{selection}/tiles.json',
             'wms': '/gis/v1/runs/' + quote(identity['run'], safe='') + '/revisions/' + identity['revision'] + '/wms'}
@@ -54,7 +59,16 @@ def create_app() -> Flask:
         with database() as cursor:
             cursor.execute('SELECT selection FROM app.catalogue ORDER BY selection')
             rows = cursor.fetchall()
-        return jsonify(selections=[links(resolve(row['selection'])) for row in rows])
+            cursor.execute('SELECT manifest_path,manifest_sha256 FROM app.revisions ORDER BY published_at,revision')
+            revision_rows = cursor.fetchall()
+        selections = [links(resolve(row['selection'])) for row in rows]
+        for row in revision_rows:
+            try:
+                revision = revisions.load_revision(row['manifest_path'], row['manifest_sha256'])
+                selections.extend(links(revisions.selected(revision, entry)) for entry in revision['batches'])
+            except (OSError, ValueError, KeyError, TypeError, ValidationError) as error:
+                raise PublicationUnavailable('published revision unavailable') from error
+        return jsonify(selections=selections)
 
     @app.get('/api/v1/jobs/<uuid:job>')
     def job_status(job):
@@ -80,16 +94,22 @@ def create_app() -> Flask:
         identity = manifest['identity']
         if any(args[key] != identity[key] for key in ('run', 'revision', 'valid_time')) or args['layer'] != identity['field']:
             raise KeyError('selection mismatch')
-        result = sampler(manifest).sample(run=args['run'], revision=args['revision'],
+        numerical = sampler(manifest)
+        result = numerical.sample(run=args['run'], revision=numerical.revision,
                                          field=args['layer'], valid_time=args['valid_time'],
                                          lon=float(args['lon']), lat=float(args['lat']))
+        result['revision'] = identity['revision']
         return jsonify(selection=manifest['selection'], **result)
 
     @app.get('/api/v1/selections/<selection>/tiles.json')
     def tile_metadata(selection):
         arguments(set())
         manifest = resolve(selection)
-        return Response(asset_path(ROOT, manifest['tile_metadata']).read_bytes(), content_type='application/json')
+        metadata = json.loads(asset_path(ROOT, manifest['tile_metadata']).read_bytes())
+        metadata.update(selection=selection, identity=manifest['identity'],
+                        representative_tiles=manifest['tile_checks'],
+                        url=CONTRACT['url_template'].replace('{selection}', selection).replace('{encoding}', manifest['encoding']))
+        return jsonify(metadata)
 
     @app.get('/api/v1/selections/<selection>/tiles/2/<int:z>/<int:x>/<int:y>.f32')
     def tile(selection, z, x, y):
@@ -99,22 +119,41 @@ def create_app() -> Flask:
         item = next(item for item in numerical.manifest['fields'] if item['metadata']['valid_time'] == manifest['identity']['valid_time'])
         payload = encode(*render(numerical.root, item, z, x, y), manifest['encoding'])
         response = Response(payload, content_type=CONTRACT['encodings']['f32']['content_type'])
-        response.headers['Cache-Control'] = 'no-store'
+        response.headers['Cache-Control'] = 'private, no-cache'
+        response.set_etag(hashlib.sha256(payload).hexdigest())
         return response
 
     @app.get('/gis/v1/runs/<path:run_id>/revisions/<revision>/wms')
     def wms(run_id, revision):
-        catalogue_value = catalogue().get_json()
-        candidates = [item for item in catalogue_value['selections'] if item['run'] == run_id and item['revision'] == revision]
+        with database() as cursor:
+            cursor.execute('SELECT manifest_path,manifest_sha256 FROM app.revisions WHERE run=%s AND revision=%s',
+                           (run_id, revision))
+            row = cursor.fetchone()
+            cursor.execute('SELECT selection FROM app.catalogue')
+            legacy = cursor.fetchall()
+        if row is not None:
+            try:
+                value = revisions.load_revision(row['manifest_path'], row['manifest_sha256'])
+                candidates = [links(revisions.selected(value, entry)) for entry in value['batches']]
+            except (OSError, ValueError, KeyError, TypeError, ValidationError) as error:
+                raise PublicationUnavailable('published revision unavailable') from error
+        else:
+            candidates = [links(resolve(item['selection'])) for item in legacy]
+            candidates = [item for item in candidates if item['run'] == run_id and item['revision'] == revision]
         if not candidates:
             raise KeyError('GIS selection')
-        manifest = resolve(candidates[0]['selection'])
-        gis = manifest['gis']
         # Normalize case, then reject duplicate and arbitrary pass-through options.
         params = {key.upper(): value for key, value in request.args.items()}
         if len(params) != len(request.args) or any(len(request.args.getlist(key)) != 1 for key in request.args):
             raise ValueError('repeated WMS parameter')
         operation = params.get('REQUEST')
+        chosen = candidates
+        if operation in ('GetMap', 'GetFeatureInfo'):
+            chosen = [item for item in candidates if item['valid_time'] == params.get('TIME')]
+        if len(chosen) != 1 and operation != 'GetCapabilities':
+            raise KeyError('GIS layer/time')
+        manifest = resolve(chosen[0]['selection'])
+        gis = manifest['gis']
         if params.get('SERVICE') != 'WMS' or params.get('VERSION') != '1.3.0':
             raise ValueError('WMS 1.3.0 required')
         allowed = {'SERVICE', 'VERSION', 'REQUEST'}
@@ -165,12 +204,22 @@ def create_app() -> Flask:
                         if node.tag == namespace+'Format' and node.text != expected:
                             parent.remove(node)
             for node in root.iter():
+                if node.tag == namespace+'Dimension' and node.get('name') == 'time':
+                    node.text = ','.join(sorted({item['valid_time'] for item in candidates}))
+                    node.set('default', min(item['valid_time'] for item in candidates))
+                    node.set('nearestValue', '0')
                 for key in list(node.attrib):
                     if key.endswith('}href'):
                         node.set(key, scoped)
                 if node.tag.endswith('}Name') and node.text and node.text.split(':')[-1] == gis['coverage']:
                     node.text = 'temperature'
             payload = ET.tostring(root, encoding='utf-8', xml_declaration=True)
-        return Response(payload, content_type=result.headers.get('Content-Type', 'application/xml'))
+        response = Response(payload, content_type=result.headers.get('Content-Type', 'application/xml'))
+        response.headers['Cache-Control'] = 'private, no-cache'
+        response.set_etag(hashlib.sha256(json.dumps({'run': run_id, 'revision': revision,
+            'field': manifest['identity']['field'], 'level': manifest['identity']['level'],
+            'grid': manifest['identity']['native_grid_sha256'], 'member': manifest['identity']['member'],
+            'renderer': 'geoserver-2.27.0', 'parameters': params}, sort_keys=True).encode()).hexdigest())
+        return response
 
     return app

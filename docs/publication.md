@@ -1,4 +1,91 @@
-# One-time publication through the gateway
+# Incremental publication through the gateway
+
+Scope: [#17](https://github.com/stepanosokin/hmc-app-prototype/issues/17), T5,
+extends the retained T4 foundation below. The default worker submission publishes
+all 24 actual sample times **one validated time at a time**. A run with one
+map-ready time is usable. `completeness: unknown` is intentional: the supplied
+file's 24 messages are not an expected producer inventory.
+
+## Reproduce T5
+
+```powershell
+./publication/run-revisions.ps1 -Project hmc-publication-t5-example -Port 8101
+```
+
+Choose a fresh project and free port. The runner refuses existing project volumes
+or report directories, creates independent secrets/volumes, and retains every
+attempt under `data/reports/t5/<project>`. It waits for real database/GeoServer
+readiness, checks native startup/shutdown exits and types, exercises concurrent
+gateway reads during incremental ingestion, then restarts the persistent services
+and rechecks retained revisions, real granules and identify values. Finally it
+runs the complete decoder/storage/numeric/HTTP suite and archived-evidence check.
+Its inherited engine decision and browser probes are byte-identical copies of
+the approved T4 evidence; T5 changes no tile encoding, CRS or dependency lock.
+
+Worker commands use that project's environment and Compose options:
+
+```powershell
+# All 24 actual times, incrementally (default).
+docker compose --env-file data/reports/t5/<project>/environment.env --project-name <project> --file compose.publication.yaml run --rm worker submit --clock 2026-10-19T05:00:00Z
+# Optional bounded delivery: demonstrate missing 02, followed by late 02.
+# Add --hours 1,3 to submit, consume with worker once, then submit --hours 2.
+```
+
+Set `PUBLICATION_EVIDENCE_DIR=./data/reports/t5/<project>`,
+`PUBLICATION_IMAGE=hmc-publication:t5` and `T4_PORT` as in the runner when using
+these commands outside its process. On an existing T4 database, run
+`worker once --migrate` **before restarting the upgraded API**. This additive
+migration preserves legacy catalogue rows and grants the reader only SELECT on
+the new revision table. Historical T4 submissions remain reproducible with
+`--legacy-one-time`; `run.ps1` explicitly selects that mode.
+
+## Revision and read contract
+
+Each compatible field/level/time/grid/member occupies one immutable batch:
+one native Zarr, one validated COG, numeric metadata/representative bytes and one
+private GeoServer ImageMosaic workspace/index. The mosaic uses a hard link to
+the immutable COG. A correction writes a replacement batch/workspace; existing
+assets and indexes remain untouched. Identical validated message deliveries
+reuse their existing batch without another revision. Each new time/correction
+creates a small revision JSON listing hashed batch references and its parent;
+it does not copy a growing run. The bounded sample resolver caches up to 64
+verified batch manifests, while every request still checks catalogue eligibility.
+
+The queue's existing advisory lock serializes writers. Each time commits after
+numeric readiness and actual GeoServer positive/negative granule, discovery,
+visible-map and native-value/placement checks. Later failures leave committed
+times usable, even when the overall job becomes `failed`. `jobs.selection` may
+therefore identify the last successfully published time of a partially failed job.
+Automatic retry/recovery policy remains the subsequent slice.
+
+Catalogue selections are explicitly pinned to a run/revision and exact time;
+`valid_times` advertises that revision's actual time set. The opaque selection
+binds revision and compatible batch key. Numerical sampling resolves the chosen
+batch's native sampler and reports the public revision. Numeric metadata and
+URLs include the full selection identity, matrix, resampling, engine and encoding
+version; coordinates are in each tile URL. ETag is the numeric-byte SHA256.
+Palette/shader state does not participate in numeric identity. WMS rendered
+identities separately include the requested style and portrayal parameters.
+Cache responses require revalidation (`private, no-cache`); no new unbounded
+server cache or policy-bypass path is introduced.
+
+WMS capabilities combine only the verified batch times in the requested revision.
+Maps/identify dispatch to the exact batch's real GeoServer workspace; missing or
+ambiguous times return 404 before forwarding. Other runs/revisions cannot supply
+a fallback. No staged workspace is discoverable through the gateway.
+
+Fixtures `--fixture overlap` and `--fixture correction` are **synthetic
+supplements**, never corrected producer input: the first explicitly names a
+synthetic overlapping run, the second adds exactly 1 K to a replacement time.
+Catalogue, manifests and provenance label them. Omitting hour 02 before late
+delivery supplies the explicitly labelled missing-time scenario.
+
+The T5 evidence covers the server portion of A5. Delayed browser decode/upload,
+navigation races and explicit viewer updates belong to #25–#26; desktop QGIS,
+producer datum confirmation and agreed-host capacity remain their separate
+acceptance gates. T5 does not complete all of A5 or M2/M3.
+
+## Retained T4 foundation
 
 Scope: [#16](https://github.com/stepanosokin/hmc-app-prototype/issues/16), T4 / M2
 foundation. This sample-only slice publishes the actual ICON-EU surface temperature
@@ -42,7 +129,7 @@ in both import orders; a test printing `OK` with a failed process exit is reject
 Operator commands, with the same environment/project options used by the runner:
 
 ```powershell
-docker compose --env-file data/reports/t4/environment.env -p hmc-publication-t4-check -f compose.publication.yaml run --rm worker submit --clock 2026-10-19T00:03:00Z
+docker compose --env-file data/reports/t4/environment.env -p hmc-publication-t4-check -f compose.publication.yaml run --rm worker submit --clock 2026-10-19T00:03:00Z --legacy-one-time
 docker compose --env-file data/reports/t4/environment.env -p hmc-publication-t4-check -f compose.publication.yaml run --rm worker once
 # Alternatively keep one durable queue consumer running:
 docker compose --env-file data/reports/t4/environment.env -p hmc-publication-t4-check -f compose.publication.yaml up --detach worker

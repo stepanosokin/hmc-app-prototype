@@ -70,7 +70,7 @@ def write_once(path: Path, value: dict) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-@lru_cache(maxsize=8)
+@lru_cache(maxsize=64)
 def load_manifest(relative: str, checksum: str) -> dict:
     path = asset_path(ROOT, relative)
     if file_hash(path) != checksum:
@@ -86,6 +86,22 @@ def load_manifest(relative: str, checksum: str) -> dict:
 
 
 def resolve(selection: str) -> dict:
+    if '.' in selection:
+        from publication.revisions import load_revision, selected
+        revision, key = selection.split('.', 1)
+        with database() as cursor:
+            cursor.execute('SELECT manifest_path,manifest_sha256 FROM app.revisions WHERE revision=%s', (revision,))
+            row = cursor.fetchone()
+        if row is None:
+            raise KeyError('unavailable published revision')
+        try:
+            manifest = load_revision(row['manifest_path'], row['manifest_sha256'])
+            entries = [entry for entry in manifest['batches'] if entry['key'] == key]
+            if not entries:
+                raise KeyError('unavailable time in revision')
+            return selected(manifest, entries[0])
+        except (OSError, ValueError, TypeError, ValidationError) as error:
+            raise PublicationUnavailable('published revision unavailable') from error
     with database() as cursor:
         cursor.execute('SELECT * FROM app.catalogue WHERE selection=%s', (selection,))
         row = cursor.fetchone()

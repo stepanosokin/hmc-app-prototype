@@ -29,7 +29,7 @@ function Get-Catalogue {
 function Invoke-Job {
     param([string]$Scenario,[string]$Clock)
     $t4Before = @(Get-Catalogue)
-    $t4Job = [string](Invoke-Compose run --rm worker submit --clock $Clock | Select-Object -Last 1)
+    $t4Job = [string](Invoke-Compose run --rm worker submit --clock $Clock --legacy-one-time | Select-Object -Last 1)
     $t4Job = $t4Job.Trim()
     $t4Arguments = $t4Compose + @('run','--rm')
     if ($Scenario -ne 'actual') { $t4Arguments += @('--env',"T4_TEST_FAILURE=$Scenario") }

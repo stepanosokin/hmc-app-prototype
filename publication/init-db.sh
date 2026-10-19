@@ -16,7 +16,7 @@ CREATE TABLE app.jobs (
   source_name text NOT NULL, checksum text, pipeline_version text NOT NULL,
   state text NOT NULL CHECK (state IN ('discovered','staged','decoded','normalized','derivatives_ready','validated','published','failed')),
   history jsonb NOT NULL, selection text, manifest_path text, manifest_sha256 text,
-  error text, scenario text NOT NULL DEFAULT 'actual'
+  error text, scenario text NOT NULL DEFAULT 'actual', request jsonb
 );
 CREATE TABLE app.catalogue (
   selection text PRIMARY KEY, job_id uuid UNIQUE NOT NULL REFERENCES app.jobs,
@@ -26,5 +26,11 @@ CREATE TABLE app.catalogue (
 GRANT USAGE ON SCHEMA app TO hmc_api;
 GRANT SELECT, INSERT ON app.jobs TO hmc_api;
 GRANT SELECT ON app.catalogue TO hmc_api;
+CREATE TABLE app.revisions (
+  revision text PRIMARY KEY, run text NOT NULL, manifest_path text NOT NULL,
+  manifest_sha256 text NOT NULL, published_at timestamptz NOT NULL,
+  job_id uuid NOT NULL REFERENCES app.jobs
+);
+GRANT SELECT ON app.revisions TO hmc_api;
 RESET ROLE;
 SQL
