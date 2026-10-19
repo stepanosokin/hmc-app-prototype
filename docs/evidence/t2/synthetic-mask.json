@@ -1,0 +1,125 @@
+{
+  "status": "passed",
+  "gate": "synthetic-mask-supplement",
+  "pipeline_version": "t2.1",
+  "clock": "2026-10-19T00:00:00Z",
+  "revision": "353bcb291b80f6933294c82da7f0a8db5e4fa102cfec913f1026d2630a2250c9",
+  "source": {
+    "name": "ICON_EU_T_G_2026101500.grib2",
+    "bytes": 26658586,
+    "sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a",
+    "revision": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a"
+  },
+  "tools": {
+    "python": "3.12.12",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+    "packages": {
+      "eccodes": "2.44.0",
+      "eccodeslib": "2.44.0.7",
+      "eckitlib": "1.32.3.7",
+      "fckitlib": "0.14.1.7",
+      "numpy": "2.3.4",
+      "zarr": "3.1.3",
+      "numcodecs": "0.16.3",
+      "xarray": "2025.10.1",
+      "rasterio": "1.4.3",
+      "pandas": "3.0.6"
+    },
+    "eccodes_api": "2.44.0",
+    "features": [
+      "AEC",
+      "MEMFS",
+      "JPG",
+      "PNG",
+      "ECCODES_THREADS",
+      "ECCODES_OMP_THREADS",
+      "NETCDF",
+      "FORTRAN",
+      "GEOGRAPHY"
+    ],
+    "definitions": {
+      "path": "/MEMFS/definitions",
+      "release": "2.44.0",
+      "sha256_binary": "210c8862761a1ffea1f0ec9c3ce2b07d1bca9c12c260a055cc18eb3a48c5cb2e"
+    },
+    "binary_sha256": {
+      "libeccodes.so": "7d649e7bea27db753b36dd010b8b98d10a612cca37224bac40de84802cc7c0fa",
+      "libeccodes_memfs.so": "210c8862761a1ffea1f0ec9c3ce2b07d1bca9c12c260a055cc18eb3a48c5cb2e",
+      "libaec.so": "0d44e7ecabc2d7b667dccd2224dd853e5e8a1101664c531947c465a47a81c8e7"
+    },
+    "gdal": "3.9.3",
+    "proj": "9.4.1"
+  },
+  "fields": [
+    {
+      "message": 1,
+      "valid_time": "2026-10-15T01:00:00Z",
+      "finite_cells": 904687,
+      "missing_cells": 2,
+      "zarr_max_abs_error": 0.0,
+      "cog_max_abs_error": 0.0,
+      "checks": "all native values/masks; Zarr+Xarray readers; COG full resolution/centres/bounds/overviews",
+      "representative_cells": [
+        {
+          "index": 0,
+          "row": 0,
+          "column": 0,
+          "lon": -23.5,
+          "lat": 29.5,
+          "value": null
+        },
+        {
+          "index": 1376,
+          "row": 0,
+          "column": 1376,
+          "lon": 62.5,
+          "lat": 29.5,
+          "value": 289.7391357421875
+        },
+        {
+          "index": 1377,
+          "row": 1,
+          "column": 0,
+          "lon": -23.5,
+          "lat": 29.5625,
+          "value": 298.2479248046875
+        },
+        {
+          "index": 452344,
+          "row": 328,
+          "column": 688,
+          "lon": 19.5,
+          "lat": 50.0,
+          "value": null
+        },
+        {
+          "index": 903312,
+          "row": 656,
+          "column": 0,
+          "lon": -23.5,
+          "lat": 70.5,
+          "value": 264.1590576171875
+        },
+        {
+          "index": 904688,
+          "row": 656,
+          "column": 1376,
+          "lon": 62.5,
+          "lat": 70.5,
+          "value": 279.1229248046875
+        }
+      ]
+    }
+  ],
+  "zarr_max_abs_error": 0.0,
+  "cog_max_abs_error": 0.0,
+  "cog_max_abs_error_bound_K": 0.0001,
+  "storage_bytes": {
+    "source": 26658586,
+    "zarr": 1390097,
+    "cog": 2674848,
+    "manifest": 11673,
+    "total_with_source": 30735204
+  },
+  "limitations": "Local storage A2 only; no GIS/publication/QGIS/adapter or capacity claim"
+}

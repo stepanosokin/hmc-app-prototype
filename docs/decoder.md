@@ -13,7 +13,7 @@ docker compose run --rm typecheck
 docker compose run --rm test
 ```
 
-The report is `data/reports/a1.json`. The default explicit report clock is `2026-10-19T00:00:00Z`; it labels the validation record and never changes forecast times or expires the historical sample. Runtime networking is disabled. Tests use per-invocation temporary directories on a 128 MiB tmpfs, with no application/database volumes or services.
+The report is `data/reports/a1.json`. The default explicit report clock is `2026-10-19T00:00:00Z`; it labels the validation record and never changes forecast times or expires the historical sample. Runtime networking is disabled. Tests use per-invocation temporary directories on a 512 MiB tmpfs (expanded for T2), with no application/database volumes or services.
 
 On Linux, run the containers with the invoking user's UID/GID so they can write the existing report directory:
 
@@ -21,7 +21,7 @@ On Linux, run the containers with the invoking user's UID/GID so they can write 
 export DECODER_UID=$(id -u) DECODER_GID=$(id -g)
 ```
 
-Docker Desktop on Windows works with the default container user. Build dependencies are downloaded only during image construction. The base image is pinned by digest; every Python dependency, including ecCodes binaries, is version- and SHA256-locked in `requirements.lock`. The image is named `hmc-decoder:t1` locally and rebuilt from these inputs.
+Docker Desktop on Windows works with the default container user. Build dependencies are downloaded only during image construction. The base image is pinned by digest; every Python dependency, including ecCodes binaries, is version- and SHA256-locked in `requirements.lock`. The current shared image is named `hmc-decoder:t2` locally and rebuilt from these inputs; [T2](storage.md) adds pinned storage readers/writers and libexpat without changing the A1 decoder contract. The checked-in T1 evidence records its original environment.
 
 To inspect another input for diagnostics or choose the report clock/path:
 
