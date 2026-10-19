@@ -1,6 +1,6 @@
 name: hmc-publication-t4
 x-app: &app
-  image: hmc-publication:t4
+  image: ${PUBLICATION_IMAGE:-hmc-publication:t4}
   build:
     context: .
     dockerfile: Dockerfile.publication
@@ -19,7 +19,7 @@ x-app: &app
   volumes:
     - assets:/assets
     - ./data/grib:/input:ro
-    - ./data/reports/t4:/evidence
+    - ${PUBLICATION_EVIDENCE_DIR:-./data/reports/t4}:/evidence
     - ./publication:/app/publication:ro
     - ./tests:/app/tests:ro
 services:

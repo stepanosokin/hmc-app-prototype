@@ -19,6 +19,6 @@ def create_app() -> Flask:
             return Response('upstream unavailable', status=503)
         return Response(upstream.content, status=upstream.status_code,
                         headers={key: value for key, value in upstream.headers.items()
-                                 if key.lower() in ('content-type', 'cache-control')})
+                                 if key.lower() in ('content-type', 'cache-control', 'etag')})
 
     return app
