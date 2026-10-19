@@ -13,3 +13,7 @@ Commit and push completed changes on the current branch. Verify that the remote 
 Keep project-specific workflow changes in this repository's agent instructions. Leave original third-party skills, including Matt Pocock's skills, unchanged unless the user explicitly requests edits to those skills.
 
 For validation, Compose runner changes, scientific compatibility changes, or issue-tracker permission failures, read [the development workflow](docs/development-workflow.md).
+
+## Test environment cleanup
+
+After each validation attempt, archive its evidence and retire every test-created container, network, and named/anonymous volume using [the cleanup procedure](docs/development-workflow.md#test-environment-cleanup). This cleanup is already authorized, including failed attempts. Verify zero resources remain for every retired project before reporting completion. Retain a live test stack only when the user explicitly requests it; identify that exception in the handoff. Keep organization source mounts, committed evidence, unrelated projects, and shared image/build caches intact.
