@@ -87,6 +87,10 @@ def create_app() -> Flask:
         cache_key = request.full_path
         use_cache = request.headers.get('X-Trial-Cache') == 'on'
         if use_cache:
+            # A valid catalogue can withdraw a previously available revision.
+            # Cached immutable content must not outlive that availability.
+            generation = hashlib.sha256((ROOT / 'catalog.json').read_bytes()).hexdigest()
+            cache_key = generation + ':' + cache_key
             with lock:
                 hit = cache.get(cache_key)
             if hit and time.monotonic() - hit[0] < 60:

@@ -187,6 +187,20 @@ class HTTPContract(unittest.TestCase):
             for suffix in ['instances', 'cube', 'trajectory']:
                 self.assertEqual(request(f'/{candidate}/ogc/collections/surface-temperature/{suffix}', identity)[0], 404)
 
+    def test_cached_revision_becomes_unavailable_after_valid_catalogue_removal(self):
+        identity = json.loads((ROOT / 'index.json').read_text())['actual']
+        initial = ['actual/manifest.json', 'masked/manifest.json']
+        try:
+            for candidate in ['narrow', 'pygeoapi']:
+                replace_json(ROOT / 'catalog.json', initial)
+                path = f'/{candidate}/ogc/collections'
+                self.assertEqual(request(path, identity, headers={'X-Trial-Cache': 'on'})[0], 200)
+                replace_json(ROOT / 'catalog.json', ['masked/manifest.json'])
+                self.assertEqual(request(path, identity)[0], 404)
+                self.assertEqual(request(path, identity, headers={'X-Trial-Cache': 'on'})[0], 404)
+        finally:
+            replace_json(ROOT / 'catalog.json', initial)
+
 
 if __name__ == '__main__':
     unittest.main()
