@@ -242,6 +242,9 @@ require regular files and share a 600-second capture deadline. Only a flushed,
 renamed original and durable capture receipt make the job eligible for processing.
 If the original is already complete when capture is interrupted, `retry --job`
 finishes capture from that managed original, including without the source mount.
+Collection can remove abandoned capture fragments once their exact bytes are
+verified as a prefix of the retained checksum-verified complete original. Distinct
+fragments remain quarantined rather than discarding the only managed copy.
 Partial, truncated and unsupported deliveries become terminal
 quarantined jobs (`failed`, `retryable=false`, failed stage/error class), with
 their original captured bytes retained. Correct the producer delivery and submit

@@ -219,8 +219,13 @@ class Recovery(unittest.TestCase):
                 self.cli('retry', '--job', job)
             self.cli('once')
             self.assertEqual(self.status(job)['state'], 'published')
+            collected = json.loads(self.cli('collect', '--apply'))
+            if stage == 'capture':
+                self.assertTrue(any(path.startswith(job + '/capture-') for path in collected['removed']), collected)
+            self.assertEqual((Path('/assets') / job / 'original.grib2').read_bytes(),
+                             Path('/input/ICON_EU_T_G_2026101500.grib2').read_bytes())
             observations.append({'stage': stage, 'killed_exit_code': process.returncode,
-                                 'interrupted_status': status, 'resumed_status': self.status(job)})
+                                 'interrupted_status': status, 'resumed_status': self.status(job), 'collection': collected})
         Path('/evidence/t6-capture.json').write_text(json.dumps(observations, indent=2))
 
     def test_e_partial_job_collects_only_abandoned_hours(self):

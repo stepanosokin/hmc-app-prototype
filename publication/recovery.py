@@ -13,6 +13,7 @@ import time
 import uuid
 import signal
 import stat
+import re
 from contextlib import contextmanager
 
 from decoder.inspect_forecast import SAMPLE_SHA256, ValidationError
@@ -265,6 +266,17 @@ def retry(identifier: str) -> None:
                            (json.dumps([{'state': 'discovered', 'operator_retry': True}]), identifier))
 
 
+def captured_prefix(partial: Path, original: Path) -> bool:
+    """Only discard a fragment whose exact bytes remain in a managed original."""
+    if partial.stat().st_size > original.stat().st_size:
+        return False
+    with partial.open('rb') as fragment, original.open('rb') as complete:
+        while chunk := fragment.read(1024**2):
+            if complete.read(len(chunk)) != chunk:
+                return False
+    return True
+
+
 def collect(*, apply: bool = False) -> dict:
     """Collect whole unreferenced attempts under the same writer lock, never sources.
 
@@ -281,7 +293,7 @@ def collect(*, apply: bool = False) -> dict:
             rows = cursor.fetchall()
             cursor.execute('SELECT manifest_path FROM app.catalogue')
             roots = [row['manifest_path'] for row in cursor.fetchall()]
-            cursor.execute('SELECT id,state,stage,error,retryable FROM app.jobs')
+            cursor.execute('SELECT id,state,stage,error,retryable,managed_source,checksum FROM app.jobs')
             jobs = cursor.fetchall()
         for row in rows:
             value = load_revision(row['manifest_path'], row['manifest_sha256'])
@@ -292,6 +304,16 @@ def collect(*, apply: bool = False) -> dict:
         removed = []
         for job in jobs:
             directory = ROOT / str(job['id'])
+            original = ROOT / job['managed_source'] if job['managed_source'] else None
+            if (original is not None and original.is_file()
+                    and bounded_checksum(original, MAX_SOURCE_BYTES + 1) == job['checksum']):
+                for partial in sorted(directory.glob('capture-*.grib2')):
+                    if (not partial.is_symlink() and re.fullmatch(r'capture-[0-9a-f]{32}\.grib2', partial.name)
+                            and captured_prefix(partial, original)):
+                        candidates.append(partial.relative_to(ROOT).as_posix())
+                        if apply:
+                            partial.unlink()
+                            removed.append(partial.relative_to(ROOT).as_posix())
             for attempt in sorted(directory.iterdir()) if directory.exists() else []:
                 if not attempt.is_dir() or attempt.is_symlink():
                     continue
