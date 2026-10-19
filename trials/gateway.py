@@ -87,16 +87,22 @@ def create_app() -> Flask:
         cache_key = request.full_path
         use_cache = request.headers.get('X-Trial-Cache') == 'on'
         if use_cache:
-            # A valid catalogue can withdraw a previously available revision.
-            # Cached immutable content must not outlive that availability.
-            generation = hashlib.sha256((ROOT / 'catalog.json').read_bytes()).hexdigest()
-            cache_key = generation + ':' + cache_key
-            with lock:
-                hit = cache.get(cache_key)
-            if hit and time.monotonic() - hit[0] < 60:
-                g.cache = 'HIT'
-                return Response(hit[1], content_type=hit[2])
-            g.cache = 'MISS'
+            # Invalid input can preserve different previous accepted states.
+            # Use the backend's accepted generation, never raw input identity.
+            try:
+                with urlopen(f'http://{candidate}:8000/generation', timeout=10) as generation_response:
+                    state = json.loads(generation_response.read(4096))
+            except (URLError, TimeoutError, ValueError):
+                return jsonify(code='ServiceUnavailable'), 503
+            use_cache = state['refresh_error'] is None
+            if use_cache:
+                cache_key = state['generation'] + ':' + cache_key
+                with lock:
+                    hit = cache.get(cache_key)
+                if hit and time.monotonic() - hit[0] < 60:
+                    g.cache = 'HIT'
+                    return Response(hit[1], content_type=hit[2])
+                g.cache = 'MISS'
         upstream = Request(f'http://{candidate}:8000/{path}?{request.query_string.decode()}',
                            headers={'Accept': 'application/json'})
         try:

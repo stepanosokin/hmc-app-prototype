@@ -198,6 +198,17 @@ class HTTPContract(unittest.TestCase):
                 replace_json(ROOT / 'catalog.json', ['masked/manifest.json'])
                 self.assertEqual(request(path, identity)[0], 404)
                 self.assertEqual(request(path, identity, headers={'X-Trial-Cache': 'on'})[0], 404)
+                # The same invalid input can preserve different accepted
+                # catalogues depending on the last successful refresh.
+                invalid = initial + ['actual/missing.json']
+                replace_json(ROOT / 'catalog.json', initial)
+                self.assertEqual(request(path, identity)[0], 200)
+                replace_json(ROOT / 'catalog.json', invalid)
+                self.assertEqual(request(path, identity, headers={'X-Trial-Cache': 'on'})[0], 200)
+                replace_json(ROOT / 'catalog.json', ['masked/manifest.json'])
+                self.assertEqual(request(path, identity)[0], 404)
+                replace_json(ROOT / 'catalog.json', invalid)
+                self.assertEqual(request(path, identity, headers={'X-Trial-Cache': 'on'})[0], 404)
         finally:
             replace_json(ROOT / 'catalog.json', initial)
 
