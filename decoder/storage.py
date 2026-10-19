@@ -22,17 +22,21 @@ from rasterio.transform import from_origin
 from decoder.inspect_forecast import SAMPLE_SHA256, decode_message, require, sections, tool_versions
 from decoder.sampling import ManifestSampler, asset_path, canonical, file_hash, read_values
 
-PIPELINE = 't2.1'
+PIPELINE = 't2.3'
 TOLERANCE_K = 0.0001
 MAX_FRAME_BYTES = 8 * 1024 * 1024
 FIELD = 'T_G:surface:0'
 RUN = 'ICON-EU/2026-10-15T00:00:00Z'
+# GRIB table 3.2 code 6. Greenwich origin is the documented interpretation;
+# producer confirmation of the precise datum/origin remains a GIS gate input.
+NATIVE_CRS = rasterio.crs.CRS.from_string('+proj=longlat +R=6371229 +no_defs')
 
 
 def field_metadata(frame: bytes, hour: int) -> dict:
     metadata = decode_message(frame, hour)
     raw = sections(frame)
     metadata.update(model='ICON-EU', ensemble_member=None,
+                    native_crs_wkt=NATIVE_CRS.to_wkt(),
                     native_grid_sha256=hashlib.sha256(raw[3]).hexdigest(),
                     source_message_sha256=hashlib.sha256(frame).hexdigest(),
                     grib_metadata_sections_hex={str(number): section.hex()
@@ -66,6 +70,7 @@ def decoded_arrays(frame: bytes, shape: list[int]) -> tuple[np.ndarray, np.ndarr
 def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missing: np.ndarray) -> dict:
     """Internal one-field writer; COG reads the completed Zarr, never the GRIB array."""
     zpath, cpath = root / f'{name}.zarr', root / f'{name}.tif'
+    require(metadata['grid']['earth_shape_code'] == 6, 'unsupported native earth shape')
     group = zarr.open_group(str(zpath), mode='w-', zarr_format=2)
     group.attrs.update(metadata=metadata, pipeline_version=PIPELINE)
     ny, nx = values.shape
@@ -91,7 +96,7 @@ def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missi
     temporary = root / f'{name}.working.tif'
     with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True, GDAL_NUM_THREADS='1'):
         with rasterio.open(temporary, 'w', driver='GTiff', width=nx, height=ny, count=1,
-                           dtype='float32', crs='EPSG:4326',
+                           dtype='float32', crs=NATIVE_CRS,
                            transform=from_origin(west, north, dx, dy), tiled=True,
                            blockxsize=256, blockysize=256, compress='DEFLATE') as raster:
             raster.write(numeric, 1)
@@ -131,7 +136,10 @@ def check_field(root: Path, item: dict, baseline: np.ndarray, missing: np.ndarra
     require(np.array_equal(read_values(group, 'longitude'), west + dx / 2 + np.arange(nx) * dx), 'longitude centres changed')
     require(np.array_equal(read_values(group, 'latitude'), south + dy / 2 + np.arange(ny) * dy), 'latitude centres changed')
     with rasterio.open(asset_path(root, item['cog'])) as raster:
-        require(raster.crs == rasterio.crs.CRS.from_epsg(4326), 'COG CRS changed')
+        require(metadata['grid']['earth_shape_code'] == 6, 'unsupported native earth shape')
+        # GeoTIFF normalizes geographic WKT axis ordering. Compare operative
+        # projection/ellipsoid/prime-meridian parameters, not that serialization.
+        require(raster.crs.to_dict() == NATIVE_CRS.to_dict(), 'COG native spherical CRS changed')
         require(raster.transform == from_origin(west, north, dx, dy), 'half-cell georeferencing failed')
         require(tuple(raster.bounds) == (west, south, east, north), 'COG bounds failed')
         require(raster.tags(ns='IMAGE_STRUCTURE').get('LAYOUT') == 'COG', 'COG layout failed')
@@ -147,6 +155,7 @@ def check_field(root: Path, item: dict, baseline: np.ndarray, missing: np.ndarra
             lon, lat = raster.xy(ny - 1 - cell['row'], cell['column'])
             require((lon, lat) == (cell['lon'], cell['lat']), 'COG cell centre failed')
     return {'message': metadata['message'], 'valid_time': metadata['valid_time'],
+            'native_crs_wkt': raster.crs.to_wkt(),
             'finite_cells': int(np.count_nonzero(~missing)), 'missing_cells': int(missing.sum()),
             'zarr_max_abs_error': 0.0, 'cog_max_abs_error': error,
             'checks': 'all native values/masks; Zarr+Xarray readers; COG full resolution/centres/bounds/overviews',
