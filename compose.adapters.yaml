@@ -17,10 +17,96 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.adapters
-    command: ["/app/trials/agreement.pending.json"]
+    command: ["/app/trials/agreement.json"]
   typecheck:
     <<: *trial
     entrypoint: ["mypy", "--ignore-missing-imports", "--check-untyped-defs", "--cache-dir=/tmp/mypy", "decoder", "tests", "trials"]
   test:
     <<: *trial
     entrypoint: ["python", "-m", "unittest", "discover", "-s", "tests", "-v"]
+  fixture:
+    <<: *trial
+    user: "0:0"
+    entrypoint: ["python", "-m", "trials.fixture"]
+    volumes:
+      - ./data/grib:/input:ro
+      - fixtures:/fixtures
+  http-test:
+    image: hmc-adapters:t3
+    read_only: true
+    user: "65532:65532"
+    networks: [trial]
+    entrypoint: ["python", "-m", "unittest", "trials.test_http", "-v"]
+    volumes:
+      - fixtures:/fixtures
+  narrow: &backend
+    image: hmc-adapters:t3
+    platform: linux/amd64
+    user: "65532:65532"
+    cpus: 2
+    mem_limit: 2g
+    memswap_limit: 2g
+    pids_limit: 64
+    read_only: true
+    tmpfs: ["/tmp:size=128m,mode=1777"]
+    networks: [trial]
+    environment:
+      TZ: UTC
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      ZARR_ASYNC__CONCURRENCY: "4"
+      ZARR_THREADING__MAX_WORKERS: "4"
+    volumes:
+      - fixtures:/fixtures:ro
+    entrypoint: ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--threads=1", "--timeout=30", "--access-logfile=/dev/null", "trials.app:create_app('narrow')"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://localhost:8000/health', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  pygeoapi:
+    <<: *backend
+    entrypoint: ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--threads=1", "--timeout=30", "--access-logfile=/dev/null", "trials.app:create_app('pygeoapi')"]
+  gateway:
+    <<: *backend
+    cpus: 1
+    mem_limit: 512m
+    memswap_limit: 512m
+    entrypoint: ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--threads=8", "--timeout=30", "--access-logfile=/dev/null", "trials.gateway:create_app()"]
+  validate:
+    image: hmc-adapters:t3
+    platform: linux/amd64
+    user: "65532:65532"
+    networks: [trial]
+    read_only: true
+    tmpfs: ["/tmp:size=512m,mode=1777"]
+    environment:
+      TZ: UTC
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+    volumes:
+      - fixtures:/fixtures
+      - ./data/grib:/input:ro
+      - ./data/reports/t3:/reports
+    entrypoint: ["python", "-m", "trials.validate"]
+  measure:
+    image: hmc-adapters:t3
+    platform: linux/amd64
+    user: "65532:65532"
+    cpus: 2
+    mem_limit: 1g
+    read_only: true
+    tmpfs: ["/tmp:size=128m,mode=1777"]
+    networks: [trial]
+    environment:
+      TZ: UTC
+      OPENBLAS_NUM_THREADS: "1"
+    volumes:
+      - fixtures:/fixtures
+      - ./data/reports/t3:/reports
+    entrypoint: ["python", "-m", "trials.benchmark"]
+volumes:
+  fixtures:
+networks:
+  trial:
+    internal: true
