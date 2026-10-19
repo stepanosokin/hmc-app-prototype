@@ -1,0 +1,440 @@
+{
+  "name": "hmc-adapter-preparation",
+  "networks": {
+    "trial": {
+      "name": "hmc-adapter-preparation_trial",
+      "ipam": {},
+      "internal": true
+    }
+  },
+  "services": {
+    "fixture": {
+      "command": null,
+      "entrypoint": [
+        "python",
+        "-m",
+        "trials.fixture"
+      ],
+      "environment": {
+        "TZ": "UTC"
+      },
+      "image": "hmc-adapters:t3",
+      "network_mode": "none",
+      "platform": "linux/amd64",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=512m,mode=1777"
+      ],
+      "user": "0:0",
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\grib",
+          "target": "/input",
+          "read_only": true,
+          "bind": {
+            "create_host_path": true
+          }
+        },
+        {
+          "type": "volume",
+          "source": "fixtures",
+          "target": "/fixtures",
+          "volume": {}
+        }
+      ]
+    },
+    "gateway": {
+      "cpus": 1,
+      "command": null,
+      "entrypoint": [
+        "gunicorn",
+        "--bind=0.0.0.0:8000",
+        "--workers=1",
+        "--threads=8",
+        "--timeout=30",
+        "--access-logfile=/dev/null",
+        "trials.gateway:create_app()"
+      ],
+      "environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "TZ": "UTC",
+        "ZARR_ASYNC__CONCURRENCY": "4",
+        "ZARR_THREADING__MAX_WORKERS": "4"
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python",
+          "-c",
+          "from urllib.request import urlopen; urlopen('http://localhost:8000/health', timeout=2)"
+        ],
+        "timeout": "3s",
+        "interval": "2s",
+        "retries": 15
+      },
+      "image": "hmc-adapters:t3",
+      "mem_limit": "536870912",
+      "memswap_limit": "536870912",
+      "networks": {
+        "trial": null
+      },
+      "pids_limit": 64,
+      "platform": "linux/amd64",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=128m,mode=1777"
+      ],
+      "user": "65532:65532",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "fixtures",
+          "target": "/fixtures",
+          "read_only": true,
+          "volume": {}
+        }
+      ]
+    },
+    "http-test": {
+      "command": null,
+      "entrypoint": [
+        "python",
+        "-m",
+        "unittest",
+        "trials.test_http",
+        "-v"
+      ],
+      "image": "hmc-adapters:t3",
+      "networks": {
+        "trial": null
+      },
+      "read_only": true,
+      "user": "65532:65532",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "fixtures",
+          "target": "/fixtures",
+          "volume": {}
+        }
+      ]
+    },
+    "measure": {
+      "cpus": 2,
+      "command": null,
+      "entrypoint": [
+        "python",
+        "-m",
+        "trials.benchmark"
+      ],
+      "environment": {
+        "OPENBLAS_NUM_THREADS": "1",
+        "TZ": "UTC"
+      },
+      "image": "hmc-adapters:t3",
+      "mem_limit": "1073741824",
+      "networks": {
+        "trial": null
+      },
+      "platform": "linux/amd64",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=128m,mode=1777"
+      ],
+      "user": "65532:65532",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "fixtures",
+          "target": "/fixtures",
+          "volume": {}
+        },
+        {
+          "type": "bind",
+          "source": "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t3",
+          "target": "/reports",
+          "bind": {
+            "create_host_path": true
+          }
+        }
+      ]
+    },
+    "narrow": {
+      "cpus": 2,
+      "command": null,
+      "entrypoint": [
+        "gunicorn",
+        "--bind=0.0.0.0:8000",
+        "--workers=1",
+        "--threads=1",
+        "--timeout=30",
+        "--access-logfile=/dev/null",
+        "trials.app:create_app('narrow')"
+      ],
+      "environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "TZ": "UTC",
+        "ZARR_ASYNC__CONCURRENCY": "4",
+        "ZARR_THREADING__MAX_WORKERS": "4"
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python",
+          "-c",
+          "from urllib.request import urlopen; urlopen('http://localhost:8000/health', timeout=2)"
+        ],
+        "timeout": "3s",
+        "interval": "2s",
+        "retries": 15
+      },
+      "image": "hmc-adapters:t3",
+      "mem_limit": "2147483648",
+      "memswap_limit": "2147483648",
+      "networks": {
+        "trial": null
+      },
+      "pids_limit": 64,
+      "platform": "linux/amd64",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=128m,mode=1777"
+      ],
+      "user": "65532:65532",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "fixtures",
+          "target": "/fixtures",
+          "read_only": true,
+          "volume": {}
+        }
+      ]
+    },
+    "preflight": {
+      "build": {
+        "context": "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype",
+        "dockerfile": "Dockerfile.adapters"
+      },
+      "command": [
+        "/app/trials/agreement.json"
+      ],
+      "entrypoint": null,
+      "environment": {
+        "TZ": "UTC"
+      },
+      "image": "hmc-adapters:t3",
+      "network_mode": "none",
+      "platform": "linux/amd64",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=512m,mode=1777"
+      ],
+      "user": "65532:65532",
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\grib",
+          "target": "/input",
+          "read_only": true,
+          "bind": {
+            "create_host_path": true
+          }
+        }
+      ]
+    },
+    "pygeoapi": {
+      "cpus": 2,
+      "command": null,
+      "entrypoint": [
+        "gunicorn",
+        "--bind=0.0.0.0:8000",
+        "--workers=1",
+        "--threads=1",
+        "--timeout=30",
+        "--access-logfile=/dev/null",
+        "trials.app:create_app('pygeoapi')"
+      ],
+      "environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "TZ": "UTC",
+        "ZARR_ASYNC__CONCURRENCY": "4",
+        "ZARR_THREADING__MAX_WORKERS": "4"
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python",
+          "-c",
+          "from urllib.request import urlopen; urlopen('http://localhost:8000/health', timeout=2)"
+        ],
+        "timeout": "3s",
+        "interval": "2s",
+        "retries": 15
+      },
+      "image": "hmc-adapters:t3",
+      "mem_limit": "2147483648",
+      "memswap_limit": "2147483648",
+      "networks": {
+        "trial": null
+      },
+      "pids_limit": 64,
+      "platform": "linux/amd64",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=128m,mode=1777"
+      ],
+      "user": "65532:65532",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "fixtures",
+          "target": "/fixtures",
+          "read_only": true,
+          "volume": {}
+        }
+      ]
+    },
+    "test": {
+      "command": null,
+      "entrypoint": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-v"
+      ],
+      "environment": {
+        "TZ": "UTC"
+      },
+      "image": "hmc-adapters:t3",
+      "network_mode": "none",
+      "platform": "linux/amd64",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=512m,mode=1777"
+      ],
+      "user": "65532:65532",
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\grib",
+          "target": "/input",
+          "read_only": true,
+          "bind": {
+            "create_host_path": true
+          }
+        }
+      ]
+    },
+    "typecheck": {
+      "command": null,
+      "entrypoint": [
+        "mypy",
+        "--ignore-missing-imports",
+        "--check-untyped-defs",
+        "--cache-dir=/tmp/mypy",
+        "decoder",
+        "tests",
+        "trials"
+      ],
+      "environment": {
+        "TZ": "UTC"
+      },
+      "image": "hmc-adapters:t3",
+      "network_mode": "none",
+      "platform": "linux/amd64",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=512m,mode=1777"
+      ],
+      "user": "65532:65532",
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\grib",
+          "target": "/input",
+          "read_only": true,
+          "bind": {
+            "create_host_path": true
+          }
+        }
+      ]
+    },
+    "validate": {
+      "command": null,
+      "entrypoint": [
+        "python",
+        "-m",
+        "trials.validate"
+      ],
+      "environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "TZ": "UTC"
+      },
+      "image": "hmc-adapters:t3",
+      "networks": {
+        "trial": null
+      },
+      "platform": "linux/amd64",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=512m,mode=1777"
+      ],
+      "user": "65532:65532",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "fixtures",
+          "target": "/fixtures",
+          "volume": {}
+        },
+        {
+          "type": "bind",
+          "source": "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\grib",
+          "target": "/input",
+          "read_only": true,
+          "bind": {
+            "create_host_path": true
+          }
+        },
+        {
+          "type": "bind",
+          "source": "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t3",
+          "target": "/reports",
+          "bind": {
+            "create_host_path": true
+          }
+        }
+      ]
+    }
+  },
+  "volumes": {
+    "fixtures": {
+      "name": "hmc-adapter-preparation_fixtures"
+    }
+  },
+  "x-trial": {
+    "environment": {
+      "TZ": "UTC"
+    },
+    "image": "hmc-adapters:t3",
+    "network_mode": "none",
+    "platform": "linux/amd64",
+    "read_only": true,
+    "tmpfs": [
+      "/tmp:size=512m,mode=1777"
+    ],
+    "user": "65532:65532",
+    "volumes": [
+      "./data/grib:/input:ro"
+    ]
+  }
+}

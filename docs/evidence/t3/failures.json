@@ -1,0 +1,16 @@
+{
+  "scope": "T3 retained implementation, measurement and review failures; no failed scientific/storage gate was substituted with another architecture",
+  "history": [
+    {"stage": "initial HTTP tracer", "result": "failed", "reason": "gateway/service DNS absent before implementation", "resolution": "implemented real isolated Compose services; independent native-cell contract passed"},
+    {"stage": "EDR tracer", "result": "failed", "reason": "position route absent, then pinned pygeoapi BaseProvider.get_fields raised NotImplementedError", "resolution": "implemented actual EDR plugin and required field discovery; all 24 times/six cells passed"},
+    {"stage": "discovery tracer", "result": "failed", "reason": "pygeoapi metadata generation required keywords; source CRS needed explicit project integration", "resolution": "complete bounded collection metadata, explicit native-sphere profile, scoped links; no WGS84/conformance claim"},
+    {"stage": "diagnostic process", "result": "failed", "reason": "additional interpreter inside PID-limited service attempted 24 OpenBLAS threads and exhausted threads", "resolution": "same explicit BLAS/OpenMP/Zarr thread limits for both candidates before selected measurements"},
+    {"stage": "attempt-1", "result": "interrupted", "reason": "catalogue JSON whitespace changed the raw reproducibility fingerprint after the first repetition; next candidate refused timing", "resolution": "canonical fixture/test JSON serialization; discarded incomplete comparison from selection, retained first report/checksum in prior attempt summaries"},
+    {"stage": "attempt-2 telemetry", "result": "local thresholds passed; I/O evidence incomplete", "reason": "empty cgroup io.stat provided no device counters", "resolution": "explicitly mark cgroup I/O unavailable and additionally collect worker logical/syscall/block I/O; no empty-as-zero claim"},
+    {"stage": "cache review", "result": "HTTP regression failed 200 versus required 404", "reason": "cached revision survived successful catalogue withdrawal", "resolution": "generation-aware lookup and real HTTP withdrawal regression"},
+    {"stage": "failed-refresh cache review", "result": "HTTP regression failed 200 versus required 404", "reason": "identical invalid catalogue bytes could preserve different previously accepted states", "resolution": "probe backend accepted generation, bypass cached delivery/storage during refresh errors; A-invalidB-C-invalidB regression passed"},
+    {"stage": "concurrent cache-write review", "result": "source race identified", "reason": "probe and forwarded response could use different accepted generations", "resolution": "capture generation with actual selection and bind cache storage to upstream response header; source review verified fix under pinned sync worker/thread"},
+    {"stage": "per-operation gate review", "result": "pooled percentile could conceal an operation failure", "resolution": "domain and EDR point p95/p99 assessed separately; all recorded repetitions passed those individual limits"}
+  ],
+  "decision": "Preserve Zarr numerical core, GeoServer WMS and deferred Martin. Revisit selected numerical adapter if later external-CRS/profile/publication compatibility fails."
+}

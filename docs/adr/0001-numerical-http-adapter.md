@@ -1,0 +1,3 @@
+# Select the narrow numerical HTTP adapter
+
+For the prototype's domain point and bounded EDR position surface, select the narrow HTTP adapter over the shared manifest-backed Zarr sampler. The [agreed-host T3 comparison](../evidence/t3/validation.md) verifies the same values, masks, selection and gateway policy through real pygeoapi and narrow paths; both meet the local envelope, while the narrow path needs fewer framework-specific routing/CRS/discovery integrations and its measured resources support the choice. GeoServer retains temporal WMS and Martin stays deferred; M3 must still prove the external OGC/CRS/QGIS/publication gates, and a failed compatibility gate or broader workload requires revisiting this choice.
