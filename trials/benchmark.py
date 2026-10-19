@@ -162,7 +162,8 @@ def main() -> int:
     point = percentiles([row for row in rows if row['operation'] != 'metadata'])
     metadata = operations['metadata']
     thresholds_passed = (successful == len(rows) and successful / elapsed >= agreed['min_success_rps']
-                         and all(point[f'p{p}_ms'] <= agreed[f'point_p{p}_ms'] for p in [95, 99])
+                         and all(operations[operation][f'p{p}_ms'] <= agreed[f'point_p{p}_ms']
+                                 for operation in ['domain', 'edr'] for p in [95, 99])
                          and all(metadata[f'p{p}_ms'] <= agreed[f'metadata_p{p}_ms'] for p in [95, 99])
                          and all(row['correct'] and row['elapsed_ms'] <= agreed[
                              'metadata_p99_ms' if row['operation'] == 'metadata' else 'point_p99_ms'] for row in first)
