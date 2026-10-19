@@ -1,0 +1,23 @@
+test_recoverable_delivery_is_idempotent (test_publication_recovery.Recovery.test_recoverable_delivery_is_idempotent) ... FAIL
+
+======================================================================
+FAIL: test_recoverable_delivery_is_idempotent (test_publication_recovery.Recovery.test_recoverable_delivery_is_idempotent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_recovery.py", line 36, in test_recoverable_delivery_is_idempotent
+    first = self.cli(*args)
+            ^^^^^^^^^^^^^^^
+  File "/app/tests/test_publication_recovery.py", line 21, in cli
+    self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+AssertionError: 2 != 0 : usage: worker.py [-h] [--clock CLOCK] [--hours HOURS]
+                 [--fixture {actual,correction,overlap}] [--legacy-one-time]
+                 [--migrate]
+                 {submit,once,run}
+worker.py: error: unrecognized arguments: --recoverable
+
+
+----------------------------------------------------------------------
+Ran 1 test in 1.073s
+
+FAILED (failures=1)
+
