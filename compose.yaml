@@ -29,7 +29,7 @@ services:
       - ./data/grib:/input:ro
       - ./data/reports:/reports
       - ./data/storage:/storage
-    command: ["build", "/input/ICON_EU_T_G_2026101500.grib2", "/storage/sample-t2", "--clock", "2026-10-19T00:00:00Z", "--report", "/reports/a2.json"]
+    command: ["build", "/input/ICON_EU_T_G_2026101500.grib2", "/storage/sample-t2.3", "--clock", "2026-10-19T00:00:00Z", "--report", "/reports/a2.json"]
   typecheck:
     <<: *decoder
     entrypoint: ["mypy", "--ignore-missing-imports", "--check-untyped-defs", "--cache-dir=/tmp/mypy", "decoder", "tests"]

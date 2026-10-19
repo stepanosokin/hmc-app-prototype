@@ -11,8 +11,8 @@ Commands, output paths and Linux UID/GID handling are in [storage instructions](
 ```sh
 docker compose build decode
 docker compose run --rm storage
-docker compose run --rm storage verify /input/ICON_EU_T_G_2026101500.grib2 /storage/sample-t2/manifest.json --clock 2026-10-19T00:00:00Z --report /reports/a2-recheck.json
-docker compose run --rm storage build /input/ICON_EU_T_G_2026101500.grib2 /storage/nodata-t2 --clock 2026-10-19T00:00:00Z --synthetic-nodata --report /reports/synthetic-mask.json
+docker compose run --rm storage verify /input/ICON_EU_T_G_2026101500.grib2 /storage/sample-t2.3/manifest.json --clock 2026-10-19T00:00:00Z --report /reports/a2-recheck.json
+docker compose run --rm storage build /input/ICON_EU_T_G_2026101500.grib2 /storage/nodata-t2.3 --clock 2026-10-19T00:00:00Z --synthetic-nodata --report /reports/synthetic-mask.json
 docker compose run --rm typecheck
 docker compose run --rm test
 ```
@@ -21,7 +21,7 @@ Reports use an explicit fixed clock, not the historical source valid time as an 
 
 - [Actual-sample A2 report](a2.json): all 24 fields and per-field checks, dependency/binary hashes, precision bound and actual bytes.
 - [Independent saved-data recheck](a2-recheck.json): reopen manifest/assets, decode source again, compare metadata and all native values/masks.
-- [Immutable test manifest snapshot](manifest.json): revision `63ec93bdd579d75ddbb020d8e895d102c1afa4e11455c10d98848ba5f9fea3aa`, field identities, raw metadata sections, provenance, coordinates and inventory of every asset with size/hash. This archival snapshot needs the corresponding locally generated assets to be sampled; no source bytes or raster arrays are redistributed.
+- [Immutable test manifest snapshot](manifest.json): revision `40340e8fe7243219983b8fbcf3290ae22f50c1e14c377a39a097cba31e66dab4`, field identities, raw metadata sections, provenance, coordinates and inventory of every asset with size/hash. This archival snapshot needs the corresponding locally generated assets to be sampled; no source bytes or raster arrays are redistributed.
 - [Synthetic missing-mask supplement](synthetic-mask.json): first sample field with explicitly introduced missing southwest and central cells. Separate gate and manifest flag; never counted as producer nodata evidence.
 
 ## Observed correctness
@@ -30,7 +30,7 @@ Reports use an explicit fixed clock, not the historical source valid time as an 
 
 - Zarr float64 + lossless Blosc/Zstd/bitshuffle: **0 K** maximum absolute error for all finite source values. Zarr and default-CF Xarray readers both agree on values, uint8 missing masks and coordinates; fill values are explicitly disabled.
 - COG float32 + lossless DEFLATE: **0.0000152587890625 K** maximum absolute error over all finite cells, below the recorded **0.0001 K** temperature bound. The dtype conversion accounts for this error; compression does not quantize values.
-- Native geometry: all ecCodes centres checked against raw section 3; increasing Zarr latitude, longitude normalized to [-180,180). TIFF rows are reversed to north-first; no interpolation or reprojection. Every full-resolution raster value/mask is compared in native order. Representative corners, row transition and centre match the affine. West/south/east/north edges are −23.53125 / 29.46875 / 62.53125 / 70.53125°, with a half-cell offset from centres. COG layout, CRS, bounds and overview factors 2/4 pass.
+- Native geometry: all ecCodes centres checked against raw section 3; increasing Zarr latitude, longitude normalized to [-180,180). TIFF rows are reversed to north-first; no interpolation or reprojection. Every full-resolution raster value/mask is compared in native order. Representative corners, row transition and centre match the affine. West/south/east/north edges are −23.53125 / 29.46875 / 62.53125 / 70.53125°, with a half-cell offset from centres. COG layout, native spherical CRS (radius 6,371,229 m), bounds and overview factors 2/4 pass. Native WKT is recorded in each field report. Greenwich origin is explicit, following [ECMWF table 3.2](https://codes.ecmwf.int/grib/format/grib2/ctables/3/2/); exact origin/datum confirmation remains a producer/GIS input.
 - Sampler agrees with ecCodes at six representative cells for each of 24 times. Example: input longitude 336.5°, latitude 29.5°, first valid time gives **298.2274169921875 K**, centre −23.5° / 29.5°. Numerical responses use Zarr, never raster overviews.
 - Synthetic supplement: exactly two introduced missing cells survive Zarr, Xarray and internal COG masks. Sampler returns null / `native_nodata`; an unmasked corner still returns the baseline finite value.
 - Contract checks cover the exact footprint and half-cell boundary tie, wrapped longitude, outside coverage, invalid coordinates, unavailable run/revision/field/time without fallback, overwrite refusal, corrupted chunk rejection by sampler/CLI, atomic replacement of a stale successful report, truncated-source rejection and invalid clocks. Failure reports expose no field values.
@@ -42,10 +42,10 @@ These are logical file lengths from this run, including Zarr metadata and COG in
 | Component | Bytes |
 | --- | ---: |
 | Source GRIB2 | 26,658,586 |
-| 24 Zarr batches, including metadata/coordinates/masks | 32,563,192 |
-| 24 COGs, including internal masks and overviews | 62,689,990 |
-| Final manifest | 227,651 |
-| Source + Zarr + COG + manifest | 122,139,419 |
+| 24 Zarr batches, including metadata/coordinates/masks | 32,575,768 |
+| 24 COGs, including internal masks and overviews | 62,692,390 |
+| Final manifest | 234,083 |
+| Source + Zarr + COG + manifest | 122,160,827 |
 
 Evidence JSON and this documentation are additional archive overhead outside that managed-data total. Generation also needs one temporary working TIFF at a time and raster/library buffers; the final total is not a peak-disk budget. The result establishes neither a storage advantage nor a speed advantage. No forecast-volume multiplier, seven-/30-day capacity estimate or service SLA is inferred.
 
@@ -55,6 +55,8 @@ TDD: the agreed seams were the storage CLI and shared manifest sampler. The firs
 
 The initial Rasterio reader import failed because the slim base lacked `libexpat.so.1`. No A2 success or final manifest was produced by that attempt. The fixed image adds pinned libexpat1; all reader checks then passed. This was an image dependency defect, resolved without substituting the accepted storage architecture. The early Zarr 2-library dependency probe found a source-only dependency under the binary-only installation policy; the tested Zarr 3 library writes the required format 2 explicitly. These initial failures are retained here; neither is hidden as successful compatibility evidence.
 
-The final actual-sample build and independent saved-data recheck pass. Mypy reports no issues in all six Python source files. Full CLI suite: **9 tests passed in 38.998 seconds**, covering A1 and T2, with actual source mandatory. This test duration is not a throughput benchmark. Deliberate corruptions are expected rejections; no unresolved format/precision/reader incompatibility remains for these pinned readers and sample. A future legitimate failure must retain diagnostics and reopen storage decision #3 (architecture #5 if affected) before publication.
+The Spec review found that pipeline t2.1 incorrectly tagged COGs as WGS84 instead of the source sphere. Its earlier numerical checks had passed, but its A2 verdict was invalidated: [CRS review failure](crs-review.json) records the affected revision. An independent contract assertion reproduced that defect before correction. Pipeline t2.2 then rejected a GeoTIFF WKT serialization difference: latitude/longitude axis ordering and omission of the Greenwich authority tag made direct CRS equality false, although projection, sphere radius and prime-meridian parameters remained identical. The [rejected t2.2 report](native-crs-serialization.json) is retained. Final t2.3 writes the native sphere and compares operative CRS parameters (`to_dict`) against the expected sphere, with an independent literal test; Rasterio's affine interface retains x/y longitude/latitude order. These were implementation/checker defects; revisiting storage decision #3's premise found no need to substitute formats or change accepted architecture. New artifacts use a separate directory; earlier local attempts remain untouched and cannot be treated as validated final A2 products. Greenwich-origin precision and actual GeoServer/QGIS reprojection remain later gates.
+
+The final actual-sample build and independent saved-data recheck pass. Mypy reports no issues in all six Python source files. Full CLI suite: **9 tests passed in 40.998 seconds**, covering A1 and T2, with actual source mandatory. This test duration is not a throughput benchmark. Deliberate corruptions are expected rejections; no unresolved format/precision/reader incompatibility remains for these pinned readers and sample. A future legitimate failure must retain diagnostics and reopen storage decision #3 (architecture #5 if affected) before publication.
 
 **A2 passes locally for this sample.** M1 still needs the equivalent numerical-adapter comparison and selection. No GeoServer, desktop QGIS, gateway/publication visibility, retention/revision lifecycle, OGC conformance, throughput or organization-host capacity gate is claimed. Source/server completion conventions and multi-GB workload sizing remain separate work. See [Russian comparison](../../source-storage-comparison.ru.md) for the architectural explanation and evidence that could justify reconsideration.

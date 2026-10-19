@@ -9,13 +9,13 @@ Use Docker Compose with Linux/amd64 containers and the mandatory source at `data
 ```sh
 docker compose build decode
 docker compose run --rm storage
-docker compose run --rm storage verify /input/ICON_EU_T_G_2026101500.grib2 /storage/sample-t2/manifest.json --clock 2026-10-19T00:00:00Z --report /reports/a2-recheck.json
-docker compose run --rm storage build /input/ICON_EU_T_G_2026101500.grib2 /storage/nodata-t2 --clock 2026-10-19T00:00:00Z --synthetic-nodata --report /reports/synthetic-mask.json
+docker compose run --rm storage verify /input/ICON_EU_T_G_2026101500.grib2 /storage/sample-t2.3/manifest.json --clock 2026-10-19T00:00:00Z --report /reports/a2-recheck.json
+docker compose run --rm storage build /input/ICON_EU_T_G_2026101500.grib2 /storage/nodata-t2.3 --clock 2026-10-19T00:00:00Z --synthetic-nodata --report /reports/synthetic-mask.json
 docker compose run --rm typecheck
 docker compose run --rm test
 ```
 
-Build writes `data/storage/sample-t2/` and `data/reports/a2.json`. It refuses an existing target, including a partially failed attempt. Choose a new target for a retry; retain failed attempts for diagnosis. No input/archive directory is ever cleaned. All tests use isolated temporary directories on container tmpfs, with no shared application volume. The explicit clock labels the evidence, never changes forecast times, and does not run retention.
+Build writes `data/storage/sample-t2.3/` and `data/reports/a2.json`. It refuses an existing target, including a partially failed attempt. Choose a new target for a retry; retain failed attempts for diagnosis. No input/archive directory is ever cleaned. All tests use isolated temporary directories on container tmpfs, with no shared application volume. The explicit clock labels the evidence, never changes forecast times, and does not run retention.
 
 Dependencies are SHA256-locked wheels in `requirements.lock`; the Python image is digest-pinned, and system `libexpat1` is pinned in Dockerfile. Zarr **library 3.1.3 writes format 2 explicitly**. The library major version does not select the storage format here. Readers are Zarr 3.1.3 and Xarray 2025.10.1 (`chunks=None`, consolidated metadata, default CF decoding); Rasterio 1.4.3 supplies the GDAL COG writer/reader. The report records actual GDAL/PROJ versions and ecCodes binary/definition hashes. Runtime networking is disabled.
 
@@ -25,7 +25,7 @@ The command is deliberately restricted to the supplied sample SHA256 and T1 inve
 
 Each batch contains little-endian float64 temperature, uint8 missing mask (`1 = missing`), and native increasing longitude/latitude centre arrays. Spatial chunks are 256 × 256. Blosc/Zstd level 5/bitshuffle is lossless; no quantization or scale/offset conversion is applied. Zarr fill values are disabled explicitly, so valid zeros and zero coordinates are not silently masked by Xarray. Coordinates, units, parameter/table/surface identifiers, reference/valid times, lead encoding, native-grid/scanning/earth-shape metadata and source provenance remain available. Ensemble members and alternative grids are unsupported by this sample-only command.
 
-COGs are derived by reopening the completed Zarr batch. They use float32, DEFLATE, 256 × 256 blocks, internal validity masks and nearest-neighbour overviews at factors 2 and 4. The dtype conversion is separate from lossless compression; its maximum absolute error must be at most **0.0001 K**. Every unmasked native value and every mask cell is compared to ecCodes, beyond the representative cells required by A2. COG rows are flipped northward relative to native south-to-north Zarr rows; longitude remains west-to-east. Half-cell outer edges are `[-23.53125, 29.46875, 62.53125, 70.53125]`. The raster carries geographic lon/lat in EPSG:4326 without resampling; native GRIB earth-shape metadata is retained rather than discarded. This is not a reprojection or a proof of GIS client compatibility.
+COGs are derived by reopening the completed Zarr batch. They use float32, DEFLATE, 256 × 256 blocks, internal validity masks and nearest-neighbour overviews at factors 2 and 4. The dtype conversion is separate from lossless compression; its maximum absolute error must be at most **0.0001 K**. Every unmasked native value and every mask cell is compared to ecCodes, beyond the representative cells required by A2. COG rows are flipped northward relative to native south-to-north Zarr rows; longitude remains west-to-east. Half-cell outer edges are `[-23.53125, 29.46875, 62.53125, 70.53125]`. The operative raster CRS preserves the native sphere, `+proj=longlat +R=6371229 +no_defs`, as defined by [GRIB table 3.2 code 6](https://codes.ecmwf.int/grib/format/grib2/ctables/3/2/); the WKT is also retained in Zarr metadata and evidence. Greenwich is an explicit longitudinal-origin assumption following that table's note; producer confirmation of precise datum/origin remains an input to the GIS gate. No WGS84 relabelling, interpolation or reprojection occurs. GeoServer reprojection into EPSG:4326/3857 and GIS client compatibility remain later gates.
 
 Both Zarr and Xarray reopen all values/masks and coordinates. Rasterio checks COG layout, full-resolution values/masks, affine, bounds and representative centres. Display overviews never supply point values. GeoServer and desktop QGIS are not tested by this storage-only gate.
 
@@ -39,7 +39,7 @@ Both numerical-adapter candidates can import the same boundary:
 from pathlib import Path
 from decoder.sampling import ManifestSampler
 
-sampler = ManifestSampler(Path('/storage/sample-t2/manifest.json'))
+sampler = ManifestSampler(Path('/storage/sample-t2.3/manifest.json'))
 point = sampler.sample(
     run='ICON-EU/2026-10-15T00:00:00Z', revision=sampler.revision,
     field='T_G:surface:0', valid_time='2026-10-15T01:00:00Z',

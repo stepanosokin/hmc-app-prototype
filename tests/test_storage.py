@@ -43,6 +43,9 @@ class StorageContract(unittest.TestCase):
             self.assertEqual(len(report['fields']), 24)
             self.assertEqual(report['zarr_max_abs_error'], 0)
             self.assertLessEqual(report['cog_max_abs_error'], 0.0001)
+            import rasterio
+            with rasterio.open(target / 'hour-01.tif') as cog:
+                self.assertEqual(cog.crs.to_dict(), {'proj': 'longlat', 'R': 6371229, 'no_defs': True})
             from decoder.sampling import ManifestSampler
             sampler = ManifestSampler(target / 'manifest.json')
             point = sampler.sample(run='ICON-EU/2026-10-15T00:00:00Z',

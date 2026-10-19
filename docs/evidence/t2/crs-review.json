@@ -1,0 +1,13 @@
+{
+  "status": "failed",
+  "gate": "A2-native-CRS",
+  "discovered_by": "code-review Spec axis",
+  "invalidated_test_revision": "63ec93bdd579d75ddbb020d8e895d102c1afa4e11455c10d98848ba5f9fea3aa",
+  "pipeline_version": "t2.1",
+  "source_earth_shape_code": 6,
+  "expected_sphere_radius_m": 6371229,
+  "actual_cog_crs": "EPSG:4326",
+  "error": "Initial check incorrectly accepted WGS84 rather than the native spherical geographic CRS; retained metadata tags do not correct the operative raster CRS.",
+  "reference": "https://codes.ecmwf.int/grib/format/grib2/ctables/3/2/",
+  "decision": "Block use of initial COGs; fix writer and checker to preserve native sphere; rebuild into a separate immutable directory and repeat A2. Accepted architecture remains applicable; no product substitution is needed. GIS/QGIS reprojection remains a later gate."
+}
