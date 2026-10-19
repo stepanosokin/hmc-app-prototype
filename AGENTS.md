@@ -9,3 +9,5 @@ Close an issue when the user has authorized closure, then read it back and repor
 ## Workflow customization
 
 Keep project-specific workflow changes in this repository's agent instructions. Leave original third-party skills, including Matt Pocock's skills, unchanged unless the user explicitly requests edits to those skills.
+
+For validation, scientific compatibility changes, or issue-tracker permission failures, read [the development workflow](docs/development-workflow.md).

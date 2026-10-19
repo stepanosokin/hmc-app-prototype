@@ -1,0 +1,37 @@
+name: Checks
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Build locked validation image
+        run: docker build -f Dockerfile.publication -t hmc-publication:checks .
+      - name: Check types
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint mypy hmc-publication:checks
+          --ignore-missing-imports --check-untyped-defs --cache-dir=/tmp/mypy
+          decoder tests trials publication tools
+      - name: Check numeric boundary behavior
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_publication_tiles.py -v
+      - name: Check interpreter startup and shutdown
+        run: >-
+          docker run --rm --network none --tmpfs /evidence:mode=1777
+          --entrypoint python hmc-publication:checks -m publication.runtime
+      - name: Verify archived evidence bytes
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py
