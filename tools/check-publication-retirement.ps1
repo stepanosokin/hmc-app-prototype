@@ -1,8 +1,9 @@
+param([string]$Image = 'hmc-publication:t6')
 $ErrorActionPreference = 'Stop'
 $retirementCheckRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 Set-Location -LiteralPath $retirementCheckRoot
-& docker image inspect hmc-publication:t6 | Out-Null
-if ($LASTEXITCODE -ne 0) { throw 'Build the locked hmc-publication:t6 image before running retirement checks' }
+& docker image inspect $Image | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "Build the locked $Image image before running retirement checks" }
 $retirementCheckScript = Join-Path $PSScriptRoot 'retire-publication-project.ps1'
 $retirementCheckId = [guid]::NewGuid().ToString('N')
 $retirementCheckProject = 'hmc-publication-retirement-check-' + $retirementCheckId
@@ -28,7 +29,7 @@ try {
         --label "com.docker.compose.project.working_dir=$retirementCheckRoot" `
         --label "com.docker.compose.project.environment_file=$retirementCheckReport/environment.env" `
         --mount "type=volume,source=$retirementCheckVolume,target=/evidence" --volume /anonymous-retirement `
-        --network $retirementCheckNetwork --entrypoint sleep hmc-publication:t6 300
+        --network $retirementCheckNetwork --entrypoint sleep $Image 300
     if ($LASTEXITCODE -ne 0) { throw 'Fixture container failed' }
     $retirementCheckAnonymous = @(& docker container inspect $retirementCheckContainer | ConvertFrom-Json)[0].Mounts |
         Where-Object { $_.Destination -eq '/anonymous-retirement' } | Select-Object -ExpandProperty Name

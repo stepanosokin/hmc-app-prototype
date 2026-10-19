@@ -46,3 +46,6 @@ jobs:
           docker run --rm --network none
           --volume "$PWD:/workspace:ro" --workdir /workspace
           --entrypoint python hmc-publication:checks tools/check_evidence.py
+      - name: Check evidence archival and project retirement
+        shell: pwsh
+        run: ./tools/check-publication-retirement.ps1 -Image hmc-publication:checks

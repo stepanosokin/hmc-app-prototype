@@ -16,4 +16,4 @@ For validation, Compose runner changes, scientific compatibility changes, or iss
 
 ## Test environment cleanup
 
-After each validation attempt, archive its evidence and retire every test-created container, network, and named/anonymous volume using [the cleanup procedure](docs/development-workflow.md#test-environment-cleanup). This cleanup is already authorized, including failed attempts. Verify zero resources remain for every retired project before reporting completion. Retain a live test stack only when the user explicitly requests it; identify that exception in the handoff. Keep organization source mounts, committed evidence, unrelated projects, and shared image/build caches intact.
+After every validation attempt, including failures, follow [the cleanup procedure](docs/development-workflow.md#test-environment-cleanup): archive evidence, retire the project, and verify zero test resources remain before reporting completion. Cleanup has standing user authorization. Retain only explicitly user-requested live stacks and name them in the handoff. The procedure defines the protected sources, evidence, unrelated projects, and shared caches.
