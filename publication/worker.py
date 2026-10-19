@@ -282,7 +282,8 @@ def main() -> None:
         print(str(args.job))
     elif args.command == 'collect':
         recovery.migrate()
-        print(json.dumps(recovery.collect(apply=args.apply)))
+        with recovery.processing_budget():
+            print(json.dumps(recovery.collect(apply=args.apply)))
     elif args.command == 'once':
         recovery.migrate()
         once()
