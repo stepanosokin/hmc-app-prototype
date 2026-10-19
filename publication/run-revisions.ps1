@@ -4,6 +4,7 @@ param(
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'process.ps1')
 Set-Location (Split-Path $PSScriptRoot -Parent)
 $t5ExistingVolumes = @(& docker volume ls --filter "label=com.docker.compose.project=$Project" --quiet)
 if ($LASTEXITCODE -ne 0) { throw 'Docker Desktop is unavailable' }
@@ -30,16 +31,7 @@ function Invoke-T5Compose {
 }
 function Invoke-T5Check {
     param([string]$Name,[string[]]$Arguments)
-    $t5Stdout = Join-Path $t5Directory ($Name + '.stdout.log')
-    $t5Stderr = Join-Path $t5Directory ($Name + '.stderr.log')
-    # ArgumentList quotes paths containing spaces explicitly for Windows native launch.
-    $t5NativeArguments = @($t5Compose + $Arguments | ForEach-Object { if ($_ -match '\s') { '"' + $_ + '"' } else { $_ } })
-    $t5Process = Start-Process -FilePath docker -WindowStyle Hidden -ArgumentList $t5NativeArguments `
-        -Wait -PassThru -RedirectStandardOutput $t5Stdout -RedirectStandardError $t5Stderr
-    Get-Content -LiteralPath $t5Stdout
-    Get-Content -LiteralPath $t5Stderr
-    @{check=$Name;native_exit_code=$t5Process.ExitCode} | ConvertTo-Json -Compress | Add-Content (Join-Path $t5Directory 'process-results.jsonl')
-    if ($t5Process.ExitCode -ne 0) { throw "$Name failed with native exit $($t5Process.ExitCode)" }
+    Invoke-CheckedProcess -FilePath docker -ArgumentList ($t5Compose + $Arguments) -ReportDirectory $t5Directory -Name $Name
 }
 # Reuse the exact immutable, successful T4 engine decision and its bound probes.
 # No new encoding/CRS/dependency decision is made by T5.
