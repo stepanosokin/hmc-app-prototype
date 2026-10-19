@@ -29,7 +29,13 @@ def check(root: Path) -> int:
         count += 1
     # Historical T4 evidence belongs to frozen v2, even after a future v3 exists.
     verify(root / 'publication/contract.v2.json', selected['contract_sha256'])
-    return count + 1
+    count += 1
+    t5 = evidence / 't5'
+    index = json.loads((t5 / 'artifact-index.json').read_bytes())
+    for artifact in index['artifacts']:
+        verify(t5 / artifact['name'], artifact['sha256'], artifact['bytes'])
+        count += 1
+    return count
 
 
 def main() -> None:

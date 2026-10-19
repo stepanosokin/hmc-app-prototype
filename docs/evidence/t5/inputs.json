@@ -1,0 +1,205 @@
+{
+    "project":  "hmc-publication-t5-verified4",
+    "gateway":  "http://127.0.0.1:8101",
+    "clock":  "2026-10-19T05:00:00Z",
+    "validation_date":  "2026-10-19",
+    "base_commit":  "812744820abc843f306ab21f4f94d1d06136950a",
+    "review_commit":  "2d55836",
+    "source_mode":  "read-only Compose publication/test bind mounts; exact bytes below include review fixes",
+    "host":  {
+                 "configured_memory_bytes":  33160323072,
+                 "cpus":  24,
+                 "architecture":  "x86_64",
+                 "os":  "Windows / Docker Desktop Linux backend",
+                 "docker_version":  "29.1.2"
+             },
+    "image_id":  "sha256:aa512c631bd275599e8b0ac014aec16a96c93c0e55ef5415a6192e66e1fbc6ac",
+    "source":  {
+                   "sha256":  "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a",
+                   "name":  "ICON_EU_T_G_2026101500.grib2",
+                   "bytes":  26658586
+               },
+    "engine_evidence":  "Inherited approved frozen T4 v2 selection and bound browser/GeoServer comparison bytes; no new browser measurement",
+    "inputs":  [
+                   {
+                       "path":  "compose.publication.yaml",
+                       "sha256":  "e90c3f567716342d70ba2f6a339cfb73f5a3187272f27cd17072a6aa6b69dd5b",
+                       "bytes":  3500
+                   },
+                   {
+                       "path":  "decoder/__init__.py",
+                       "sha256":  "1d50f45d75002858c6d915ec08bc3a3586321a721bcddea0b69c8b2e913faf7f",
+                       "bytes":  62
+                   },
+                   {
+                       "path":  "decoder/inspect_forecast.py",
+                       "sha256":  "69a0ad3b2dde900d7ec02c964df8ba2ad6311c57b084803ec66d8738461f95e9",
+                       "bytes":  12779
+                   },
+                   {
+                       "path":  "decoder/sampling.py",
+                       "sha256":  "c15015b870a0a08aade95aed1c80a310331984c83f96b991fce2ff76cea4dd74",
+                       "bytes":  3935
+                   },
+                   {
+                       "path":  "decoder/storage.py",
+                       "sha256":  "2abe4f567067bfd0b8a7fa844e60c7e171b02fb4964e0d6047f5411b059643c0",
+                       "bytes":  17359
+                   },
+                   {
+                       "path":  "Dockerfile.publication",
+                       "sha256":  "6a3d300f10de33e7b2f54e9415abe230b5745d2bf83be6d560ed5c6da628a9d6",
+                       "bytes":  792
+                   },
+                   {
+                       "path":  "docs/evidence/t1/a1.json",
+                       "sha256":  "e76209d9c446a4263e954ca94b957675a86db90b5e065465031f74c4674894c6",
+                       "bytes":  76417
+                   },
+                   {
+                       "path":  "publication/__init__.py",
+                       "sha256":  "e6d31b8356dce78485c874422fcd6b48bb2154d3a7a727b4cf47f84e4e79482b",
+                       "bytes":  81
+                   },
+                   {
+                       "path":  "publication/api.py",
+                       "sha256":  "8305ee76f44de620e0ed0469db1611a2369c22510ec40533b2548b30db4a656b",
+                       "bytes":  12013
+                   },
+                   {
+                       "path":  "publication/check-browser.mjs",
+                       "sha256":  "dd338d7b3b96a27349480a9e0c0dc323ce627f9bb727b666b74b879c6454dc55",
+                       "bytes":  2994
+                   },
+                   {
+                       "path":  "publication/compare.py",
+                       "sha256":  "83675cf354423e64efab3748d99fe8070192e9be1e9d9e37362dfaadc7492dff",
+                       "bytes":  11766
+                   },
+                   {
+                       "path":  "publication/contract.v1.json",
+                       "sha256":  "283ff64d3ffc7ad819f99670a8182fb1f408117263ebc091f25a4fe525b9465e",
+                       "bytes":  2821
+                   },
+                   {
+                       "path":  "publication/contract.v2.json",
+                       "sha256":  "9ce1af8a82c48dad0e23e01f2627c92ee354d174731eebc10f7806f83023d24b",
+                       "bytes":  3375
+                   },
+                   {
+                       "path":  "publication/domain.py",
+                       "sha256":  "91082818865b5eef22e280537d786f4b04af5e1561ff9f50cacd9f375991de70",
+                       "bytes":  4809
+                   },
+                   {
+                       "path":  "publication/epsg.properties",
+                       "sha256":  "6b32a0082c21333ecd7f4a95808dafd4663ec12db5b7b5502fbbcecb461799c2",
+                       "bytes":  308
+                   },
+                   {
+                       "path":  "publication/gateway.py",
+                       "sha256":  "638ec6455f46d187053de7b245ddf0b59df1f35a719b5a98cd369e508bc7d1f1",
+                       "bytes":  1019
+                   },
+                   {
+                       "path":  "publication/geoserver.py",
+                       "sha256":  "9d5b49289904031aaadd764d76dc525ba383f68063dbd5882c313b3f6378cdd0",
+                       "bytes":  5119
+                   },
+                   {
+                       "path":  "publication/init-db.sh",
+                       "sha256":  "7512a993a2337acc962c344cebe8526784342375aadcb0dafa222a51ea8c6e7d",
+                       "bytes":  1699
+                   },
+                   {
+                       "path":  "publication/native-crs.sql",
+                       "sha256":  "59879cd5d15a513a08c5a4594aa3ec6a7692e1d6edf6663a5fe6f7d30e3b1282",
+                       "bytes":  510
+                   },
+                   {
+                       "path":  "publication/probe-geoserver.py",
+                       "sha256":  "9a7cd4f898ffe6990801cdccb3cfd6fe51cebcbf561c66b966526d269a3f7761",
+                       "bytes":  4084
+                   },
+                   {
+                       "path":  "publication/revisions.py",
+                       "sha256":  "843920e781d41602a654b19c837b0ce038a71e444b7151aafc6805783d21ce73",
+                       "bytes":  10192
+                   },
+                   {
+                       "path":  "publication/run.ps1",
+                       "sha256":  "805c9be4efedb654848df21c572ca1c79863a80d60ab5e5d439c89889a00e258",
+                       "bytes":  5234
+                   },
+                   {
+                       "path":  "publication/run-revisions.ps1",
+                       "sha256":  "ea749010c8ffa61171dc4672b599c10312924d60237cdb4e528ad57ed4a2f709",
+                       "bytes":  5231
+                   },
+                   {
+                       "path":  "publication/runtime.py",
+                       "sha256":  "595e7c255394cc9f2e6561f3ab71df5340a1aa9fe3686a2813f9d4f623293f9a",
+                       "bytes":  1224
+                   },
+                   {
+                       "path":  "publication/tiles.py",
+                       "sha256":  "9b764515f85b9cb867a7997edc293703def2b1814a3cf255f05a16b29ff1ec4c",
+                       "bytes":  3878
+                   },
+                   {
+                       "path":  "publication/verify_revisions.py",
+                       "sha256":  "e9371c9ad328896a5921301fbc60a556255f8018ce7f42a3cdbf7aa139fa2994",
+                       "bytes":  4274
+                   },
+                   {
+                       "path":  "publication/worker.py",
+                       "sha256":  "a2524d607dfa471751be920bc16078fdbe5019109f37105f11bebedefcd77f7d",
+                       "bytes":  13410
+                   },
+                   {
+                       "path":  "requirements.adapters.lock",
+                       "sha256":  "0a18fa9b32507e58bd6a9e51b33cbd8f20ff8cfef0669f29ea30a2aaee31b49b",
+                       "bytes":  3186
+                   },
+                   {
+                       "path":  "requirements.lock",
+                       "sha256":  "d1d9f3056713538ba9271423a1d36ed4620e4deb33fa7656cdf8df44578a8627",
+                       "bytes":  2881
+                   },
+                   {
+                       "path":  "requirements.publication.lock",
+                       "sha256":  "c7a0e04182e5e7eb8bc0174963204419cc379190f0c5181510b8f5658c2bdb22",
+                       "bytes":  1333
+                   },
+                   {
+                       "path":  "tests/test_decoder.py",
+                       "sha256":  "f7e632b7a2502ba0179d4358e56243e26b532f064e13e10f3976649da5c20e1d",
+                       "bytes":  5839
+                   },
+                   {
+                       "path":  "tests/test_publication_http.py",
+                       "sha256":  "f68b14937fa168e6d279f0ed8efd4c647ceb0e457608ce859997aad275bb266c",
+                       "bytes":  7648
+                   },
+                   {
+                       "path":  "tests/test_publication_revisions.py",
+                       "sha256":  "0498d1064573a481d0c8c521576625b4b7d4712141abc98f9a28c4a9f8758103",
+                       "bytes":  12186
+                   },
+                   {
+                       "path":  "tests/test_publication_tiles.py",
+                       "sha256":  "cedf5c2d5835f20193ed0138b3389ae13ced6644011d16effdd51dc83a051cb0",
+                       "bytes":  1720
+                   },
+                   {
+                       "path":  "tests/test_storage.py",
+                       "sha256":  "ef3cc21e87f2906f972f1dc6cc3c9270288062d2272174bab979429660533b9e",
+                       "bytes":  6455
+                   },
+                   {
+                       "path":  "tools/check_evidence.py",
+                       "sha256":  "f2479d92915149ddafc6d89400b440f406dd9871bc2d4f70e52b383abee872a5",
+                       "bytes":  1742
+                   }
+               ]
+}

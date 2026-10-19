@@ -20,6 +20,10 @@ from publication.domain import ROOT, database, write_once, load_manifest
 PIPELINE = 't5.1'
 
 
+def fixture_run(fixture: str) -> str:
+    return 'SYNTHETIC-ICON-EU/2026-10-15T01:00:00Z' if fixture == 'overlap' else RUN
+
+
 def migrate() -> None:
     """Add T5 records without modifying any historical publication or asset."""
     with database() as cursor:
@@ -36,12 +40,10 @@ def normalize(source: Path, target: Path, hour: int, frame: bytes, fixture: str)
     target.mkdir()
     metadata = field_metadata(frame, hour)
     values, missing = decoded_arrays(frame, metadata['grid']['shape_yx'])
-    run = RUN
+    run = fixture_run(fixture)
     if fixture != 'actual':
         metadata['synthetic_fixture'] = fixture
-        if fixture == 'overlap':
-            run = 'SYNTHETIC-ICON-EU/2026-10-15T01:00:00Z'
-        elif fixture == 'correction':
+        if fixture == 'correction':
             values = values + 1.0
             metadata['synthetic_correction_K'] = 1.0
             metadata['original_values_metadata'] = metadata.pop('values')
@@ -134,7 +136,7 @@ def process(job: dict) -> None:
     for hour, frame in enumerate(bounded_frames(staged), 1):
         if hour not in hours:
             continue
-        run = RUN if request['fixture'] != 'overlap' else 'SYNTHETIC-ICON-EU/2026-10-15T01:00:00Z'
+        run = fixture_run(request['fixture'])
         base = latest(run)
         # A repeated delivery of the same validated message reuses the batch;
         # no new Zarr/COG, GIS workspace, or publication revision is required.

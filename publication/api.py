@@ -29,6 +29,14 @@ def links(manifest: dict) -> dict:
             'wms': '/gis/v1/runs/' + quote(identity['run'], safe='') + '/revisions/' + identity['revision'] + '/wms'}
 
 
+def revision_links(row: dict) -> list[dict]:
+    try:
+        revision = revisions.load_revision(row['manifest_path'], row['manifest_sha256'])
+        return [links(revisions.selected(revision, entry)) for entry in revision['batches']]
+    except (OSError, ValueError, KeyError, TypeError, ValidationError) as error:
+        raise PublicationUnavailable('published revision unavailable') from error
+
+
 def create_app() -> Flask:
     app = Flask('hmc-publication')
 
@@ -63,11 +71,7 @@ def create_app() -> Flask:
             revision_rows = cursor.fetchall()
         selections = [links(resolve(row['selection'])) for row in rows]
         for row in revision_rows:
-            try:
-                revision = revisions.load_revision(row['manifest_path'], row['manifest_sha256'])
-                selections.extend(links(revisions.selected(revision, entry)) for entry in revision['batches'])
-            except (OSError, ValueError, KeyError, TypeError, ValidationError) as error:
-                raise PublicationUnavailable('published revision unavailable') from error
+            selections.extend(revision_links(row))
         return jsonify(selections=selections)
 
     @app.get('/api/v1/jobs/<uuid:job>')
@@ -132,11 +136,7 @@ def create_app() -> Flask:
             cursor.execute('SELECT selection FROM app.catalogue')
             legacy = cursor.fetchall()
         if row is not None:
-            try:
-                value = revisions.load_revision(row['manifest_path'], row['manifest_sha256'])
-                candidates = [links(revisions.selected(value, entry)) for entry in value['batches']]
-            except (OSError, ValueError, KeyError, TypeError, ValidationError) as error:
-                raise PublicationUnavailable('published revision unavailable') from error
+            candidates = revision_links(row)
         else:
             candidates = [links(resolve(item['selection'])) for item in legacy]
             candidates = [item for item in candidates if item['run'] == run_id and item['revision'] == revision]
