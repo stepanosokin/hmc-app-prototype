@@ -32,6 +32,10 @@ _Avoid_: Treating a styled map image as the underlying numerical field.
 **Publication revision**:
 An identified published state of a run's available data. A new revision can add forecast times or correct earlier data without creating a new model run.
 
+**Numeric display tile**:
+A spatially bounded set of field values and validity information delivered for map display for a specified published selection.
+_Avoid_: Treating display values as canonical native-cell samples or equating a coloured map image with numerical data.
+
 ## Product scope
 
 **Module**:

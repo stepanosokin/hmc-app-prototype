@@ -1,20 +1,20 @@
 # Hydrometcenter meteorology prototype — specification
 
-Version: 0.2 · 2026-10-19 · **Accepted implementation handoff.**
+Version: 0.3 · 2026-10-19 · **Accepted implementation handoff.**
 
-The user accepted revision 0.2, milestones M1–M5 and acceptance criteria A1–A12 on 2026-10-19. Implementation gates remain to be performed; acceptance records planning agreement.
+The user accepted revision 0.2, milestones M1–M5 and acceptance criteria A1–A12 on 2026-10-19, then requested this browser-delivery amendment and the corresponding specification/ticket updates. Revision 0.3 preserves those IDs and extends their obligations to numeric display tiles and browser GPU rendering. Acceptance records scope agreement, not completion of the new gates.
 
-Revision 0.2 addresses the requested OGC API comparison. The user accepted selecting the numerical adapter through the M1 comparison gate on 2026-10-19. The adapter remains to be selected during implementation. The storage, QGIS, interaction and Martin-deferral decisions remain accepted.
+Revision 0.3 makes numeric data tiles and browser GPU rendering the primary web weather-display path. GeoServer temporal WMS remains required for QGIS. The Zarr core, point/EDR contract, interaction rules and Martin deferral remain accepted. [Ticket #15](https://github.com/stepanosokin/hmc-app-prototype/issues/15) selected the narrow numerical HTTP adapter for the measured point/metadata workload; tile encoding, tiling engine and GPU performance require separate evidence. See [ADR 0002](../../docs/adr/0002-numeric-browser-tiles.md).
 
 [Russian copy](spec.ru.md) · [Decision map](map.md) · [Domain glossary](../../GLOSSARY.md)
 
 ## 1. Purpose and scope
 
-Build a self-hosted meteorology prototype that proves ingestion of the supplied GRIB2 file, numerical normalization, web-map publication and authenticated external access from QGIS. The product has a Russian interface and UTC timestamps. This document is the implementation handoff; the present wayfinder effort delivers planning artifacts rather than the deployed application.
+Build a self-hosted meteorology prototype that proves ingestion of the supplied GRIB2 file, numerical normalization, web-map publication and authenticated external access from QGIS. The product has a Russian interface and UTC timestamps. This document is the current implementation contract; completed planning and local numerical checks do not establish deployed-stack readiness.
 
-The first release includes the sample's available temperature field and forecast times, a responsive map with legend/time controls/value inspection, documented APIs, organization keys/limits/usage records, incremental publication, retention and operational diagnostics. It establishes interfaces for later imagery, observations, hydrology and long-term forecasts.
+The first release includes the sample's available temperature field and forecast times, numeric display tiles and a responsive GPU-rendered map with legend/time controls/value inspection, documented APIs, organization keys/limits/usage records, incremental publication, retention and operational diagnostics. It establishes interfaces for later imagery, observations, hydrology and long-term forecasts.
 
-Native mobile, production integration of tens of sources, live database connections, wind particles, numerical raster downloads, payments, tariffs and Martin/vector layers are deferred. A future module need not use the meteorology storage formats.
+Native mobile, production integration of tens of sources, live database connections, wind particles, numerical raster downloads, payments, tariffs and Martin/vector layers are deferred. Numeric display tiles are in scope; the deferred numerical raster downloads refer to bulk analytical coverage exports. A future module need not use the meteorology storage formats.
 
 ## 2. Evidence and planning envelope
 
@@ -29,7 +29,7 @@ Native mobile, production integration of tens of sources, live database connecti
 | Retention | Initially seven days by model-run reference time; configurable toward 30 days |
 | Hosting | One organization-controlled Linux server, Docker Compose, self-hosted runtime; internet available for setup |
 
-The sample's values, units, masks, ranges and orientation have not been decoded or validated. No throughput measurements exist. Update frequency does not by itself establish the number of distinct model runs. Server sizing is explicitly deferred. See [sample inventory](assets/sample-inventory.md).
+Local [T1 decoder](../../docs/decoder.md), [T2 storage](../../docs/storage.md) and [T3 adapter](../../docs/evidence/t3/validation.md) evidence now exists for the supplied sample. T2 covers Zarr/COG precision; its A2 evidence does not cover the new tile encoding/resampling checks. T3 covers point/metadata operations on the approved workstation, with no numeric-tile or GPU benchmark. Real publication/QGIS and full-stack gates remain open. Update frequency does not by itself establish the number of distinct model runs. Server sizing is explicitly deferred. See [sample inventory](assets/sample-inventory.md).
 
 ## 3. Architecture and responsibilities
 
@@ -38,27 +38,31 @@ flowchart LR
     S[Read-only GRIB sources] --> W[Ingestion and publication worker]
     W --> Z[Numeric Zarr batches]
     Z --> D[Selected numeric COG products]
-    D --> G[GeoServer and tile cache]
+    D --> G[GeoServer: QGIS temporal WMS]
+    Z --> T[Numeric tile generation and bounded cache]
     W --> P[(PostgreSQL / PostGIS)]
     A[Domain logic and selected OGC adapter] --> Z
     A --> P
     G --> P
     E[Gateway: access, limits, accounting] --> A
     E --> G
-    B[MapLibre web app] --> E
+    E --> T
+    B[MapLibre web app and GPU weather renderer] --> E
     Q[QGIS and external clients] --> E
 ```
 
 | Compose responsibility | Implementation direction |
 | --- | --- |
 | Edge | TLS/reverse proxy, public/protected routing, request identification, authentication/limits/accounting before protected cache access |
-| Web | Static Russian web application, TypeScript and MapLibre; locally served styles, fonts and basemap resources |
-| API | Domain catalogue, availability, selection and organization access; numerical standards adapter selected through the M1 gate |
+| Web | Russian TypeScript/MapLibre application; numeric tile decoding, GPU textures and scalar weather rendering; locally served runtime assets |
+| API | Domain catalogue, availability, selection and organization access; selected narrow numerical adapter; versioned numeric tile metadata/delivery |
 | Worker | Source inventory, decoding, normalization, derivatives, validation, publication, retries and cleanup; durable jobs in PostgreSQL |
-| GIS | GeoServer/ImageMosaic temporal WMS, browser raster delivery and bounded tile cache |
+| GIS | GeoServer/ImageMosaic temporal WMS for QGIS and other image clients, with bounded portrayal cache |
 | Database | PostgreSQL/PostGIS metadata, manifests, jobs, consumer/key records and usage; separate application and mosaic schemas/roles |
 
 The API and worker share domain code and product identifiers; they can use the same image with different commands. No separate service per subject-area module is required. Initial deployment does not require Kubernetes, public cloud storage, a distributed queue or a standalone Martin container. Exact image/library versions are locked during the compatibility milestone.
+
+Numeric tiling can share the existing API/worker image and domain resolver; a standalone tiling service is optional. Compare reuse of GeoServer for the numeric tile requirements, an existing numeric-tiling toolkit and a small project implementation in #16. Select on proven encoding, mask, projection, revision and browser-cost requirements; reuse of GeoServer is preferred where it meets the contract without lossy colour-only output. The browser GPU layer applies the palette to decoded values. Precoloured WMS/image tiles remain the GIS portrayal path and a benchmark baseline; a browser fallback needs an explicit supported contract.
 
 ### 3.1. OGC API alternatives and selection gate
 
@@ -79,6 +83,8 @@ Accepted M1 gate: compare pygeoapi with a narrow adapter calling the **same** ma
 
 Select one numerical adapter before freezing M3 implementation; do not ship all candidates. Reuse GeoServer for temporal WMS. Compare feature-service candidates only when representative vector schemas/data become available. This preserves one external contract and permits different engines for different operations.
 
+M1 result: [ADR 0001](../../docs/adr/0001-numerical-http-adapter.md) and [T3 evidence](../../docs/evidence/t3/validation.md) select the narrow adapter for bounded point/metadata work. The comparison above is the retained selection method. It neither ranks tile engines nor proves broader OGC conformance; pygeoapi can be reconsidered independently for a later standards profile.
+
 ## 4. Data identity and ingestion
 
 Identify every field by provider/model, reference time, parameter/table identifiers, surface/level or layer bounds, grid, member where applicable, valid time or interval, and source revision. Preserve statistical processing semantics for future accumulated/averaged products. File, model run and valid time are different concepts.
@@ -93,19 +99,25 @@ Zarr is the normalized numerical core. Start the compatibility exercise with exp
 
 Use immutable batches per available field/time group, partitioned by compatible grid/level structure. A small immutable run manifest reuses unchanged batches; late/corrected data create replacement batches and a new revision. Do not copy the entire growing run for every publication. Compaction of sealed runs is a later measured optimization, with old references retained until safe to remove.
 
-Publication profiles configure the fields/levels normalized and the subset exposed as map products. For the sample, ingest all 24 messages and publish every successfully validated time of its sole field. Generate numeric COGs **from those Zarr batches**, with lossless encoding, masks and overviews. Keep native-grid numerical identity; GeoServer handles map reprojection. Display overviews are not the source for point values.
+Publication profiles configure the fields/levels normalized and the subset exposed as map products. For the sample, ingest all 24 messages and publish every successfully validated time of its sole field. Generate numeric COGs **from those Zarr batches**, with lossless encoding, masks and overviews. Keep native-grid numerical identity; GeoServer handles WMS reprojection, while numeric tiles declare their own projection/resampling. Display overviews and GPU-interpolated values are not the source for canonical point values.
 
 The prototype must prove numerical round trips against the ecCodes baseline. Preserve finite values and masks in the Zarr core. Any COG dtype conversion needs a recorded variable-specific tolerance; for the sample temperature, use a maximum absolute conversion error of 0.0001 K as the initial engineering acceptance bound. A failing bound blocks publication. Validate cell centres, scanning direction, longitude normalization and half-cell georeferencing explicitly.
 
 The hybrid adds derivative CPU/storage and publication coordination. No storage or speed advantage has been established. Later chunk/pyramid choices require measurements.
 
+### 5.1. Numeric display tile contract
+
+Derive display tiles from manifest-selected Zarr values, directly or through a validated numeric derivative. Before finalizing the tiler, compare float-array and packed-value encodings with actual browser decode/upload measurements. Freeze versioned metadata, URL template/content type, matrix set/CRS, zoom range, tile dimensions/origin/orientation, bands, dtype/byte order or scale/offset, units, compression, nodata mask and resampling/halo rules. Ordinary precoloured images cannot substitute for numeric values. No tile encoding or URL shape is selected by this specification.
+
+Agree variable-specific display error budgets before selecting an encoding: test decoded values against the canonical baseline after the declared resampling, including quantization and GPU interpolation. Keep the existing 0.0001 K COG conversion bound separate. Validate source-sphere/geographic-to-map projection, cell placement, coverage edges, tile seams/halos and missing-data masks. Display interpolation has documented semantics; point and EDR remain exact-time/nearest-native-cell queries. CoverageJSON is the position-response encoding, not the browser tile protocol.
+
 ## 6. Publication and failure behavior
 
 Lifecycle: `discovered → staged → decoded → normalized → derivatives_ready → validated → published`; failed stages retain diagnostics and support retry. Track progress per field/time. Run completeness is separate from usability: one validated map-ready time is enough to make a partial run usable. Without an expected producer inventory, completeness is unknown rather than inferred.
 
-A shared published revision becomes visible only when the required Zarr batch, COG and GIS selection are durable, validated and queryable. Keep internal staging and GeoServer administrative routes private. Constrain all public capabilities/map/identify/tile/numeric requests to the selected manifest. A PostgreSQL transaction alone does not synchronize independent GeoServer index changes: the integration milestone must prove the visibility gate and revision-filtered granule selection, including discovery metadata.
+A shared published revision becomes visible only when the required Zarr batch, COG, numeric tile path/metadata and GIS selection are durable, validated and queryable. Define tile readiness explicitly for eager or lazy generation and exercise deterministic representative requests before visibility; generating every possible tile in advance is not required. Keep internal staging and GeoServer administrative routes private. Constrain all public capabilities/map/identify/tile/numeric requests to the selected manifest. A PostgreSQL transaction alone does not synchronize independent GeoServer index changes: the integration milestone must prove the visibility gate and revision-filtered granule selection, including discovery metadata.
 
-Publish new validated times incrementally. Readers pin run and revision; corrections never overwrite assets referenced by a published revision. Cache identities include run/revision, field, level, time, grid/member, style/resampling and tile coordinates. New run arrival and new revision availability do not silently change the user's selection.
+Publish new validated times incrementally. Readers pin run and revision; corrections never overwrite assets referenced by a published revision. Numeric tile cache identities include run/revision, field, level, exact time, grid/member, matrix set/coordinates, resampling and encoding version. Palette changes operate locally without refetching unchanged numeric tiles. Style/shader versions belong in rendered-product identities rather than invalidating the underlying numeric bytes. New run arrival and new revision availability do not silently change the user's selection.
 
 Derivative/indexing failure leaves the previous usable revision intact. Recovery after worker restart must be idempotent; abandoned stages are collectable. Use bounded jobs, concurrency, retries and disk/cache budgets.
 
@@ -120,7 +132,7 @@ The following contract is independent of the OGC server selected through M1. Dom
 | `/api/v1/modules`, `/api/v1/models`, model/run/revision listings | Domain catalogue and availability; actual identifiers and available dimensions |
 | `/api/v1/point` | Convenient documented numerical query using layer/run/revision/valid_time/lon/lat; same resolver as EDR |
 | `/gis/v1/runs/{runId}/revisions/{revision}/wms` | Gateway-scoped WMS 1.3.0 connection for the selected run/revision; capabilities, map, legend and identify |
-| Browser tile links from catalogue | Stable published selection; cacheable raster delivery with declared matrix set/style |
+| Browser numeric tile links and metadata from catalogue | Stable published selection; versioned encoding/matrix/mask/resampling contract and cacheable numeric values for GPU rendering |
 
 Coordinates in the domain point API are named longitude/latitude in degrees. EDR follows the advertised CRS/profile. WMS follows its version/CRS axis rules; do not reuse one ordering blindly across interfaces. A point response reports selection identity, selected native-cell coordinate, units, sampling method, value or explicit no-data reason, and provenance. Default spatial sampling is nearest native cell; temporal selection is exact.
 
@@ -128,13 +140,13 @@ For the domain API, distinguish invalid input (400), credentials (401/403), unav
 
 QGIS must connect with an organization key header, select available times, render the same field and inspect values consistent with the numerical baseline. The scoped WMS URL makes run/revision choice explicit; its advertised links and time domain must retain that scope. Validate EPSG:4326 and EPSG:3857, masks, legends and full-resolution identify. Do not claim general OGC conformance from product installation alone.
 
-OGC API Tiles/Maps facades can be enabled after dimension forwarding is proved. Coverage downloads and broader EDR queries are deferred. Martin is reserved for later feature layers; scientific U/V fields and dense scalar arrays are not automatically MVT products.
+Numeric browser tiles use a documented versioned HTTP contract and do not by themselves establish OGC API Tiles conformance. OGC API Tiles/Maps facades can be enabled after dimension forwarding and the applicable profile are proved. Coverage downloads and broader EDR queries are deferred. Martin is reserved for later feature layers; scientific U/V fields and dense scalar arrays are not automatically MVT products.
 
 ## 8. Access, usage and future billing
 
 The demo map is public and uses no organization secret. External organizational API/GIS access uses independently revocable keys, organization-level limits and usage records. Check credentials and quotas before protected cache delivery; prevent direct backend or asset routes bypassing that contract. Public demo access has separate resource limits.
 
-Provide operator commands to create/revoke/rotate keys and configure limits; an administration portal is unnecessary for this milestone. Bound rendering dimensions, concurrent requests, request duration and output size as well as request rate. Store protected key representations, not recoverable raw keys in logs. Record request ID, organization/key ID, operation, selected product/run/revision, UTC time, status, duration, bytes and cache outcome where available. Include cache hits and rejected requests; document retry/accounting behavior. Payments, monetary calculation and tariff policy are not implemented. Public data remain publicly viewable regardless of future API charging policy.
+Provide operator commands to create/revoke/rotate keys and configure limits; an administration portal is unnecessary for this milestone. Bound rendering dimensions, numeric tile zoom ranges/bytes, tile generation and concurrent requests, request duration, cache growth and output size as well as request rate. Store protected key representations, not recoverable raw keys in logs. Record request ID, organization/key ID, operation, selected product/run/revision, UTC time, status, duration, bytes and cache outcome where available. Include cache hits and rejected requests; document retry/accounting behavior. Payments, monetary calculation and tariff policy are not implemented. Public data remain publicly viewable regardless of future API charging policy.
 
 ## 9. Web experience
 
@@ -144,11 +156,13 @@ Default to the newest usable run and its first available time. Selecting another
 
 Differentiate loading, missing time, outside coverage, native nodata and service error. Update failure retains the last published data. Initial styles cover the actual surface-temperature field; no wind animation or fabricated observation layer appears. Basemap/style/font resources are locally served with attribution and verified redistribution rights; a simple regional basemap is sufficient for the first release.
 
+Render the scalar temperature overlay with numeric tile textures in a MapLibre GPU layer. Keep units, colour scale and legend consistent; handle masks without colour leakage at nodata edges or tile seams. Cap tile prefetch/cache, decoded arrays and GPU textures; cancel obsolete fetches, reject stale results before texture upload and release superseded resources, including context-loss recovery. Detect required GPU capabilities and provide a documented supported fallback or a clear unavailable-renderer message; silent blank output is unacceptable. Palette changes must not fetch unchanged numeric data. Do not blend across missing times, runs or revisions; temporal blending and wind particles remain deferred. The sample provides no U/V field.
+
 ## 10. Retention and operations
 
-Retain runs whose reference times are within the last seven days, including all their published forecast times even when valid times extend beyond that window. Configure the duration toward 30 days without changing identifiers. Retention is for application-managed originals/copies, Zarr batches, COGs, manifests and caches; organization source mounts are never cleanup targets.
+Retain runs whose reference times are within the last seven days, including all their published forecast times even when valid times extend beyond that window. Configure the duration toward 30 days without changing identifiers. Retention is for application-managed originals/copies, Zarr batches, COGs, numeric tile products/metadata, manifests and server caches; organization source mounts are never cleanup targets.
 
-Expire discovery/access first; remove unreferenced assets after bounded in-flight-reader grace. Superseded revisions have a configurable grace/budget; sessions cannot pin files forever. Bound cache lifetimes by eligibility. Expired selections return a clear response and prompt reselection. Provide cleanup dry-run and usage reporting. Pin the historical sample in demo mode or use a fixed demonstration clock.
+Expire discovery/access first; remove unreferenced assets after bounded in-flight-reader grace. Superseded revisions have a configurable grace/budget; sessions cannot pin files forever. Bound server cache lifetimes by eligibility. Browser HTTP/decoded/GPU caches must discard expired or superseded selections according to the documented policy; reusing a texture cannot resurrect an expired publication. Expired selections return a clear response and prompt reselection. Provide cleanup dry-run and usage reporting. Pin the historical sample in demo mode or use a fixed demonstration clock.
 
 Persist database and products on explicit volumes. Configure secrets outside committed data/config; mount reader assets read-only where possible. Define source readiness, worker/API/database/GIS health, structured logs, job backlog, publication lag, failures, storage and cache use. Back up the catalogue/config/key metadata and document recovery from retained sources; usage retention is separately configurable. Offline runtime must not require public basemap/API calls. Host sizing and public TLS/domain provisioning are deployment inputs, not completed work.
 
@@ -157,10 +171,10 @@ Persist database and products on explicit volumes. Configure secrets outside com
 | Milestone | Deliverable and exit gate |
 | --- | --- |
 | M1 — Decode, compatibility and API comparison | Reproducible tools; all sample messages decoded; field/units/grid/masks and numeric round trip validated; locked storage readers; evidence-based numerical adapter choice under section 3.1 |
-| M2 — Publication core | Durable jobs, immutable batches/manifests, selected derivatives, idempotent retries and retention; prove failed updates preserve previous data |
-| M3 — GIS and API | GeoServer selection/visibility gate, scoped QGIS WMS, selected OGC adapter discovery/position and domain catalogue/point API; consistent run/time/values and authenticated access |
-| M4 — Web map | Russian MapLibre viewer with accepted interaction, UTC, legend, click values, responsive controls and local basemap |
-| M5 — Operational handoff | Keys/limits/usage, restart/cleanup/recovery exercises, documentation and configurable concurrent-load measurements |
+| M2 — Publication core | Durable jobs, immutable batches/manifests, COG and numeric tile readiness/contract, idempotent retries and retention; prove failed updates preserve previous data |
+| M3 — GIS and API | GeoServer selection/visibility gate, scoped QGIS WMS, selected OGC adapter discovery/position, domain catalogue/point and numeric tile delivery; consistent selection and protected caches |
+| M4 — Web map | Russian MapLibre GPU scalar viewer, validated numeric decoding/masks/seams, accepted selection/UTC/legend/click behavior, responsive controls and local runtime assets |
+| M5 — Operational handoff | Keys/limits/usage, restart/cleanup/recovery exercises, documentation and concurrent server/tile/browser-GPU measurements against agreed targets |
 
 Do not hide failed compatibility gates behind mock data or silently replace the selected architecture. Record evidence and revisit the affected decision if the chosen products cannot satisfy it.
 
@@ -169,17 +183,17 @@ Do not hide failed compatibility gates behind mock data or silently replace the 
 | ID | Required evidence during implementation |
 | --- | --- |
 | A1 | All 24 sample messages decode; identities, times, surface, units, masks and coordinate placement are recorded and checked. |
-| A2 | Zarr numeric baseline and COG derivatives meet precision/mask checks at representative cells and boundaries. |
-| A3 | Browser, domain point API, standard position API and QGIS show the same selected run/revision/time/field and consistent values. |
+| A2 | Zarr and COG precision/mask evidence is retained; numeric tile encode/decode, declared resampling and GPU interpolation pass separately agreed display error budgets at representative cells, coverage edges and tile seams. |
+| A3 | Browser tiles/GPU, domain point, EDR position and QGIS use identical run/revision/time/field. Compare decoded display values under declared resampling/tolerances with the canonical baseline; canonical click values come from the point API, never inferred from colours. |
 | A4 | QGIS capabilities/time/legend/identify work with credentials in the pinned client version and both stated CRSs. |
-| A5 | Explicit synthetic fixtures exercise overlapping runs, missing times, late/corrected batches and old-revision readers without silent mixing. |
-| A6 | Crash/retry and derivative/indexing failure never expose unfinished assets or replace the last usable publication. |
-| A7 | Public and protected routes behave as documented; invalid/revoked keys, limits, cache hits and usage records are exercised. |
-| A8 | Russian UI/UTC, loading/errors/nodata, point-result clearing and stale-response rejection match the reviewed behavior. |
-| A9 | Seven-/30-day policy configurations expire managed runs safely; source mounts remain intact; historical demo data remain usable. |
+| A5 | Labelled fixtures exercise overlapping runs, missing times, late/corrected batches and old-revision readers without mixing, including delayed tile fetch/decode/upload during navigation and explicit updates. |
+| A6 | Crash/retry, numeric tile generation/metadata readiness and GIS derivative/indexing failures never expose unfinished selections or replace the last usable publication. |
+| A7 | Public/protected numerical, tile-metadata/tile and GIS routes exercise invalid/revoked keys, limits, warm cache hits, expiry, bypass prevention and usage records. |
+| A8 | Russian UI/UTC, GPU-rendered scalar values/masks/legend, loading/errors/nodata, stale point/tile rejection, bounded resource lifecycle and explicit GPU capability/context-loss behavior match the contract. |
+| A9 | Seven-/30-day retention safely expires managed runs and numeric tile/metadata/server caches; browser caches cannot resurrect expired selections; source mounts and historical demo rules remain intact. |
 | A10 | Compose startup/restart, persistent storage, health and recovery documentation work on the agreed Linux host. |
-| A11 | A runtime network check confirms locally served basemap/styles/fonts and no required public runtime services. |
-| A12 | Benchmark report records workload/hardware/configuration, the equivalent-adapter comparison in section 3.1, and measured ingestion, publication lag, latency, CPU/RAM, bytes, temporary/final storage, cache rate, errors and backlog. |
+| A11 | Network and disconnected-public-runtime checks confirm locally served basemap/styles/fonts, shaders, decoders and any required WASM/workers; no mandatory public runtime service. |
+| A12 | Report declared workload/hosts/browsers/configuration, preserved M1 point/metadata comparison, ingestion/publication/server metrics, cold/warm numeric tiles and image baseline, bytes, decode/upload time, frame-time/FPS, browser/GPU memory, cache/storage/errors/backlog. Agree server and desktop/mobile browser targets before readiness claims. |
 
 Use the sample for correctness, then representative multi-GB/multivariable/model updates for sizing. Exercise cold/warm maps and clicks while ingesting, with configurable concurrency such as 1/10/50/100 clients. These are measurement profiles, not a guarantee that 100 clients meet an unspecified SLA. Compare seven- and 30-day storage envelopes and account for raw copies, Zarr, selected COGs/overviews, staging, old revisions and cache. The missing production volume/server envelope prevents a defensible capacity commitment today.
 
@@ -193,4 +207,4 @@ Before operational rollout obtain representative datasets and schema/access deta
 
 The [GitHub map](https://github.com/stepanosokin/hmc-app-prototype/issues/1) is the canonical tracker; the [local map](map.md) is a snapshot. Supporting investigations: [GRIB/storage](../../docs/research/grib-storage.md), [delivery standards](../../docs/research/delivery-standards.md), [Zarr comparison](../../docs/research/zarr-first-comparison.md), [pygeoapi/Martin](../../docs/research/pygeoapi-martin.md), and [OGC API alternatives](../../docs/research/ogc-api-alternatives.md). Provider-specific limits are documented in the official [pygeoapi EDR](https://docs.pygeoapi.io/en/stable/publishing/ogcapi-edr.html), [tile integration](https://docs.pygeoapi.io/en/stable/publishing/ogcapi-tiles.html) and [Martin COG](https://maplibre.org/martin/sources-cog-files/) references.
 
-The current evidence consists of planning, a header inventory and a reviewed illustrative interaction artifact. Decoding, application implementation, deployment, conformance checks and performance tests have not been performed.
+Completed planning and the reviewed interaction artifact are historical inputs. Local T1/T2/T3 reports validate sample decoding, Zarr/COG storage and the bounded numerical-adapter comparison. Numeric tiling/GPU rendering, real GIS publication/QGIS, broader external-profile validation and operational sizing remain implementation gates; this revision does not claim them complete.
