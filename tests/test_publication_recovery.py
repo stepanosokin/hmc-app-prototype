@@ -187,6 +187,42 @@ class Recovery(unittest.TestCase):
                 observations[-1]['after_operator_retry'] = self.status(job)
         Path('/evidence/t6-failures.json').write_text(json.dumps(observations, indent=2))
 
+    def test_c_capture_crash_is_durable_and_submission_resumes(self):
+        observations = []
+        for hour, stage in ((22, 'capture'), (23, 'captured')):
+            args = ('submit', '--clock', '2026-10-19T07:00:00Z', '--hours', str(hour), '--recoverable')
+            known = set(Path('/evidence').glob('pause-*.json'))
+            process = subprocess.Popen([sys.executable, '-m', 'publication.worker', *args],
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                       env={**os.environ, 'T6_PAUSE_STAGE': stage})
+            try:
+                deadline = time.monotonic() + 30
+                markers = set()
+                while process.poll() is None and time.monotonic() < deadline:
+                    markers = set(Path('/evidence').glob('pause-*.json')) - known
+                    if markers:
+                        break
+                    time.sleep(0.1)
+                self.assertEqual(len(markers), 1, 'capture must have a durable job before it becomes processable')
+                job = markers.pop().stem.removeprefix('pause-')
+                status = self.status(job)
+                self.assertEqual(status['stage'], stage)
+            finally:
+                process.kill()
+                process.communicate(timeout=10)
+            self.assertLess(process.returncode, 0)
+            report = json.loads(self.cli('collect'))
+            self.assertTrue(any(item['id'] == job for item in report['jobs']))
+            if stage == 'capture':
+                self.assertEqual(self.cli(*args), job, 'resume the registered capture without orphan copies')
+            else:
+                self.cli('retry', '--job', job)
+            self.cli('once')
+            self.assertEqual(self.status(job)['state'], 'published')
+            observations.append({'stage': stage, 'killed_exit_code': process.returncode,
+                                 'interrupted_status': status, 'resumed_status': self.status(job)})
+        Path('/evidence/t6-capture.json').write_text(json.dumps(observations, indent=2))
+
     def test_e_partial_job_collects_only_abandoned_hours(self):
         old = self.catalogue()[0]
         original = self.selected_bytes(old)

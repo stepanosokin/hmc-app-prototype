@@ -56,7 +56,7 @@ def create_app() -> Flask:
     @app.errorhandler(pg8000.dbapi.Error)
     @app.errorhandler(OSError)
     def upstream(error):
-        response = jsonify(code='Unavailable', description='published service temporarily unavailable; retry same selection')
+        response = jsonify(code='Unavailable', description='published service temporarily unavailable')
         response.status_code = 503
         response.headers['Retry-After'] = '2'
         response.headers['Cache-Control'] = 'no-store'

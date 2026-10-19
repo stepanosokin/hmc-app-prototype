@@ -12,6 +12,7 @@ import shutil
 import time
 import uuid
 import signal
+import stat
 from contextlib import contextmanager
 
 from decoder.inspect_forecast import SAMPLE_SHA256, ValidationError
@@ -88,6 +89,27 @@ def processing_budget():
 
 def submit(clock: str, request: dict, source_name: str, delivery_sha256: str | None,
            stability_seconds: float) -> str:
+    with processing_budget():
+        return capture(clock, request, source_name, delivery_sha256, stability_seconds)
+
+
+def bounded_checksum(path: Path, limit: int = MAX_SOURCE_BYTES) -> str:
+    checksum = hashlib.sha256()
+    remaining = limit + 1
+    with path.open('rb') as stream:
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+            raise ValueError('source must be a regular file')
+        while remaining:
+            chunk = stream.read(min(1024**2, remaining))
+            if not chunk:
+                return checksum.hexdigest()
+            checksum.update(chunk)
+            remaining -= len(chunk)
+    raise ValueError('source exceeds 64 MiB sample pipeline limit')
+
+
+def capture(clock: str, request: dict, source_name: str, delivery_sha256: str | None,
+            stability_seconds: float) -> str:
     if Path(source_name).name != source_name or source_name in ('', '.', '..'):
         raise ValueError('source must be a basename under the read-only input mount')
     if not 0 <= stability_seconds <= 300 or (delivery_sha256 is None and stability_seconds < 1):
@@ -100,6 +122,8 @@ def submit(clock: str, request: dict, source_name: str, delivery_sha256: str | N
         # Refuse links escaping the configured source directory.
         source.resolve().relative_to(Path('/input').resolve())
         before = source.stat()
+        if not stat.S_ISREG(before.st_mode):
+            raise ValueError('source must be a regular file')
         if before.st_size > MAX_SOURCE_BYTES:
             raise ValueError('source exceeds 64 MiB sample pipeline limit')
         if delivery_sha256 is None:
@@ -107,54 +131,79 @@ def submit(clock: str, request: dict, source_name: str, delivery_sha256: str | N
             after = source.stat()
             if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
                 raise ValueError('delivery still changing; retry discovery')
-        checksum = file_hash(source)
+        checksum = bounded_checksum(source)
         key = hashlib.sha256(canonical({'source': checksum, 'pipeline': PIPELINE, 'request': request,
                                       'producer_sha256': delivery_sha256})).hexdigest()
         with database() as cursor:
-            cursor.execute('SELECT id FROM app.jobs WHERE delivery_key=%s', (key,))
+            cursor.execute('SELECT id,error FROM app.jobs WHERE delivery_key=%s', (key,))
             existing = cursor.fetchone()
-            if existing:
+            if existing and existing['error'] != 'CaptureInterrupted':
                 return str(existing['id'])
             cursor.execute("SELECT count(*) AS count FROM app.jobs WHERE state <> 'published'")
-            if cursor.fetchone()['count'] >= MAX_JOBS:
+            if cursor.fetchone()['count'] >= MAX_JOBS and existing is None:
                 raise RuntimeError('job backlog budget exhausted')
         reserve(MAX_SOURCE_BYTES)
-        identifier = str(uuid.uuid4())
+        identifier = str(existing['id']) if existing else str(uuid.uuid4())
         directory = ROOT / identifier
-        directory.mkdir()
+        relative = (directory / 'original.grib2').relative_to(ROOT).as_posix()
+        if existing is None:
+            # Commit capture intent before creating any managed bytes. Failed
+            # capture stays discoverable and resubmission resumes this identity.
+            with database() as cursor:
+                cursor.execute('INSERT INTO app.jobs(id,submitted_at,source_name,checksum,pipeline_version,state,history,'
+                               'request,delivery_key,managed_source,retryable,error,stage) '
+                               'VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+                               (identifier, clock, source_name, checksum, PIPELINE, 'failed',
+                                json.dumps([{'state': 'discovered', 'clock': clock},
+                                            {'state': 'failed', 'failed_stage': 'capture', 'error_type': 'CaptureInterrupted'}]),
+                                json.dumps({**request, 'producer_sha256': delivery_sha256}), key, relative,
+                                False, 'CaptureInterrupted', 'capture'))
+        directory.mkdir(exist_ok=True)
         staged = directory / 'original.grib2'
         # Bound the copy even if a producer grows the file after discovery.
-        with source.open('rb') as incoming, staged.open('xb') as outgoing:
-            remaining = MAX_SOURCE_BYTES + 1
-            while remaining:
-                chunk = incoming.read(min(1024**2, remaining))
-                if not chunk:
-                    break
-                outgoing.write(chunk)
-                remaining -= len(chunk)
-            outgoing.flush()
-            os.fsync(outgoing.fileno())
-        staged.chmod(0o444)
-        observed = file_hash(staged)
-        invalid = observed != checksum or staged.stat().st_size > MAX_SOURCE_BYTES
-        invalid |= delivery_sha256 is not None and observed != delivery_sha256
-        relative = staged.relative_to(ROOT).as_posix()
-        write_once(directory / 'delivery.json', {'source_name': source_name, 'sha256': observed,
-                   'producer_sha256': delivery_sha256, 'stability_seconds': stability_seconds,
-                   'note': 'Stable size is not proof of completeness; full structural/decode checks follow.'})
-        descriptor = os.open(ROOT, os.O_RDONLY | os.O_DIRECTORY)
-        try:
-            os.fsync(descriptor)
-        finally:
-            os.close(descriptor)
-        with database() as cursor:
-            cursor.execute('INSERT INTO app.jobs(id,submitted_at,source_name,checksum,pipeline_version,state,history,'
-                           'request,delivery_key,managed_source,retryable,error,stage) '
-                           'VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-                           (identifier, clock, source_name, observed, PIPELINE, 'failed' if invalid else 'discovered',
-                            json.dumps([{'state': 'discovered', 'clock': clock}]), json.dumps(request), key,
-                            relative, not invalid, 'DeliveryChecksumMismatch' if invalid else None, 'delivery'))
+        if not staged.exists():
+            temporary = directory / ('capture-' + uuid.uuid4().hex + '.grib2')
+            with source.open('rb') as incoming, temporary.open('xb') as outgoing:
+                remaining = MAX_SOURCE_BYTES + 1
+                while remaining:
+                    chunk = incoming.read(min(1024**2, remaining))
+                    if not chunk:
+                        break
+                    outgoing.write(chunk)
+                    remaining -= len(chunk)
+                    checkpoint({'id': identifier, 'request': request}, 'capture')
+                outgoing.flush()
+                os.fsync(outgoing.fileno())
+            temporary.chmod(0o444)
+            temporary.rename(staged)
+        checkpoint({'id': identifier, 'request': request}, 'captured')
+        complete_capture({'id': identifier, 'source_name': source_name, 'managed_source': relative,
+                          'checksum': checksum, 'request': {'producer_sha256': delivery_sha256}}, stability_seconds)
         return identifier
+
+
+def complete_capture(job: dict, stability_seconds: float | None) -> None:
+    staged = ROOT / job['managed_source']
+    observed = bounded_checksum(staged, MAX_SOURCE_BYTES + 1)
+    declared = job['request'].get('producer_sha256')
+    invalid = (staged.stat().st_size > MAX_SOURCE_BYTES or observed != job['checksum']
+               or (declared is not None and observed != declared))
+    # A crash after metadata durability but before database acknowledgement
+    # reuses the same original and records another immutable capture receipt.
+    write_once(staged.parent / ('delivery-' + uuid.uuid4().hex + '.json'), {
+        'source_name': job['source_name'], 'sha256': observed, 'producer_sha256': declared,
+        'stability_seconds': stability_seconds,
+        'note': 'Stable size is not proof of completeness; full structural/decode checks follow.'})
+    descriptor = os.open(ROOT, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+    with database() as cursor:
+        cursor.execute('UPDATE app.jobs SET checksum=%s,state=%s,retryable=%s,error=%s,stage=%s,history=history || %s '
+                       'WHERE id=%s', (observed, 'failed' if invalid else 'discovered', not invalid,
+                       'DeliveryChecksumMismatch' if invalid else None, 'delivery',
+                       json.dumps([{'state': 'failed' if invalid else 'discovered', 'capture': 'durable'}]), str(job['id'])))
 
 
 def source(job: dict) -> Path:
@@ -199,10 +248,17 @@ def retry(identifier: str) -> None:
         if not lock(guard):
             raise RuntimeError('worker busy; retry later')
         with database() as cursor:
-            cursor.execute('SELECT request,state,error FROM app.jobs WHERE id=%s', (identifier,))
+            cursor.execute('SELECT * FROM app.jobs WHERE id=%s', (identifier,))
             job = cursor.fetchone()
+        if job and job['error'] == 'CaptureInterrupted':
+            if not (ROOT / job['managed_source']).is_file():
+                raise ValueError('capture is incomplete; resubmit the source to resume capture')
+            with processing_budget():
+                complete_capture(job, None)
+            return
+        with database() as cursor:
             if (job is None or not (job['request'] or {}).get('recoverable') or job['state'] != 'failed'
-                    or job['error'] in ('DeliveryInvalid', 'DeliveryChecksumMismatch')):
+                    or job['error'] in ('DeliveryInvalid', 'DeliveryChecksumMismatch', 'CaptureInterrupted')):
                 raise ValueError('only failed recoverable processing jobs can be retried; redeliver invalid sources')
             cursor.execute("UPDATE app.jobs SET state='discovered',attempts=0,error=NULL,retry_at=NULL,retryable=true,"
                            'history=history || %s WHERE id=%s',
@@ -225,7 +281,7 @@ def collect(*, apply: bool = False) -> dict:
             rows = cursor.fetchall()
             cursor.execute('SELECT manifest_path FROM app.catalogue')
             roots = [row['manifest_path'] for row in cursor.fetchall()]
-            cursor.execute('SELECT id,state,retryable FROM app.jobs')
+            cursor.execute('SELECT id,state,stage,error,retryable FROM app.jobs')
             jobs = cursor.fetchall()
         for row in rows:
             value = load_revision(row['manifest_path'], row['manifest_sha256'])
@@ -264,4 +320,5 @@ def collect(*, apply: bool = False) -> dict:
                         removed.append(target.relative_to(ROOT).as_posix())
         return {'managed_bytes': storage_bytes(), 'budget_bytes': MAX_STORAGE_BYTES,
                 'candidates': candidates, 'removed': removed, 'apply': apply,
+                'jobs': [{**job, 'id': str(job['id'])} for job in jobs],
                 'originals': 'retained; source mounts never collected'}

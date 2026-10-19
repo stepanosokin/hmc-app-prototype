@@ -234,8 +234,15 @@ additional products require a compatibility decision, rather than relaxing the
 checksum gate. Source mounts, configured by `PUBLICATION_INPUT_DIR`, are local
 and read-only. Symlinks escaping the mount and non-basename inputs are rejected.
 
-Submission durably captures original bytes under the managed asset volume before
-creating the job. Partial, truncated and unsupported deliveries become terminal
+Submission registers durable capture intent before writing original bytes to the
+managed asset volume. An interrupted capture remains a diagnosed
+`CaptureInterrupted` job; resubmitting the same delivery resumes that job and
+retains its partial captures. Source hashing and copying both have a byte bound,
+require regular files and share a 600-second capture deadline. Only a flushed,
+renamed original and durable capture receipt make the job eligible for processing.
+If the original is already complete when capture is interrupted, `retry --job`
+finishes capture from that managed original, including without the source mount.
+Partial, truncated and unsupported deliveries become terminal
 quarantined jobs (`failed`, `retryable=false`, failed stage/error class), with
 their original captured bytes retained. Correct the producer delivery and submit
 its new checksum; quarantined bytes are never overwritten. A checksum mismatch
