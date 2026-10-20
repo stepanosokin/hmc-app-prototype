@@ -1,0 +1,32 @@
+test_actual_sample_decodes_all_hours_and_native_cell_positions (test_decoder.DecoderContract.test_actual_sample_decodes_all_hours_and_native_cell_positions) ... ok
+test_empty_non_grib_and_missing_hours_fail (test_decoder.DecoderContract.test_empty_non_grib_and_missing_hours_fail) ... ok
+test_failure_atomically_replaces_previous_success_report (test_decoder.DecoderContract.test_failure_atomically_replaces_previous_success_report) ... ok
+test_header_mutations_never_pass_as_sample (test_decoder.DecoderContract.test_header_mutations_never_pass_as_sample) ... ok
+test_truncated_input_fails_without_values (test_decoder.DecoderContract.test_truncated_input_fails_without_values) ... ok
+test_unsupported_packing_has_diagnostic_without_values (test_decoder.DecoderContract.test_unsupported_packing_has_diagnostic_without_values) ... ok
+test_catalogue_point_numeric_tile_and_scoped_wms_agree (test_publication_http.PublishedSelection.test_catalogue_point_numeric_tile_and_scoped_wms_agree) ... ok
+test_failed_readiness_and_real_indexing_preserve_published_selection (test_publication_http.PublishedSelection.test_failed_readiness_and_real_indexing_preserve_published_selection) ... skipped 'failure runner supplies durable job IDs'
+test_post_publication_gis_exception_is_a_sanitized_service_failure (test_publication_http.PublishedSelection.test_post_publication_gis_exception_is_a_sanitized_service_failure) ... ok
+test_staging_backend_admin_and_unpublished_selection_are_hidden (test_publication_http.PublishedSelection.test_staging_backend_admin_and_unpublished_selection_are_hidden) ... ok
+test_a_recoverable_delivery_is_idempotent (test_publication_recovery.Recovery.test_a_recoverable_delivery_is_idempotent) ... skipped 'requires isolated T6 Compose services'
+test_b_bad_deliveries_are_quarantined_with_original_bytes (test_publication_recovery.Recovery.test_b_bad_deliveries_are_quarantined_with_original_bytes) ... skipped 'requires isolated T6 Compose services'
+test_c_capture_crash_is_durable_and_submission_resumes (test_publication_recovery.Recovery.test_c_capture_crash_is_durable_and_submission_resumes) ... skipped 'requires isolated T6 Compose services'
+test_d_derivative_failures_retry_with_bounded_attempts (test_publication_recovery.Recovery.test_d_derivative_failures_retry_with_bounded_attempts) ... skipped 'requires isolated T6 Compose services'
+test_e_partial_job_collects_only_abandoned_hours (test_publication_recovery.Recovery.test_e_partial_job_collects_only_abandoned_hours) ... skipped 'requires isolated T6 Compose services'
+test_worker_crashes_preserve_readers_and_retry_without_duplicates (test_publication_recovery.Recovery.test_worker_crashes_preserve_readers_and_retry_without_duplicates) ... skipped 'requires isolated T6 Compose services'
+test_z_lazy_tile_failures_retry_same_selection (test_publication_recovery.Recovery.test_z_lazy_tile_failures_retry_same_selection) ... skipped 'requires isolated T6 Compose services'
+test_reference_time_controls_all_valid_times_and_fixed_demo_pin (test_publication_retention.RetentionBoundaries.test_reference_time_controls_all_valid_times_and_fixed_demo_pin) ... ok
+test_superseded_grace_budgets_and_tombstones_are_bounded (test_publication_retention.RetentionBoundaries.test_superseded_grace_budgets_and_tombstones_are_bounded) ... ok
+test_00_upgrade_mixed_legacy_and_incremental_publications (test_publication_retention.RetentionGateway.test_00_upgrade_mixed_legacy_and_incremental_publications) ... skipped 'requires isolated T7 Compose services'
+test_policy_cleanup_and_warm_cache_expiry (test_publication_retention.RetentionGateway.test_policy_cleanup_and_warm_cache_expiry) ... skipped 'requires isolated T7 Compose services'
+test_incremental_times_corrections_and_retained_readers (test_publication_revisions.IncrementalPublication.test_incremental_times_corrections_and_retained_readers) ... skipped 'requires isolated T5 Compose services'
+test_bilinear_mask_edges_and_wire_roundtrip (test_publication_tiles.NumericTileContract.test_bilinear_mask_edges_and_wire_roundtrip) ... ok
+test_neighboring_halos_have_identical_global_coordinates (test_publication_tiles.NumericTileContract.test_neighboring_halos_have_identical_global_coordinates) ... ok
+test_actual_sample_round_trip_and_exact_manifest_selection (test_storage.StorageContract.test_actual_sample_round_trip_and_exact_manifest_selection) ... ok
+test_invalid_source_and_clock_never_create_manifest (test_storage.StorageContract.test_invalid_source_and_clock_never_create_manifest) ... ok
+test_synthetic_nodata_is_explicit_and_never_becomes_a_temperature (test_storage.StorageContract.test_synthetic_nodata_is_explicit_and_never_becomes_a_temperature) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 70.986s
+
+OK (skipped=11)
