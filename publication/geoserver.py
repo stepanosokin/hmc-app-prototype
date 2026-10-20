@@ -3,6 +3,7 @@
 import os
 import io
 import re
+from pathlib import Path
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from PIL import Image
@@ -63,11 +64,17 @@ def prepare(workspace: str, directory: str, valid_time: str) -> dict:
     if len(names) != 1:
         raise ValueError('unexpected GIS coverage count')
     name = names[0]['name']
+    admin('POST', f'/workspaces/{workspace}/styles?name=raster',
+          data=Path(__file__).with_name('temperature.sld').read_bytes(),
+          headers={'Content-Type': 'application/vnd.ogc.sld+xml'})
+    admin('PUT', f'/layers/{workspace}:{name}.json', json={'layer': {
+        'defaultStyle': {'name': 'raster', 'workspace': workspace}}})
     admin('PUT', coverage_path + '/' + name + '.json', json={'coverage': {'name': name,
         'srs':'EPSG:100001', 'projectionPolicy':'FORCE_DECLARED', 'enabled':True, 'metadata': {
         'entry': [{'@key': 'time', 'dimensionInfo': {'enabled': True, 'presentation': 'LIST',
                    'units': 'ISO8601', 'defaultValue': {'strategy': 'MINIMUM'}, 'nearestMatchEnabled': False}}]}}})
     return {'workspace': workspace, 'layer': f'{workspace}:{name}', 'coverage': name,
+            'style': f'{workspace}:raster',
             'valid_time': valid_time}
 
 

@@ -1,0 +1,17 @@
+test_operator_and_gateway_policies (test_publication_access.OrganizationAccess.test_operator_and_gateway_policies) ... FAIL
+
+======================================================================
+FAIL: test_operator_and_gateway_policies (test_publication_access.OrganizationAccess.test_operator_and_gateway_policies)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_access.py", line 116, in test_operator_and_gateway_policies
+    self.get(tile.replace('/3/4/2.f32', '/6/32/20.f32'), first, expected=503)
+  File "/app/tests/test_publication_access.py", line 61, in get
+    self.assertEqual(result.status_code, expected, path)
+AssertionError: 200 != 503 : /org/api/v1/selections/fae63eda5fbbbf4f0c51d12d74053f1e1ebd62c9583f83d75de90bfa75849fb4.aa011fd49e82f2029a309f5e98578a7797007e2828587100360da1976d1759ff/tiles/2/6/32/20.f32
+
+----------------------------------------------------------------------
+Ran 1 test in 8.378s
+
+FAILED (failures=1)
+
