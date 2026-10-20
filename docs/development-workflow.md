@@ -56,6 +56,14 @@ requests, rotation/revocation before proven warm-cache hits, real edge/backend
 isolation, authorization-store failure and existing-volume access provisioning.
 Its `-Development` mode is a focused probe, not the final acceptance gate.
 
+For request-budget or usage-accounting changes, use the actual-sample
+[T9 budgets runner](../publication/run-budgets.ps1). Its full mode includes
+T5 publication/restart, T8 access/cache isolation and the full suite; select
+this combined gate instead of repeating the separate T5 and T8 chains.
+First finish all new T9 scenarios in `-Development` and resolve review findings.
+Run the additional T6 gate below when recovery or tile-cache inputs change.
+The operator contract is [budgets.md](budgets.md).
+
 For ingestion/recovery or tile-cache changes, also run the isolated actual-sample
 [T6 recovery runner](publication.md#recover-interrupted-deliveries-t6--18):
 `powershell -NoProfile -File publication/run-recovery.ps1 -Project <fresh-project> -Port <free-port>`.
@@ -81,11 +89,25 @@ refactors, run its Windows check and a read-only Compose command through it.
 Changes to startup ordering or service/publication behavior require the full T5
 runner.
 
+Use that same launcher for a nested PowerShell runner under
+`$ErrorActionPreference = 'Stop'`: redirect the child's streams with
+`Invoke-CheckedProcess`, rather than wrapping `powershell ... *> file`.
+T9's wrapper treated a successful Docker build's stderr as a terminating
+PowerShell error. The existing Windows process check already covers successful
+stderr and nonzero exits; this is a launcher selection issue, not a missing check.
+
 After changing API or gateway code, restart each affected long-lived service
 before HTTP validation. A source bind mount changes files but does not reload
 Gunicorn workers; #17's ETag check initially exercised an old gateway process.
 
 ### Before starting final acceptance
+
+Use the existing CI mypy check against the current read-only workspace before
+allocating a Compose project for Python type errors, when a locked validation
+image is already available. Otherwise let the focused runner build it first.
+In PowerShell, expand a bind source in double quotes, for example
+`"$((Get-Location).Path):/workspace:ro"`. Read UTF-8 repository text with
+`Get-Content -Encoding UTF8` to preserve Russian diagnostics in tool output.
 
 For actual-sample acceptance, verify that the configured private sample exists
 and matches `SAMPLE_SHA256` in `decoder/inspect_forecast.py` before allocating
@@ -132,6 +154,21 @@ bounded retention if unrelated readers can continually overtake collection.
 Review migration across legacy and incremental records together, including late
 adoption; publication order and the explicit policy clock have separate roles.
 Use the existing gateway upgrade/read-pressure cases to validate those judgments.
+
+For request-budget reviews, trace admission, queued API start, timeout and actual
+backend completion together. A disconnected HTTP client or expired timer alone
+does not establish that backend work stopped. Check that expired queued work
+cannot start later, active work keeps its slot and known cache/product metadata
+survives an output-limit rejection. Reuse T9's slow-reader, queued-request and
+concurrent cold-tile scenarios for these judgements.
+
+Quota tests establish fresh traffic immediately before changing a sliding-window
+limit; lifetime usage is a separate accounting observation. Measure each timeout
+reservation from its own request, including retries. Concurrent tests observe
+the valid result pair independently of which organization wins the generator.
+Check the actual service's mount permissions before choosing fault coordination;
+the API's assets mount is read-only. Finish these fixtures in the focused run
+before starting long, frozen acceptance chains in parallel.
 
 ## Test environment cleanup
 
@@ -194,7 +231,7 @@ request; compare numerical/GIS identity and placement through the gateway.
 Before changing shared configuration, read its current contents. Existing
 `.gitattributes` rules preserve historical evidence bytes; append compatible
 rules rather than replacing them. `tools/check_evidence.py` verifies the T3
-artifact index, T4's archived selection/contract hashes and T5-T8 report/input
+artifact index, T4's archived selection/contract hashes and T5-T9 report/input
 artifact index. These are historical records: compare each against its recorded
 inputs, rather than against future
 dependency locks or a new contract revision. New evidence must bind its exact
@@ -279,3 +316,9 @@ body serialized as an object. The documentation checker now fails on missing
 targets or unreadable inputs and runs in the existing Windows CI job. The
 specification pointer and plain-string issue-body recipe above address the
 navigation and serialization failures without changing third-party skills.
+
+The [T9 retrospective](evidence/retro-t9.md) links the failed probes and reviews
+behind the budget-review, fixture timing and launcher guidance above. Existing
+CI already covers mypy, process exits and evidence integrity; the changes improve
+when those checks and the combined T9 gate are used. Historical evidence stays
+bound to its recorded inputs.
