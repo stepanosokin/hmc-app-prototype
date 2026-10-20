@@ -1,15 +1,17 @@
 # Hydrometcenter meteorology prototype — implementation specification
 
-Updated 2026-10-19 to bilingual specification v0.3 at the user's instruction: numeric browser tiles and GPU scalar rendering replace primary browser colour-image delivery. Preserve milestone IDs M1–M5 and acceptance IDs A1–A12. Local T1/T2/T3 evidence remains bounded to decoding, Zarr/COG and point/metadata work; the added tile/GPU gates are not complete.
+Updated 2026-10-20 to bilingual specification v0.4: optional TLS using organization-provided certificates is assigned to T21 / #33. The accepted v0.3 browser amendment remains: numeric browser tiles and GPU scalar rendering replace primary browser colour-image delivery. Preserve milestone IDs M1–M5 and acceptance IDs A1–A12. Scope agreement does not establish completion of TLS or other implementation gates.
 
 Source of truth:
 
+- [Current specification v0.4 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.md)
+- [Текущая спецификация v0.4 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.ru.md)
 - [Accepted specification v0.2 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/.scratch/hmc-meteo/spec.md)
 - [Согласованная спецификация v0.2 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/.scratch/hmc-meteo/spec.ru.md)
 - [Completed wayfinder map](https://github.com/stepanosokin/hmc-app-prototype/issues/1) and [explicit handoff acceptance](https://github.com/stepanosokin/hmc-app-prototype/issues/7#issuecomment-6263046933)
 - [Domain glossary](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/GLOSSARY.md)
 
-The pinned v0.2 links above preserve the historical accepted baseline. The working-tree specification files `.scratch/hmc-meteo/spec.md` and `spec.ru.md` are now v0.3; `docs/adr/0002-numeric-browser-tiles.md` records the accepted amendment. This issue carries the operative amendment below, with the same M1–M5/A1–A12 IDs. The completed wayfinder map remains historical and unchanged. Incompatibility requires recorded evidence and revisiting the affected decision; planning agreement does not prove implementation.
+The pinned v0.2 links above preserve the historical accepted baseline. The working-tree specification files `.scratch/hmc-meteo/spec.md` and `spec.ru.md` are now v0.4; `docs/adr/0002-numeric-browser-tiles.md` records the accepted amendment. This issue carries the operative amendment below, with the same M1–M5/A1–A12 IDs. The completed wayfinder map remains historical and unchanged. Incompatibility requires recorded evidence and revisiting the affected decision; planning agreement does not prove implementation.
 
 ## Problem Statement
 
@@ -101,6 +103,16 @@ Agree variable-specific display error budgets before selecting an encoding: test
 - #25 owns browser numeric decoding/GPU scalar rendering, palette changes without unchanged-data refetch, masks/projection/seams, bounded arrays/textures and explicit GPU capability/context-loss/fallback behavior. #26–#28 cover navigation/update races, mobile layout and locally served shaders/decoders/workers/WASM where needed.
 - #29–#32 cover tile diagnostics/recovery, reproducible cold/warm delivery and cached-image comparison, bytes, browser decode/upload/frame-time/FPS/memory on declared desktop/mobile browsers, and final acceptance. Agree new server/browser performance targets before readiness claims; #15's workstation point/metadata envelope does not authorize tile/GPU thresholds.
 
+### Optional TLS amendment — v0.4
+
+The user accepted this amendment on 2026-10-20. [T21 / #33](https://github.com/stepanosokin/hmc-app-prototype/issues/33) implements an opt-in HTTPS reverse proxy in front of the existing gateway for the website, numerical API, tiles and GIS. Local HTTP development remains usable without certificates. Once the organization supplies its server certificate, trust chain and matching private key, an operator enables TLS through deployment configuration without application-code changes or rebuilding the application. Providing real organization certificates is not a prerequisite for implementing or testing this capability.
+
+Supply certificate/chain and key as external PEM files mounted read-only into the TLS proxy; keep them outside Git, images, web assets, logs and portable evidence. TLS private keys and organization API access keys are distinct secrets. Document server name, external HTTPS origin, ports, file paths and client CA trust. In TLS mode only the HTTPS edge exposes protected services externally; plain HTTP must not serve protected requests. Redirecting a request cannot protect credentials already sent over HTTP. Preserve the gateway access policy, internal backend isolation, /org profile and run/revision scope. Catalogue, tile metadata and WMS capabilities links must retain the external HTTPS origin without mixed content; arbitrary client forwarding headers must not control that origin or bypass policy.
+
+Document certificate replacement with configuration validation and controlled reload/restart, verification and recovery of the previous configuration. Missing, unreadable or mismatched certificate/key files must produce a clear startup/configuration error without automatic fallback to exposed HTTP. Validate the real proxy/gateway using a test CA and hostname-valid certificate with certificate verification enabled: trusted chain/name, wrong name/untrusted CA rejection, public/protected API/tiles/WMS, external links, warm-cache authorization/revocation, backend isolation, certificate replacement and failure behavior. Reuse the actual-sample access/publication gates for affected components, archive evidence without private keys and retire all test resources under the development workflow.
+
+This gate proves TLS readiness using test certificates. Organization DNS, real certificate/key/chain installation and target-host/client trust verification remain operational rollout inputs. Automatic certificate issuance/renewal (ACME), mutual TLS and replacement of existing API-key authentication are outside T21. Full desktop QGIS acceptance remains in its existing GIS task.
+
 ### External contracts
 
 | Interface | Required behavior |
@@ -135,7 +147,7 @@ The following M1–M5 IDs are preserved from v0.2 and amended by v0.3. Local M1 
 | M2 — Publication core | Durable jobs, immutable batches/manifests, COG and numeric tile readiness/contract, idempotent retries and retention; prove failed updates preserve previous data |
 | M3 — GIS and API | GeoServer selection/visibility gate, scoped QGIS WMS, selected OGC adapter discovery/position, domain catalogue/point and numeric tile delivery; consistent selection and protected caches |
 | M4 — Web map | Russian MapLibre GPU scalar viewer, validated numeric decoding/masks/seams, accepted selection/UTC/legend/click behavior, responsive controls and local runtime assets |
-| M5 — Operational handoff | Keys/limits/usage, restart/cleanup/recovery exercises, documentation and concurrent server/tile/browser-GPU measurements against agreed targets |
+| M5 — Operational handoff | Keys/limits/usage, optional TLS readiness under T21 / #33, restart/cleanup/recovery exercises, documentation and concurrent server/tile/browser-GPU measurements against agreed targets |
 
 M1 must first establish successful AEC-enabled ecCodes CCSDS decoding for packing template 5.42 and validate actual field identity, units, masks, coordinate placement and numerical round trips. Pin released dependencies and corresponding documentation; moving docs are not a tested lock.
 
@@ -168,7 +180,7 @@ Preserve these acceptance criteria and attach reproducible evidence to each duri
 | A7 | Public/protected numerical, tile-metadata/tile and GIS routes exercise invalid/revoked keys, limits, warm cache hits, expiry, bypass prevention and usage records. |
 | A8 | Russian UI/UTC, GPU-rendered scalar values/masks/legend, loading/errors/nodata, stale point/tile rejection, bounded resource lifecycle and explicit GPU capability/context-loss behavior match the contract. |
 | A9 | Seven-/30-day retention safely expires managed runs and numeric tile/metadata/server caches; browser caches cannot resurrect expired selections; source mounts and historical demo rules remain intact. |
-| A10 | Compose startup/restart, persistent storage, health and recovery documentation work on the agreed Linux host. |
+| A10 | Compose startup/restart, persistent storage, health and recovery documentation work on the agreed Linux host; optional TLS enablement, certificate replacement and failure behavior pass specification section 10.1 using test certificates before organization credentials arrive. |
 | A11 | Network and disconnected-public-runtime checks confirm locally served basemap/styles/fonts, shaders, decoders and any required WASM/workers; no mandatory public runtime service. |
 | A12 | Report declared workload/hosts/browsers/configuration, preserved M1 point/metadata comparison, ingestion/publication/server metrics, cold/warm numeric tiles and image baseline, bytes, decode/upload time, frame-time/FPS, browser/GPU memory, cache/storage/errors/backlog. Agree server and desktop/mobile browser targets before readiness claims. |
 
@@ -187,6 +199,6 @@ Local Compose integration results do not establish production sizing. Run operat
 
 ## Further Notes
 
-The completed wayfinder map stays closed. Bilingual v0.3 preserves the accepted core and explicitly amends browser delivery to numeric tiles/GPU at the user's request. The current frontier is M2, including tile contract/engine selection in #16, followed by GIS/API, GPU viewer and operational gates. Existing issue relationships, milestone IDs and completion states remain unchanged.
+The completed wayfinder map stays closed. Bilingual v0.4 adds optional TLS readiness in T21 / #33 and preserves the accepted core and explicitly amends browser delivery to numeric tiles/GPU at the user's request. The current frontier is M2, including tile contract/engine selection in #16, followed by GIS/API, GPU viewer and operational gates. Existing issue relationships, milestone IDs and completion states remain unchanged.
 
 Before operational rollout obtain representative datasets, schema/access details, producer completion conventions, real per-model run cadence/daily volume, target server/storage/network, exact QGIS version, DNS/TLS/secrets and agreed service targets. Keep credentials out of this issue. Host sizing remains deferred until evidence exists; #15's narrow numerical-adapter choice remains bounded to the recorded point/metadata evidence; tile/GPU outcomes are not predetermined.
