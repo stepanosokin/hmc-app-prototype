@@ -65,6 +65,17 @@ First finish all new T9 scenarios in `-Development` and resolve review findings.
 Run the additional T6 gate below when recovery or tile-cache inputs change.
 The operator contract is [budgets.md](budgets.md).
 
+For desktop QGIS or scoped WMS changes, use the two-phase
+[T11 runner and desktop procedure](qgis.md#воспроизведение-приёмки).
+Its full mode includes T5 publication/restart, the T8 policy scenario and the
+full suite; access-policy changes still require the complete T8 gate above.
+First verify the pinned desktop client in Development. For scoped-revision
+checks, select a retained revision with a small time domain while later granules
+and another run exist; exercise every advertised time of that selected revision.
+This checks exclusion of unrelated data without repeating the full publication
+matrix at every client probe. Keep the final desktop report bound to the same
+selection and input inventory as the HTTP phases.
+
 For ingestion/recovery or tile-cache changes, also run the isolated actual-sample
 [T6 recovery runner](publication.md#recover-interrupted-deliveries-t6--18):
 `powershell -NoProfile -File publication/run-recovery.ps1 -Project <fresh-project> -Port <free-port>`.
@@ -109,6 +120,14 @@ image is already available. Otherwise let the focused runner build it first.
 In PowerShell, expand a bind source in double quotes, for example
 `"$((Get-Location).Path):/workspace:ro"`. Read UTF-8 repository text with
 `Get-Content -Encoding UTF8` to preserve Russian diagnostics in tool output.
+
+When combining existing scenarios in a new runner, execute each added scenario
+in its focused mode before starting the full chain. Carry over its prerequisite
+flags, mounts and fault coordination from the existing runner. In particular,
+T8's cold-tile/warm-cache policy scenario requires `T6_TEST_FAULTS=1` in the
+isolated API; selecting `T8_HTTP=1` in the check container alone is insufficient.
+Confirm the intended failure and recovery through the gateway in that focused
+run. A successful build or typecheck does not validate these prerequisites.
 
 For actual-sample acceptance, verify that the configured private sample exists
 and matches `SAMPLE_SHA256` in `decoder/inspect_forecast.py` before allocating
@@ -180,6 +199,21 @@ worker stage: durable intent before managed writes, byte/time bounds during
 hashing and copying, and collection of abandoned fragments. T6's existing
 `capture_crash` case exercises the public worker/retirement boundary; extend that
 seam when adding capture paths and cover crashes before submission completes.
+
+For QGIS reviews, trace temporal state separately through map rendering and
+identify. The renderer clones its raster pipe; setting its time does not set
+the original provider's identify time. Reuse the pinned
+[desktop helper](../publication/qgis_desktop.py) and check differing native
+values at two available times in both supported CRSs. A valid layer or passing
+HTTP test alone does not establish desktop negotiation, time discovery or legend
+behavior. Use [the connection procedure](qgis.md) for URI/header setup rather
+than reconstructing it from assumed PyQGIS methods.
+
+Treat authenticated QGIS source URIs as credentials when collecting diagnostics:
+they contain HTTP headers, and provider error text can echo the complete URI.
+Use a generic invalid-layer message in shared output and redact credential
+values before emitting client logs. Retain keys only in the private test files
+described by the connection procedure.
 
 For retention reviews, trace whether queued deletion can drain active readers
 while later traffic arrives. A fixed grace interval alone does not establish
@@ -375,3 +409,8 @@ The [T10 retrospective](evidence/retro-t10.md) ties the failed acceptance runs,
 proven usage-migration deadlock, missing-array/chunk failures and late Git byte
 check to the guidance above. Existing HTTP regressions, CI and evidence tooling
 remain the checks; the workflow brings diagnostics and byte checks forward.
+
+The [T11 retrospective](evidence/retro-t11.md) records a combined-runner fixture
+failure, desktop negotiation/time-state defects and credential-bearing QGIS
+diagnostics. Existing T11/T8 scenarios now supply the focused checks; their
+runner, helper and archived evidence remain the implementation sources of truth.
