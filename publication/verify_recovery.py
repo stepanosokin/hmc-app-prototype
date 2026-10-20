@@ -17,6 +17,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--inputs', type=Path)
     parser.add_argument('--base-commit')
+    parser.add_argument('--clock', default='2026-10-19T07:00:00Z', help='Effective explicit acceptance clock for input evidence')
     args = parser.parse_args()
     evidence = Path('/evidence')
     if args.inputs:
@@ -26,7 +27,7 @@ def main() -> None:
         files.extend(path for path in root.iterdir() if path.name.startswith(('requirements', 'Dockerfile', 'compose')))
         files.extend([root / '.github/workflows/checks.yml', root / 'AGENTS.md', root / 'docs/development-workflow.md'])
         value = {'base_commit': args.base_commit, 'source_mode': 'read-only bind mounts in pinned image',
-                 'clock': '2026-10-19T07:00:00Z', 'inputs': [
+                 'clock': args.clock, 'inputs': [
                      {'path': path.relative_to(root).as_posix(), 'bytes': path.stat().st_size, 'sha256': file_hash(path)}
                      for path in sorted(files) if path.is_file()],
                  'actual_source_sha256': file_hash(Path('/input/ICON_EU_T_G_2026101500.grib2'))}

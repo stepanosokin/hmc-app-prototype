@@ -29,6 +29,13 @@ isolated by project; T4 reports remain shared, so run T4 experiments sequentiall
 The runner checks native exit codes, observes publication during real failures
 and preserves service volumes until evidence archival; retirement below is then mandatory.
 
+For access-policy or organization-key changes, run the actual-sample
+[T8 access runner](../publication/run-access.ps1) in a fresh project. It includes
+the T5 publication/restart regression and full suite, protected numeric/GIS
+requests, rotation/revocation before proven warm-cache hits, real edge/backend
+isolation, authorization-store failure and existing-volume access provisioning.
+Its `-Development` mode is a focused probe, not the final acceptance gate.
+
 For ingestion/recovery or tile-cache changes, also run the isolated actual-sample
 [T6 recovery runner](publication.md#recover-interrupted-deliveries-t6--18):
 `powershell -NoProfile -File publication/run-recovery.ps1 -Project <fresh-project> -Port <free-port>`.
@@ -167,7 +174,7 @@ request; compare numerical/GIS identity and placement through the gateway.
 Before changing shared configuration, read its current contents. Existing
 `.gitattributes` rules preserve historical evidence bytes; append compatible
 rules rather than replacing them. `tools/check_evidence.py` verifies the T3
-artifact index, T4's archived selection/contract hashes and T5-T7 report/input
+artifact index, T4's archived selection/contract hashes and T5-T8 report/input
 artifact index. These are historical records: compare each against its recorded
 inputs, rather than against future
 dependency locks or a new contract revision. New evidence must bind its exact

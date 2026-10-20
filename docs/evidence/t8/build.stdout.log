@@ -1,0 +1,64 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 642B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.publication
+#2 transferring dockerfile: 843B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 337B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 16.00kB done
+#5 DONE 0.0s
+
+#6 [ 1/10] FROM docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+#6 resolve docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c 0.0s done
+#6 DONE 0.0s
+
+#7 [ 3/10] RUN apt-get update && apt-get install -y --no-install-recommends libexpat1=2.5.0-1+deb12u4 && rm -rf /var/lib/apt/lists/*
+#7 CACHED
+
+#8 [ 4/10] COPY requirements.lock requirements.adapters.lock requirements.publication.lock ./
+#8 CACHED
+
+#9 [ 6/10] COPY decoder/ decoder/
+#9 CACHED
+
+#10 [ 2/10] WORKDIR /app
+#10 CACHED
+
+#11 [ 5/10] RUN pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.lock -r requirements.adapters.lock -r requirements.publication.lock && pip check
+#11 CACHED
+
+#12 [ 7/10] COPY trials/ trials/
+#12 CACHED
+
+#13 [ 8/10] COPY publication/ publication/
+#13 DONE 0.0s
+
+#14 [ 9/10] COPY tests/ tests/
+#14 DONE 0.0s
+
+#15 [10/10] COPY docs/evidence/t1/a1.json /app/baseline-a1.json
+#15 DONE 0.0s
+
+#16 exporting to image
+#16 exporting layers
+#16 exporting layers 0.2s done
+#16 exporting manifest sha256:eb86e26819a2fe7c8591545ec3aa7cc2232ba34ecfdd97fa939ab3bccfabecc9 0.0s done
+#16 exporting config sha256:1ad7bc7145e0d8830d8257cc6de7c07d55fab223355eb0d7fac3e0764dfb9706 0.0s done
+#16 exporting attestation manifest sha256:5b5d9d4f1ccefd77e3e11bbf460237d75cec5edbb404a19e596232784f25b7db 0.0s done
+#16 exporting manifest list sha256:2ff54d2bee1b3a087e4f3342bded4e9c18319df4cdf1a55ce71585ceb7a7a2ab 0.0s done
+#16 naming to docker.io/library/hmc-publication:t8 done
+#16 unpacking to docker.io/library/hmc-publication:t8
+#16 unpacking to docker.io/library/hmc-publication:t8 0.1s done
+#16 DONE 0.4s
+
+#17 resolving provenance for metadata file
+#17 DONE 0.0s

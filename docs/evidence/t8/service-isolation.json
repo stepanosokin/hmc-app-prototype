@@ -1,0 +1,48 @@
+[
+    {
+        "networks":  [
+                         "hmc-publication-t8-final1_publication"
+                     ],
+        "ports":  {
+
+                  },
+        "name":  "/hmc-publication-t8-final1-geoserver-1",
+        "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633"
+    },
+    {
+        "networks":  [
+                         "hmc-publication-t8-final1_edge",
+                         "hmc-publication-t8-final1_publication"
+                     ],
+        "ports":  {
+                      "8000/tcp":  [
+                                       {
+                                           "HostIp":  "127.0.0.1",
+                                           "HostPort":  "8100"
+                                       }
+                                   ]
+                  },
+        "name":  "/hmc-publication-t8-final1-gateway-1",
+        "image":  "sha256:2ff54d2bee1b3a087e4f3342bded4e9c18319df4cdf1a55ce71585ceb7a7a2ab"
+    },
+    {
+        "networks":  [
+                         "hmc-publication-t8-final1_publication"
+                     ],
+        "ports":  {
+
+                  },
+        "name":  "/hmc-publication-t8-final1-api-1",
+        "image":  "sha256:2ff54d2bee1b3a087e4f3342bded4e9c18319df4cdf1a55ce71585ceb7a7a2ab"
+    },
+    {
+        "networks":  [
+                         "hmc-publication-t8-final1_publication"
+                     ],
+        "ports":  {
+
+                  },
+        "name":  "/hmc-publication-t8-final1-db-1",
+        "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96"
+    }
+]

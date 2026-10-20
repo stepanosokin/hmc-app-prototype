@@ -1,5 +1,8 @@
 # Incremental publication through the gateway
 
+Organization keys, protected numeric/GIS profiles and the T8 runner are
+documented in [access policy and operator commands](access.md).
+
 Scope: [#17](https://github.com/stepanosokin/hmc-app-prototype/issues/17), T5,
 extends the retained T4 foundation below. The default worker submission publishes
 all 24 actual sample times **one validated time at a time**. A run with one

@@ -1,0 +1,15 @@
+test_operator_and_gateway_policies (test_publication_access.OrganizationAccess.test_operator_and_gateway_policies) ... FAIL
+
+======================================================================
+FAIL: test_operator_and_gateway_policies (test_publication_access.OrganizationAccess.test_operator_and_gateway_policies)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_access.py", line 93, in test_operator_and_gateway_policies
+    self.assertTrue(all(value == protected['wms'] + '?' for value in hrefs))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 1 test in 2.614s
+
+FAILED (failures=1)
+

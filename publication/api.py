@@ -21,14 +21,15 @@ from publication.tile_cache import TileCache
 
 def links(manifest: dict) -> dict:
     selection, identity = manifest['selection'], manifest['identity']
+    prefix = request.headers.get('X-Publication-Prefix', '')
     return {'selection': selection, **identity, 'units': 'K', 'state': 'published',
             'valid_times': manifest.get('revision_times', [identity['valid_time']]),
             'completeness': manifest.get('completeness', 'unknown'),
             'fixture': manifest.get('fixture', 'actual'),
             'batch': manifest.get('batch_selection', selection),
-            'point': '/api/v1/point',
-            'tiles': f'/api/v1/selections/{selection}/tiles.json',
-            'wms': '/gis/v1/runs/' + quote(identity['run'], safe='') + '/revisions/' + identity['revision'] + '/wms'}
+            'point': prefix + '/api/v1/point',
+            'tiles': prefix + f'/api/v1/selections/{selection}/tiles.json',
+            'wms': prefix + '/gis/v1/runs/' + quote(identity['run'], safe='') + '/revisions/' + identity['revision'] + '/wms'}
 
 
 def revision_links(row: dict) -> list[dict]:
@@ -151,7 +152,7 @@ def create_app() -> Flask:
         metadata = json.loads(asset_path(ROOT, manifest['tile_metadata']).read_bytes())
         metadata.update(selection=selection, identity=manifest['identity'],
                         representative_tiles=manifest['tile_checks'],
-                        url=CONTRACT['url_template'].replace('{selection}', selection).replace('{encoding}', manifest['encoding']))
+                        url=request.headers.get('X-Publication-Prefix', '') + CONTRACT['url_template'].replace('{selection}', selection).replace('{encoding}', manifest['encoding']))
         return jsonify(metadata)
 
     @app.get('/api/v1/selections/<selection>/tiles/2/<int:z>/<int:x>/<int:y>.f32')
@@ -227,7 +228,7 @@ def create_app() -> Flask:
         payload = result.content
         if operation == 'GetCapabilities':
             root = ET.fromstring(payload)
-            scoped = request.path + '?'
+            scoped = links(manifest)['wms'] + '?'
             namespace = '{http://www.opengis.net/wms}'
             root.set('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation',
                      'http://www.opengis.net/wms https://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd')
