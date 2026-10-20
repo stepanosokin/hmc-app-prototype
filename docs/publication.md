@@ -172,8 +172,13 @@ Maps require `LAYERS=temperature`, exact catalogue `TIME`, `FORMAT=image/png`,
 supports `QUERY_LAYERS=temperature&INFO_FORMAT=text/plain&I=...&J=...` on that
 same map request. Other operations/forwarding options are rejected. Scoped
 capabilities advertise only implemented operations/formats/CRSs and rewrite
-service URLs to the gateway. Legends and the complete authenticated QGIS profile
-remain the separate external GIS slice.
+service URLs to the gateway. The [QGIS T11 profile](qgis.md) adds scoped PNG
+legends (`GetLegendGraphic`, `LAYER=temperature`, `STYLE=raster`) and the pinned
+desktop connection/validation procedure. Legends accept optional exact `TIME`;
+without it the revision's fixed style is used. New publications have a
+workspace-local temperature ramp labelled in K. Existing published manifests
+keep their original raster style. Client SLD and arbitrary forwarding remain
+disabled.
 
 ## Publication and compatibility gate
 

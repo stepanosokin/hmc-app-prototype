@@ -16,6 +16,8 @@ Building a self-hosted weather map and external GIS/API service using organizati
 - [Numeric browser tiles and GPU rendering decision](docs/adr/0002-numeric-browser-tiles.md)
 - [One-time publication, operator commands and gateway contracts](docs/publication.md)
 - [Числовой API: discovery, point, EDR Position и OpenAPI](docs/numerical-api.md)
+- [QGIS: закреплённый клиент, подключение с ключом и проверка WMS-T](docs/qgis.md)
+- [T11: проверка QGIS Desktop, scoped WMS и доказательства](docs/evidence/t11/validation.md)
 - [Лимиты организаций, публичного демо и учёт запросов T9](docs/budgets.md)
 - [T4 local publication and numeric-engine evidence](docs/evidence/t4/validation.md)
 - [Исходные GRIB, PostgreSQL, Zarr и COG: сравнение и обоснование](docs/source-storage-comparison.ru.md)

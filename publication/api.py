@@ -26,6 +26,10 @@ from publication import numerical
 from publication.tile_cache import TileCache
 from publication.limited import run as limited_work, WorkLimit, request_deadline
 
+# QGIS' capabilities reader expects the WMS elements in the default namespace.
+ET.register_namespace('', 'http://www.opengis.net/wms')
+ET.register_namespace('xlink', 'http://www.w3.org/1999/xlink')
+
 
 def links(manifest: dict) -> dict:
     selection, identity = manifest['selection'], manifest['identity']
@@ -353,9 +357,14 @@ def create_app() -> Flask:
         if len(params) != len(request.args) or any(len(request.args.getlist(key)) != 1 for key in request.args):
             raise ValueError('repeated WMS parameter')
         operation = params.get('REQUEST')
+        if operation == 'GetCapabilities':
+            # Initial WMS version negotiation (QGIS omits VERSION here).
+            params.setdefault('VERSION', '1.3.0')
         chosen = candidates
-        if operation in ('GetMap', 'GetFeatureInfo'):
+        if operation in ('GetMap', 'GetFeatureInfo') or operation == 'GetLegendGraphic' and 'TIME' in params:
             chosen = [item for item in candidates if item['valid_time'] == params.get('TIME')]
+        elif operation == 'GetLegendGraphic':
+            chosen = candidates[:1]
         if len(chosen) != 1 and operation != 'GetCapabilities':
             raise KeyError('GIS layer/time')
         manifest = resolve(chosen[0]['selection'])
@@ -382,6 +391,17 @@ def create_app() -> Flask:
                 if params.get('QUERY_LAYERS') != 'temperature' or params.get('INFO_FORMAT') != 'text/plain':
                     raise ValueError('unsupported identify')
                 params['QUERY_LAYERS'] = gis['layer']
+        elif operation == 'GetLegendGraphic':
+            allowed |= {'LAYER', 'STYLE', 'FORMAT', 'TIME', 'WIDTH', 'HEIGHT', 'SLD_VERSION', 'TRANSPARENT'}
+            if (params.get('LAYER') != 'temperature' or params.get('STYLE', '') not in ('', 'raster')
+                    or params.get('FORMAT') != 'image/png'
+                    or params.get('SLD_VERSION', '1.1.0') != '1.1.0'):
+                raise ValueError('unsupported legend')
+            for dimension in ('WIDTH', 'HEIGHT'):
+                if dimension in params and not 1 <= int(params[dimension]) <= 256:
+                    raise ValueError('legend dimensions outside 1..256')
+            params['LAYER'] = gis['layer']
+            params['STYLE'] = gis.get('style', 'raster')
         elif operation != 'GetCapabilities':
             raise ValueError('unsupported scoped operation')
         if set(params) - allowed:
@@ -399,14 +419,14 @@ def create_app() -> Flask:
                     local = node.tag.split('}')[-1]
                     if (local == 'CRS' and node.text not in ('EPSG:4326','EPSG:3857')
                             or local == 'BoundingBox' and node.get('CRS') not in ('EPSG:4326','EPSG:3857')
-                            or local in ('Post','LegendURL')):
+                            or local == 'Post'):
                         parent.remove(node)
                 if parent.tag == namespace+'Request':
                     for node in list(parent):
-                        if node.tag.split('}')[-1] not in ('GetCapabilities','GetMap','GetFeatureInfo'):
+                        if node.tag.split('}')[-1] not in ('GetCapabilities','GetMap','GetFeatureInfo','GetLegendGraphic'):
                             parent.remove(node)
-                if parent.tag in (namespace+'GetMap',namespace+'GetFeatureInfo'):
-                    expected = 'image/png' if parent.tag == namespace+'GetMap' else 'text/plain'
+                if parent.tag in (namespace+'GetMap',namespace+'GetFeatureInfo',namespace+'GetLegendGraphic'):
+                    expected = 'text/plain' if parent.tag == namespace+'GetFeatureInfo' else 'image/png'
                     for node in list(parent):
                         if node.tag == namespace+'Format' and node.text != expected:
                             parent.remove(node)
@@ -420,6 +440,11 @@ def create_app() -> Flask:
                         node.set(key, scoped)
                 if node.tag.endswith('}Name') and node.text and node.text.split(':')[-1] == gis['coverage']:
                     node.text = 'temperature'
+                if node.tag == namespace+'Title' and node.text == gis['coverage']:
+                    node.text = 'Температура поверхности, K'
+            for node in root.findall('.//' + namespace + 'LegendURL/' + namespace + 'OnlineResource'):
+                node.set('{http://www.w3.org/1999/xlink}href', scoped +
+                         'SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&LAYER=temperature&STYLE=raster&FORMAT=image/png')
             payload = ET.tostring(root, encoding='utf-8', xml_declaration=True)
         response = Response(payload, content_type=result.headers.get('Content-Type', 'application/xml'))
         response.headers['Cache-Control'] = 'private, no-cache'

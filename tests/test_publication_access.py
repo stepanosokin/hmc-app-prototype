@@ -99,7 +99,7 @@ class OrganizationAccess(unittest.TestCase):
             root = ET.fromstring(caps.content)
             hrefs = [value for node in root.iter() for key, value in node.attrib.items() if key.endswith('}href')]
             self.assertTrue(hrefs)
-            self.assertTrue(all(value == protected['wms'] + '?' for value in hrefs))
+            self.assertTrue(all(value.startswith(protected['wms'] + '?') for value in hrefs))
             map_params = {**capabilities, 'REQUEST': 'GetMap', 'LAYERS': 'temperature', 'STYLES': '',
                           'TIME': selected['valid_time'], 'CRS': 'EPSG:3857',
                           'BBOX': '-1000000,5000000,3000000,9000000', 'WIDTH': 64, 'HEIGHT': 64, 'FORMAT': 'image/png'}
