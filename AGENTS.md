@@ -6,7 +6,7 @@ The web app prototype's user-facing interface must be in Russian, including cont
 
 ## Ticket completion
 
-After implementing a ticket, check its acceptance criteria and required validation before reporting completion. In the final response, link its issue, state whether the ticket's scope is complete, and report its verified open or closed state. If any required work or validation remains, explain what blocks closure.
+After implementing a ticket, check its acceptance criteria and required validation before reporting completion. Give the final response as a very brief list of 3–5 main results, covering delivered behavior, validation, evidence/cleanup and commit/push status where relevant. Include the issue link, whether its scope is complete, and its verified open or closed state. If any required work or validation remains, state the blocker in that list.
 
 During implementation, update the ticket's acceptance checkboxes as each criterion is verified, using the [issue-tracking workflow](docs/development-workflow.md#issue-tracking). These checklist updates have standing user authorization. Keep incomplete or unvalidated criteria unchecked, and read back the checklist before reporting completion.
 
