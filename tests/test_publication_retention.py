@@ -5,6 +5,9 @@ import os
 import json
 import subprocess
 import sys
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import requests
@@ -40,6 +43,7 @@ class RetentionBoundaries(unittest.TestCase):
         roots[0]['expired_at'] = '2026-10-19T02:00:00Z'
         self.assertEqual(decisions(roots, policy(days=30, demo_runs=[roots[0]['run']]),
                                    '2026-10-20T00:00:00Z')[0]['state'], 'expired')
+        self.assertEqual(decisions(roots, policy(), '2026-10-19T01:00:00Z')[0]['state'], 'expired')
         invalid_policies: list[dict] = [dict(days=31), dict(reader_grace_seconds=3601), dict(superseded_count=-1),
                                        dict(clock='2026-10-20T00:00:00')]
         for changes in invalid_policies:
@@ -51,8 +55,10 @@ class RetentionBoundaries(unittest.TestCase):
 class RetentionGateway(unittest.TestCase):
     base = 'http://gateway:8000'
 
-    def command(self, module, *args):
-        result = subprocess.run([sys.executable, '-m', module, *args], capture_output=True, text=True, timeout=600)
+    def command(self, module, *args, cwd=None):
+        environment = {**os.environ, 'PYTHONPATH': '/app'}
+        result = subprocess.run([sys.executable, '-m', module, *args], cwd=cwd, env=environment,
+                                capture_output=True, text=True, timeout=600)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         return result.stdout.strip()
 
@@ -95,6 +101,32 @@ class RetentionGateway(unittest.TestCase):
     def collect(self, apply=False):
         return json.loads(self.command('publication.retention', 'collect', *(['--apply'] if apply else [])))
 
+    def test_00_upgrade_mixed_legacy_and_incremental_publications(self):
+        historical = Path('/evidence/legacy-source')
+        self.assertTrue((historical / 'publication/worker.py').is_file(), 'runner must provide frozen pre-T7 worker')
+        self.command('publication.worker', 'submit', '--clock', '2026-10-19T03:00:00Z',
+                     '--legacy-one-time', cwd=historical)
+        self.command('publication.worker', 'once', cwd=historical)
+        job = self.command('publication.worker', 'submit', '--clock', '2026-10-19T04:00:00Z',
+                           '--hours', '1', cwd=historical)
+        self.command('publication.worker', 'once', cwd=historical)
+        self.command('publication.worker', 'once')  # additive upgrade/backfill
+        status = requests.get(self.base + '/api/v1/jobs/' + job, timeout=90).json()
+        selected = next(item for item in self.catalogue() if item['selection'] == status['selection'])
+        observed = self.collect()
+        latest = next(row for row in observed['roots'] if row['root'] == selected['revision'])
+        self.configure(clock=latest['event_clock'], demo_run=selected['run'],
+                       superseded_grace_seconds=2592000, superseded_count=0, reader_grace_seconds=0)
+        self.read(selected)
+        self.assertEqual({item['revision'] for item in self.catalogue()}, {selected['revision']})
+        report = self.collect(True)
+        self.read(selected)
+        self.assertGreater(len(report['removed']), 0)
+        Path('/evidence/t7-upgrade.json').write_text(json.dumps({
+            'status': 'passed', 'latest_selection': selected['selection'],
+            'fixture': 'pre-T7 T4 and T5 workers; current additive migration',
+            'report': report}, default=str, indent=2))
+
     def test_policy_cleanup_and_warm_cache_expiry(self):
         from decoder.sampling import file_hash
         source = Path('/input/ICON_EU_T_G_2026101500.grib2')
@@ -124,13 +156,37 @@ class RetentionGateway(unittest.TestCase):
         before = self.collect()
         self.assertFalse(before['apply'])
         applied = self.collect(True)
-        self.assertFalse(applied['reader_busy'])
         # Old root manifests are still present throughout physical reader grace.
         old_roots = [row for row in applied['roots'] if row['root'] == old['revision']]
         self.assertEqual(len(old_roots), 1)
         self.assertEqual(applied['removed'], [])
         self.configure(clock='2026-10-19T06:01:00Z', superseded_grace_seconds=3600, reader_grace_seconds=60)
-        swept = self.collect(True)
+        stop = threading.Event()
+        outcomes = []
+        traffic_ready = [threading.Event() for _ in range(4)]
+        def traffic(index):
+            while not stop.is_set():
+                response = requests.get(self.base + corrected['wms'], params={
+                    'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetCapabilities'}, timeout=90)
+                outcomes.append((time.monotonic(), response.status_code))
+                traffic_ready[index].set()
+        with ThreadPoolExecutor(max_workers=4) as readers:
+            futures = [readers.submit(traffic, index) for index in range(4)]
+            try:
+                for event in traffic_ready:
+                    self.assertTrue(event.wait(90), 'gateway reader did not start')
+                collection_start = time.monotonic()
+                swept = self.collect(True)
+                collection_end = time.monotonic()
+            finally:
+                stop.set()
+                for future in futures:
+                    future.result(timeout=95)
+        self.assertTrue(outcomes, 'exercise collection with active gateway read traffic')
+        self.assertTrue(all(code in (200, 503) for _, code in outcomes), outcomes)
+        self.assertTrue(any(collection_start <= observed <= collection_end for observed, _ in outcomes),
+                        'gateway traffic must overlap collection')
+        self.assertGreater(len(swept['removed']), 0, 'traffic must not pin expired assets forever')
         self.read(old, 410)
         self.read(corrected)
         # Shared hour 24 is still usable after deleting superseded roots.
@@ -172,8 +228,8 @@ class RetentionGateway(unittest.TestCase):
             'status': 'passed', 'source_sha256_before_after': [source_before, file_hash(source)],
             'report30': report30, 'superseded': swept, 'dry7': dry7, 'removed7': removed7,
             'dry30': dry30, 'removed30': removed30,
+            'concurrent_reader_statuses': outcomes,
             'expired_selections': [old['selection'], corrected['selection']],
             'checks': ['gateway point/WMS/metadata/tile', 'warm-cache expiry', 'bounded old-reader grace',
                        'shared incremental batches', 'seven/30-day boundary', 'demo pin', 'idempotent cleanup',
                        'tombstones survive policy extension', 'read-only source unchanged']}, default=str, indent=2))
-

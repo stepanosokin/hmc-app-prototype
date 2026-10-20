@@ -367,9 +367,11 @@ not return 304 without checking eligibility. The gateway forwards those headers.
 `--reader-grace-seconds` defaults to 120 (allowed 0..3600). Apply commits expiry
 first and starts this fixed physical grace at observation, even if cleanup is
 late. Repeated cleanup cannot renew it. Already in-flight HTTP operations hold
-a shared database reader lock through response generation; deletion tries an
-exclusive lock and reports `reader_busy` without unlinking when a reader is
-active. Retry collection after it finishes. Backend HTTP calls have bounded
+a shared database reader lock through response generation. Deletion queues an
+exclusive lock, so later readers cannot starve collection. Health checks need no
+asset lock. Lock acquisition has a 110-second timeout; failure aborts without
+unlinking. New readers may receive retryable 503 while deletion drains readers.
+Backend HTTP calls have bounded
 timeouts; no client session or keepalive renews eligibility/grace. An operator
 must diagnose a stuck API process rather than bypass the lock. Expired roots
 stay physically reachable until grace ends; eligible roots and their shared

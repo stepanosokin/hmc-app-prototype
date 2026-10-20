@@ -45,13 +45,14 @@ def create_app() -> Flask:
 
     @app.before_request
     def protect_reader():
+        if request.path == '/health':
+            return
         guard = retention.reader()
         guard.__enter__()
         g.retention_reader = guard
-        if request.path != '/health':
-            _, _, rows = retention.snapshot()
-            g.expired_roots = {row['root'] for row in rows if row['state'] == 'expired'}
-            tile_cache.expire(g.expired_roots)
+        _, _, rows = retention.snapshot()
+        g.expired_roots = {row['root'] for row in rows if row['state'] == 'expired'}
+        tile_cache.expire(g.expired_roots)
 
     @app.teardown_request
     def release_reader(error):

@@ -34,6 +34,16 @@ function Invoke-T7Check {
     param([string]$Name,[string[]]$Arguments)
     Invoke-CheckedProcess -FilePath docker -ArgumentList ($t7Compose + $Arguments) -ReportDirectory $t7Directory -Name $Name
 }
+function Get-T7LegacyInventory {
+    @{
+        base_commit='8efe1fc5d48d172b775cd27642abe32964fd36bd'
+        files=@(Get-ChildItem -LiteralPath (Join-Path $t7Directory 'legacy-source') -File -Recurse |
+            Sort-Object FullName | ForEach-Object {
+                @{path=$_.FullName.Substring($t7Directory.Length + 1);bytes=$_.Length;
+                    sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash}
+            })
+    } | ConvertTo-Json -Depth 10 -Compress
+}
 try {
     foreach ($t7Evidence in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
         Copy-Item -LiteralPath (Join-Path 'docs/evidence/t4' $t7Evidence) -Destination $t7Directory
@@ -53,6 +63,15 @@ try {
     if (-not (Test-Path -LiteralPath 'data/grib/ICON_EU_T_G_2026101500.grib2' -PathType Leaf)) {
         throw 'Required private actual sample is missing: data/grib/ICON_EU_T_G_2026101500.grib2; actual-sample M2/A9 gate is blocked.'
     }
+    $t7Legacy = Join-Path $t7Directory 'legacy-source'
+    New-Item -ItemType Directory -Force $t7Legacy | Out-Null
+    $t7Tar = Join-Path $t7Directory 'legacy-source.tar'
+    & git archive --format=tar --output $t7Tar 8efe1fc5d48d172b775cd27642abe32964fd36bd publication
+    if ($LASTEXITCODE -ne 0) { throw 'Could not capture frozen pre-T7 upgrade fixture from Git history' }
+    & tar -xf $t7Tar -C $t7Legacy
+    if ($LASTEXITCODE -ne 0) { throw 'Could not extract frozen pre-T7 upgrade fixture' }
+    $t7LegacyInputs = Get-T7LegacyInventory
+    $t7LegacyInputs | Set-Content -Encoding ascii (Join-Path $t7Directory 'legacy-inputs.json')
     $t7Base = (& git rev-parse HEAD).Trim()
     Invoke-T7Check -Name inputs-start -Arguments @('run','--rm','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python',
         'check','-m','publication.verify_recovery','--inputs','/workspace','--base-commit',$t7Base)
@@ -66,6 +85,7 @@ try {
         'check','-m','publication.verify_recovery','--inputs','/workspace','--base-commit',$t7Base)
     if ((Get-FileHash -Algorithm SHA256 (Join-Path $t7Directory 'inputs-start.json')).Hash -ne
         (Get-FileHash -Algorithm SHA256 (Join-Path $t7Directory 'inputs.json')).Hash) { throw 'Validation inputs changed during the run' }
+    if ((Get-T7LegacyInventory) -ne $t7LegacyInputs) { throw 'Upgrade fixture inputs changed during the run' }
     @{status='passed';scope='T7 local actual-sample retention; M2 also requires current T5/T6 regressions'} |
         ConvertTo-Json | Set-Content -Encoding ascii (Join-Path $t7Directory 'gate.json')
 } catch {
