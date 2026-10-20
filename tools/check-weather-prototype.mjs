@@ -6,7 +6,7 @@ import {pathToFileURL} from 'node:url';
 import {randomUUID, createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 
-const root=resolve('.'), directory=resolve('docs/evidence/t22');
+const root=resolve('.'), directory=resolve(process.env.T22_REPORT_DIRECTORY || 'data/reports/t22');
 const profile=resolve('data', 't22-browser-'+randomUUID());
 const executable=process.env.T22_CHROME || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
