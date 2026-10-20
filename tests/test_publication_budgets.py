@@ -21,6 +21,29 @@ class UsageBudgets(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return json.loads(result.stdout)
 
+    def test_legacy_usage_upgrade_preserves_live_public_reader_and_accounting(self):
+        # Explicit legacy-schema fixture; consumer observations remain gateway
+        # HTTP and the existing operator usage interface.
+        from publication.domain import database
+        base = 'http://gateway:8000'
+        selected = next(item for item in requests.get(base+'/api/v1/catalogue', timeout=30).json()['selections']
+                        if item['fixture'] == 'actual')
+        before = self.command('usage', '--public', '--limit', '10')['requests']
+        with database() as cursor:
+            cursor.execute('ALTER TABLE access.usage DROP COLUMN backend_started, DROP COLUMN backend_done')
+        upgraded = subprocess.run([sys.executable, '-m', 'publication.access', 'migrate'],
+                                  capture_output=True, text=True, timeout=30)
+        self.assertEqual(upgraded.returncode, 0, upgraded.stderr)
+        response = requests.get(base+selected['tiles'], timeout=30)
+        self.assertEqual(response.status_code, 200, response.text)
+        after = self.command('usage', '--public')['requests']
+        self.assertTrue({row['request_id'] for row in before}.issubset({row['request_id'] for row in after}))
+        observed = next(row for row in after if row['request_id'] == response.headers['X-Request-ID'])
+        self.assertEqual(observed['status'], 200)
+        Path('/evidence/t10-usage-upgrade.json').write_text(json.dumps({
+            'status': 'passed', 'fixture': 'usage schema without backend_started/backend_done',
+            'preserved_request_ids': [row['request_id'] for row in before], 'reader': observed}, indent=2))
+
     def test_rate_before_warm_cache_and_organization_identity(self):
         from publication.access import issue
         with tempfile.TemporaryDirectory() as directory:

@@ -16,3 +16,9 @@ docs/evidence/t8/*.log -whitespace
 
 docs/evidence/t9/** -text whitespace=cr-at-eol
 docs/evidence/t9/*.log -whitespace
+
+docs/evidence/t10/** -text whitespace=cr-at-eol
+docs/evidence/t10/*.log -whitespace
+
+# This checker is byte-addressed in acceptance input inventories.
+tools/check_evidence.py -text whitespace=cr-at-eol
