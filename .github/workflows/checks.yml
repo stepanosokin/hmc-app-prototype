@@ -41,6 +41,10 @@ jobs:
         run: >-
           docker run --rm --network none --tmpfs /evidence:mode=1777
           --entrypoint python hmc-publication:checks -m publication.runtime
+      - name: Check retention policy boundaries
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_publication_retention.py -v
       - name: Verify archived evidence bytes
         run: >-
           docker run --rm --network none

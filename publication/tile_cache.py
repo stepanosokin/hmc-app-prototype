@@ -22,6 +22,13 @@ class TileCache:
         if os.environ.get('T6_TEST_FAULTS') == '1' and (ROOT / ('.t6-' + stage)).exists():
             raise OSError('explicit T6 ' + stage + ' interruption')
 
+    def expire(self, roots: set[str]) -> None:
+        """Discard denied selections before cache lookup, including warm hits."""
+        with self.lock:
+            for key in list(self.entries):
+                if key[0].split('.', 1)[0] in roots:
+                    self.bytes -= len(self.entries.pop(key))
+
     def get(self, key: tuple, generate) -> bytes:
         with self.lock:
             if key in self.entries:

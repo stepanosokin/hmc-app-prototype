@@ -86,6 +86,8 @@ def load_manifest(relative: str, checksum: str) -> dict:
 
 
 def resolve(selection: str) -> dict:
+    from publication.retention import ensure
+    ensure(selection.split('.', 1)[0])
     if '.' in selection:
         from publication.revisions import load_revision, selected
         revision, key = selection.split('.', 1)
