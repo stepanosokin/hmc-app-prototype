@@ -154,9 +154,9 @@ Maintain acceptance checkboxes throughout implementation: mark a criterion only
 after its required behavior and validation are supported by evidence. Attach or
 link the relevant evidence in the ticket. Leave blocked/unvalidated criteria
 unchecked and explain what remains. Read back the updated body before handoff;
-when closure is authorized, verify the closed state and completed checklist
-together. Checklist maintenance is already authorized; closure still follows the
-separate authorization rule in `AGENTS.md`.
+after satisfying the [ticket completion conditions](../AGENTS.md#ticket-completion),
+close the ticket using standing user authorization and verify the closed state
+and completed checklist together. Checklist maintenance is also already authorized.
 
 Use the GitHub connector for issue reads. In this session it allowed reads but
 returned `403 Resource not accessible by integration` on writes. When an
