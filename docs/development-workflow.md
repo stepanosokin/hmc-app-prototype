@@ -76,6 +76,10 @@ This checks exclusion of unrelated data without repeating the full publication
 matrix at every client probe. Keep the final desktop report bound to the same
 selection and input inventory as the HTTP phases.
 
+For agent-driven desktop work, prefer the available
+[QGIS MCP connection](qgis.md#работа-агента-через-qgis-mcp) to the running QGIS
+instance; use the QGIS Python console when MCP is unavailable.
+
 For ingestion/recovery or tile-cache changes, also run the isolated actual-sample
 [T6 recovery runner](publication.md#recover-interrupted-deliveries-t6--18):
 `powershell -NoProfile -File publication/run-recovery.ps1 -Project <fresh-project> -Port <free-port>`.
