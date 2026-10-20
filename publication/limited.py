@@ -32,6 +32,24 @@ def run(operation: str, arguments: dict, seconds: float) -> dict:
     return result
 
 
+def http_work(args: dict) -> dict:
+    with requests.get(args['url'], params=args['params'], headers=args.get('headers', {}),
+                      timeout=(3, args['seconds']), stream=True, allow_redirects=False) as response:
+        headers = {k: v for k, v in response.headers.items() if k.lower() in (
+            'content-type', 'cache-control', 'etag', 'retry-after', 'x-hmc-cache',
+            'x-hmc-product', 'x-hmc-run', 'x-hmc-revision')}
+        maximum = args['output']
+        if int(response.headers.get('Content-Length', '0')) > maximum:
+            raise WorkLimit(413, headers)
+        payload = bytearray()
+        for chunk in response.iter_content(16384):
+            payload.extend(chunk)
+            if len(payload) > maximum:
+                raise WorkLimit(413, headers)
+        return {'body': base64.b64encode(payload).decode(), 'status': response.status_code,
+                'headers': headers}
+
+
 def main() -> None:
     args = json.load(sys.stdin)
     result: dict
@@ -40,27 +58,13 @@ def main() -> None:
             import os
             import time
             from pathlib import Path
-            from publication.tiles import render, encode
             if os.environ.get('T6_TEST_FAULTS') == '1' and Path('/assets/.t9-tile-delay').exists():
                 time.sleep(15)
+            from publication.tiles import render, encode
             payload = encode(*render(Path(args['root']), args['item'], *args['coordinates']), args['encoding'])
             result = {'body': base64.b64encode(payload).decode()}
         else:
-            with requests.get(args['url'], params=args['params'], headers=args.get('headers', {}),
-                              timeout=(3, args['seconds']), stream=True, allow_redirects=False) as response:
-                headers = {k: v for k, v in response.headers.items() if k.lower() in (
-                    'content-type', 'cache-control', 'etag', 'retry-after', 'x-hmc-cache',
-                    'x-hmc-product', 'x-hmc-run', 'x-hmc-revision')}
-                maximum = args['output']
-                if int(response.headers.get('Content-Length', '0')) > maximum:
-                    raise WorkLimit(413, headers)
-                payload = bytearray()
-                for chunk in response.iter_content(16384):
-                    payload.extend(chunk)
-                    if len(payload) > maximum:
-                        raise WorkLimit(413, headers)
-                result = {'body': base64.b64encode(payload).decode(), 'status': response.status_code,
-                          'headers': headers}
+            result = http_work(args)
     except WorkLimit as error:
         result = {'error': error.status, 'headers': error.headers}
     except Exception:

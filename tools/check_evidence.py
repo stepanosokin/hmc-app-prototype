@@ -81,11 +81,108 @@ def check(root: Path) -> int:
     return count + check_browser_archive(root)
 
 
+def check_native_display(root: Path) -> int:
+    """Verify the selected T23a proof without comparing future workspace bytes."""
+    archive = root / 'docs/evidence/t23a'
+    index = json.loads((archive / 'artifact-index.json').read_bytes())
+    if index['schema'] != 1:
+        raise ValueError('unsupported native display evidence schema')
+    artifacts = {}
+    for artifact in index['artifacts']:
+        name = artifact['name']
+        path = PurePosixPath(name)
+        if path.is_absolute() or '..' in path.parts or '\\' in name or ':' in name or path.as_posix() != name:
+            raise ValueError('invalid native artifact path')
+        if name in artifacts:
+            raise ValueError('duplicate native artifact')
+        verify(archive / name, artifact['sha256'], artifact['bytes'])
+        artifacts[name] = artifact
+
+    def read(name):
+        if name not in artifacts:
+            raise ValueError('native reference is not archived: ' + name)
+        return json.loads((archive / name).read_bytes())
+
+    contract = read(index['contract'])
+    if contract['contract'] != 'hmc-native-display/1' or 'approved' not in contract['status']:
+        raise ValueError('native contract is not approved')
+    sources = {item['path']: item['sha256'] for item in read(index['input_inventory'])}
+    for path, checksum in sources.items():
+        if artifacts.get('inputs/'+path, {}).get('sha256') != checksum:
+            raise ValueError('native source identity is not archived: ' + path)
+    if len(index['selected']) != 2 or {item['browser'] for item in index['selected']} != {'chrome', 'edge'}:
+        raise ValueError('native desktop browser matrix is incomplete')
+    required_projects = set()
+    dimensions = {(1440, 900), (390, 844), (360, 740)}
+    modes = {'hmc:orthographic', 'EPSG:3576'}
+    expected = {(size, mode, scope) for size in dimensions for mode in modes
+                for scope in ('map', 'server-screen-comparison')}
+    for selection in index['selected']:
+        required_projects.add(selection['project'])
+        report, comparison = read(selection['report']), read(selection['comparison'])
+        if read(selection['inputs_end']) != read(index['input_inventory']):
+            raise ValueError('native inputs changed during validation')
+        if report['status'] != 'compatibility-probe-complete' or report['external_requests'] or report['exceptions']:
+            raise ValueError('native browser probe did not pass')
+        if not report['browser_executable'].lower().endswith('msedge.exe' if selection['browser'] == 'edge' else 'chrome.exe'):
+            raise ValueError('native browser identity mismatch')
+        for path, checksum in report['inputs'].items():
+            if sources.get(path) != checksum:
+                raise ValueError('native browser input mismatch: ' + path)
+        cleanup = report['cleanup']
+        if (cleanup['browser_processes_remaining'] or not cleanup['profile_removed'] or not cleanup['http_server_closed']):
+            raise ValueError('native browser cleanup is incomplete')
+        if (comparison['status'] != 'passed' or comparison['max_abs_error_K'] > .01 or comparison['mask_differences']
+                or comparison['geometry_max_error_pixels'] > .001 or comparison['synthetic_projection_error_m'] > 10):
+            raise ValueError('native numeric proof did not pass')
+        actual = [(tuple(item['viewport']), item['mode'], item['scope']) for item in comparison['views']]
+        if (len(actual) != len(expected) or set(actual) != expected
+                or any(item['valid_samples'] <= 0 or item['max_abs_error_K'] > .01
+                       or item['server_max_abs_error_K'] > .01 for item in comparison['views'])):
+            raise ValueError('native comparison has no representative samples')
+        if (len(report['viewports']) != len(dimensions)
+                or {(item['width'], item['height']) for item in report['viewports']} != dimensions):
+            raise ValueError('native viewport matrix is incomplete')
+        for viewport in report['viewports']:
+            if len(viewport['views']) != 2 or {view['mode'] for view in viewport['views']} != modes:
+                raise ValueError('native renderer mode matrix is incomplete')
+            if (viewport['transfer_bytes'] > 8*1024**2 or viewport['cold_first_show_ms'] > 3000
+                    or viewport['warm_mode_switch_ms'] > 1000):
+                raise ValueError('native delivery budget did not pass')
+            if any(view['scripted_pan_zoom_p95_ms'] > 33 or view['estimated_managed_bytes'] > 128*1024**2
+                   for view in viewport['views']):
+                raise ValueError('native desktop frame or memory budget did not pass')
+    blocks = read(index['blocks'])
+    if blocks['status'] != 'passed' or blocks['encoding_max_abs_error_K'] > .001 or blocks['blocks'] != 18:
+        raise ValueError('native block encoding proof did not pass')
+    if {gate['name'] for gate in index['regressions']} != {'t12', 't6'}:
+        raise ValueError('native service regressions are incomplete')
+    for gate in index['regressions']:
+        required_projects.add(gate['project'])
+        result = read(gate['result'])
+        if result['status'] != 'passed' or result.get('development', False):
+            raise ValueError('native service regression did not pass')
+        for item in read(gate['inputs'])['inputs']:
+            if sources.get(item['path']) != item['sha256']:
+                raise ValueError('native regression input mismatch: ' + item['path'])
+    retired_projects = set()
+    for name in index['retirements']:
+        receipt = read(name)
+        retired_projects.add(receipt['project'])
+        if (receipt['status'] != 'retired' or not receipt['archive_verified']
+                or any(receipt['remaining'][kind] for kind in ('container', 'network', 'volume'))):
+            raise ValueError('native retirement is incomplete')
+    if not required_projects.issubset(retired_projects):
+        raise ValueError('native validation project retirement is missing')
+    return len(artifacts)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument('--native-display', action='store_true', help='Require the complete T23a numerical/service archive')
     args = parser.parse_args()
-    print(f'Verified {check(args.root)} archived evidence references')
+    print(f'Verified {(check_native_display if args.native_display else check)(args.root)} archived evidence references')
 
 
 if __name__ == '__main__':

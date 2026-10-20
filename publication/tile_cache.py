@@ -9,10 +9,11 @@ from publication.limited import WorkLimit
 
 
 class TileCache:
-    def __init__(self):
+    def __init__(self, *, cap: int = 256 * 1024**2):
         self.budget = int(os.environ.get('TILE_CACHE_BYTES', 16 * 1024**2))
         if not 0 <= self.budget <= 256 * 1024**2:
             raise ValueError('TILE_CACHE_BYTES must be in 0..268435456')
+        self.budget = min(self.budget, cap)
         self.entries: OrderedDict[tuple, bytes] = OrderedDict()
         self.bytes = 0
         self.lock = threading.Lock()
@@ -33,14 +34,18 @@ class TileCache:
     def get(self, key: tuple, generate) -> bytes:
         return self.lookup(key, generate)[0]
 
-    def lookup(self, key: tuple, generate, *, metadata: bool = False) -> tuple[bytes, str]:
+    def lookup(self, key: tuple, generate, *, metadata: bool = False, seconds: float = 0) -> tuple[bytes, str]:
         with self.lock:
             if key in self.entries:
                 self.entries.move_to_end(key)
                 return self.entries[key], 'hit'
-        if not self.generator.acquire(blocking=False):
-            raise WorkLimit(429)
+        if not self.generator.acquire(timeout=max(0, seconds)):
+            raise WorkLimit(504 if seconds > 0 else 429)
         try:
+            with self.lock:
+                if key in self.entries:
+                    self.entries.move_to_end(key)
+                    return self.entries[key], 'hit'
             self.fault('generation')
             payload = generate()
             if (not metadata and len(payload) != 258 * 258 * 5) or len(payload) > 332820:
