@@ -38,6 +38,10 @@ _Avoid_: Treating display values as canonical native-cell samples or equating a 
 
 ## Product scope
 
+**Web-map display projection**:
+The representation of a published field and its geographic context on the web map. Choosing it changes the view while preserving the selected forecast and the meaning of its native-cell values.
+_Avoid_: Treating a display choice as a change to the source grid or the external numerical/GIS contract.
+
 **Module**:
 A subject-area capability of the system, such as meteorology, hydrology or long-term forecasting.
 _Avoid_: Treating every model or display layer as a separate module.
