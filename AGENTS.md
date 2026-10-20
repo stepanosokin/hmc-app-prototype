@@ -1,5 +1,9 @@
 # Project agent instructions
 
+## Language
+
+The web app prototype's user-facing interface must be in Russian, including controls, states, validation messages and errors shown in the UI. Deliver final user-facing results and completion reports in Russian.
+
 ## Ticket completion
 
 After implementing a ticket, check its acceptance criteria and required validation before reporting completion. In the final response, link its issue, state whether the ticket's scope is complete, and report its verified open or closed state. If any required work or validation remains, explain what blocks closure.
