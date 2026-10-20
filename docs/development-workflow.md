@@ -36,6 +36,13 @@ It includes killed workers, real GIS failures, managed-source recovery, staging
 collection, cold/warm numeric tiles and retained readers after service restart.
 Its fault markers are enabled only in the explicitly isolated T6 API stack.
 
+For retention or retained-revision migration changes, also run the actual-sample
+[T7 retention runner](../publication/run-retention.ps1) in a fresh project. It
+checks mixed legacy/incremental upgrade, collection during gateway read traffic,
+seven-/30-day cleanup, warm-cache expiry and expiry after restart. The CI
+retention-boundary tests supplement this gate; they do not establish real-service
+retention behavior. Select T5/T6 regressions using the change categories above.
+
 PowerShell wrappers with declared parameters can interpret short native options
 as their own parameters. Use long Compose options and pass embedded Python
 `-c` commands through the wrapper's explicit argument array, as the publication
@@ -51,7 +58,13 @@ After changing API or gateway code, restart each affected long-lived service
 before HTTP validation. A source bind mount changes files but does not reload
 Gunicorn workers; #17's ETag check initially exercised an old gateway process.
 
-### Focused checks and final evidence
+### Before starting final acceptance
+
+For actual-sample acceptance, verify that the configured private sample exists
+and matches `SAMPLE_SHA256` in `decoder/inspect_forecast.py` before allocating
+the test project or pulling its service images. For T7, also verify that the runner's frozen
+historical Git commit is available locally. Resolve missing prerequisites before
+starting long acceptance runs.
 
 Use unittest discovery for this repository's test files, for example
 `python -m unittest discover -s tests -p test_publication_recovery.py -k capture_crash -v`.
@@ -75,11 +88,23 @@ fresh project. Select evidence only when every required phase used the recorded
 configuration. Do not combine a passing phase from one source revision with a
 passing phase from another to establish a final result.
 
+Capture a long Compose run's full console output in its project report directory
+so retirement archives it. Inspect bounded tails and per-phase logs for progress,
+then check the final native exit code; repeated pull-progress frames add no
+validation evidence.
+
 For recovery reviews, trace capture before queue processing as well as every
 worker stage: durable intent before managed writes, byte/time bounds during
 hashing and copying, and collection of abandoned fragments. T6's existing
 `capture_crash` case exercises the public worker/retirement boundary; extend that
 seam when adding capture paths and cover crashes before submission completes.
+
+For retention reviews, trace whether queued deletion can drain active readers
+while later traffic arrives. A fixed grace interval alone does not establish
+bounded retention if unrelated readers can continually overtake collection.
+Review migration across legacy and incremental records together, including late
+adoption; publication order and the explicit policy clock have separate roles.
+Use the existing gateway upgrade/read-pressure cases to validate those judgments.
 
 ## Test environment cleanup
 
@@ -142,7 +167,7 @@ request; compare numerical/GIS identity and placement through the gateway.
 Before changing shared configuration, read its current contents. Existing
 `.gitattributes` rules preserve historical evidence bytes; append compatible
 rules rather than replacing them. `tools/check_evidence.py` verifies the T3
-artifact index, T4's archived selection/contract hashes and T5/T6 report/input
+artifact index, T4's archived selection/contract hashes and T5-T7 report/input
 artifact index. These are historical records: compare each against its recorded
 inputs, rather than against future
 dependency locks or a new contract revision. New evidence must bind its exact
@@ -195,3 +220,14 @@ forward and freezes inputs before final evidence. The subsequent
 during cleanup validation. Retirement now has a standing completion rule and its
 existing real-resource check is wired into CI. The changes reuse behavioral
 checks and keep project-specific guidance in this repository.
+
+The [#19 review](evidence/t7/review.md) found reader starvation and mixed-source
+backfill ordering defects; its existing upgrade and continuous-reader cases now
+cover those behaviors. The [development evidence](evidence/t7/failed-probes.md)
+also records a missing private input and a run rejected after input changes.
+The session repeated T7 after running the focused public-error check late, so
+prerequisites and that check belong before expensive final acceptance. T7's
+artifact index was initially absent from the existing CI evidence checker; it
+is now included in that same check. A disposable corrupted T7 report escaped the
+old checker and is rejected by the updated one; the original archives pass.
+Historical reports remain unchanged.
