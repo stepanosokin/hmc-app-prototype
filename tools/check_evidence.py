@@ -177,12 +177,42 @@ def check_native_display(root: Path) -> int:
     return len(artifacts)
 
 
+def check_t23_archives(root: Path) -> int:
+    """Verify T23's three frozen archives, including unsuccessful attempts."""
+    count = 0
+    for phase in ('continuation', 'diagnosis', 'implementation'):
+        archive = root / 'docs/evidence/t23' / phase
+        index = json.loads((archive / 'artifact-index.json').read_bytes())
+        if index.get('schema', 1) != 1:
+            raise ValueError('unsupported T23 evidence schema')
+        names = set()
+        for artifact in index['artifacts']:
+            name = artifact['path']
+            path = PurePosixPath(name)
+            if (path.is_absolute() or '..' in path.parts or '\\' in name
+                    or ':' in name or path.as_posix() != name):
+                raise ValueError('invalid T23 artifact path: ' + name)
+            if name in names:
+                raise ValueError('duplicate T23 artifact: ' + name)
+            names.add(name)
+            verify(archive / name, artifact['sha256'], artifact['bytes'])
+            count += 1
+        actual = {path.relative_to(archive).as_posix() for path in archive.rglob('*')
+                  if path.is_file() and path != archive / 'artifact-index.json'}
+        if not names or names != actual:
+            raise ValueError('T23 artifact coverage is incomplete: ' + phase)
+    return count
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument('--native-display', action='store_true', help='Require the complete T23a numerical/service archive')
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument('--native-display', action='store_true', help='Require the complete T23a numerical/service archive')
+    selection.add_argument('--t23', action='store_true', help='Verify T23 continuation, diagnosis and implementation archive bytes')
     args = parser.parse_args()
-    print(f'Verified {(check_native_display if args.native_display else check)(args.root)} archived evidence references')
+    checker = check_t23_archives if args.t23 else check_native_display if args.native_display else check
+    print(f'Verified {checker(args.root)} archived evidence references')
 
 
 if __name__ == '__main__':

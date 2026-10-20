@@ -7,7 +7,66 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-from check_evidence import check, check_native_display
+from check_evidence import check, check_native_display, check_t23_archives
+
+
+class T23Evidence(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        for phase in ('continuation', 'diagnosis', 'implementation'):
+            archive = self.root / 'docs/evidence/t23' / phase
+            archive.mkdir(parents=True)
+            payload = b'synthetic frozen input or failed attempt'
+            (archive / 'report.json').write_bytes(payload)
+            (archive / 'artifact-index.json').write_text(json.dumps({'schema': 1, 'artifacts': [{
+                'path': 'report.json', 'bytes': len(payload),
+                'sha256': hashlib.sha256(payload).hexdigest(),
+            }]}))
+        self.archive = self.root / 'docs/evidence/t23/implementation'
+
+    def test_accepts_all_three_historical_archives(self) -> None:
+        self.assertEqual(check_t23_archives(self.root), 3)
+
+    def test_rejects_corruption_in_each_phase(self) -> None:
+        for phase in ('continuation', 'diagnosis', 'implementation'):
+            path = self.root / 'docs/evidence/t23' / phase / 'report.json'
+            original = path.read_bytes()
+            path.write_bytes(b'corrupt')
+            with self.assertRaisesRegex(ValueError, 'checksum mismatch'):
+                check_t23_archives(self.root)
+            path.write_bytes(original)
+
+    def test_rejects_invalid_index_and_missing_coverage(self) -> None:
+        path = self.archive / 'artifact-index.json'
+        original = json.loads(path.read_bytes())
+        for kind in ('duplicate', 'escape', 'empty', 'length', 'schema'):
+            with self.subTest(kind=kind):
+                index = json.loads(json.dumps(original))
+                if kind == 'duplicate':
+                    index['artifacts'] *= 2
+                elif kind == 'escape':
+                    index['artifacts'][0]['path'] = '../outside'
+                elif kind == 'empty':
+                    index['artifacts'] = []
+                elif kind == 'length':
+                    index['artifacts'][0]['bytes'] = -1
+                else:
+                    index['schema'] = 2
+                path.write_text(json.dumps(index))
+                with self.assertRaises(ValueError):
+                    check_t23_archives(self.root)
+
+    def test_rejects_unindexed_file(self) -> None:
+        (self.archive / 'unindexed.png').write_bytes(b'new bytes')
+        with self.assertRaisesRegex(ValueError, 'coverage'):
+            check_t23_archives(self.root)
+
+    def test_rejects_missing_artifact(self) -> None:
+        (self.archive / 'report.json').unlink()
+        with self.assertRaises(FileNotFoundError):
+            check_t23_archives(self.root)
 
 
 class BrowserEvidence(unittest.TestCase):
