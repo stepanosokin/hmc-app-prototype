@@ -78,7 +78,12 @@ selection and input inventory as the HTTP phases.
 
 For agent-driven desktop work, prefer the available
 [QGIS MCP connection](qgis.md#работа-агента-через-qgis-mcp) to the running QGIS
-instance; use the QGIS Python console when MCP is unavailable.
+instance. Check local availability before desktop testing. If the QGIS MCP plugin
+is missing, request its installation and MCP connection setup from the user;
+wait for approval before installation and its associated local QGIS/MCP setup.
+For an installed but unreachable plugin, first check the running QGIS instance
+and connection configuration. Use the Python-console fallback only when the
+user explicitly chooses it; continue independent work while awaiting a reply.
 
 For ingestion/recovery or tile-cache changes, also run the isolated actual-sample
 [T6 recovery runner](publication.md#recover-interrupted-deliveries-t6--18):
