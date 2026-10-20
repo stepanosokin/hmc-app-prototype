@@ -3,11 +3,13 @@
 import hashlib
 import json
 import os
+import time
 from contextlib import contextmanager
 from pathlib import Path
 from functools import lru_cache
 
 import pg8000.dbapi
+from publication.limited import request_deadline
 
 from decoder.sampling import ManifestSampler, asset_path, canonical, file_hash
 from decoder.inspect_forecast import ValidationError
@@ -41,10 +43,16 @@ class Records:
 
 @contextmanager
 def database(*, timeout: int = 5):
+    deadline = request_deadline.get()
+    if deadline is not None and deadline <= time.time():
+        raise TimeoutError('publication request deadline exceeded')
+    remaining = max(0.05, deadline-time.time()) if deadline is not None else timeout
     connection = pg8000.dbapi.connect(host='db', database='hmc', user=os.environ['DB_USER'],
-                                     password=os.environ['DB_PASSWORD'], timeout=timeout, ssl_context=False)
+                                     password=os.environ['DB_PASSWORD'], timeout=min(timeout, remaining), ssl_context=False)
     cursor = connection.cursor()
     try:
+        if deadline is not None:
+            cursor.execute("SELECT set_config('statement_timeout',%s,true)", (str(max(1, int(remaining*1000))),))
         yield Records(cursor)
         connection.commit()
     except BaseException:

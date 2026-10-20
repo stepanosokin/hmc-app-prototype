@@ -16,7 +16,7 @@ if (Test-Path -LiteralPath $t5Directory) { throw 'Use a fresh project/report dir
 New-Item -ItemType Directory -Force $t5Directory | Out-Null
 $t5Environment = Join-Path $t5Directory 'environment.env'
 $t5Lines = @('GEOSERVER_ADMIN_USER=t5operator')
-foreach ($t5Key in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAIC_PASSWORD','GEOSERVER_ADMIN_PASSWORD')) {
+foreach ($t5Key in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAIC_PASSWORD','GEOSERVER_ADMIN_PASSWORD','GATEWAY_PASSWORD')) {
     $t5Lines += $t5Key + '=' + [guid]::NewGuid().ToString('N')
 }
 $t5Lines | Set-Content -Encoding ascii -LiteralPath $t5Environment

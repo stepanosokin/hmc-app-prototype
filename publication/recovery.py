@@ -34,6 +34,8 @@ class DeliveryInvalid(ValueError):
 
 
 def migrate() -> None:
+    from publication.access import migrate as access_migrate
+    access_migrate()
     from publication.revisions import migrate as revisions_migrate
     revisions_migrate()
     with database() as cursor:
