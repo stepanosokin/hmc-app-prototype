@@ -1,6 +1,6 @@
 # Hydrometcenter meteorology prototype — specification
 
-Version: 0.5 · 2026-10-20 · **Accepted implementation handoff.**
+Version: 0.6 · 2026-10-20 · **Accepted implementation handoff.**
 
 The user accepted revision 0.2, milestones M1–M5 and acceptance criteria A1–A12 on 2026-10-19, then requested this browser-delivery amendment and the corresponding specification/ticket updates. Revision 0.3 preserves those IDs and extends their obligations to numeric display tiles and browser GPU rendering. Acceptance records scope agreement, not completion of the new gates.
 
@@ -8,7 +8,9 @@ Revision 0.3 makes numeric data tiles and browser GPU rendering the primary web 
 
 Revision 0.4 adds the user-approved optional TLS capability in section 10.1 and T21 / #33. It preserves M1–M5/A1–A12; TLS implementation and operational activation remain unverified.
 
-Revision 0.5 records the user-confirmed Windy design concept in section 9.1 and [T22 / #34](https://github.com/stepanosokin/hmc-app-prototype/issues/34). All Q1–Q8 decisions and the shared understanding were explicitly confirmed on 2026-10-20. It preserves functional scope and M1–M5/A1–A12; visual mockup approval and real viewer validation remain future gates.
+Revision 0.5 records the user-confirmed Windy design concept in section 9.1 and [T22 / #34](https://github.com/stepanosokin/hmc-app-prototype/issues/34). All Q1–Q8 decisions and the shared understanding were explicitly confirmed on 2026-10-20. It preserves functional scope and M1–M5/A1–A12; the base mockup is now visually approved and #34 closed, while real viewer validation remains pending.
+
+Revision 0.6 records the confirmed web-map-only projection requirements in section 9.2: Mercator, strict orthographic globe and fixed EPSG:3576. T23 / #35 establishes technical feasibility before T24 / #36 extends the approved base mockup and #25/#27 implement the viewer. M1–M5/A1–A12 retain their IDs; new implementation criteria remain unverified.
 
 [Russian copy](spec.ru.md) · [Decision map](map.md) · [Domain glossary](../../GLOSSARY.md)
 
@@ -171,9 +173,25 @@ Render the scalar temperature overlay with numeric tile textures in a MapLibre G
 - Keep reference time and valid time in UTC visible at all times. Source/publication details expand separately; retain the existing attribution, age, availability and completeness requirements.
 - On a phone, use one bottom sheet, initially collapsed. A map tap opens point details to half the screen; settings use that same sheet. The time bar and selected time remain accessible, and run/time context is preserved.
 - Use dark translucent panels, light text, a quiet basemap and a distinct temperature colour scale consistent with the legend. Exact shades, dimensions, opacity and readability are assessed on the visual mockup.
-- [T22 / #34](https://github.com/stepanosokin/hmc-app-prototype/issues/34) delivers an interactive desktop/phone HTML mockup with Russian labels and explicitly marked demonstration data, before connecting real data. Record visible interaction checks, desktop/phone captures and the user's visual approval. The concept is accepted; the mockup has not yet been created or approved.
+- [T22 / #34](https://github.com/stepanosokin/hmc-app-prototype/issues/34) delivers an interactive desktop/phone HTML mockup with Russian labels and explicitly marked demonstration data, before connecting real data. Record visible interaction checks, desktop/phone captures and the user's visual approval. The base T22 mockup was approved and #34 closed on 2026-10-20; its historical evidence remains unchanged. T24 / #36 extends it after T23 / #35.
 
 The approved mockup guides #25's production viewer and #27's responsive controls; those tickets must retain their actual-sample, numerical/GPU and Compose acceptance gates. A demonstration mockup cannot establish A2/A3/A8/A11 or replace real browser/GIS evidence. Basemap/style/font assets remain subject to local serving, attribution and redistribution requirements; the design reference does not imply reuse of Windy's assets or services.
+
+### 9.2. Web-map display projections — v0.6
+
+The user confirmed Q1–Q9 and shared understanding on 2026-10-20. See [ADR 0003](../../docs/adr/0003-web-map-display-projections.md). The choice changes only web-map display: source/native storage and canonical point/EDR semantics remain intact, and external WMS/QGIS still requires EPSG:4326/3857 rather than additional CRS support.
+
+- Offer Russian-labelled Web Mercator (EPSG:3857), a rotating and zoomable strictly orthographic globe, and fixed EPSG:3576 (WGS 84 / North Pole LAEA Russia). Fix LAEA at latitude of origin 90°N, longitude of origin 90°E, zero false easting/northing and WGS84, in metres; no user-controlled LAEA centre in this version.
+- Restrict LAEA display to latitude 45°N and northward, explicitly explain the restriction and keep the southern forecast available in the other modes. This is a display-domain restriction, not native nodata or loss of source coverage.
+- Every page opening starts in Mercator and fits the entire available forecast coverage; do not remember the last projection. “К области данных” fits the coverage visible in the current mode without changing the forecast selection.
+- Switching keeps run/revision/time/units and the selected geographic point. Preserve centre and comparable geographic extent where feasible; numeric zoom levels need not match between projections. Hide a point marker beyond the globe horizon or outside the LAEA domain, retain its selection and explain this state in Russian. Existing run/time-change invalidation rules remain in force.
+- Align weather values/masks, local basemap, labels, coverage geometry, marker and inverse screen picking in every mode. Canonical click values come from the point API after coordinate conversion; never infer values from displayed colours. Reject clicks on the globe background or outside the mode's display domain.
+- Detect unavailable modes, show a Russian explanation and offer an explicit switch to Mercator. Do not silently substitute a perspective globe or automatically change modes; retain the existing GPU context-loss/resource/error requirements.
+- Server-derived display tiles, including EPSG:3576, are permitted if needed. Select browser reprojection versus server derivatives from evidence. Preserve frozen contract v2 and historical evidence; any new contract must explicitly distinguish version/matrix/CRS and grid parameters in metadata, URLs and cache identity, preserve selection/availability/access/budgets/retention, and verify readiness and relevant regression gates before production use. No new standalone service is required by this decision.
+- First complete [T23 / #35](https://github.com/stepanosokin/hmc-app-prototype/issues/35): real gateway/Compose numeric tiles, strict orthographic geometry, EPSG:3576, local basemap, independent value/placement/mask/seam checks, inverse picking and desktop/mobile costs. Preserve total display error ≤0.01 K and encoding error ≤0.001 K, including additional interpolation, separately from the ≤0.0001 K COG bound and the existing prototype datum hypothesis. Add explicitly labelled synthetic polar/antimeridian/horizon cases where the real European sample is insufficient. Proven incompatibility requires revisiting the decision, not silently replacing MapLibre or orthography.
+- Then complete [T24 / #36](https://github.com/stepanosokin/hmc-app-prototype/issues/36), a separately archived extension of the approved T22 mockup, with new visual approval; then implement #25/#27. If T23 establishes necessary server changes, create a linked implementation ticket and complete it before production viewer acceptance. #28 verifies local runtime resources in every mode, #31 measures each mode and switching, and #32 indexes final evidence. Keep #16/#22/#23/#24/#34 closed unless a defect in their accepted scope is independently established.
+
+M1–M5 and A1–A12 retain their IDs. This amendment extends A2/A3 numerical and picking checks, A5/A8 switching/race/resource/UI behavior, A11 local resources and A12 measurements to all modes; A6/A7/A9 apply to any new server derivatives. Agreement and technical/mockup results alone do not complete production acceptance.
 
 ## 10. Retention and operations
 
