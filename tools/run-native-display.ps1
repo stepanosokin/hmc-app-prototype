@@ -38,10 +38,16 @@ function Check {
     Invoke-CheckedProcess -FilePath docker -ArgumentList ($compose + $Arguments) -ReportDirectory $directory -Name $Name
 }
 function InputSnapshot {
+    param([switch]$PathsOnly)
     $files = @(Get-ChildItem decoder,publication,tests,trials,tools -File -Recurse |
         Where-Object { $_.Extension -in @('.py','.ps1','.json','.sql','.sh','.sld','.js','.mjs','.html') })
     $files += @(Get-ChildItem -File | Where-Object { $_.Name.StartsWith('Dockerfile') -or $_.Name.StartsWith('compose') -or $_.Name.StartsWith('requirements') })
-    $files += @(Get-Item AGENTS.md,docs/development-workflow.md,.gitattributes,.github/workflows/checks.yml)
+    $files += @(Get-Item AGENTS.md,docs/development-workflow.md,.gitattributes,.github/workflows/checks.yml,docs/prototypes/assets/land.js)
+    if ($PathsOnly) {
+        return @($files | Sort-Object FullName | ForEach-Object {
+            $_.FullName.Substring((Get-Location).Path.Length + 1).Replace('\','/')
+        })
+    }
     return @($files | Sort-Object FullName | ForEach-Object {
         $relative = $_.FullName.Substring((Get-Location).Path.Length + 1).Replace('\','/')
         $working = & git hash-object --no-filters -- $relative
