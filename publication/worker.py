@@ -191,6 +191,8 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
         with database() as cursor:
             cursor.execute('INSERT INTO app.catalogue VALUES(%s,%s,%s,%s,%s)',
                            (selection, identifier, relative, checksum, job['submitted_at']))
+            from publication.retention import register
+            register(cursor, selection, body, relative)
             cursor.execute('UPDATE app.jobs SET state=%s, selection=%s, manifest_path=%s, manifest_sha256=%s, '
                            'history=history || %s WHERE id=%s',
                            ('published', selection, relative, checksum, json.dumps([{'state': 'published'}]), identifier))

@@ -196,6 +196,8 @@ def process(job: dict) -> None:
                            (revision, body['run'], manifest_relative, revision_checksum, identifier))
             cursor.execute('UPDATE app.jobs SET selection=%s, manifest_path=%s, manifest_sha256=%s WHERE id=%s',
                            (revision + '.' + key, manifest_relative, revision_checksum, identifier))
+            from publication.retention import register
+            register(cursor, revision, loaded, manifest_relative)
         recovery.checkpoint(job, 'committed')
         published += 1
         transition(identifier, 'validated', revision=revision, published_times=published)

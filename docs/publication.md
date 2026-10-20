@@ -319,3 +319,99 @@ restart. Synthetic malformed deliveries supplement the original sample. Local
 Compose establishes this recovery behavior; it does not establish desktop QGIS,
 new CRS/encoding compatibility or organization-host capacity.
 
+## Retain and expire managed forecasts (T7 / #19)
+
+The operator CLI is `python -m publication.retention` in the Compose `worker`
+container (override its entrypoint to `python`). Start the worker once on an
+existing project to apply additive retention metadata/backfill. Policy lives in
+PostgreSQL and applies to every API process; API credentials have SELECT only.
+
+```powershell
+# With the same environment file/project arguments as the isolated stack:
+docker compose --env-file <environment.env> --project-name <project> --file compose.publication.yaml run --rm --entrypoint python worker -m publication.retention configure --days 7
+docker compose --env-file <environment.env> --project-name <project> --file compose.publication.yaml run --rm --entrypoint python worker -m publication.retention report
+docker compose --env-file <environment.env> --project-name <project> --file compose.publication.yaml run --rm --entrypoint python worker -m publication.retention collect
+docker compose --env-file <environment.env> --project-name <project> --file compose.publication.yaml run --rm --entrypoint python worker -m publication.retention collect --apply
+```
+
+`configure` replaces the complete policy: include any nondefault grace, budget,
+clock and pin options on each invocation. Days are 7..30, measured from the UTC
+**run reference time**, never ingestion or forecast valid time. An eligible run
+keeps every published valid time. Omitting `--clock` uses wall UTC. The local
+Compose demonstration explicitly seeds `2026-10-19T05:00:00Z` via
+`PUBLICATION_CLOCK`; the CLI can advance a test clock on its isolated volumes.
+For a historical demonstration with wall UTC use
+`configure --demo-run ICON-EU/2026-10-15T00:00:00Z`. A pin exempts the run window,
+not superseded revision budgets; the latest demo publication stays usable.
+Never move a test clock on shared or operational volumes.
+
+Superseded revisions remain accessible for `--superseded-grace-seconds` (default
+86400, allowed 0..2592000). Per run, `--superseded-count` (default 64, max 1024)
+and `--superseded-bytes` (default 16 GiB, max 1 TiB) bound retained old roots;
+the latest revision is outside those budgets. Bytes conservatively sum each
+root's logical asset inventory, including shared assets more than once. This
+can expire revisions earlier than a unique-byte budget. The report separately
+counts actual managed logical bytes by originals, Zarr, COGs, numeric tiles,
+metadata and other files; hard-linked COGs can be counted twice. This is storage
+accounting, not a measured disk/capacity envelope.
+
+Every request checks current policy before manifest, sampler or warm tile-cache
+access. Catalogue entries disappear and known selections return HTTP 410
+`Expired`, including point, WMS, tile metadata and numeric tiles. On apply, small
+durable tombstones preserve that result after files/catalogue rows are removed,
+restart, policy extension or demonstration-clock rewind. Unknown selections
+remain 404. Expiry responses and catalogue/metadata responses use `no-store`.
+Numeric tile/WMS bytes require revalidation (`private, no-cache`); the API does
+not return 304 without checking eligibility. The gateway forwards those headers.
+
+`--reader-grace-seconds` defaults to 120 (allowed 0..3600). Apply commits expiry
+first and starts this fixed physical grace at observation, even if cleanup is
+late. Repeated cleanup cannot renew it. Already in-flight HTTP operations hold
+a shared database reader lock through response generation; deletion tries an
+exclusive lock and reports `reader_busy` without unlinking when a reader is
+active. Retry collection after it finishes. Backend HTTP calls have bounded
+timeouts; no client session or keepalive renews eligibility/grace. An operator
+must diagnose a stuck API process rather than bypass the lock. Expired roots
+stay physically reachable until grace ends; eligible roots and their shared
+batches remain protected. New calls to expired URLs are already denied during
+physical grace. Old superseded URLs remain usable only until their separate
+fixed eligibility deadline.
+
+Dry-run lists managed paths and reclaimable product categories without expiry
+or file deletion. Apply drops unreferenced private GeoServer workspaces/indexes,
+prunes publication rows and removes unreferenced managed data. Tombstones retain
+manifest locations so an interrupted unlink can be retried. Durable jobs remain
+as audit metadata. Incomplete/retryable jobs are protected; abandoned staging
+and malformed deliveries keep T6's separate recovery/collection behavior.
+Only the managed `/assets` tree is eligible. Organization `/input` mounts are
+read-only and never deletion candidates. A GIS/index/storage failure aborts
+collection; keep evidence and retry after repair.
+
+The server numeric cache is process-local and bounded by `TILE_CACHE_BYTES`
+(0..256 MiB, default 16 MiB). Each API request purges entries for expired roots
+before lookup; idle processes may hold bounded unreachable bytes until the next
+request or restart. There is no disk server tile cache. Durable representative
+numeric products and `tiles.json` are included in managed cleanup. Cached
+samplers cannot bypass the resolver.
+
+Browser clients must revalidate catalogue/selection eligibility on selection,
+resume, reconnect and before presenting cached decoded arrays/textures. Keep
+selection identity and a generation token on HTTP/decode/upload work; reject
+late results after a selection/eligibility change. On 410, clear the layer,
+point state, HTTP/application caches, decoded arrays and GPU textures for that
+selection, abort pending work and require an eligible selection from the
+catalogue. Offline cached textures do not establish current eligibility and
+must not be presented as a live selection. Service workers must respect
+`no-store`/revalidation and never provide stale-on-error fallbacks for these
+URLs. GPU/browser lifecycle implementation and visible-race validation belong
+to #25–#29; this slice documents the required invalidation contract.
+
+Run `powershell -NoProfile -File publication/run-retention.ps1 -Project
+<fresh-hmc-publication-project> -Port <free-port>`. It uses pinned real services,
+isolated volumes, explicit clocks, native exit evidence and automatic archival/
+retirement on both success and failure. Its actual-sample test checks seven- and
+30-day cleanup, warm expiry, shared batches, demo pinning, source preservation,
+grace and permanent expiry after restart. Run current T5 and T6 regression gates
+as well before claiming M2. Existing archived passes remain historical evidence;
+missing private input or a skipped HTTP test cannot establish M2/A9.
+

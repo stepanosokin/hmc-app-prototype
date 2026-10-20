@@ -42,6 +42,12 @@ def migrate() -> None:
                            'delivery_key text', 'managed_source text'):
             cursor.execute('ALTER TABLE app.jobs ADD COLUMN IF NOT EXISTS ' + definition)
         cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS jobs_delivery_key ON app.jobs(delivery_key)')
+    from publication.retention import migrate as retention_migrate
+    # Retention backfill must share publication's serialization boundary.
+    with database() as guard:
+        if not lock(guard):
+            raise RuntimeError('worker busy; retry migration')
+        retention_migrate()
 
 
 def lock(cursor) -> bool:

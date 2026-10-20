@@ -7,7 +7,7 @@ from urllib.parse import quote
 
 import requests
 import pg8000.dbapi
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, g
 
 from decoder.sampling import asset_path
 from publication.domain import ROOT, database, resolve, sampler, PublicationUnavailable
@@ -15,6 +15,7 @@ from decoder.inspect_forecast import ValidationError
 from publication.tiles import render, encode, CONTRACT
 from publication import geoserver
 from publication import revisions
+from publication import retention
 from publication.tile_cache import TileCache
 
 
@@ -41,6 +42,32 @@ def revision_links(row: dict) -> list[dict]:
 def create_app() -> Flask:
     app = Flask('hmc-publication')
     tile_cache = TileCache()
+
+    @app.before_request
+    def protect_reader():
+        guard = retention.reader()
+        guard.__enter__()
+        g.retention_reader = guard
+        if request.path != '/health':
+            _, _, rows = retention.snapshot()
+            g.expired_roots = {row['root'] for row in rows if row['state'] == 'expired'}
+            tile_cache.expire(g.expired_roots)
+
+    @app.teardown_request
+    def release_reader(error):
+        guard = g.pop('retention_reader', None)
+        if guard is not None:
+            guard.__exit__(None, None, None)
+
+    @app.after_request
+    def cache_policy(response):
+        if 'Cache-Control' not in response.headers:
+            response.headers['Cache-Control'] = 'no-store'
+        return response
+
+    @app.errorhandler(retention.ExpiredSelection)
+    def expired(error):
+        return jsonify(code='Expired', description='published selection expired'), 410
 
     @app.errorhandler(KeyError)
     def unavailable(error):
@@ -73,11 +100,13 @@ def create_app() -> Flask:
         with database() as cursor:
             cursor.execute('SELECT selection FROM app.catalogue ORDER BY selection')
             rows = cursor.fetchall()
-            cursor.execute('SELECT manifest_path,manifest_sha256 FROM app.revisions ORDER BY published_at,revision')
+            cursor.execute('SELECT revision,manifest_path,manifest_sha256 FROM app.revisions ORDER BY published_at,revision')
             revision_rows = cursor.fetchall()
-        selections = [links(resolve(row['selection'])) for row in rows]
+        selections = [links(resolve(row['selection'])) for row in rows if row['selection'] not in g.expired_roots]
         for row in revision_rows:
-            selections.extend(revision_links(row))
+            # Selection identity is derived only after checking root eligibility.
+            if row['revision'] not in g.expired_roots:
+                selections.extend(revision_links(row))
         return jsonify(selections=selections)
 
     @app.get('/api/v1/jobs/<uuid:job>')
@@ -139,6 +168,10 @@ def create_app() -> Flask:
 
     @app.get('/gis/v1/runs/<path:run_id>/revisions/<revision>/wms')
     def wms(run_id, revision):
+        _, _, retained = retention.snapshot()
+        matches = [row for row in retained if row['run'] == run_id and row['wms_revision'] == revision]
+        if matches and all(row['state'] == 'expired' for row in matches):
+            raise retention.ExpiredSelection(revision)
         with database() as cursor:
             cursor.execute('SELECT manifest_path,manifest_sha256 FROM app.revisions WHERE run=%s AND revision=%s',
                            (run_id, revision))
@@ -148,7 +181,7 @@ def create_app() -> Flask:
         if row is not None:
             candidates = revision_links(row)
         else:
-            candidates = [links(resolve(item['selection'])) for item in legacy]
+            candidates = [links(resolve(item['selection'])) for item in legacy if item['selection'] not in g.expired_roots]
             candidates = [item for item in candidates if item['run'] == run_id and item['revision'] == revision]
         if not candidates:
             raise KeyError('GIS selection')
