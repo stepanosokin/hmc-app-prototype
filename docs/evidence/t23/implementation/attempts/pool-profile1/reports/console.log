@@ -1,0 +1,532 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261020232837
+Username: OSOKINPC\stepa
+RunAs User: OSOKINPC\stepa
+Configuration Name: 
+Machine: OSOKINPC (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File tools/diagnose-t23-service.ps1 -Project hmc-publication-t23a-pool-profile1 -Image hmc-publication:t23 -Port 8137
+Process ID: 25708
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Success: no issues found in 58 source files
+ Network hmc-publication-t23a-pool-profile1_publication  Creating
+ Network hmc-publication-t23a-pool-profile1_publication  Created
+ Volume hmc-publication-t23a-pool-profile1_assets  Creating
+ Volume hmc-publication-t23a-pool-profile1_assets  Created
+ Network hmc-publication-t23a-pool-profile1_edge  Creating
+ Network hmc-publication-t23a-pool-profile1_edge  Created
+ Volume hmc-publication-t23a-pool-profile1_geoserver  Creating
+ Volume hmc-publication-t23a-pool-profile1_geoserver  Created
+ Volume hmc-publication-t23a-pool-profile1_postgres  Creating
+ Volume hmc-publication-t23a-pool-profile1_postgres  Created
+ Container hmc-publication-t23a-pool-profile1-api-1  Creating
+ Container hmc-publication-t23a-pool-profile1-db-1  Creating
+ Container hmc-publication-t23a-pool-profile1-gateway-1  Creating
+ Container hmc-publication-t23a-pool-profile1-geoserver-1  Creating
+ Container hmc-publication-t23a-pool-profile1-db-1  Created
+ Container hmc-publication-t23a-pool-profile1-geoserver-1  Created
+ Container hmc-publication-t23a-pool-profile1-api-1  Created
+ Container hmc-publication-t23a-pool-profile1-gateway-1  Created
+ Container hmc-publication-t23a-pool-profile1-db-1  Starting
+ Container hmc-publication-t23a-pool-profile1-api-1  Starting
+ Container hmc-publication-t23a-pool-profile1-gateway-1  Starting
+ Container hmc-publication-t23a-pool-profile1-geoserver-1  Starting
+ Container hmc-publication-t23a-pool-profile1-api-1  Started
+ Container hmc-publication-t23a-pool-profile1-db-1  Started
+ Container hmc-publication-t23a-pool-profile1-geoserver-1  Started
+ Container hmc-publication-t23a-pool-profile1-gateway-1  Started
+29c049d7-a6d3-4906-9c0d-e5fe7226622d
+test_all_blocks_equal_independent_grib_and_share_halos (test_native_display.NativeDisplay.test_all_blocks_equal_independent_grib_and_share_halos) ... ok
+test_gateway_native_access_and_validation (test_native_display.NativeDisplay.test_gateway_native_access_and_validation) ... ok
+test_native_metadata_and_first_cell_preserve_selection (test_native_display.NativeDisplay.test_native_metadata_and_first_cell_preserve_selection) ... ok
+test_warm_storage_loss_expiry_and_deadline (test_native_display.NativeDisplay.test_warm_storage_loss_expiry_and_deadline) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 27.934s
+
+OK
+ Container hmc-publication-t23a-pool-profile1-api-1  Restarting
+ Container hmc-publication-t23a-pool-profile1-gateway-1  Restarting
+ Container hmc-publication-t23a-pool-profile1-api-1  Started
+ Container hmc-publication-t23a-pool-profile1-gateway-1  Started
+{
+  "scope": "diagnosis only; fresh actual source, OS cache not reset",
+  "mode": "http",
+  "sequences": [
+    {
+      "metadata": {
+        "ms": 668.1194100001449,
+        "bytes": 5115
+      },
+      "blocks": [
+        {
+          "ms": 267.7173160000166,
+          "bytes": 332820
+        },
+        {
+          "ms": 271.9067950001772,
+          "bytes": 332820
+        },
+        {
+          "ms": 218.1745999996565,
+          "bytes": 332820
+        },
+        {
+          "ms": 268.05043800050044,
+          "bytes": 332820
+        },
+        {
+          "ms": 295.0195419998636,
+          "bytes": 332820
+        },
+        {
+          "ms": 308.5598480001863,
+          "bytes": 332820
+        },
+        {
+          "ms": 244.67417300002126,
+          "bytes": 332820
+        },
+        {
+          "ms": 251.5692349998062,
+          "bytes": 332820
+        },
+        {
+          "ms": 227.9351540000789,
+          "bytes": 332820
+        },
+        {
+          "ms": 224.17860200039286,
+          "bytes": 332820
+        },
+        {
+          "ms": 224.48712200002774,
+          "bytes": 332820
+        },
+        {
+          "ms": 212.85304299999552,
+          "bytes": 332820
+        },
+        {
+          "ms": 227.3940169998241,
+          "bytes": 332820
+        },
+        {
+          "ms": 227.63573300017015,
+          "bytes": 332820
+        },
+        {
+          "ms": 253.636973000539,
+          "bytes": 332820
+        },
+        {
+          "ms": 284.1593160001139,
+          "bytes": 332820
+        },
+        {
+          "ms": 260.38342399988323,
+          "bytes": 332820
+        },
+        {
+          "ms": 215.665431999696,
+          "bytes": 332820
+        }
+      ],
+      "total_ms": 2936.9454360003147
+    },
+    {
+      "metadata": {
+        "ms": 121.36392199954571,
+        "bytes": 5115
+      },
+      "blocks": [
+        {
+          "ms": 214.2058340004951,
+          "bytes": 332820
+        },
+        {
+          "ms": 210.55839099972218,
+          "bytes": 332820
+        },
+        {
+          "ms": 284.7355540006902,
+          "bytes": 332820
+        },
+        {
+          "ms": 286.8333940004959,
+          "bytes": 332820
+        },
+        {
+          "ms": 293.6272489996554,
+          "bytes": 332820
+        },
+        {
+          "ms": 272.9877680003483,
+          "bytes": 332820
+        },
+        {
+          "ms": 496.15620199983823,
+          "bytes": 332820
+        },
+        {
+          "ms": 469.5680220002032,
+          "bytes": 332820
+        },
+        {
+          "ms": 414.6436470000481,
+          "bytes": 332820
+        },
+        {
+          "ms": 477.11532799985434,
+          "bytes": 332820
+        },
+        {
+          "ms": 253.7175870002102,
+          "bytes": 332820
+        },
+        {
+          "ms": 240.8840699999928,
+          "bytes": 332820
+        },
+        {
+          "ms": 260.19208599973354,
+          "bytes": 332820
+        },
+        {
+          "ms": 256.0927089998586,
+          "bytes": 332820
+        },
+        {
+          "ms": 347.42548299982445,
+          "bytes": 332820
+        },
+        {
+          "ms": 301.7515949995868,
+          "bytes": 332820
+        },
+        {
+          "ms": 331.1238809992574,
+          "bytes": 332820
+        },
+        {
+          "ms": 328.2884890004425,
+          "bytes": 332820
+        }
+      ],
+      "total_ms": 2997.603140999672
+    }
+  ],
+  "within_3000ms": true
+}
+{
+  "scope": "diagnosis only; fresh actual source, OS cache not reset",
+  "mode": "native",
+  "runs": [
+    {
+      "resolve_ms": 647.5271670005895,
+      "source_ms": 23.717003000456316,
+      "metadata_ms": 183.80612399960228,
+      "blocks_ms": 331.3940990001356
+    },
+    {
+      "resolve_ms": 152.60841500003153,
+      "source_ms": 11.599884000133898,
+      "metadata_ms": 172.47695799960638,
+      "blocks_ms": 288.2424829995216
+    }
+  ],
+  "profile": [
+    {
+      "file": "base_events.py",
+      "line": 1922,
+      "function": "_run_once",
+      "calls": 3799,
+      "own_ms": 28.960267,
+      "cumulative_ms": 2377.0317860000005
+    },
+    {
+      "file": "diagnose-t23-service.py",
+      "line": 14,
+      "function": "timed",
+      "calls": 9,
+      "own_ms": 0.055505000000000006,
+      "cumulative_ms": 1783.5494520000002
+    },
+    {
+      "file": "diagnose-t23-service.py",
+      "line": 88,
+      "function": "work",
+      "calls": 2,
+      "own_ms": 0.478231,
+      "cumulative_ms": 1112.7748130000002
+    },
+    {
+      "file": "native_display.py",
+      "line": 55,
+      "function": "render",
+      "calls": 58,
+      "own_ms": 32.711694,
+      "cumulative_ms": 909.950502
+    },
+    {
+      "file": "sync.py",
+      "line": 124,
+      "function": "sync",
+      "calls": 284,
+      "own_ms": 3.7190350000000003,
+      "cumulative_ms": 879.0976210000001
+    },
+    {
+      "file": "_base.py",
+      "line": 263,
+      "function": "wait",
+      "calls": 284,
+      "own_ms": 5.387955000000001,
+      "cumulative_ms": 854.756374
+    },
+    {
+      "file": "diagnose-t23-service.py",
+      "line": 91,
+      "function": "resolve_once",
+      "calls": 2,
+      "own_ms": 0.027303000000000004,
+      "cumulative_ms": 800.1253820000001
+    },
+    {
+      "file": "sampling.py",
+      "line": 34,
+      "function": "read_values",
+      "calls": 114,
+      "own_ms": 0.756845,
+      "cumulative_ms": 722.9052610000001
+    },
+    {
+      "file": "events.py",
+      "line": 86,
+      "function": "_run",
+      "calls": 11076,
+      "own_ms": 9.385139,
+      "cumulative_ms": 657.487519
+    },
+    {
+      "file": "array.py",
+      "line": 2659,
+      "function": "__getitem__",
+      "calls": 114,
+      "own_ms": 0.8175540000000001,
+      "cumulative_ms": 656.2083560000001
+    },
+    {
+      "file": "array.py",
+      "line": 3127,
+      "function": "get_orthogonal_selection",
+      "calls": 114,
+      "own_ms": 1.294483,
+      "cumulative_ms": 648.8116500000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'run' of '_contextvars.Context' objects>",
+      "calls": 11074,
+      "own_ms": 17.878947000000004,
+      "cumulative_ms": 635.489925
+    },
+    {
+      "file": "selectors.py",
+      "line": 451,
+      "function": "select",
+      "calls": 3795,
+      "own_ms": 12.972671000000002,
+      "cumulative_ms": 621.6970640000001
+    },
+    {
+      "file": "diagnose-t23-service.py",
+      "line": 97,
+      "function": "<lambda>",
+      "calls": 2,
+      "own_ms": 0.997569,
+      "cumulative_ms": 619.6262810000001
+    },
+    {
+      "file": "domain.py",
+      "line": 131,
+      "function": "resolve",
+      "calls": 2,
+      "own_ms": 0.07240500000000001,
+      "cumulative_ms": 594.46158
+    },
+    {
+      "file": "<frozen importlib._bootstrap>",
+      "line": 1349,
+      "function": "_find_and_load",
+      "calls": 539,
+      "own_ms": 3.2352030000000003,
+      "cumulative_ms": 563.764806
+    },
+    {
+      "file": "<frozen importlib._bootstrap>",
+      "line": 1304,
+      "function": "_find_and_load_unlocked",
+      "calls": 538,
+      "own_ms": 2.4247730000000005,
+      "cumulative_ms": 563.560791
+    },
+    {
+      "file": "<frozen importlib._bootstrap>",
+      "line": 911,
+      "function": "_load_unlocked",
+      "calls": 512,
+      "own_ms": 1.9146380000000003,
+      "cumulative_ms": 558.9062759999999
+    },
+    {
+      "file": "<frozen importlib._bootstrap_external>",
+      "line": 993,
+      "function": "exec_module",
+      "calls": 440,
+      "own_ms": 1.169867,
+      "cumulative_ms": 558.6218580000001
+    },
+    {
+      "file": "<frozen importlib._bootstrap>",
+      "line": 480,
+      "function": "_call_with_frames_removed",
+      "calls": 1247,
+      "own_ms": 2.4265660000000002,
+      "cumulative_ms": 552.227926
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.exec>",
+      "calls": 511,
+      "own_ms": 7.873431,
+      "cumulative_ms": 540.811653
+    },
+    {
+      "file": "revisions.py",
+      "line": 1,
+      "function": "<module>",
+      "calls": 1,
+      "own_ms": 0.036402000000000004,
+      "cumulative_ms": 532.6259
+    },
+    {
+      "file": "storage.py",
+      "line": 1,
+      "function": "<module>",
+      "calls": 1,
+      "own_ms": 0.27101800000000004,
+      "cumulative_ms": 521.4454440000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.__import__>",
+      "calls": 110,
+      "own_ms": 0.397324,
+      "cumulative_ms": 431.69017800000006
+    },
+    {
+      "file": "<frozen importlib._bootstrap>",
+      "line": 1390,
+      "function": "_handle_fromlist",
+      "calls": 646,
+      "own_ms": 0.8343480000000001,
+      "cumulative_ms": 430.109167
+    },
+    {
+      "file": "__init__.py",
+      "line": 1,
+      "function": "<module>",
+      "calls": 1,
+      "own_ms": 0.09260900000000001,
+      "cumulative_ms": 397.69158000000004
+    },
+    {
+      "file": "_base.py",
+      "line": 337,
+      "function": "_invoke_callbacks",
+      "calls": 1456,
+      "own_ms": 2.959686,
+      "cumulative_ms": 351.184626
+    },
+    {
+      "file": "coders.py",
+      "line": 1,
+      "function": "<module>",
+      "calls": 1,
+      "own_ms": 0.0048000000000000004,
+      "cumulative_ms": 329.86759600000005
+    },
+    {
+      "file": "times.py",
+      "line": 1,
+      "function": "<module>",
+      "calls": 1,
+      "own_ms": 0.10190500000000001,
+      "cumulative_ms": 329.104444
+    },
+    {
+      "file": "diagnose-t23-service.py",
+      "line": 96,
+      "function": "<lambda>",
+      "calls": 3,
+      "own_ms": 0.33202200000000004,
+      "cumulative_ms": 328.42349800000005
+    },
+    {
+      "file": "native_display.py",
+      "line": 76,
+      "function": "metadata",
+      "calls": 3,
+      "own_ms": 0.930762,
+      "cumulative_ms": 328.09627600000005
+    },
+    {
+      "file": "futures.py",
+      "line": 396,
+      "function": "_call_set_state",
+      "calls": 1456,
+      "own_ms": 4.247382,
+      "cumulative_ms": 327.136407
+    },
+    {
+      "file": "_base.py",
+      "line": 537,
+      "function": "set_result",
+      "calls": 1120,
+      "own_ms": 4.922647,
+      "cumulative_ms": 323.86469500000004
+    },
+    {
+      "file": "__init__.py",
+      "line": 1,
+      "function": "<module>",
+      "calls": 1,
+      "own_ms": 0.082104,
+      "cumulative_ms": 261.66678600000006
+    },
+    {
+      "file": "thread.py",
+      "line": 54,
+      "function": "run",
+      "calls": 1176,
+      "own_ms": 26.913908,
+      "cumulative_ms": 259.92237100000006
+    }
+  ]
+}
+**********************
+Windows PowerShell transcript end
+End time: 20261020233046
+**********************

@@ -1,0 +1,14 @@
+{
+  "scope": "T7 opt-in fixture only; production/frontend/numeric verification inputs unchanged",
+  "browser_inputs_reference": "attempts/android6/reports/probe-inputs-start.json",
+  "same_desktop_inputs": "attempts/desktop1/reports/probe-inputs-start.json",
+  "changed": [
+    {
+      "path": "tests/test_publication_retention.py",
+      "browser_archive_sha256": "94fbc90d4e4fc6a39dcb62a724a1ed682686ab1a7da3c6c03db8cdab548a62fe",
+      "final_sha256": "23239f87c19a0b1144f5cd37b3c1fb4899af7ba647514880dc360329bf899bf7"
+    }
+  ],
+  "unchanged_captured_inputs": 119,
+  "reason": "four retention readers require isolated concurrency4; exact public policy restored; readiness requires admitted200; HTTP200/503 and real overlap/deletion assertions retained"
+}

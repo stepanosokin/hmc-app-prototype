@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t23a-t23-phone1",
+    "repository":  "D:\\PROG\\HMC\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "4b51bfd8fbb46b6492690615a1ff627e3b7fa99e04ec74391cf71956d2d0700f",
+                           "name":  "/hmc-publication-t23a-t23-phone1-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-t23-phone1"
+                       },
+                       {
+                           "id":  "d187a1e71a447c2031c3c83f16c420ac7134bc841a0a12107f6f1fdb6ae8b288",
+                           "name":  "/hmc-publication-t23a-t23-phone1-gateway-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-t23-phone1"
+                       },
+                       {
+                           "id":  "956c729655b4c758ec8c824e5a75afef88c42e1ef48dde61d18b48e510756471",
+                           "name":  "/hmc-publication-t23a-t23-phone1-api-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-t23-phone1"
+                       },
+                       {
+                           "id":  "db54256c806dbc1a11baa834b9220f3d6e6ca7f76212088bc5b3979710f0ed4f",
+                           "name":  "/hmc-publication-t23a-t23-phone1-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-t23-phone1"
+                       }
+                   ],
+    "networks":  [
+                     "a23ee6837ad7",
+                     "bb915a33e775"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t23a-t23-phone1_assets",
+                    "hmc-publication-t23a-t23-phone1_geoserver",
+                    "hmc-publication-t23a-t23-phone1_postgres"
+                ]
+}

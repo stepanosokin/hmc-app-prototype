@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t7-t23full2",
+    "repository":  "D:\\PROG\\HMC\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "8ce3dc40601048f0639f5a5a46bcd52baf71190220388291f1d1db01e81a93ec",
+                           "name":  "/hmc-publication-t7-t23full2-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t7-t23full2"
+                       },
+                       {
+                           "id":  "911a6756de1e51420ff7bc93b617e3f706d5d575904aab8199525457c863a9ba",
+                           "name":  "/hmc-publication-t7-t23full2-gateway-1",
+                           "image":  "sha256:53af96790dca8980c0346885dbbfe4614630c8508325358183df5cb9636ee700",
+                           "state":  "running",
+                           "project":  "hmc-publication-t7-t23full2"
+                       },
+                       {
+                           "id":  "36891dbf9693e8ff43f3be44b1a66659122578f723cf9e1a0452e0a74cd9b683",
+                           "name":  "/hmc-publication-t7-t23full2-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t7-t23full2"
+                       },
+                       {
+                           "id":  "3151c6e6d077ff35a123668e01fa22a5c15b49c7a20c7a21d4996eccfe8e7e99",
+                           "name":  "/hmc-publication-t7-t23full2-api-1",
+                           "image":  "sha256:53af96790dca8980c0346885dbbfe4614630c8508325358183df5cb9636ee700",
+                           "state":  "running",
+                           "project":  "hmc-publication-t7-t23full2"
+                       }
+                   ],
+    "networks":  [
+                     "d90547e5f722",
+                     "e24e7248ae1c"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t7-t23full2_assets",
+                    "hmc-publication-t7-t23full2_geoserver",
+                    "hmc-publication-t7-t23full2_postgres"
+                ]
+}

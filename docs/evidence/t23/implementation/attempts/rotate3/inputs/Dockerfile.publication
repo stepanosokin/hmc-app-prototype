@@ -1,0 +1,13 @@
+FROM python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends libexpat1=2.5.0-1+deb12u4 && rm -rf /var/lib/apt/lists/*
+COPY requirements.lock requirements.adapters.lock requirements.publication.lock ./
+RUN pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.lock -r requirements.adapters.lock -r requirements.publication.lock && pip check
+COPY decoder/ decoder/
+COPY trials/ trials/
+COPY publication/ publication/
+COPY tests/ tests/
+COPY docs/evidence/t1/a1.json /app/baseline-a1.json
+USER 65532:65532
+ENTRYPOINT ["python", "-m", "publication.worker"]

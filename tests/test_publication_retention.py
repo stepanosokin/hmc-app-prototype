@@ -8,6 +8,7 @@ import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from pathlib import Path
 
 import requests
@@ -54,6 +55,34 @@ class RetentionBoundaries(unittest.TestCase):
 @unittest.skipUnless(os.environ.get('T7_HTTP') == '1', 'requires isolated T7 Compose services')
 class RetentionGateway(unittest.TestCase):
     base = 'http://gateway:8000'
+
+    @contextmanager
+    def reader_budget(self, concurrency):
+        """Admit the declared retention traffic; preserve the operator policy."""
+        from publication.domain import database
+        with database() as cursor:
+            cursor.execute("SELECT limits FROM access.policies WHERE bucket='public'")
+            original = cursor.fetchone()
+        effective = dict(original['limits']) if original else {'requests': 3000, 'concurrency': 2}
+        temporary = {**effective, 'concurrency': concurrency}
+        profile = Path('/evidence/t7-reader-budget.json')
+        profile.write_text(json.dumps(temporary))
+        observation = {'original': original, 'temporary': temporary, 'restored': False}
+        try:
+            observation['applied'] = json.loads(self.command('publication.budgets', 'configure',
+                                                           '--public', '--file', str(profile)))
+            yield
+        finally:
+            with database() as cursor:
+                if original is None:
+                    cursor.execute("DELETE FROM access.policies WHERE bucket='public'")
+                else:
+                    cursor.execute("UPDATE access.policies SET limits=%s::jsonb WHERE bucket='public'",
+                                   (json.dumps(original['limits']),))
+                cursor.execute("SELECT limits FROM access.policies WHERE bucket='public'")
+                self.assertEqual(cursor.fetchone(), original)
+            observation['restored'] = True
+            Path('/evidence/t7-reader-budget-observed.json').write_text(json.dumps(observation, indent=2))
 
     def command(self, module, *args, cwd=None):
         environment = {**os.environ, 'PYTHONPATH': '/app'}
@@ -169,8 +198,9 @@ class RetentionGateway(unittest.TestCase):
                 response = requests.get(self.base + corrected['wms'], params={
                     'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetCapabilities'}, timeout=90)
                 outcomes.append((time.monotonic(), response.status_code))
-                traffic_ready[index].set()
-        with ThreadPoolExecutor(max_workers=4) as readers:
+                if response.status_code == 200:
+                    traffic_ready[index].set()
+        with self.reader_budget(4), ThreadPoolExecutor(max_workers=4) as readers:
             futures = [readers.submit(traffic, index) for index in range(4)]
             try:
                 for event in traffic_ready:

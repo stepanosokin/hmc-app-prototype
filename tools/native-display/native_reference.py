@@ -34,11 +34,12 @@ def main():
     assert browser in ('browser', 'browser-edge')
     report = json.loads((directory/browser/'browser.json').read_bytes())
     results = []
-    maximum, mask_differences, geometry_error, synthetic_error = 0., 0, 0., 0.
+    maximum, mask_differences, geometry_error, synthetic_error, dom_error = 0., 0, 0., 0., 0.
     for viewport in report['viewports']:
-        for view in viewport['views'] + viewport.get('experiments', []):
-            definition = ('+proj=ortho +lat_0=50 +lon_0=20 +R=6378137' if view['mode'] == 'hmc:orthographic'
-                          else 'EPSG:3576')
+        for view in viewport['views'] + viewport.get('experiments', []) + viewport.get('interaction', {}).get('views', []):
+            center = view.get('center', [20, 50])
+            definition = (f'+proj=ortho +lat_0={center[1]} +lon_0={center[0]} +R=6378137' if view['mode'] == 'hmc:orthographic'
+                          else 'EPSG:3857' if view['mode'] == 'mercator' else 'EPSG:3576')
             inverse = Transformer.from_crs(definition, 'EPSG:4326', always_xy=True)
             forward = Transformer.from_crs('EPSG:4326', definition, always_xy=True)
             for label, _, _, actual_value, actual_valid in view.get('synthetic_masks', []):
@@ -59,7 +60,11 @@ def main():
             for control in view.get('controls', []):
                 cx, cy = forward.transform(*control['point'])
                 expected_pixel = [view['origin'][0]+view['scale']*cx, view['origin'][1]-view['scale']*cy]
-                geometry_error = max(geometry_error, math.dist(expected_pixel, control['pixel']))
+                error = math.dist(expected_pixel, control['pixel'])
+                if control.get('source', '').startswith('laid-out DOM'):
+                    dom_error = max(dom_error, error)
+                else:
+                    geometry_error = max(geometry_error, error)
             errors, server_errors = [], []
             for sample in view['samples']:
                 x, y, actual, valid = sample[:4]
@@ -88,15 +93,30 @@ def main():
                     mask_differences += bool(server_valid) != covered
                     if server_valid and expected is not None:
                         server_errors.append(abs(server_value-expected))
-            error = max(errors, default=math.inf)
+            error = max(errors, default=0. if viewport.get("interaction") and view in viewport["interaction"]["views"] else math.inf)
             maximum = max(maximum, error)
             results.append({'viewport': [viewport['width'],viewport['height']], 'mode': view['mode'],
                             'scope': view.get('scope', 'map'), 'valid_samples': len(errors), 'max_abs_error_K': error,
+                            'numeric_scope': 'temperature samples' if errors else 'mask-only; no temperature samples',
                             'server_max_abs_error_K': max(server_errors, default=0.)})
             maximum = max(maximum, max(server_errors, default=0.))
-    result = {'status': 'passed' if maximum <= .01 and mask_differences == 0 and geometry_error < .001 and synthetic_error < 10 else 'failed',
+        if viewport.get('screen_pick'):
+            pick = viewport['screen_pick']
+            assert math.dist(pick['pixel'], pick['requested_pixel']) < 3
+            center = pick['center']
+            inverse = Transformer.from_crs(f'+proj=ortho +lat_0={center[1]} +lon_0={center[0]} +R=6378137', 'EPSG:4326', always_xy=True)
+            lon, lat = inverse.transform((pick['pixel'][0]-pick['origin'][0])/pick['scale'],
+                                         (pick['origin'][1]-pick['pixel'][1])/pick['scale'])
+            assert abs(lon-pick['position']['lng']) < 1e-8 and abs(lat-pick['position']['lat']) < 1e-8
+            native = math.degrees(math.atan2((1-.0066943799901413165)*math.sin(math.radians(lat)), math.cos(math.radians(lat))))
+            column = math.floor((lon+23.5)*16+.5)
+            row = math.floor((native-29.5)*16+.5)
+            assert not missing[row, column]
+            assert abs(pick['point']['value']-float(values[row, column])) < .0001
+    result = {'status': 'passed' if maximum <= .01 and mask_differences == 0 and geometry_error < .001 and dom_error < .1 and synthetic_error < 10 else 'failed',
               'source_sha256': SAMPLE_SHA256, 'views': results,
               'max_abs_error_K': maximum, 'mask_differences': mask_differences, 'geometry_max_error_pixels': geometry_error,
+              'dom_layout_max_error_pixels': dom_error, 'dom_layout_tolerance_pixels': .1,
               'synthetic_projection_error_m': synthetic_error, 'synthetic_scope': 'projection-only pole/dateline/horizon/cut probes, not forecast coverage'}
     (directory/('native-comparison-edge.json' if browser == 'browser-edge' else 'native-comparison.json')).write_text(json.dumps(result, indent=2))
     print(json.dumps(result))

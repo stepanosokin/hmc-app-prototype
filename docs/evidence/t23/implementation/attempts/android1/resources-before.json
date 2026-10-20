@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t23a-android1",
+    "repository":  "D:\\PROG\\HMC\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "f5a6681231917514a8b2df02810ada0c029423446e0478d1ab06ccbd10b0878a",
+                           "name":  "/hmc-publication-t23a-android1-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-android1"
+                       },
+                       {
+                           "id":  "84e08a3172f8ac9693a1451ae4ebed2763f465ff601bfc2f0091d0b6862d444a",
+                           "name":  "/hmc-publication-t23a-android1-api-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-android1"
+                       },
+                       {
+                           "id":  "c50c26076dc62ccd3ebc1e56e99aab3b757c7076ab955b57c024642ce5fe74d9",
+                           "name":  "/hmc-publication-t23a-android1-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-android1"
+                       },
+                       {
+                           "id":  "d8a9b00a5b9ba4e1065335c44bac507731c6f74eabb27e6124f98d3538950108",
+                           "name":  "/hmc-publication-t23a-android1-gateway-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-android1"
+                       }
+                   ],
+    "networks":  [
+                     "be13be516670",
+                     "7bd533b5a8d7"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t23a-android1_assets",
+                    "hmc-publication-t23a-android1_geoserver",
+                    "hmc-publication-t23a-android1_postgres"
+                ]
+}

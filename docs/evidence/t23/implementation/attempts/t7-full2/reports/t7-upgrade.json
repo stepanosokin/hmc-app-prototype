@@ -1,0 +1,88 @@
+{
+  "status": "passed",
+  "latest_selection": "a7d238d7ba3dbf26a4e94bd7a858c4d6fe28688d6743158b2a39e909cfa757b0.aa011fd49e82f2029a309f5e98578a7797007e2828587100360da1976d1759ff",
+  "fixture": "pre-T7 T4 and T5 workers; current additive migration",
+  "report": {
+    "apply": true,
+    "clock": "2026-10-20 21:54:12.035278+00:00",
+    "policy": {
+      "days": 7,
+      "reader_grace_seconds": 0,
+      "superseded_grace_seconds": 2592000,
+      "superseded_count": 0,
+      "superseded_bytes": 17179869184,
+      "demo_runs": [
+        "ICON-EU/2026-10-15T00:00:00Z"
+      ],
+      "clock": "2026-10-20 21:54:12.035278+00:00"
+    },
+    "roots": [
+      {
+        "root": "a7d238d7ba3dbf26a4e94bd7a858c4d6fe28688d6743158b2a39e909cfa757b0",
+        "manifest_path": "40533764-89ca-4bbe-9231-a04019e79d4f/54c703a1c7884914b91da6416481ec56/hour-01/revision.json",
+        "event_clock": "2026-10-20 21:54:12.035278+00:00",
+        "run": "ICON-EU/2026-10-15T00:00:00Z",
+        "wms_revision": "a7d238d7ba3dbf26a4e94bd7a858c4d6fe28688d6743158b2a39e909cfa757b0",
+        "published_at": "2026-10-20 21:54:12.035278+00:00",
+        "superseded_at": null,
+        "managed_bytes": 8085406,
+        "expired_at": null,
+        "delete_after": null,
+        "reason": "demo-pin",
+        "expires_at": "9999-12-31T23:59:59.999999+00:00",
+        "state": "eligible"
+      },
+      {
+        "root": "a792c1e5f8dfbe8d8cb129e10420351d62df21f99ea12895b5a1b9e1c668e630",
+        "manifest_path": "d7a23be3-64e8-4fe8-a5d4-5495c8f4bc16/023651a29e694e57bef107b9c2d0c0da/publication.json",
+        "event_clock": "2026-10-19 03:00:00+00:00",
+        "run": "ICON-EU/2026-10-15T00:00:00Z",
+        "wms_revision": "34793f87ff3c6b279eeaaef1e82a620296c315ef5cc707ad9896401b2fb77e48",
+        "published_at": "2026-10-19 03:00:00+00:00",
+        "superseded_at": "2026-10-20 21:54:12.035278+00:00",
+        "managed_bytes": 126171438,
+        "expired_at": "2026-10-20T21:54:12.035278+00:00",
+        "delete_after": "2026-10-20T21:54:12.035278+00:00",
+        "reason": "superseded-budget",
+        "expires_at": "2026-10-20T21:54:12.035278+00:00",
+        "state": "expired"
+      }
+    ],
+    "storage": {
+      "logical_bytes": 161088782,
+      "files": 836,
+      "categories": {
+        "originals": 53317172,
+        "zarr": 33966081,
+        "cogs": 70717264,
+        "numeric_tiles": 2662560,
+        "metadata": 422209,
+        "other": 3496
+      }
+    },
+    "reclaimable": {
+      "logical_bytes": 126331750,
+      "files": 785,
+      "categories": {
+        "originals": 26658586,
+        "zarr": 32575768,
+        "cogs": 65367348,
+        "numeric_tiles": 1331280,
+        "metadata": 397020,
+        "other": 1748
+      }
+    },
+    "candidates": [
+      "d7a23be3-64e8-4fe8-a5d4-5495c8f4bc16"
+    ],
+    "removed": [
+      "d7a23be3-64e8-4fe8-a5d4-5495c8f4bc16"
+    ],
+    "reader_lock": "exclusive queued drain; 110 second timeout",
+    "server_cache": {
+      "scope": "per API process; purged before request eligibility",
+      "maximum_bytes_per_process": 16777216
+    },
+    "source_mount": "/input is read-only and outside managed cleanup"
+  }
+}

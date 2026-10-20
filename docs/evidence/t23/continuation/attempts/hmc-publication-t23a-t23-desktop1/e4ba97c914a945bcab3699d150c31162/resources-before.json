@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t23a-t23-desktop1",
+    "repository":  "D:\\PROG\\HMC\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "2010045e33b5faf48e7b7753d6a27eac9453fef60eaa687b6357c27ab286c15b",
+                           "name":  "/hmc-publication-t23a-t23-desktop1-gateway-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-t23-desktop1"
+                       },
+                       {
+                           "id":  "f439148bb408cbb68f3949f8fdc2c700d56e4dc40e945360a30977985c4d0a73",
+                           "name":  "/hmc-publication-t23a-t23-desktop1-api-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-t23-desktop1"
+                       },
+                       {
+                           "id":  "a835af0e8689316254b6abffdebb319d479063874c643f6ed4c2a7817b1af04d",
+                           "name":  "/hmc-publication-t23a-t23-desktop1-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-t23-desktop1"
+                       },
+                       {
+                           "id":  "3350df3792de636a77d4d0de21f3d114eb51dc8dd14b0daf16393dd4579c4b68",
+                           "name":  "/hmc-publication-t23a-t23-desktop1-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-t23-desktop1"
+                       }
+                   ],
+    "networks":  [
+                     "8bfa93d86a78",
+                     "24155dd7817f"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t23a-t23-desktop1_assets",
+                    "hmc-publication-t23a-t23-desktop1_geoserver",
+                    "hmc-publication-t23a-t23-desktop1_postgres"
+                ]
+}

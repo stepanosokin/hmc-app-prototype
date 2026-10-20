@@ -1,0 +1,65 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261020220952
+Username: OSOKINPC\stepa
+RunAs User: OSOKINPC\stepa
+Configuration Name: 
+Machine: OSOKINPC (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File tools/run-native-display.ps1 -Project hmc-publication-t23a-t23-dev3 -Port 8137 -Image hmc-publication:t23 -Interaction
+Process ID: 16836
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Success: no issues found in 57 source files
+ Network hmc-publication-t23a-t23-dev3_publication  Creating
+ Network hmc-publication-t23a-t23-dev3_publication  Created
+ Volume hmc-publication-t23a-t23-dev3_assets  Creating
+ Volume hmc-publication-t23a-t23-dev3_assets  Created
+ Network hmc-publication-t23a-t23-dev3_edge  Creating
+ Network hmc-publication-t23a-t23-dev3_edge  Created
+ Volume hmc-publication-t23a-t23-dev3_postgres  Creating
+ Volume hmc-publication-t23a-t23-dev3_postgres  Created
+ Volume hmc-publication-t23a-t23-dev3_geoserver  Creating
+ Volume hmc-publication-t23a-t23-dev3_geoserver  Created
+ Container hmc-publication-t23a-t23-dev3-geoserver-1  Creating
+ Container hmc-publication-t23a-t23-dev3-db-1  Creating
+ Container hmc-publication-t23a-t23-dev3-gateway-1  Creating
+ Container hmc-publication-t23a-t23-dev3-api-1  Creating
+ Container hmc-publication-t23a-t23-dev3-geoserver-1  Created
+ Container hmc-publication-t23a-t23-dev3-gateway-1  Created
+ Container hmc-publication-t23a-t23-dev3-api-1  Created
+ Container hmc-publication-t23a-t23-dev3-db-1  Created
+ Container hmc-publication-t23a-t23-dev3-geoserver-1  Starting
+ Container hmc-publication-t23a-t23-dev3-api-1  Starting
+ Container hmc-publication-t23a-t23-dev3-gateway-1  Starting
+ Container hmc-publication-t23a-t23-dev3-db-1  Starting
+ Container hmc-publication-t23a-t23-dev3-api-1  Started
+ Container hmc-publication-t23a-t23-dev3-geoserver-1  Started
+ Container hmc-publication-t23a-t23-dev3-db-1  Started
+ Container hmc-publication-t23a-t23-dev3-gateway-1  Started
+6c341bbc-a5c4-4265-a345-eaffc5a92efd
+test_all_blocks_equal_independent_grib_and_share_halos (test_native_display.NativeDisplay.test_all_blocks_equal_independent_grib_and_share_halos) ... ok
+test_gateway_native_access_and_validation (test_native_display.NativeDisplay.test_gateway_native_access_and_validation) ... ok
+test_native_metadata_and_first_cell_preserve_selection (test_native_display.NativeDisplay.test_native_metadata_and_first_cell_preserve_selection) ... ok
+test_warm_storage_loss_expiry_and_deadline (test_native_display.NativeDisplay.test_warm_storage_loss_expiry_and_deadline) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 31.121s
+
+OK
+ Container hmc-publication-t23a-t23-dev3-gateway-1  Restarting
+ Container hmc-publication-t23a-t23-dev3-api-1  Restarting
+ Container hmc-publication-t23a-t23-dev3-api-1  Started
+ Container hmc-publication-t23a-t23-dev3-gateway-1  Started
+{"directory":"D:\\PROG\\HMC\\hmc-app-prototype\\data\\reports\\t23a\\hmc-publication-t23a-t23-dev3\\browser","status":"compatibility-probe-complete","acceptance":"incomplete","cleanup":{"browser_processes_remaining":0,"profile_removed":true,"http_server_closed":true,"compose_projects_created":0}}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "views": [{"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 250, "max_abs_error_K": 0.0011817757002745566, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "EPSG:3576", "scope": "map", "valid_samples": 592, "max_abs_error_K": 0.0016693804187752903, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "server-screen-comparison", "valid_samples": 63, "max_abs_error_K": 0.002397316668179883, "numeric_scope": "temperature samples", "server_max_abs_error_K": 1.5056222878229164e-05}, {"viewport": [1440, 900], "mode": "EPSG:3576", "scope": "server-screen-comparison", "valid_samples": 55, "max_abs_error_K": 0.0013643835930565729, "numeric_scope": "temperature samples", "server_max_abs_error_K": 1.4764876652861858e-05}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 979, "max_abs_error_K": 0.0014045905870716524, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 982, "max_abs_error_K": 0.0016787685948997932, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 0, "max_abs_error_K": 0.0, "numeric_scope": "mask-only; no temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 770, "max_abs_error_K": 0.0011503195513569153, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "mercator", "scope": "map", "valid_samples": 1110, "max_abs_error_K": 0.0023907103159217513, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 248, "max_abs_error_K": 0.000781316647589847, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "EPSG:3576", "scope": "map", "valid_samples": 594, "max_abs_error_K": 0.0008156764233149261, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "server-screen-comparison", "valid_samples": 63, "max_abs_error_K": 0.002397316668179883, "numeric_scope": "temperature samples", "server_max_abs_error_K": 1.5056222878229164e-05}, {"viewport": [390, 844], "mode": "EPSG:3576", "scope": "server-screen-comparison", "valid_samples": 55, "max_abs_error_K": 0.0013643835930565729, "numeric_scope": "temperature samples", "server_max_abs_error_K": 1.4764876652861858e-05}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 774, "max_abs_error_K": 0.001439448943813204, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 787, "max_abs_error_K": 0.0014536074433522117, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 0, "max_abs_error_K": 0.0, "numeric_scope": "mask-only; no temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 152, "max_abs_error_K": 0.00017877016182410443, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "mercator", "scope": "map", "valid_samples": 0, "max_abs_error_K": 0.0, "numeric_scope": "mask-only; no temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 249, "max_abs_error_K": 0.0013279983517122673, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "EPSG:3576", "scope": "map", "valid_samples": 594, "max_abs_error_K": 0.0013879258790439053, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "server-screen-comparison", "valid_samples": 63, "max_abs_error_K": 0.002397316668179883, "numeric_scope": "temperature samples", "server_max_abs_error_K": 1.5056222878229164e-05}, {"viewport": [360, 740], "mode": "EPSG:3576", "scope": "server-screen-comparison", "valid_samples": 55, "max_abs_error_K": 0.0013643835930565729, "numeric_scope": "temperature samples", "server_max_abs_error_K": 1.4764876652861858e-05}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 737, "max_abs_error_K": 0.0018894742153747757, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 750, "max_abs_error_K": 0.0013218075349072933, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 0, "max_abs_error_K": 0.0, "numeric_scope": "mask-only; no temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 111, "max_abs_error_K": 0.0006038345117644894, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "mercator", "scope": "map", "valid_samples": 0, "max_abs_error_K": 0.0, "numeric_scope": "mask-only; no temperature samples", "server_max_abs_error_K": 0.0}], "max_abs_error_K": 0.002397316668179883, "mask_differences": 0, "geometry_max_error_pixels": 5.400124791776761e-13, "synthetic_projection_error_m": 1.6476029491543485, "synthetic_scope": "projection-only pole/dateline/horizon/cut probes, not forecast coverage"}
+**********************
+Windows PowerShell transcript end
+End time: 20261020221250
+**********************

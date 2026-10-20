@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t23a-rotate3",
+    "repository":  "D:\\PROG\\HMC\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "1608450f4fd5319d674fbec98c0d69573050576a904e8df6773647aad18e093b",
+                           "name":  "/hmc-publication-t23a-rotate3-gateway-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-rotate3"
+                       },
+                       {
+                           "id":  "d7210730ec3db4989dad9be2a75bfef3e1a45cc4b15f47875ffe1473a44aea54",
+                           "name":  "/hmc-publication-t23a-rotate3-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-rotate3"
+                       },
+                       {
+                           "id":  "fd2bf3aaa1e9e22b7b904a39c3248d2945c6f641b98a9140c1aa6cd56b7172fa",
+                           "name":  "/hmc-publication-t23a-rotate3-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-rotate3"
+                       },
+                       {
+                           "id":  "b1007f052a3e0e9e0dd4d869669cf06f15daa1f4dd5f627ffff4c077bff963e6",
+                           "name":  "/hmc-publication-t23a-rotate3-api-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-rotate3"
+                       }
+                   ],
+    "networks":  [
+                     "fe6f97e88c0a",
+                     "306c2c940b9d"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t23a-rotate3_assets",
+                    "hmc-publication-t23a-rotate3_geoserver",
+                    "hmc-publication-t23a-rotate3_postgres"
+                ]
+}

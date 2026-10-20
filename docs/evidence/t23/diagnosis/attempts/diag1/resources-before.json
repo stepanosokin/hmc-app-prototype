@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t23a-diag1",
+    "repository":  "D:\\PROG\\HMC\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "c95655e7f9be68a3b9f66b0d6e173fada9804fc36bf9312b0bab0b299f3f8341",
+                           "name":  "/hmc-publication-t23a-diag1-gateway-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-diag1"
+                       },
+                       {
+                           "id":  "d6558dc8d63541af2df7ead12838e916737961aae294d122e1ca2e1cea933408",
+                           "name":  "/hmc-publication-t23a-diag1-api-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-diag1"
+                       },
+                       {
+                           "id":  "2bbf8cdf9e3fcaa748c65e77465526fe58e0d4775ce7473992268b72ea4afefd",
+                           "name":  "/hmc-publication-t23a-diag1-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-diag1"
+                       },
+                       {
+                           "id":  "c0a5e8c670f8abf96e6a1f289543593de15ebe751b04dea3128613fc16689b4d",
+                           "name":  "/hmc-publication-t23a-diag1-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-diag1"
+                       }
+                   ],
+    "networks":  [
+                     "2723019eb092",
+                     "41cbe407701a"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t23a-diag1_assets",
+                    "hmc-publication-t23a-diag1_geoserver",
+                    "hmc-publication-t23a-diag1_postgres"
+                ]
+}

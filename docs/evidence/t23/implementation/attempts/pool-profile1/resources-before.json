@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t23a-pool-profile1",
+    "repository":  "D:\\PROG\\HMC\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "99cc214d26d41a71680b076caaf24fbcbbc2d27d643d2d545af693f9d3c23562",
+                           "name":  "/hmc-publication-t23a-pool-profile1-gateway-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-pool-profile1"
+                       },
+                       {
+                           "id":  "5de72ae384b99fffb998e94a29d66582a72dd3f8d51c5125f74c47d6d1736c30",
+                           "name":  "/hmc-publication-t23a-pool-profile1-api-1",
+                           "image":  "sha256:66e325a310fef1ac868082c6d9f070ba8b75a448bab7141c56e35130d52e3985",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-pool-profile1"
+                       },
+                       {
+                           "id":  "bc35add69b416a03923bdfd7703033afab62673d10d10b94e00825dc20b2abf2",
+                           "name":  "/hmc-publication-t23a-pool-profile1-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-pool-profile1"
+                       },
+                       {
+                           "id":  "56ce739c6ac0195d5e2090d85d39c56a12ad9201b88294fafb5ebf7949ed582b",
+                           "name":  "/hmc-publication-t23a-pool-profile1-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-pool-profile1"
+                       }
+                   ],
+    "networks":  [
+                     "2cdf7ab0df48",
+                     "9471878b232b"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t23a-pool-profile1_assets",
+                    "hmc-publication-t23a-pool-profile1_geoserver",
+                    "hmc-publication-t23a-pool-profile1_postgres"
+                ]
+}

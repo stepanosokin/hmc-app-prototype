@@ -2,9 +2,14 @@ param(
     [ValidatePattern('^hmc-publication-t23a-[a-z0-9-]+$')][string]$Project = 'hmc-publication-t23a-probe1',
     [int]$Port = 8137,
     [string]$Image = 'hmc-publication:t12',
-    [switch]$WithEdge
+    [switch]$WithEdge,
+    [switch]$Interaction,
+    [switch]$EnforceBudgets,
+    [switch]$ProfileServices,
+    [string]$MobileHost
 )
 $ErrorActionPreference = 'Stop'
+if ($env:T23_ANDROID_SERIAL -and ($WithEdge -or $MobileHost)) { throw 'Use separate Android, desktop and LAN attempts' }
 . (Join-Path $PSScriptRoot '../publication/process.ps1')
 Set-Location (Split-Path $PSScriptRoot -Parent)
 $directory = Join-Path (Get-Location) "data/reports/t23a/$Project"
@@ -57,6 +62,18 @@ function InputSnapshot {
         [ordered]@{path=$relative;sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLowerInvariant()}
     })
 }
+$script:t23ProfilesRecorded = $false
+function Record-ServiceProfiles {
+    if (-not $ProfileServices -or $script:t23ProfilesRecorded -or -not (Test-Path (Join-Path $directory 'native-reference.json'))) { return }
+    $selection = (Get-Content -Raw -Encoding UTF8 (Join-Path $directory 'native-reference.json') | ConvertFrom-Json).selection.selection
+    foreach ($service in @('api','gateway','transport')) {
+        $container = if ($service -eq 'api') { 'api' } else { 'gateway' }
+        Get-Content -Raw -Encoding UTF8 tools/diagnose-t23-service.py | & docker @compose exec -T $container python - $service $selection |
+            Set-Content -Encoding UTF8 (Join-Path $directory "profile-$service.json")
+        if ($LASTEXITCODE -ne 0) { throw "Profile $service failed" }
+    }
+    $script:t23ProfilesRecorded = $true
+}
 Start-Transcript -Path (Join-Path $directory 'console.log') | Out-Null
 try {
     foreach ($name in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
@@ -78,12 +95,17 @@ try {
     Check native-reference @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check',
         '/workspace/tools/native-display/native_reference.py','prepare')
     $env:T23A_NATIVE = '1'
+    $env:T23_INTERACTION = if ($Interaction) { '1' } else { '0' }
+    $env:T23_MOBILE_HOST = $MobileHost
     $env:T23_REFERENCE = Join-Path $directory 'native-reference.json'
     $env:T23_REPORT_DIRECTORY = Join-Path $directory 'browser'
     $env:T23_GATEWAY = "http://127.0.0.1:$Port"
     Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-display-projections.mjs') -ReportDirectory $directory -Name native-browser
     Check native-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check',
         '/workspace/tools/native-display/native_reference.py','compare')
+    if ($EnforceBudgets) {
+        Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/native-display/budgets.mjs',(Join-Path $directory 'browser/browser.json')) -ReportDirectory $directory -Name native-budgets
+    }
     if ($WithEdge) {
         $env:T23_CHROME = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
         if (-not (Test-Path -LiteralPath $env:T23_CHROME)) { throw 'Required Microsoft Edge is unavailable' }
@@ -91,12 +113,18 @@ try {
         Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-display-projections.mjs') -ReportDirectory $directory -Name native-edge
         Check native-edge-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check',
             '/workspace/tools/native-display/native_reference.py','compare','browser-edge')
+        if ($EnforceBudgets) {
+            Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/native-display/budgets.mjs',(Join-Path $directory 'browser-edge/browser.json')) -ReportDirectory $directory -Name native-edge-budgets
+        }
     }
+    Record-ServiceProfiles
+    Check native-usage @('run','--rm','--entrypoint','python','check','-m','publication.budgets','usage','--public','--limit','1000')
     $endInputs = InputSnapshot | ConvertTo-Json -Depth 5
     [System.IO.File]::WriteAllText((Join-Path $directory 'probe-inputs-end.json'),$endInputs)
     if ($startInputs -ne $endInputs) { throw 'Probe inputs changed during validation' }
 } catch {
     $failure = $_
+    try { Record-ServiceProfiles } catch { Write-Warning 'Additional service profile failed; original failure preserved' }
     try { Check service-logs @('logs','--no-color','--timestamps') } catch { Write-Warning 'Could not capture service logs' }
     throw $failure
 } finally {

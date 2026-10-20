@@ -1,0 +1,87 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261021002608
+Username: OSOKINPC\stepa
+RunAs User: OSOKINPC\stepa
+Configuration Name: 
+Machine: OSOKINPC (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File publication/run-budgets.ps1 -Project hmc-publication-t9-t23dev1 -Port 8137 -Development -SkipBuild
+Process ID: 18700
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Success: no issues found in 58 source files
+ Network hmc-publication-t9-t23dev1_publication  Creating
+ Network hmc-publication-t9-t23dev1_publication  Created
+ Volume hmc-publication-t9-t23dev1_assets  Creating
+ Volume hmc-publication-t9-t23dev1_assets  Created
+test_backend_admin_assets_and_near_match_routes_are_not_forwarded (test_publication_access.GatewayBoundary.test_backend_admin_assets_and_near_match_routes_are_not_forwarded) ... {"request_id": "2d73e261-7aff-4f47-bc74-d190cff2f69f", "observed_at": "2026-10-20T21:26:27.604826+00:00", "organization": null, "key_id": null, "bucket": "public", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 2.042215999608743, "bytes": 0, "durable_store": "unavailable"}
+{"request_id": "f5a48f29-a143-4fbe-b390-29bb736b2e78", "observed_at": "2026-10-20T21:26:27.607698+00:00", "organization": null, "key_id": null, "bucket": "public", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 0.821186999019119, "bytes": 0, "durable_store": "unavailable"}
+{"request_id": "254b2c9f-7166-40a7-9b7f-2754fdec3b17", "observed_at": "2026-10-20T21:26:27.609056+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 0.7683820003876463, "bytes": 0, "durable_store": "unavailable"}
+{"request_id": "71fcfb91-0fc0-4b33-b1f6-dd83497c9301", "observed_at": "2026-10-20T21:26:27.610308+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 0.8493900004395982, "bytes": 0, "durable_store": "unavailable"}
+{"request_id": "e35c1286-c980-4cd2-b845-5e3604b54acb", "observed_at": "2026-10-20T21:26:27.611590+00:00", "organization": null, "key_id": null, "bucket": "public", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 0.6825729997217422, "bytes": 0, "durable_store": "unavailable"}
+{"request_id": "5189ed9a-20cc-4afb-9ed6-ed8aab3c225b", "observed_at": "2026-10-20T21:26:27.612787+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 0.6909730000188574, "bytes": 0, "durable_store": "unavailable"}
+ok
+test_missing_key_is_challenged_before_any_backend_request (test_publication_access.GatewayBoundary.test_missing_key_is_challenged_before_any_backend_request) ... {"request_id": "55b31f5d-22c7-4a72-b371-c835681c8cbb", "observed_at": "2026-10-20T21:26:28.426938+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "catalogue", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 401, "duration_ms": 0.8537900012015598, "bytes": 255, "durable_store": "unavailable"}
+ok
+test_url_secrets_and_ambiguous_headers_are_rejected_without_echo (test_publication_access.GatewayBoundary.test_url_secrets_and_ambiguous_headers_are_rejected_without_echo) ... {"request_id": "1accdc32-dba2-4ffe-8e19-96b9276afc93", "observed_at": "2026-10-20T21:26:29.245131+00:00", "organization": null, "key_id": null, "bucket": "public", "operation": "catalogue", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 400, "duration_ms": 0.8945940007833997, "bytes": 221, "durable_store": "unavailable"}
+{"request_id": "2ed45711-2fbc-4570-80a2-8120d8a1c202", "observed_at": "2026-10-20T21:26:29.246475+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "catalogue", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 400, "duration_ms": 0.7920839998405427, "bytes": 221, "durable_store": "unavailable"}
+{"request_id": "27ec354d-2459-4474-9afb-98ce5eb00929", "observed_at": "2026-10-20T21:26:29.247855+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "catalogue", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 401, "duration_ms": 0.8215870002459269, "bytes": 255, "durable_store": "unavailable"}
+{"request_id": "27d22ca9-2ca0-4960-9d12-70ee4a0a191c", "observed_at": "2026-10-20T21:26:29.249095+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "catalogue", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 401, "duration_ms": 0.76698100019712, "bytes": 255, "durable_store": "unavailable"}
+ok
+test_operator_and_gateway_policies (test_publication_access.OrganizationAccess.test_operator_and_gateway_policies) ... skipped 'requires isolated T8 real Compose services'
+test_restart_and_secret_free_evidence (test_publication_access.OrganizationAccess.test_restart_and_secret_free_evidence) ... skipped 'requires isolated T8 real Compose services'
+
+----------------------------------------------------------------------
+Ran 5 tests in 2.493s
+
+OK (skipped=2)
+{"status": "passed", "postgresql_driver": "pg8000/1.31.5", "probes": [{"python": "from publication.tiles import coordinates; coordinates(3,4,2); from publication.domain import database", "exit_code": 0, "stderr": ""}, {"python": "from publication.domain import database; from publication.tiles import coordinates; coordinates(3,4,2)", "exit_code": 0, "stderr": ""}, {"python": "from publication.api import create_app; create_app()", "exit_code": 0, "stderr": ""}]}
+
+
+{"status": "ready"}
+
+test_post_publication_gis_exception_is_a_sanitized_service_failure (test_publication_http.PublishedSelection.test_post_publication_gis_exception_is_a_sanitized_service_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.126s
+
+OK
+test_legacy_usage_upgrade_preserves_live_public_reader_and_accounting (test_publication_budgets.UsageBudgets.test_legacy_usage_upgrade_preserves_live_public_reader_and_accounting) ... ok
+test_rate_before_warm_cache_and_organization_identity (test_publication_budgets.UsageBudgets.test_rate_before_warm_cache_and_organization_identity) ... ok
+test_resources_demo_cache_rejections_and_retention (test_publication_budgets.UsageBudgets.test_resources_demo_cache_rejections_and_retention) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 139.905s
+
+OK
+test_operator_and_gateway_policies (test_publication_access.OrganizationAccess.test_operator_and_gateway_policies) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 18.389s
+
+OK
+ALTER ROLE
+CREATE SCHEMA
+NOTICE:  schema "access" already exists, skipping
+{"status": "ready"}
+{"status": "passed", "edge_backend_connections": "denied", "gateway": 401}
+
+
+
+test_restart_and_secret_free_evidence (test_publication_access.OrganizationAccess.test_restart_and_secret_free_evidence) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.383s
+
+OK
+**********************
+Windows PowerShell transcript end
+End time: 20261021003108
+**********************

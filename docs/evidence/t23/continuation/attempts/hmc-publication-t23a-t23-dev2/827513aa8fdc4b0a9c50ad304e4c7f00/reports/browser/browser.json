@@ -1,0 +1,39 @@
+{
+  "scope": "T23a native display; mobile viewports are desktop emulation",
+  "starting_commit": "e7f6722c638d7cc77611eb0ef4ef29bbe64ca2a7",
+  "inputs": {
+    "tools/native-display/browser.html": "87e1922bc8c4ff4e2c08d0badf2dee78cb3cf64bb4a6fdfe01012d0bedbbf43b",
+    "tools/native-display/probe.js": "f3d4c9544b856d77edeecd36a05f5b1b6a7842fe614cd02a7b93b1c9e1197ed1",
+    "tools/display-projections/worker-projection.mjs": "8770127110b1fa2c8e24807efe7ca85f7587a340ea45f39e39514d65d86457fe",
+    "docs/prototypes/assets/land.js": "09dcaef6ba7af5caa974dd1000c109a1ee339857f7b3bf7dcaadeda89cc7d4e7",
+    "tools/native-display/native-layer.js": "dce23b2ae4f51b85ee39f390a385240d98d2b3d4b1f2f74c546b9c334f5388ef",
+    "tools/display-projections/probe.js": "20dc628238f4ba0bd9fa39d94038c6834ac6ec56d7b86ea825e24804af9424b1",
+    "tools/display-projections/interaction.js": "6cfce2def687823d4c70c66282b39d877df23c3f617bb26d99bfed12dda51f1a",
+    "tools/display-projections/vendor-lock.json": "7aff1441d061f5f66812e2eb6a5ecf6781c99f9e37e9dbb5035e5801a3af4feb",
+    "tools/check-display-projections.mjs": "e63c80c59c594914effc0a796b69fd877f27ea49c89163394294e7390c992b83"
+  },
+  "viewports": [],
+  "cleanup": {
+    "browser_processes_remaining": 0,
+    "profile_removed": true,
+    "http_server_closed": true,
+    "compose_projects_created": 0
+  },
+  "reference_sha256": "3c6d4f01ad9549832d7645cfb07f8b2858d00ca4bf46d5c5ca31fa9e57fcf131",
+  "browser_executable": "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+  "external_requests": [],
+  "exceptions": [],
+  "console": [],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Edg/155.0.4283.62",
+    "revision": "@aa3a7406ba8c53a83536df539f07124d73c899bd",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "jsVersion": "15.5.9.7"
+  },
+  "system": {
+    "unavailable": "Error: {\"code\":-32000,\"message\":\"SystemInfo.getInfo is only supported on the browser target\"}"
+  },
+  "status": "failed",
+  "failure": "Error: {\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Нет сообщения за горизонтом\",\"lineNumber\":3,\"columnNumber\":56,\"scriptId\":\"13\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"assert\",\"scriptId\":\"13\",\"url\":\"http://127.0.0.1:55937/interaction.js\",\"lineNumber\":2,\"columnNumber\":55},{\"functionName\":\"window.runInteraction\",\"scriptId\":\"13\",\"url\":\"http://127.0.0.1:55937/interaction.js\",\"lineNumber\":93,\"columnNumber\":31}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Нет сообщения за горизонтом\\n    at assert (http://127.0.0.1:55937/interaction.js:3:56)\\n    at window.runInteraction (http://127.0.0.1:55937/interaction.js:94:32)\",\"objectId\":\"-5298768593303233748.2.1\"}}"
+}
