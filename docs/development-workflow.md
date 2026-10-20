@@ -80,6 +80,11 @@ For the integrated M3 gate, use the two-phase
 [T12 runner](integrated-publication.md#воспроизведение). It combines T5, T9,
 the complete T8 access gate and T11 desktop/WMS in one fresh project; do not
 repeat the separate T5/T8/T9 chains. First exercise new scenarios in Development.
+When a combined scenario depends on catalogue history or shared-cache pressure,
+reproduce that prerequisite in a focused run before the final gate. A short seed
+alone does not establish parity with the post-T5 state. Use the
+[T12 development failures](evidence/t12/development.md) to distinguish observer
+timing and cache prerequisites from service failures.
 Keep its two-tile cache budget and API fault flags unchanged across phases.
 Prepare verifies the archived M1 comparison and explicit adapter selection;
 Complete binds desktop, HTTP and restart evidence to the same frozen inputs.
@@ -362,6 +367,16 @@ it supports issue/label REST operations and obtains credentials without printing
 them. Supply operations and output paths in the ignored scratch directory, then
 read back the issue state. If the helper is absent or authentication fails,
 report the specific blocker. Keep credentials out of commands, logs and reports.
+The connector's 403 and an automatic approval rejection are separate boundaries:
+if approval review rejects this helper, continue independent implementation and
+request explicit permission for that helper and issue before retrying. The
+permission granted for issue #24 does not authorize helper use for other issues
+after such a rejection.
+
+Resolve mutation schemas from tool metadata or local request validation. Before
+an issue-body update, prepare the complete preserved body with only the intended
+checklist/evidence changes and inspect the diff. Placeholder body writes are not
+schema probes: they replace the task text.
 
 When constructing an issue body in PowerShell, read it as a plain string with
 `[System.IO.File]::ReadAllText(<absolute-path>)` before `ConvertTo-Json`.
@@ -439,3 +454,8 @@ The [T11 retrospective](evidence/retro-t11.md) records a combined-runner fixture
 failure, desktop negotiation/time-state defects and credential-bearing QGIS
 diagnostics. Existing T11/T8 scenarios now supply the focused checks; their
 runner, helper and archived evidence remain the implementation sources of truth.
+
+The [T12 retrospective](evidence/retro-t12.md) connects full-history observer and
+cache failures to focused-run prerequisites, and distinguishes a connector 403
+from rejection of the fallback helper by approval review. Existing T12 scenarios
+and CI remain the behavioral and mechanical checks.
