@@ -40,9 +40,9 @@ class Records:
 
 
 @contextmanager
-def database():
+def database(*, timeout: int = 5):
     connection = pg8000.dbapi.connect(host='db', database='hmc', user=os.environ['DB_USER'],
-                                     password=os.environ['DB_PASSWORD'], timeout=5, ssl_context=False)
+                                     password=os.environ['DB_PASSWORD'], timeout=timeout, ssl_context=False)
     cursor = connection.cursor()
     try:
         yield Records(cursor)

@@ -67,8 +67,7 @@ def decisions(roots: list[dict], configuration: dict, clock) -> list[dict]:
                 cutoff, reason = grace, 'superseded-grace'
             newer = [other for other in roots if other['run'] == row['run']
                      and other['superseded_at'] is not None
-                     and (other.get('ordinal', 0), instant(other['published_at']), other['root'])
-                     >= (row.get('ordinal', 0), instant(row['published_at']), row['root'])]
+                     and (instant(other['published_at']), other['root']) >= (instant(row['published_at']), row['root'])]
             if (len(newer) > configuration['superseded_count']
                     or sum(item['managed_bytes'] for item in newer) > configuration['superseded_bytes']):
                 cutoff, reason = min(cutoff, superseded), 'superseded-budget'
@@ -85,7 +84,7 @@ def migrate() -> None:
         cursor.execute('CREATE TABLE IF NOT EXISTS app.retention_policy ('
                        'singleton boolean PRIMARY KEY CHECK(singleton), configuration jsonb NOT NULL)')
         cursor.execute('CREATE TABLE IF NOT EXISTS app.retention_roots ('
-                       'root text PRIMARY KEY, ordinal bigserial, manifest_path text NOT NULL, '
+                       'root text PRIMARY KEY, manifest_path text NOT NULL, event_clock timestamptz NOT NULL, '
                        'run text NOT NULL, wms_revision text NOT NULL, published_at timestamptz NOT NULL, '
                        'superseded_at timestamptz, managed_bytes bigint NOT NULL, '
                        'expired_at timestamptz, delete_after timestamptz, reason text)')
@@ -100,7 +99,8 @@ def migrate() -> None:
         existing = {row['root'] for row in cursor.fetchall()}
     from publication.revisions import load_revision
     from publication.domain import load_manifest
-    for row in revisions + legacy:
+    for row in sorted(revisions + legacy, key=lambda row: (instant(row['published_at']),
+                                                          row.get('revision', row.get('selection')))):
         root = row.get('revision', row.get('selection'))
         if root in existing:
             continue
@@ -118,13 +118,23 @@ def register(cursor, root: str, manifest: dict, manifest_path: str, published_at
         assets.update(load_manifest(batch['manifest_path'], batch['manifest_sha256'])['assets'])
     cursor.execute('SELECT configuration FROM app.retention_policy WHERE singleton')
     configuration = cursor.fetchone()['configuration']
-    published_at = published_at or configuration.get('clock') or datetime.now(timezone.utc)
-    cursor.execute('UPDATE app.retention_roots SET superseded_at=%s '
-                   'WHERE run=%s AND superseded_at IS NULL', (published_at, run))
-    cursor.execute('INSERT INTO app.retention_roots(root,manifest_path,run,wms_revision,published_at,managed_bytes) '
-                   'VALUES(%s,%s,%s,%s,%s,%s)',
-                   (root, manifest_path, run, manifest.get('revision') or manifest['identity']['revision'], published_at,
+    cursor.execute('SELECT clock_timestamp() AS clock')
+    observed = cursor.fetchone()['clock']
+    event_clock = published_at or configuration.get('clock') or observed
+    cursor.execute('INSERT INTO app.retention_roots(root,manifest_path,event_clock,run,wms_revision,published_at,managed_bytes) '
+                   'VALUES(%s,%s,%s,%s,%s,%s,%s)',
+                   (root, manifest_path, event_clock, run, manifest.get('revision') or manifest['identity']['revision'],
+                    published_at or observed,
                     sum(item['bytes'] for item in assets.values())))
+    # Wall publication chronology and the explicit policy clock are separate.
+    # Late adoption of older rows must never supersede a newer current root.
+    cursor.execute('SELECT root,superseded_at,event_clock FROM app.retention_roots '
+                   'WHERE run=%s ORDER BY published_at,root', (run,))
+    ordered = cursor.fetchall()
+    for previous, successor in zip(ordered, ordered[1:]):
+        if previous['superseded_at'] is None or instant(previous['superseded_at']) > instant(successor['event_clock']):
+            cursor.execute('UPDATE app.retention_roots SET superseded_at=%s WHERE root=%s',
+                           (successor['event_clock'], previous['root']))
 
 
 def snapshot() -> tuple[dict, str, list[dict]]:
@@ -147,7 +157,7 @@ def ensure(root: str) -> dict | None:
 
 @contextmanager
 def reader():
-    """Hold through response generation; cleanup never waits on stalled readers."""
+    """Hold through response generation; new readers queue behind collection."""
     with database() as cursor:
         cursor.execute('SELECT pg_advisory_xact_lock_shared(16002)')
         yield
@@ -282,16 +292,17 @@ def collect(*, apply: bool = False) -> dict:
         report: dict = {'apply': apply, 'clock': clock, 'policy': configuration,
                   'roots': rows, 'storage': inventory([ROOT]), 'reclaimable': inventory(candidates),
                   'candidates': [path.relative_to(ROOT).as_posix() for path in candidates],
-                  'removed': [], 'reader_busy': False,
+                  'removed': [], 'reader_lock': 'exclusive queued drain; 110 second timeout',
                   'server_cache': {'scope': 'per API process; purged before request eligibility',
                                    'maximum_bytes_per_process': int(os.environ.get('TILE_CACHE_BYTES', 16777216))},
                   'source_mount': '/input is read-only and outside managed cleanup'}
         if apply:
-            with database() as deletion:
-                deletion.execute('SELECT pg_try_advisory_xact_lock(16002) AS acquired')
-                if not deletion.fetchone()['acquired']:
-                    report['reader_busy'] = True
-                    return report
+            with database(timeout=120) as deletion:
+                deletion.execute("SET LOCAL lock_timeout = '110s'")
+                # PostgreSQL queues later shared readers behind this writer.
+                # Continuous unrelated traffic cannot renew the old-reader pin.
+                # A stuck read fails the bounded operation, never forces unlink.
+                deletion.execute('SELECT pg_advisory_xact_lock(16002)')
                 # Drop GIS/index before files; failure preserves manifests for
                 # idempotent retry. Tombstones already prevent all new reads.
                 for target in candidates:
