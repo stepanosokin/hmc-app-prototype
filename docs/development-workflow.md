@@ -35,6 +35,12 @@ New runs write to ignored reports; select a fresh `T22_REPORT_DIRECTORY` per
 attempt. Keep the accepted archive unchanged. Real Compose/GPU/QGIS gates remain
 separate from this mockup's demonstration data and emulated mobile viewport.
 
+Define timing boundaries before the first performance probe. A full-page cold
+show starts at navigation time origin and includes local scripts, workers,
+metadata/field I/O, shader compilation and uploads through the first complete
+field render. Record cache reset scope; keep field-load and warm-switch timings
+separate. Profile a missed budget before changing execution mechanisms.
+
 Inspect screenshots as well as assertions before requesting visual approval.
 Include the smallest supported viewport, both font choices and every basemap;
 check close controls, footer overlap, label outlines and text contrast. If a
@@ -65,6 +71,14 @@ The native evidence CI command is `tools/check_evidence.py --native-display`;
 it verifies the selected Chrome/Edge reports, frozen inputs and contract,
 numerical/resource bounds, required T12/T6 service regressions and retirement
 receipts. The default evidence command preserves historical T3–T12/T22 checks.
+
+The existing archive-test CI step runs synthetic `NativeEvidence` cases in
+[test_evidence.py](../tools/test_evidence.py): complete archives pass; incomplete
+matrices, missing retirement, input drift and budget overruns fail even with
+recomputed artifact hashes. Extend these public checker tests when evidence
+requirements change. The Windows CI
+[input-capture check](../tools/check-native-display-inputs.ps1) exercises only
+the native runner's file selection, without Compose or Git-filter dependence.
 
 The [checks workflow](../.github/workflows/checks.yml) builds the existing
 hash-locked publication image and runs mypy, numeric boundary tests, interpreter
@@ -392,6 +406,12 @@ inputs, rather than against future
 dependency locks or a new contract revision. New evidence must bind its exact
 inputs, configuration, browser fixture and process results before selection.
 
+Validate the first complete development archive before expensive final service
+gates. Compare runner and browser input sets, including basemaps and worker
+scripts outside the code directories. If combining separately recorded hashes,
+preserve original reports and record the union's provenance and conflicts;
+verify source bytes before freezing the final inputs.
+
 ## Issue tracking
 
 Maintain acceptance checkboxes throughout implementation: mark a criterion only
@@ -508,3 +528,8 @@ differences, report overwrite risk and the missing T22 branch in the existing
 evidence checker. The runner now defaults to ignored reports, and CI verifies
 the accepted archive plus negative integrity cases. Visual approval remains
 a separate human decision; the third-party skills stay unchanged.
+
+The [T23a retrospective](evidence/retro-t23a.md) records late full-page timing,
+quota-fixture interference, missing basemap inventory and archive-validator
+coverage. Existing CI now checks native semantic rejection and input capture;
+the accepted T23a archive remains bound to its historical source bytes.
