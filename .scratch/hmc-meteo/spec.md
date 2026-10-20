@@ -1,10 +1,12 @@
 # Hydrometcenter meteorology prototype — specification
 
-Version: 0.3 · 2026-10-19 · **Accepted implementation handoff.**
+Version: 0.4 · 2026-10-20 · **Accepted implementation handoff.**
 
 The user accepted revision 0.2, milestones M1–M5 and acceptance criteria A1–A12 on 2026-10-19, then requested this browser-delivery amendment and the corresponding specification/ticket updates. Revision 0.3 preserves those IDs and extends their obligations to numeric display tiles and browser GPU rendering. Acceptance records scope agreement, not completion of the new gates.
 
 Revision 0.3 makes numeric data tiles and browser GPU rendering the primary web weather-display path. GeoServer temporal WMS remains required for QGIS. The Zarr core, point/EDR contract, interaction rules and Martin deferral remain accepted. [Ticket #15](https://github.com/stepanosokin/hmc-app-prototype/issues/15) selected the narrow numerical HTTP adapter for the measured point/metadata workload; tile encoding, tiling engine and GPU performance require separate evidence. See [ADR 0002](../../docs/adr/0002-numeric-browser-tiles.md).
+
+Revision 0.4 adds the user-approved optional TLS capability in section 10.1 and T21 / #33. It preserves M1–M5/A1–A12; TLS implementation and operational activation remain unverified.
 
 [Russian copy](spec.ru.md) · [Decision map](map.md) · [Domain glossary](../../GLOSSARY.md)
 
@@ -164,7 +166,17 @@ Retain runs whose reference times are within the last seven days, including all 
 
 Expire discovery/access first; remove unreferenced assets after bounded in-flight-reader grace. Superseded revisions have a configurable grace/budget; sessions cannot pin files forever. Bound server cache lifetimes by eligibility. Browser HTTP/decoded/GPU caches must discard expired or superseded selections according to the documented policy; reusing a texture cannot resurrect an expired publication. Expired selections return a clear response and prompt reselection. Provide cleanup dry-run and usage reporting. Pin the historical sample in demo mode or use a fixed demonstration clock.
 
-Persist database and products on explicit volumes. Configure secrets outside committed data/config; mount reader assets read-only where possible. Define source readiness, worker/API/database/GIS health, structured logs, job backlog, publication lag, failures, storage and cache use. Back up the catalogue/config/key metadata and document recovery from retained sources; usage retention is separately configurable. Offline runtime must not require public basemap/API calls. Host sizing and public TLS/domain provisioning are deployment inputs, not completed work.
+Persist database and products on explicit volumes. Configure secrets outside committed data/config; mount reader assets read-only where possible. Define source readiness, worker/API/database/GIS health, structured logs, job backlog, publication lag, failures, storage and cache use. Back up the catalogue/config/key metadata and document recovery from retained sources; usage retention is separately configurable. Offline runtime must not require public basemap/API calls. Host sizing, public DNS and organization certificate/key provisioning remain deployment inputs. Implementing configurable TLS is a separate obligation under section 10.1, not completed work.
+
+### 10.1. Optional TLS with organization-provided certificates — v0.4
+
+The user accepted this amendment on 2026-10-20. [T21 / #33](https://github.com/stepanosokin/hmc-app-prototype/issues/33) implements an opt-in HTTPS reverse proxy in front of the existing gateway for the website, numerical API, tiles and GIS. Local HTTP development remains usable without certificates. Once the organization supplies its server certificate, trust chain and matching private key, an operator enables TLS through deployment configuration without application-code changes or rebuilding the application. Providing real organization certificates is not a prerequisite for implementing or testing this capability.
+
+Supply certificate/chain and key as external PEM files mounted read-only into the TLS proxy; keep them outside Git, images, web assets, logs and portable evidence. TLS private keys and organization API access keys are distinct secrets. Document server name, external HTTPS origin, ports, file paths and client CA trust. In TLS mode only the HTTPS edge exposes protected services externally; plain HTTP must not serve protected requests. Redirecting a request cannot protect credentials already sent over HTTP. Preserve the gateway access policy, internal backend isolation, /org profile and run/revision scope. Catalogue, tile metadata and WMS capabilities links must retain the external HTTPS origin without mixed content; arbitrary client forwarding headers must not control that origin or bypass policy.
+
+Document certificate replacement with configuration validation and controlled reload/restart, verification and recovery of the previous configuration. Missing, unreadable or mismatched certificate/key files must produce a clear startup/configuration error without automatic fallback to exposed HTTP. Validate the real proxy/gateway using a test CA and hostname-valid certificate with certificate verification enabled: trusted chain/name, wrong name/untrusted CA rejection, public/protected API/tiles/WMS, external links, warm-cache authorization/revocation, backend isolation, certificate replacement and failure behavior. Reuse the actual-sample access/publication gates for affected components, archive evidence without private keys and retire all test resources under the development workflow.
+
+This gate proves TLS readiness using test certificates. Organization DNS, real certificate/key/chain installation and target-host/client trust verification remain operational rollout inputs. Automatic certificate issuance/renewal (ACME), mutual TLS and replacement of existing API-key authentication are outside T21. Full desktop QGIS acceptance remains in its existing GIS task.
 
 ## 11. Implementation sequence
 
@@ -174,7 +186,7 @@ Persist database and products on explicit volumes. Configure secrets outside com
 | M2 — Publication core | Durable jobs, immutable batches/manifests, COG and numeric tile readiness/contract, idempotent retries and retention; prove failed updates preserve previous data |
 | M3 — GIS and API | GeoServer selection/visibility gate, scoped QGIS WMS, selected OGC adapter discovery/position, domain catalogue/point and numeric tile delivery; consistent selection and protected caches |
 | M4 — Web map | Russian MapLibre GPU scalar viewer, validated numeric decoding/masks/seams, accepted selection/UTC/legend/click behavior, responsive controls and local runtime assets |
-| M5 — Operational handoff | Keys/limits/usage, restart/cleanup/recovery exercises, documentation and concurrent server/tile/browser-GPU measurements against agreed targets |
+| M5 — Operational handoff | Keys/limits/usage, optional TLS readiness under T21, restart/cleanup/recovery exercises, documentation and concurrent server/tile/browser-GPU measurements against agreed targets |
 
 Do not hide failed compatibility gates behind mock data or silently replace the selected architecture. Record evidence and revisit the affected decision if the chosen products cannot satisfy it.
 
@@ -191,7 +203,7 @@ Do not hide failed compatibility gates behind mock data or silently replace the 
 | A7 | Public/protected numerical, tile-metadata/tile and GIS routes exercise invalid/revoked keys, limits, warm cache hits, expiry, bypass prevention and usage records. |
 | A8 | Russian UI/UTC, GPU-rendered scalar values/masks/legend, loading/errors/nodata, stale point/tile rejection, bounded resource lifecycle and explicit GPU capability/context-loss behavior match the contract. |
 | A9 | Seven-/30-day retention safely expires managed runs and numeric tile/metadata/server caches; browser caches cannot resurrect expired selections; source mounts and historical demo rules remain intact. |
-| A10 | Compose startup/restart, persistent storage, health and recovery documentation work on the agreed Linux host. |
+| A10 | Compose startup/restart, persistent storage, health and recovery documentation work on the agreed Linux host; optional TLS enablement, certificate replacement and failure behavior pass section 10.1 using test certificates before organization credentials arrive. |
 | A11 | Network and disconnected-public-runtime checks confirm locally served basemap/styles/fonts, shaders, decoders and any required WASM/workers; no mandatory public runtime service. |
 | A12 | Report declared workload/hosts/browsers/configuration, preserved M1 point/metadata comparison, ingestion/publication/server metrics, cold/warm numeric tiles and image baseline, bytes, decode/upload time, frame-time/FPS, browser/GPU memory, cache/storage/errors/backlog. Agree server and desktop/mobile browser targets before readiness claims. |
 
