@@ -12,7 +12,7 @@ New-Item -ItemType Directory -Force $t4Directory | Out-Null
 $t4Environment = Join-Path $t4Directory 'environment.env'
 if (-not (Test-Path -LiteralPath $t4Environment)) {
     $t4Lines = @('GEOSERVER_ADMIN_USER=t4operator')
-    foreach ($t4Key in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAIC_PASSWORD','GEOSERVER_ADMIN_PASSWORD')) {
+    foreach ($t4Key in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAIC_PASSWORD','GEOSERVER_ADMIN_PASSWORD','GATEWAY_PASSWORD')) {
         $t4Lines += $t4Key + '=' + [guid]::NewGuid().ToString('N')
     }
     $t4Lines | Set-Content -Encoding ascii -LiteralPath $t4Environment

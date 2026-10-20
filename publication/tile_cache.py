@@ -5,6 +5,7 @@ import os
 import threading
 
 from publication.domain import ROOT, PublicationUnavailable
+from publication.limited import WorkLimit
 
 
 class TileCache:
@@ -30,16 +31,19 @@ class TileCache:
                     self.bytes -= len(self.entries.pop(key))
 
     def get(self, key: tuple, generate) -> bytes:
+        return self.lookup(key, generate)[0]
+
+    def lookup(self, key: tuple, generate, *, metadata: bool = False) -> tuple[bytes, str]:
         with self.lock:
             if key in self.entries:
                 self.entries.move_to_end(key)
-                return self.entries[key]
+                return self.entries[key], 'hit'
         if not self.generator.acquire(blocking=False):
-            raise PublicationUnavailable('numeric generator busy; retry same selection')
+            raise WorkLimit(429)
         try:
             self.fault('generation')
             payload = generate()
-            if len(payload) != 258 * 258 * 5:
+            if (not metadata and len(payload) != 258 * 258 * 5) or len(payload) > 332820:
                 raise PublicationUnavailable('invalid numeric tile size')
             self.fault('cache')
             # Population is atomic: no partial payload enters the cache.
@@ -53,7 +57,9 @@ class TileCache:
                         self.bytes -= len(previous)
                     self.entries[key] = payload
                     self.bytes += len(payload)
-            return payload
+            return payload, 'miss'
+        except WorkLimit:
+            raise
         except (OSError, RuntimeError) as error:
             raise PublicationUnavailable('numeric tile temporarily unavailable; retry same selection') from error
         finally:

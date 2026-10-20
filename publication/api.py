@@ -2,6 +2,10 @@
 
 import json
 import hashlib
+import threading
+import time
+import os
+import sys
 import xml.etree.ElementTree as ET
 from urllib.parse import quote
 
@@ -16,7 +20,9 @@ from publication.tiles import render, encode, CONTRACT
 from publication import geoserver
 from publication import revisions
 from publication import retention
+from publication import budgets
 from publication.tile_cache import TileCache
+from publication.limited import run as limited_work, WorkLimit, request_deadline
 
 
 def links(manifest: dict) -> dict:
@@ -43,11 +49,31 @@ def revision_links(row: dict) -> list[dict]:
 def create_app() -> Flask:
     app = Flask('hmc-publication')
     tile_cache = TileCache()
+    work = threading.BoundedSemaphore(4)
 
     @app.before_request
     def protect_reader():
         if request.path == '/health':
             return
+        g.deadline = min(time.time() + 30, float(request.headers.get('X-HMC-Deadline', time.time() + 30)))
+        if g.deadline <= time.time():
+            raise WorkLimit(504)
+        g.deadline_token = request_deadline.set(g.deadline)
+        if not work.acquire(blocking=False):
+            response = jsonify(code='TooManyRequests', description='Сервис занят. Повторите позже.')
+            response.status_code = 429
+            response.headers['Retry-After'] = '2'
+            return response
+        g.work = True
+        request_id = request.headers.get('X-HMC-Request-ID')
+        if request_id:
+            if not budgets.backend(request_id):
+                raise WorkLimit(504)
+            g.backend_id = request_id
+        # Isolated actual-path test of cold I/O that outlives gateway timeout.
+        if (os.environ.get('T6_TEST_FAULTS') == '1' and request.path.endswith('/tiles/2/6/34/20.f32')
+                and (ROOT / '.t9-reader-delay').exists()):
+            time.sleep(50)
         guard = retention.reader()
         guard.__enter__()
         g.retention_reader = guard
@@ -58,13 +84,37 @@ def create_app() -> Flask:
     @app.teardown_request
     def release_reader(error):
         guard = g.pop('retention_reader', None)
-        if guard is not None:
-            guard.__exit__(None, None, None)
+        try:
+            if guard is not None:
+                guard.__exit__(None, None, None)
+        finally:
+            if g.pop('work', False):
+                work.release()
+            token = g.pop('deadline_token', None)
+            if token is not None:
+                request_deadline.reset(token)
+            request_id = g.pop('backend_id', None)
+            if request_id:
+                try:
+                    budgets.backend(request_id, done=True)
+                except (pg8000.dbapi.Error, OSError, KeyError):
+                    print(json.dumps({'request_id': request_id, 'backend_done': 'unavailable'}), file=sys.stderr, flush=True)
 
     @app.after_request
     def cache_policy(response):
         if 'Cache-Control' not in response.headers:
             response.headers['Cache-Control'] = 'no-store'
+        if 'identity' in g:
+            response.headers['X-HMC-Product'] = g.identity['model'] if 'model' in g.identity else g.identity['field']
+            response.headers['X-HMC-Run'] = g.identity['run']
+            response.headers['X-HMC-Revision'] = g.identity['revision']
+        return response
+
+    @app.errorhandler(WorkLimit)
+    def work_limit(error):
+        response = jsonify(code='ResourceLimit', description='Превышен ресурсный лимит запроса.')
+        response.status_code = error.status
+        response.headers['Retry-After'] = '2'
         return response
 
     @app.errorhandler(retention.ExpiredSelection)
@@ -136,6 +186,7 @@ def create_app() -> Flask:
         args = arguments({'selection', 'run', 'revision', 'valid_time', 'layer', 'lon', 'lat'})
         manifest = resolve(args['selection'])
         identity = manifest['identity']
+        g.identity = identity
         if any(args[key] != identity[key] for key in ('run', 'revision', 'valid_time')) or args['layer'] != identity['field']:
             raise KeyError('selection mismatch')
         numerical = sampler(manifest)
@@ -149,21 +200,29 @@ def create_app() -> Flask:
     def tile_metadata(selection):
         arguments(set())
         manifest = resolve(selection)
-        metadata = json.loads(asset_path(ROOT, manifest['tile_metadata']).read_bytes())
+        g.identity = manifest['identity']
+        payload, outcome = tile_cache.lookup((selection, 'metadata'),
+            lambda: asset_path(ROOT, manifest['tile_metadata']).read_bytes(), metadata=True)
+        metadata = json.loads(payload)
         metadata.update(selection=selection, identity=manifest['identity'],
                         representative_tiles=manifest['tile_checks'],
                         url=request.headers.get('X-Publication-Prefix', '') + CONTRACT['url_template'].replace('{selection}', selection).replace('{encoding}', manifest['encoding']))
-        return jsonify(metadata)
+        response = jsonify(metadata)
+        response.headers['X-HMC-Cache'] = outcome
+        return response
 
     @app.get('/api/v1/selections/<selection>/tiles/2/<int:z>/<int:x>/<int:y>.f32')
     def tile(selection, z, x, y):
         arguments(set())
         manifest = resolve(selection)
+        g.identity = manifest['identity']
         numerical = sampler(manifest)
         item = next(item for item in numerical.manifest['fields'] if item['metadata']['valid_time'] == manifest['identity']['valid_time'])
-        payload = tile_cache.get((selection, z, x, y, manifest['encoding']),
-                                 lambda: encode(*render(numerical.root, item, z, x, y), manifest['encoding']))
+        payload, outcome = tile_cache.lookup((selection, z, x, y, manifest['encoding']),
+            lambda: limited_work('tile', {'root': str(numerical.root), 'item': item,
+                'coordinates': [z, x, y], 'encoding': manifest['encoding']}, max(0.05, min(10, g.deadline-time.time())))['body'])
         response = Response(payload, content_type=CONTRACT['encodings']['f32']['content_type'])
+        response.headers['X-HMC-Cache'] = outcome
         response.headers['Cache-Control'] = 'private, no-cache'
         response.set_etag(hashlib.sha256(payload).hexdigest())
         return response
@@ -198,6 +257,7 @@ def create_app() -> Flask:
         if len(chosen) != 1 and operation != 'GetCapabilities':
             raise KeyError('GIS layer/time')
         manifest = resolve(chosen[0]['selection'])
+        g.identity = manifest['identity']
         gis = manifest['gis']
         if params.get('SERVICE') != 'WMS' or params.get('VERSION') != '1.3.0':
             raise ValueError('WMS 1.3.0 required')
@@ -224,7 +284,7 @@ def create_app() -> Flask:
             raise ValueError('unsupported scoped operation')
         if set(params) - allowed:
             raise ValueError('unsupported WMS option')
-        result = geoserver.wms(gis, params)
+        result = geoserver.wms(gis, params, seconds=max(0.05, min(20, g.deadline-time.time())))
         payload = result.content
         if operation == 'GetCapabilities':
             root = ET.fromstring(payload)

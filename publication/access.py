@@ -24,19 +24,26 @@ def migrate() -> None:
                        'created_at timestamptz NOT NULL DEFAULT clock_timestamp(), revoked_at timestamptz)')
         cursor.execute('GRANT USAGE ON SCHEMA access TO hmc_gateway')
         cursor.execute('GRANT SELECT ON access.keys TO hmc_gateway')
+    from publication import budgets
+    budgets.migrate()
 
 
 def authorize(token: str, scope: str) -> int:
     """Observe committed revocations on every call, before upstream cache access."""
+    return identify(token, scope)[0]
+
+
+def identify(token: str, scope: str) -> tuple[int, dict | None]:
+    """Identify only full digest matches, including known revoked credentials."""
     if not KEY_PATTERN.fullmatch(token):
-        return 401
+        return 401, None
     digest = hashlib.sha256(token.encode('ascii')).hexdigest()
     with database() as cursor:
-        cursor.execute('SELECT profile FROM access.keys WHERE digest=%s AND revoked_at IS NULL', (digest,))
+        cursor.execute('SELECT id,organization,profile,revoked_at FROM access.keys WHERE digest=%s', (digest,))
         row = cursor.fetchone()
     if row is None:
-        return 401
-    return 200 if scope in PROFILES[row['profile']] else 403
+        return 401, None
+    return (401 if row['revoked_at'] else 200 if scope in PROFILES[row['profile']] else 403), row
 
 
 def issue(organization: str, profile: str, output: Path, previous: str | None = None) -> dict:

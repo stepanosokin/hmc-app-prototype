@@ -15,6 +15,7 @@ Building a self-hosted weather map and external GIS/API service using organizati
 - [T3 numerical selection and measured evidence](docs/evidence/t3/validation.md)
 - [Numeric browser tiles and GPU rendering decision](docs/adr/0002-numeric-browser-tiles.md)
 - [One-time publication, operator commands and gateway contracts](docs/publication.md)
+- [Лимиты организаций, публичного демо и учёт запросов T9](docs/budgets.md)
 - [T4 local publication and numeric-engine evidence](docs/evidence/t4/validation.md)
 - [Исходные GRIB, PostgreSQL, Zarr и COG: сравнение и обоснование](docs/source-storage-comparison.ru.md)
 

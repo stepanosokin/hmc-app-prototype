@@ -43,7 +43,18 @@ def discard_staging(workspace: str) -> None:
         connection.close()
 
 
+def configure_limits() -> dict:
+    """Bound server-side WMS rendering as well as gateway HTTP reading."""
+    limits = {'maxRenderingTime': 20, 'maxRequestMemory': 16384}
+    admin('PUT', '/services/wms/settings.json', json={'wms': limits})
+    observed = admin('GET', '/services/wms/settings.json').json()['wms']
+    if any(observed.get(key) != value for key, value in limits.items()):
+        raise PublicationUnavailable('GIS resource limits not applied')
+    return limits
+
+
 def prepare(workspace: str, directory: str, valid_time: str) -> dict:
+    configure_limits()
     admin('POST', '/workspaces', json={'workspace': {'name': workspace}})
     admin('PUT', f'/workspaces/{workspace}/coveragestores/temperature/external.imagemosaic?configure=all',
           data=directory + '/', headers={'Content-Type': 'text/plain'})
@@ -60,8 +71,14 @@ def prepare(workspace: str, directory: str, valid_time: str) -> dict:
             'valid_time': valid_time}
 
 
-def wms(gis: dict, parameters: dict) -> requests.Response:
-    response = requests.get(BASE + '/' + gis['workspace'] + '/wms', params=parameters, timeout=60)
+def wms(gis: dict, parameters: dict, *, seconds: float = 20) -> requests.Response:
+    from publication.limited import run
+    result = run('http', {'url': BASE + '/' + gis['workspace'] + '/wms', 'params': parameters,
+                         'seconds': seconds, 'output': 4 * 1024**2}, seconds)
+    response = requests.Response()
+    response.status_code = result['status']
+    response._content = result['body']
+    response.headers.update(result['headers'])
     response.raise_for_status()
     if b'ServiceException' in response.content or b'ExceptionReport' in response.content:
         raise PublicationUnavailable('GIS returned an exception document')
