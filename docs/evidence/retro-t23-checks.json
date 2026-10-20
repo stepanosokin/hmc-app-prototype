@@ -1,0 +1,111 @@
+{
+  "base_commit": "568deb9460c8e38f7679836732ca63b3ed06fb3b",
+  "observed_at": "2026-10-20T22:21:00.277074+00:00",
+  "scope": "T23 retrospective guardrails; archived measurements only",
+  "checks": [
+    {
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools",
+        "-p",
+        "test_evidence.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_accepts_archive_and_historical_input_after_workspace_changes (test_evidence.BrowserEvidence.test_accepts_archive_and_historical_input_after_workspace_changes) ... ok\ntest_rejects_corrupted_screenshot (test_evidence.BrowserEvidence.test_rejects_corrupted_screenshot) ... ok\ntest_rejects_duplicate_and_escaping_paths (test_evidence.BrowserEvidence.test_rejects_duplicate_and_escaping_paths) ... ok\ntest_rejects_failed_selected_report_even_with_valid_hashes (test_evidence.BrowserEvidence.test_rejects_failed_selected_report_even_with_valid_hashes) ... ok\ntest_rejects_incomplete_browser_cleanup (test_evidence.BrowserEvidence.test_rejects_incomplete_browser_cleanup) ... ok\ntest_rejects_incorrect_length_and_git_object (test_evidence.BrowserEvidence.test_rejects_incorrect_length_and_git_object) ... ok\ntest_rejects_unbound_runtime_identity (test_evidence.BrowserEvidence.test_rejects_unbound_runtime_identity) ... ok\ntest_accepts_complete_archive_after_workspace_changes (test_evidence.NativeEvidence.test_accepts_complete_archive_after_workspace_changes) ... ok\ntest_rejects_budget_overruns (test_evidence.NativeEvidence.test_rejects_budget_overruns) ... ok\ntest_rejects_changed_and_unbound_inputs (test_evidence.NativeEvidence.test_rejects_changed_and_unbound_inputs) ... ok\ntest_rejects_corrupted_native_artifact (test_evidence.NativeEvidence.test_rejects_corrupted_native_artifact) ... ok\ntest_rejects_empty_renderer_and_missing_viewport (test_evidence.NativeEvidence.test_rejects_empty_renderer_and_missing_viewport) ... ok\ntest_rejects_incomplete_comparisons_with_valid_hashes (test_evidence.NativeEvidence.test_rejects_incomplete_comparisons_with_valid_hashes) ... ok\ntest_rejects_live_resources (test_evidence.NativeEvidence.test_rejects_live_resources) ... ok\ntest_rejects_missing_or_development_regression (test_evidence.NativeEvidence.test_rejects_missing_or_development_regression) ... ok\ntest_rejects_missing_or_unrelated_retirement (test_evidence.NativeEvidence.test_rejects_missing_or_unrelated_retirement) ... ok\ntest_accepts_all_three_historical_archives (test_evidence.T23Evidence.test_accepts_all_three_historical_archives) ... ok\ntest_rejects_corruption_in_each_phase (test_evidence.T23Evidence.test_rejects_corruption_in_each_phase) ... ok\ntest_rejects_invalid_index_and_missing_coverage (test_evidence.T23Evidence.test_rejects_invalid_index_and_missing_coverage) ... ok\ntest_rejects_missing_artifact (test_evidence.T23Evidence.test_rejects_missing_artifact) ... ok\ntest_rejects_unindexed_file (test_evidence.T23Evidence.test_rejects_unindexed_file) ... ok\n\n----------------------------------------------------------------------\nRan 21 tests in 1.209s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python",
+        "-B",
+        "tools/check_evidence.py"
+      ],
+      "exit_code": 0,
+      "stdout": "Verified 876 archived evidence references\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python",
+        "-B",
+        "tools/check_evidence.py",
+        "--native-display"
+      ],
+      "exit_code": 0,
+      "stdout": "Verified 1162 archived evidence references\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python",
+        "-B",
+        "tools/check_evidence.py",
+        "--t23"
+      ],
+      "exit_code": 0,
+      "stdout": "Verified 3569 archived evidence references\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "tools/native-display/budgets.mjs",
+        "docs/evidence/t23/implementation/attempts/desktop1/reports/browser/browser.json"
+      ],
+      "exit_code": 0,
+      "stdout": "Measured native display budgets passed\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "tools/native-display/budgets.mjs",
+        "docs/evidence/t23/implementation/attempts/desktop1/reports/browser-edge/browser.json"
+      ],
+      "exit_code": 0,
+      "stdout": "Measured native display budgets passed\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "tools/native-display/budgets.mjs",
+        "docs/evidence/t23/implementation/attempts/android6/reports/browser/browser.json"
+      ],
+      "exit_code": 0,
+      "stdout": "Measured native display budgets passed\n",
+      "stderr": ""
+    }
+  ],
+  "resources_created": {
+    "standalone_check_containers": 1,
+    "compose_service_stacks": 0,
+    "networks": 0,
+    "volumes": 0,
+    "browser_processes": 0,
+    "adb_servers": 0
+  },
+  "cleanup": "Single network-disabled mypy container removed; exact labeled project retired with verified archive and zero remaining containers/networks/volumes. Host unittest temporary directories removed by addCleanup.",
+  "typecheck": {
+    "host_availability": "Host Python has no mypy; used existing locked hmc-publication:t23 image instead.",
+    "exit_code": 0,
+    "result": "Success: no issues found in 2 source files",
+    "evidence": "retro-t23-validation/reports/mypy.stdout.log"
+  },
+  "documentation": {
+    "default_files": 7,
+    "explicit_files": [
+      "docs/evidence/retro-t23.md",
+      "docs/development-workflow.md"
+    ],
+    "status": "passed"
+  },
+  "retirement": "retro-t23-validation/retirement.json",
+  "review": "Reviewed uncommitted diff against 568deb9: archive paths and byte coverage, mutually exclusive CLI modes, CI commands, negative cases and documentation links; no unresolved findings. No runtime or historical evidence changes."
+}

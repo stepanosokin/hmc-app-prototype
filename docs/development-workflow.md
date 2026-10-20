@@ -41,6 +41,23 @@ metadata/field I/O, shader compilation and uploads through the first complete
 field render. Record cache reset scope; keep field-load and warm-switch timings
 separate. Profile a missed budget before changing execution mechanisms.
 
+For T23 interaction work, start with the [diagnosis](evidence/t23/diagnosis/diagnosis.md)
+and [accepted implementation](evidence/t23/implementation/validation.md). Prove
+continuous rotation on the same Map before timing it; a flat-camera jump or a
+new view after pointerup measures a different operation. Before freezing desktop
+and mobile inputs, exercise a real click/tap, drag and pinch through the actual
+input driver. Record requested and observed DOM coordinates separately and keep
+the independent geometry/numerical tolerances fixed. Inspect full-page mobile
+screenshots as well as the GPU canvas.
+
+Before declaring a browser unavailable, check its installed executable/version,
+including both Program Files locations on Windows. For physical-device checks,
+confirm reachability from the device before allocating a long acceptance run.
+Wireless Android pairing, its isolated ADB server/mappings and any task-created
+host keys need explicit ownership records and final cleanup; retain the user's
+confirmation of unpairing. Match the required platform matrix to the ticket;
+record an explicit user deferral separately from a passing platform result.
+
 Inspect screenshots as well as assertions before requesting visual approval.
 Include the smallest supported viewport, both font choices and every basemap;
 check close controls, footer overlap, label outlines and text contrast. If a
@@ -79,6 +96,12 @@ recomputed artifact hashes. Extend these public checker tests when evidence
 requirements change. The Windows CI
 [input-capture check](../tools/check-native-display-inputs.ps1) exercises only
 the native runner's file selection, without Compose or Git-filter dependence.
+
+For T23, `python -B tools/check_evidence.py --t23` verifies all three frozen
+continuation/diagnosis/implementation indexes, including failed attempts. CI
+also replays `tools/native-display/budgets.mjs` against the three selected
+Chrome/Edge/physical Android reports. This preserves bytes and measured budgets;
+it does not rerun physical acceptance or establish deferred Safari support.
 
 The [checks workflow](../.github/workflows/checks.yml) builds the existing
 hash-locked publication image and runs mypy, numeric boundary tests, interpreter
@@ -332,6 +355,12 @@ Check the actual service's mount permissions before choosing fault coordination;
 the API's assets mount is read-only. Finish these fixtures in the focused run
 before starting long, frozen acceptance chains in parallel.
 
+For retained-reader load fixtures, count simultaneous public requests against
+the effective policy before the full gate. If the scenario requires a temporary
+isolated concurrency profile, preserve all other fields and restore the exact
+original row or its absence in finally, with readback. Require a successful
+reader response before collection; admission rejection does not prove overlap.
+
 ## Test environment cleanup
 
 At the end of every validation attempt, including a failed probe, archive evidence
@@ -455,6 +484,16 @@ Documentation-only checks allocate no Compose project and require no runtime
 acceptance run. Record that no test resources were created; the retirement
 procedure applies whenever a check actually allocates Docker resources.
 
+For final publication, label archived tracker/Git snapshots with their phase and
+observation time: a pre-commit snapshot can legitimately say open/push pending.
+After pushing, read local HEAD, the named remote branch and the live issue state
+again; include a direct commit link in the handoff. Inspect only those fields
+from tracker responses. Use `git -c commit.verbose=false commit --quiet` for
+large evidence commits and keep temporary commit messages in ignored `data/`
+or a system temporary directory. Verify the final working tree after removing
+task-created temporary files. These commands avoid printing thousands of
+archived file names while retaining the actual exit status.
+
 ## Retrospective basis
 
 These changes follow the [#16 review](evidence/t4/review.md),
@@ -533,3 +572,9 @@ The [T23a retrospective](evidence/retro-t23a.md) records late full-page timing,
 quota-fixture interference, missing basemap inventory and archive-validator
 coverage. Existing CI now checks native semantic rejection and input capture;
 the accepted T23a archive remains bound to its historical source bytes.
+
+The [T23 retrospective](evidence/retro-t23.md) connects discontinuous rotation,
+physical touch-coordinate failures, browser discovery, retention admission and
+verbose publication output to the focused checks above. CI now covers the new
+archive indexes and replays the existing measurement-budget validator. Historical
+evidence and the explicit Safari deferral remain unchanged.
