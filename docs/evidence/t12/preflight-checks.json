@@ -1,0 +1,25 @@
+{
+    "powershell_syntax":  "passed",
+    "retained_standalone_test_resources":  0,
+    "mypy":  {
+                 "source_files":  52,
+                 "command":  "docker run --rm --network none --volume \u003crepo\u003e:/workspace:ro --workdir /workspace --entrypoint mypy hmc-publication:t12 --ignore-missing-imports --check-untyped-defs --cache-dir=/tmp/mypy decoder tests trials publication tools",
+                 "native_exit_code":  0,
+                 "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                 "observer_sha256":  "FA79E584E5F2CC936F1830302FA6CCF447C9C204FFFC07A2C51922F26D390D84",
+                 "observer_fix_rechecked":  true
+             },
+    "prospective_git_bytes":  [
+                                  "tests/test_publication_integrated.py",
+                                  "publication/run-integrated.ps1",
+                                  "tools/check_evidence.py",
+                                  "docs/development-workflow.md"
+                              ],
+    "status":  "passed",
+    "documentation":  [
+                          "README.md",
+                          "AGENTS.md",
+                          "docs/development-workflow.md",
+                          "docs/integrated-publication.md"
+                      ]
+}

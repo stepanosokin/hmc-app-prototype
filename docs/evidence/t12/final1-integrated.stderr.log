@@ -1,0 +1,15 @@
+test_protected_consistency_policy_and_expiry (test_publication_integrated.ProtectedPublication.test_protected_consistency_policy_and_expiry) ... FAIL
+
+======================================================================
+FAIL: test_protected_consistency_policy_and_expiry (test_publication_integrated.ProtectedPublication.test_protected_consistency_policy_and_expiry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_integrated.py", line 211, in test_protected_consistency_policy_and_expiry
+    self.assertGreaterEqual(len(self.publications[-1]['revisions']), 1)
+AssertionError: 0 not greater than or equal to 1
+
+----------------------------------------------------------------------
+Ran 1 test in 53.536s
+
+FAILED (failures=1)
+

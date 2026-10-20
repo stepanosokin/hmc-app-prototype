@@ -1,0 +1,18 @@
+test_protected_consistency_policy_and_expiry (test_publication_integrated.ProtectedPublication.test_protected_consistency_policy_and_expiry) ... FAIL
+
+======================================================================
+FAIL: test_protected_consistency_policy_and_expiry (test_publication_integrated.ProtectedPublication.test_protected_consistency_policy_and_expiry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_integrated.py", line 243, in test_protected_consistency_policy_and_expiry
+    self.assertEqual(self.get(self.old_tile).content, self.old_bytes)
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_publication_integrated.py", line 38, in get
+    self.assertEqual(response.status_code, expected, path)
+AssertionError: 503 != 200 : /org/api/v1/selections/329c6d5df1c678319ef438546e4e34600ff758a1b8e8b918435ee45b8e2f0782.aa011fd49e82f2029a309f5e98578a7797007e2828587100360da1976d1759ff/tiles/2/3/4/2.f32
+
+----------------------------------------------------------------------
+Ran 1 test in 143.178s
+
+FAILED (failures=1)
+

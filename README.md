@@ -18,6 +18,8 @@ Building a self-hosted weather map and external GIS/API service using organizati
 - [Числовой API: discovery, point, EDR Position и OpenAPI](docs/numerical-api.md)
 - [QGIS: закреплённый клиент, подключение с ключом и проверка WMS-T](docs/qgis.md)
 - [T11: проверка QGIS Desktop, scoped WMS и доказательства](docs/evidence/t11/validation.md)
+- [M3: интегрированная защищённая публикация и воспроизведение T12](docs/integrated-publication.md)
+- [T12: локальный M3 подтверждён в Compose и QGIS Desktop](docs/evidence/t12/validation.md)
 - [Лимиты организаций, публичного демо и учёт запросов T9](docs/budgets.md)
 - [T4 local publication and numeric-engine evidence](docs/evidence/t4/validation.md)
 - [Исходные GRIB, PostgreSQL, Zarr и COG: сравнение и обоснование](docs/source-storage-comparison.ru.md)
