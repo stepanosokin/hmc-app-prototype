@@ -10,7 +10,8 @@ planning snapshots and acceptance IDs; a newly created implementation ticket
 keeps its criteria unchecked until implementation is verified.
 
 Run `powershell -NoProfile -File tools/check-documentation.ps1` for the current
-specification and workflow links. Use `-Path <files>` for additional documents.
+specification and workflow links. For multiple paths, call the script inside
+PowerShell: `& ./tools/check-documentation.ps1 -Path @('README.md','AGENTS.md')`.
 The check resolves local inline Markdown links relative to each file, including
 root README links; it does not validate remote URLs or section fragments.
 It also runs in the existing Windows CI job.
@@ -137,10 +138,42 @@ fresh project. Select evidence only when every required phase used the recorded
 configuration. Do not combine a passing phase from one source revision with a
 passing phase from another to establish a final result.
 
+Before freezing changed inputs, compare their working-file bytes with Git's
+prospective filtered contents. Include newly added input files. For each path:
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$validationInput = 'tools/check_evidence.py'
+$workingObject = & git hash-object --no-filters -- $validationInput
+if ($LASTEXITCODE -ne 0) { throw 'Cannot hash working input' }
+$storedObject = & git hash-object "--path=$validationInput" -- $validationInput
+if ($LASTEXITCODE -ne 0) { throw 'Cannot hash prospective Git input' }
+if ($workingObject -ne $storedObject) { throw 'Resolve Git filters before acceptance' }
+```
+
+Resolve a difference before the run by choosing the intended line endings or
+file-specific attributes. Preserve existing byte-addressed evidence rules.
+After staging, compare the actual index blobs with the selected input hashes;
+repeat against HEAD after commit. `git add --renormalize -- <exact-path>` applies
+an intentional attribute change to an already staged file. A clean working tree
+alone does not establish byte identity.
+
 Capture a long Compose run's full console output in its project report directory
 so retirement archives it. Inspect bounded tails and per-phase logs for progress,
 then check the final native exit code; repeated pull-progress frames add no
 validation evidence.
+
+Capture service logs before retirement on a failed run. The T9 runner's existing
+failure handler records them while preserving the original failure; use that
+ordering when changing another runner. Save request IDs and available database
+error/lock details with the failed phase. Retirement archives report files, not
+uncaptured container logs, so diagnostics requested after deletion are lost.
+Keep credentials and full container environment dumps outside reports.
+
+An unexplained failed acceptance gate remains a failed attempt after a successful
+repeat. Reproduce its reader/worker overlap in a focused run and distinguish
+the gateway's admission/accounting failure from an upstream service failure.
+Use status/body provenance as a clue, then confirm the cause from service logs.
 
 For recovery reviews, trace capture before queue processing as well as every
 worker stage: durable intent before managed writes, byte/time bounds during
@@ -161,6 +194,14 @@ does not establish that backend work stopped. Check that expired queued work
 cannot start later, active work keeps its slot and known cache/product metadata
 survives an output-limit rejection. Reuse T9's slow-reader, queued-request and
 concurrent cold-tile scenarios for these judgements.
+
+Include repeated schema provisioning in that trace while gateway readers are
+active. `IF NOT EXISTS` can still acquire table locks. In T10, CREATE INDEX's
+ShareLock followed by ALTER's AccessExclusiveLock deadlocked with a reader's
+SELECT/INSERT transaction. Review lock acquisition and upgrades across the
+whole transaction, including the existing-schema path. Reuse the T5 live-reader
+regression and T9 legacy-usage upgrade test; an upgrade check without concurrent
+traffic does not establish reader availability.
 
 Quota tests establish fresh traffic immediately before changing a sliding-window
 limit; lifetime usage is a separate accounting observation. Measure each timeout
@@ -228,10 +269,17 @@ Successful tests on a candidate configuration establish only that configuration.
 Reuse verified immutable samplers while checking catalogue eligibility on each
 request; compare numerical/GIS identity and placement through the gateway.
 
+For cached numerical readers, exercise loss of an expected array and an expected
+chunk after warming the sampler. Consolidated Zarr metadata can survive missing
+files and return fill values as apparent success. Use the verified manifest's
+file inventory to distinguish unavailable published storage from legitimate
+sparse fill or native nodata. Reuse the public point/EDR fault-and-recovery case
+in [test_publication_numerical.py](../tests/test_publication_numerical.py).
+
 Before changing shared configuration, read its current contents. Existing
 `.gitattributes` rules preserve historical evidence bytes; append compatible
 rules rather than replacing them. `tools/check_evidence.py` verifies the T3
-artifact index, T4's archived selection/contract hashes and T5-T9 report/input
+artifact index, T4's archived selection/contract hashes and T5-T10 report/input
 artifact index. These are historical records: compare each against its recorded
 inputs, rather than against future
 dependency locks or a new contract revision. New evidence must bind its exact
@@ -322,3 +370,8 @@ behind the budget-review, fixture timing and launcher guidance above. Existing
 CI already covers mypy, process exits and evidence integrity; the changes improve
 when those checks and the combined T9 gate are used. Historical evidence stays
 bound to its recorded inputs.
+
+The [T10 retrospective](evidence/retro-t10.md) ties the failed acceptance runs,
+proven usage-migration deadlock, missing-array/chunk failures and late Git byte
+check to the guidance above. Existing HTTP regressions, CI and evidence tooling
+remain the checks; the workflow brings diagnostics and byte checks forward.
