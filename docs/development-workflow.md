@@ -20,8 +20,39 @@ For ad hoc PowerShell validation, set `$ErrorActionPreference = 'Stop'` before
 checking inputs and inspect native exit codes before reporting success. Resolve
 file paths before deriving their directory. A trailing success message or exit
 zero does not establish that earlier nonterminating errors were absent.
+For a PowerShell script invoked with `&`, check `$?` or let its terminating error
+propagate; `$LASTEXITCODE` belongs to the last native process and can be stale.
 
 ## Validation
+
+### Browser prototypes
+
+For the approved T22 visual baseline, start with the
+[opening instructions](prototypes/weather-map.README.md) and
+[acceptance record](evidence/t22/validation.md). Its existing browser runner drives
+visible controls, records input hashes/screenshots and verifies browser cleanup.
+New runs write to ignored reports; select a fresh `T22_REPORT_DIRECTORY` per
+attempt. Keep the accepted archive unchanged. Real Compose/GPU/QGIS gates remain
+separate from this mockup's demonstration data and emulated mobile viewport.
+
+Inspect screenshots as well as assertions before requesting visual approval.
+Include the smallest supported viewport, both font choices and every basemap;
+check close controls, footer overlap, label outlines and text contrast. If a
+browser assertion fails, capture its actual value before changing the input
+driver: T22's Kelvin failure was rounding, while its later mobile selection
+failure came from a sticky control covering the click target. The existing
+runner scrolls controls to the centre of their panel.
+
+After visual approval, record it in the concept and keep runtime inputs fixed.
+Documentation-only completion changes need hash verification and documentation
+checks; repeat the browser suite when a recorded runtime input changes. During
+review, verify default run/time selection against the interaction contract as
+well as the layout. The existing CI evidence checker verifies T22 archive bytes,
+passing report/cleanup and recorded input identities. External input references
+in its historical index belong to the accepted revision, not future workspace
+contents; their recorded identities must agree with the selected report.
+
+### Service checks
 
 The [checks workflow](../.github/workflows/checks.yml) builds the existing
 hash-locked publication image and runs mypy, numeric boundary tests, interpreter
@@ -344,7 +375,7 @@ Before changing shared configuration, read its current contents. Existing
 `.gitattributes` rules preserve historical evidence bytes; append compatible
 rules rather than replacing them. `tools/check_evidence.py` verifies the T3
 artifact index, T4's archived selection/contract hashes and T5-T12 report/input
-artifact index. These are historical records: compare each against its recorded
+artifact index and T22's browser archive. These are historical records: compare each against its recorded
 inputs, rather than against future
 dependency locks or a new contract revision. New evidence must bind its exact
 inputs, configuration, browser fixture and process results before selection.
@@ -459,3 +490,9 @@ The [T12 retrospective](evidence/retro-t12.md) connects full-history observer an
 cache failures to focused-run prerequisites, and distinguishes a connector 403
 from rejection of the fallback helper by approval review. Existing T12 scenarios
 and CI remain the behavioral and mechanical checks.
+
+The [T22 retrospective](evidence/retro-t22.md) records browser assertion/visual
+differences, report overwrite risk and the missing T22 branch in the existing
+evidence checker. The runner now defaults to ignored reports, and CI verifies
+the accepted archive plus negative integrity cases. Visual approval remains
+a separate human decision; the third-party skills stay unchanged.

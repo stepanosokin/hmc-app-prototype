@@ -18,7 +18,7 @@ Complete implementation, review, required validation, evidence archival and clea
 
 Keep project-specific workflow changes in this repository's agent instructions. Leave original third-party skills, including Matt Pocock's skills, unchanged unless the user explicitly requests edits to those skills.
 
-For desktop QGIS testing, specification updates, validation, retention or request-budget changes and reviews, Compose runner changes, scientific compatibility changes, or issue-tracker permission failures, read [the development workflow](docs/development-workflow.md).
+For browser prototype work, desktop QGIS testing, specification updates, validation, retention or request-budget changes and reviews, Compose runner changes, scientific compatibility changes, or issue-tracker permission failures, read [the development workflow](docs/development-workflow.md).
 
 ## Test environment cleanup
 
