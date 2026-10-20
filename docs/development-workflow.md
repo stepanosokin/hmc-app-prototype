@@ -76,6 +76,22 @@ This checks exclusion of unrelated data without repeating the full publication
 matrix at every client probe. Keep the final desktop report bound to the same
 selection and input inventory as the HTTP phases.
 
+For the integrated M3 gate, use the two-phase
+[T12 runner](integrated-publication.md#воспроизведение). It combines T5, T9,
+the complete T8 access gate and T11 desktop/WMS in one fresh project; do not
+repeat the separate T5/T8/T9 chains. First exercise new scenarios in Development.
+Keep its two-tile cache budget and API fault flags unchanged across phases.
+Prepare verifies the archived M1 comparison and explicit adapter selection;
+Complete binds desktop, HTTP and restart evidence to the same frozen inputs.
+Development passes do not establish M3. Add T6/T7 when their change categories
+above also apply; browser/GPU acceptance remains separate.
+Collections populates numeric tile metadata in the same bounded cache as bytes;
+re-establish the exact metadata/byte warm state immediately before generation
+faults. A polling interval cannot guarantee observing a fast intermediate
+revision. Record successful retained responses while the worker is still alive,
+then verify new published revisions separately; keep T5's incremental visibility
+check as its own gate.
+
 For agent-driven desktop work, prefer the available
 [QGIS MCP connection](qgis.md#работа-агента-через-qgis-mcp) to the running QGIS
 instance. Check local availability before desktop testing. If the QGIS MCP plugin
@@ -322,7 +338,7 @@ in [test_publication_numerical.py](../tests/test_publication_numerical.py).
 Before changing shared configuration, read its current contents. Existing
 `.gitattributes` rules preserve historical evidence bytes; append compatible
 rules rather than replacing them. `tools/check_evidence.py` verifies the T3
-artifact index, T4's archived selection/contract hashes and T5-T10 report/input
+artifact index, T4's archived selection/contract hashes and T5-T12 report/input
 artifact index. These are historical records: compare each against its recorded
 inputs, rather than against future
 dependency locks or a new contract revision. New evidence must bind its exact
