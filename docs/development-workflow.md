@@ -64,9 +64,11 @@ execute rather than skip. Preserve established response bodies unless
 the ticket explicitly changes their contract; add retry headers independently.
 
 Finish focused implementation checks and review fixes before the final Compose
-run. Commit the implementation and freeze its bind-mounted inputs for the whole
-run. Capture the exact source/configuration hashes at the start and compare them
-with the final input inventory. Read-only mounts still see host edits, and loaded
+run. Freeze the uncommitted bind-mounted inputs for the whole run. Record the
+starting commit and exact source/configuration hashes, compare them with the
+final input inventory, and verify that the eventual committed files match the
+validated inputs. Follow [ticket completion](../AGENTS.md#ticket-completion) for
+the final commit and push. Read-only mounts still see host edits, and loaded
 API workers can retain earlier code. If an input changes, archive that attempt
 as development evidence and retire it; rerun the affected final gate from a
 fresh project. Select evidence only when every required phase used the recorded

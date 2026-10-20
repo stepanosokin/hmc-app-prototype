@@ -8,7 +8,7 @@ During implementation, update the ticket's acceptance checkboxes as each criteri
 
 Close an issue when the user has authorized closure, then read it back and report the verified state. If it is already closed, report that state instead of suggesting closure. Keep parent issues and unrelated milestones unchanged unless they are also in scope.
 
-Commit and push completed changes on the current branch. Verify that the remote branch points to the local HEAD before reporting the push as complete.
+Complete implementation, review, required validation, evidence archival and cleanup before creating one commit for the ticket. Include its code, tests, documentation and evidence in that commit, then push once on the current branch. Review uncommitted changes against the starting commit. This repository workflow overrides skill instructions that request earlier or intermediate commits. Verify that the remote branch points to the local HEAD before reporting the push as complete.
 
 ## Workflow customization
 
