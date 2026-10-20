@@ -37,6 +37,10 @@ jobs:
         run: >-
           docker run --rm --network none --entrypoint python hmc-publication:checks
           -m unittest discover -s tests -p test_publication_tiles.py -v
+      - name: Check access gateway boundaries
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_publication_access.py -v
       - name: Check interpreter startup and shutdown
         run: >-
           docker run --rm --network none --tmpfs /evidence:mode=1777

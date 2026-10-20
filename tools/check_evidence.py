@@ -30,7 +30,7 @@ def check(root: Path) -> int:
     # Historical T4 evidence belongs to frozen v2, even after a future v3 exists.
     verify(root / 'publication/contract.v2.json', selected['contract_sha256'])
     count += 1
-    for name in ('t5', 't6', 't7'):
+    for name in ('t5', 't6', 't7', 't8'):
         archive = evidence / name
         index = json.loads((archive / 'artifact-index.json').read_bytes())
         for artifact in index['artifacts']:
