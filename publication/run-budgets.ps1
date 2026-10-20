@@ -114,8 +114,14 @@ try {
     @{status='passed';development=[bool]$Development;scope='T9 request budgets and accounting; no desktop QGIS or capacity claim'} |
         ConvertTo-Json | Set-Content -Encoding ascii (Join-Path $t9Directory 'gate.json')
 } catch {
+    $t9Failure = $_
     @{status='failed';error=$_.Exception.Message} | ConvertTo-Json | Set-Content -Encoding ascii (Join-Path $t9Directory 'gate.json')
-    throw
+    try {
+        Invoke-T9Check -Name failure-service-logs -Arguments @('logs','--no-color','db','api','gateway','geoserver') | Out-Null
+    } catch {
+        Write-Warning 'Service logs unavailable; original validation failure is preserved.'
+    }
+    throw $t9Failure
 } finally {
     Stop-Transcript | Out-Null
     & (Join-Path (Get-Location) 'tools/retire-publication-project.ps1') -Project $Project

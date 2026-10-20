@@ -6,6 +6,7 @@ import threading
 import time
 import os
 import sys
+import re
 import xml.etree.ElementTree as ET
 from urllib.parse import quote
 
@@ -21,6 +22,7 @@ from publication import geoserver
 from publication import revisions
 from publication import retention
 from publication import budgets
+from publication import numerical
 from publication.tile_cache import TileCache
 from publication.limited import run as limited_work, WorkLimit, request_deadline
 
@@ -29,6 +31,9 @@ def links(manifest: dict) -> dict:
     selection, identity = manifest['selection'], manifest['identity']
     prefix = request.headers.get('X-Publication-Prefix', '')
     return {'selection': selection, **identity, 'units': 'K', 'state': 'published',
+            'module': 'meteorology',
+            'collection': prefix + '/ogc/collections/' + selection,
+            'position': prefix + '/ogc/collections/' + selection + '/position',
             'valid_times': manifest.get('revision_times', [identity['valid_time']]),
             'completeness': manifest.get('completeness', 'unknown'),
             'fixture': manifest.get('fixture', 'actual'),
@@ -147,8 +152,7 @@ def create_app() -> Flask:
             cursor.execute('SELECT 1')
         return jsonify(status='ready')
 
-    @app.get('/api/v1/catalogue')
-    def catalogue():
+    def published_selections():
         with database() as cursor:
             cursor.execute('SELECT selection FROM app.catalogue ORDER BY selection')
             rows = cursor.fetchall()
@@ -159,7 +163,103 @@ def create_app() -> Flask:
             # Selection identity is derived only after checking root eligibility.
             if row['revision'] not in g.expired_roots:
                 selections.extend(revision_links(row))
-        return jsonify(selections=selections)
+        return selections
+
+    @app.get('/api/v1/catalogue')
+    def catalogue():
+        arguments(set())
+        return jsonify(version='1', selections=published_selections())
+
+    @app.get('/api/v1/modules')
+    def modules():
+        arguments(set())
+        present = bool(published_selections())
+        return jsonify(modules=[{'id': 'meteorology', 'title': 'Метеорология',
+            'available': present, 'sources': ['manifest-zarr'],
+            'products': ['surface-temperature'], 'queries': ['point', 'position'],
+            'access': {'scope': 'api', 'organization_prefix': '/org', 'public_demo': True}}])
+
+    @app.get('/api/v1/models')
+    def models():
+        arguments(set())
+        selections = published_selections()
+        return jsonify(models=[{'id': model, 'module': 'meteorology',
+            'runs': sorted({item['run'] for item in selections if item['model'] == model})}
+            for model in sorted({item['model'] for item in selections})])
+
+    @app.get('/api/v1/runs')
+    def runs():
+        args = arguments({'model'})
+        selections = [item for item in published_selections() if item['model'] == args['model']]
+        return jsonify(runs=[{'id': run, 'model': args['model'],
+            'revisions': sorted({item['revision'] for item in selections if item['run'] == run})}
+            for run in sorted({item['run'] for item in selections})])
+
+    @app.get('/api/v1/revisions')
+    def revision_listing():
+        args = arguments({'model', 'run'})
+        selections = [item for item in published_selections()
+                      if item['model'] == args['model'] and item['run'] == args['run']]
+        return jsonify(revisions=[{'id': revision, 'run': args['run'],
+            'selections': [item for item in selections if item['revision'] == revision]}
+            for revision in sorted({item['revision'] for item in selections})])
+
+    @app.get('/ogc')
+    def landing():
+        arguments(set())
+        prefix = request.headers.get('X-Publication-Prefix', '')
+        return jsonify(title='Числовой API Гидрометцентра', profile='hmc-edr-position/1', links=[
+            {'rel': 'data', 'href': prefix + '/ogc/collections', 'type': 'application/json'},
+            {'rel': 'conformance', 'href': prefix + '/ogc/conformance', 'type': 'application/json'},
+            {'rel': 'service-desc', 'href': prefix + '/api/v1/openapi.json', 'type': 'application/vnd.oai.openapi+json;version=3.0'}])
+
+    @app.get('/ogc/conformance')
+    def conformance():
+        arguments(set())
+        return jsonify(conformsTo=[], profile='hmc-edr-position/1',
+                       description='Ограниченный профиль Position. Полное соответствие OGC не заявлено.')
+
+    def collection_description(selection):
+        manifest = resolve(selection)
+        g.identity = manifest['identity']
+        prefix = request.headers.get('X-Publication-Prefix', '')
+        result = numerical.describe(manifest, prefix)
+        result['numeric_tiles'] = tile_description(manifest)
+        result['links'].extend([{'rel': 'related', 'href': links(manifest)['wms'], 'type': 'application/xml'},
+                                {'rel': 'related', 'href': prefix + '/api/v1/point', 'type': 'application/json'}])
+        return result
+
+    @app.get('/ogc/collections')
+    def collections():
+        arguments(set())
+        return jsonify(collections=[collection_description(item['selection']) for item in published_selections()], links=[])
+
+    @app.get('/ogc/collections/<selection>')
+    def collection(selection):
+        arguments(set())
+        return jsonify(collection_description(selection))
+
+    @app.get('/ogc/collections/<selection>/position')
+    def edr_position(selection):
+        args = arguments({'coords', 'datetime', 'parameter-name', 'run', 'revision'}, {'f', 'crs'})
+        if args.get('f', 'CoverageJSON') not in ('CoverageJSON', 'json'):
+            raise ValueError('Поддерживается формат CoverageJSON.')
+        if args['parameter-name'] != 'T_G':
+            raise KeyError('parameter')
+        match = re.fullmatch(r'POINT\(\s*([^\s()]+)\s+([^\s()]+)\s*\)', args['coords'])
+        if not match:
+            raise ValueError('Требуется одна двумерная точка POINT(lon lat).')
+        crs = args.get('crs', numerical.NATIVE_CRS)
+        manifest, point = numerical.sample(selection, args['run'], args['revision'], 'T_G:surface:0',
+                                           args['datetime'], match.group(1), match.group(2), crs)
+        g.identity = manifest['identity']
+        return Response(app.json.dumps(numerical.coverage(point)), content_type='application/vnd.cov+json')
+
+    @app.get('/api/v1/openapi.json')
+    def openapi():
+        from publication.openapi import document
+        arguments(set())
+        return jsonify(document(request.headers.get('X-Publication-Prefix', '')))
 
     @app.get('/api/v1/jobs/<uuid:job>')
     def job_status(job):
@@ -183,32 +283,34 @@ def create_app() -> Flask:
 
     @app.get('/api/v1/point')
     def point():
-        args = arguments({'selection', 'run', 'revision', 'valid_time', 'layer', 'lon', 'lat'})
-        manifest = resolve(args['selection'])
-        identity = manifest['identity']
-        g.identity = identity
-        if any(args[key] != identity[key] for key in ('run', 'revision', 'valid_time')) or args['layer'] != identity['field']:
-            raise KeyError('selection mismatch')
-        numerical = sampler(manifest)
-        result = numerical.sample(run=args['run'], revision=numerical.revision,
-                                         field=args['layer'], valid_time=args['valid_time'],
-                                         lon=float(args['lon']), lat=float(args['lat']))
-        result['revision'] = identity['revision']
-        return jsonify(selection=manifest['selection'], **result)
+        args = arguments({'selection', 'run', 'revision', 'valid_time', 'layer', 'lon', 'lat'}, {'crs'})
+        manifest, result = numerical.sample(args['selection'], args['run'], args['revision'], args['layer'],
+            args['valid_time'], args['lon'], args['lat'], args.get('crs', numerical.NATIVE_CRS))
+        g.identity = manifest['identity']
+        return jsonify(result)
+
+    def tile_description(manifest):
+        selection = manifest['selection']
+        payload, outcome = tile_cache.lookup((selection, 'metadata'),
+            lambda: asset_path(ROOT, manifest['tile_metadata']).read_bytes(), metadata=True)
+        g.tile_cache_outcome = outcome
+        metadata = json.loads(payload)
+        metadata.update(selection=selection, identity=manifest['identity'],
+            representative_tiles=manifest['tile_checks'],
+            url=request.headers.get('X-Publication-Prefix', '') + CONTRACT['url_template'].replace('{selection}', selection).replace('{encoding}', manifest['encoding']),
+            availability={'state': 'published', 'valid_times': [manifest['identity']['valid_time']]},
+            errors={'invalid': 400, 'unavailable': 404, 'expired': 410, 'busy': 429, 'transient': 503},
+            expiry='Проверяется до чтения кеша; истёкшая публикация возвращает 410.')
+        return metadata
 
     @app.get('/api/v1/selections/<selection>/tiles.json')
     def tile_metadata(selection):
         arguments(set())
         manifest = resolve(selection)
         g.identity = manifest['identity']
-        payload, outcome = tile_cache.lookup((selection, 'metadata'),
-            lambda: asset_path(ROOT, manifest['tile_metadata']).read_bytes(), metadata=True)
-        metadata = json.loads(payload)
-        metadata.update(selection=selection, identity=manifest['identity'],
-                        representative_tiles=manifest['tile_checks'],
-                        url=request.headers.get('X-Publication-Prefix', '') + CONTRACT['url_template'].replace('{selection}', selection).replace('{encoding}', manifest['encoding']))
-        response = jsonify(metadata)
-        response.headers['X-HMC-Cache'] = outcome
+        response = jsonify(tile_description(manifest))
+        # Preserve cache observations for the existing metadata access contract.
+        response.headers['X-HMC-Cache'] = g.tile_cache_outcome
         return response
 
     @app.get('/api/v1/selections/<selection>/tiles/2/<int:z>/<int:x>/<int:y>.f32')

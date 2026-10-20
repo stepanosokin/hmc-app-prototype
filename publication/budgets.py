@@ -38,10 +38,16 @@ def migrate() -> None:
                        'bucket text NOT NULL, organization text, key_id uuid, operation text NOT NULL, '
                        'product text, run text, revision text, status integer, duration_ms double precision, '
                        "bytes bigint, cache text NOT NULL DEFAULT 'not-accessed', "
-                       'admitted boolean NOT NULL DEFAULT false, expires_at timestamptz, reservation bigint NOT NULL DEFAULT 0)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS usage_window ON access.usage(bucket,observed_at)')
+                       'admitted boolean NOT NULL DEFAULT false, expires_at timestamptz, reservation bigint NOT NULL DEFAULT 0, '
+                       'backend_started boolean NOT NULL DEFAULT false, backend_done boolean NOT NULL DEFAULT false)')
+        # Upgrade before CREATE INDEX takes a ShareLock. A later no-op ALTER
+        # would upgrade that lock and deadlock with a reader's following INSERT.
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_schema='access' AND table_name='usage'")
+        columns = {row['column_name'] for row in cursor.fetchall()}
         for name in ('backend_started', 'backend_done'):
-            cursor.execute('ALTER TABLE access.usage ADD COLUMN IF NOT EXISTS ' + name + ' boolean NOT NULL DEFAULT false')
+            if name not in columns:
+                cursor.execute('ALTER TABLE access.usage ADD COLUMN IF NOT EXISTS ' + name + ' boolean NOT NULL DEFAULT false')
+        cursor.execute('CREATE INDEX IF NOT EXISTS usage_window ON access.usage(bucket,observed_at)')
         cursor.execute('CREATE TABLE IF NOT EXISTS access.usage_retention '
                        '(singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton), days integer NOT NULL CHECK(days BETWEEN 1 AND 365))')
         cursor.execute('INSERT INTO access.usage_retention VALUES(true,30) ON CONFLICT DO NOTHING')

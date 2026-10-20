@@ -1,0 +1,26 @@
+test_catalogue_hierarchy_openapi_and_protected_profile (test_publication_numerical.NumericalContract.test_catalogue_hierarchy_openapi_and_protected_profile) ... ok
+test_discovery_and_exact_position_share_native_point (test_publication_numerical.NumericalContract.test_discovery_and_exact_position_share_native_point) ... ok
+test_position_budget_rejection_preserves_status_and_retry (test_publication_numerical.NumericalContract.test_position_budget_rejection_preserves_status_and_retry) ... ok
+test_position_validation_axes_null_and_exact_selection (test_publication_numerical.NumericalContract.test_position_validation_axes_null_and_exact_selection) ... ok
+test_synthetic_native_nodata_is_null_through_published_gateway (test_publication_numerical.NumericalContract.test_synthetic_native_nodata_is_null_through_published_gateway) ... /usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+FAIL
+
+======================================================================
+FAIL: test_synthetic_native_nodata_is_null_through_published_gateway (test_publication_numerical.NumericalContract.test_synthetic_native_nodata_is_null_through_published_gateway)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_numerical.py", line 162, in test_synthetic_native_nodata_is_null_through_published_gateway
+    failed = self.get(selected['position'], 503, params=self.query(selected))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_publication_numerical.py", line 20, in get
+    self.assertEqual(response.status_code, expected, response.text[:300])
+AssertionError: 200 != 503 : {"domain": {"axes": {"t": {"values": ["2026-10-15T01:00:00Z"]}, "x": {"values": [0.0]}, "y": {"values": [29.5]}}, "domainType": "PointSeries", "referencing": [{"coordinates": ["x", "y"], "system": {"definition": "+proj=longlat +R=6371229 +no_defs", "id": "urn:hmc:crs:icon-sphere-6371229", "type": "G
+
+----------------------------------------------------------------------
+Ran 5 tests in 28.544s
+
+FAILED (failures=1)
+

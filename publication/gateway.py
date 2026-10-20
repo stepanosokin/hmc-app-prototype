@@ -16,7 +16,8 @@ from publication import budgets
 from publication.limited import run, WorkLimit
 
 ROUTES = (
-    re.compile(r'api/v1/(?:catalogue|point)'),
+    re.compile(r'api/v1/(?:catalogue|point|modules|models|runs|revisions|openapi\.json)'),
+    re.compile(r'ogc(?:/(?:conformance|collections(?:/[0-9a-f.]+(?:/position)?)?))?'),
     re.compile(r'api/v1/jobs/[0-9a-f-]{36}'),
     re.compile(r'api/v1/selections/[0-9a-f.]+/(?:tiles\.json|tiles/2/[0-9]+/[0-9]+/[0-9]+\.f32)'),
     re.compile(r'gis/v1/runs/[A-Za-z0-9_.:/-]+/revisions/[0-9a-f]+/wms'),
@@ -54,6 +55,8 @@ def create_app() -> Flask:
         # Store categories, never client-supplied URLs/query strings.
         operation = ('tile-metadata' if path.endswith('/tiles.json') else 'tile' if '/tiles/2/' in path
                      else 'wms' if path.startswith('gis/') else 'point' if path == 'api/v1/point'
+                     else 'position' if path.endswith('/position') else 'discovery' if path.startswith('ogc')
+                     or path in ('api/v1/modules', 'api/v1/models', 'api/v1/runs', 'api/v1/revisions', 'api/v1/openapi.json')
                      else 'catalogue' if path == 'api/v1/catalogue' else 'job' if path.startswith('api/v1/jobs/') else 'unknown')
         g.event = {'request_id': str(uuid.uuid4()), 'observed_at': datetime.now(timezone.utc).isoformat(),
                    'organization': None, 'key_id': None,
@@ -114,7 +117,8 @@ def create_app() -> Flask:
             if not token:
                 return failure(401)
             try:
-                status, identity = identify(token, upstream_path.split('/', 1)[0])
+                status, identity = identify(token, 'api' if upstream_path.split('/', 1)[0] == 'ogc'
+                                            else upstream_path.split('/', 1)[0])
             except (pg8000.dbapi.Error, OSError, KeyError):
                 return failure(503)
             if identity is not None:

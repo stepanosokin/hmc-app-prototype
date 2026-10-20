@@ -1,0 +1,14 @@
+{
+  "status": "reproduced-and-fixed",
+  "red_project": "hmc-publication-t8-t10-publish-probe",
+  "red_http_requests": 359,
+  "red_status": 503,
+  "green_project": "hmc-publication-t8-t10-publish-green",
+  "green_publications": 24,
+  "green_http_requests": 372,
+  "green_statuses": [200],
+  "cause": "CREATE INDEX IF NOT EXISTS took ShareLock on access.usage before ALTER TABLE IF NOT EXISTS requested AccessExclusiveLock; the gateway transaction held AccessShareLock and requested RowExclusiveLock for INSERT.",
+  "fix": "Fresh table contains backend columns; upgrade adds only missing columns before index creation. Repeated migrations skip ALTER.",
+  "limits_and_accounting_algorithm": "unchanged",
+  "evidence": ["development-deadlock-services.stdout.log", "development-deadlock.json", "development-publication-green.json", "development-publication-green-services.stdout.log"]
+}
