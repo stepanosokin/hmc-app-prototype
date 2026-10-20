@@ -25,6 +25,16 @@ function clippedLand(center,angle) {
     d3.geoStream(land,stream);
     return {type:'Feature',properties:{},geometry:{type:'MultiPolygon',coordinates:polygons}};
 }
+// Clip geographic lines before the CRS transform, just like the local land.
+export function clippedLine(coordinates,center,angle) {
+    const rotation=d3.geoRotation([-center[0],-center[1]]),lines=[];let line;
+    const sink={lineStart(){line=[];},lineEnd(){if(line.length>1)lines.push(line);},
+        point(lon,lat){line.push(rotation.invert([lon*180/Math.PI,lat*180/Math.PI]));}};
+    const clip=d3.geoClipCircle(angle*Math.PI/180)(sink);
+    d3.geoStream({type:'LineString',coordinates},{lineStart(){clip.lineStart();},lineEnd(){clip.lineEnd();},
+        point(lon,lat){const p=rotation([lon,lat]);clip.point(p[0]*Math.PI/180,p[1]*Math.PI/180);}});
+    return {type:'Feature',properties:{},geometry:{type:'MultiLineString',coordinates:lines}};
+}
 export async function create(type, center=[0,0], zoom=0) {
     await workerReady;
     map?.remove();
@@ -34,8 +44,8 @@ export async function create(type, center=[0,0], zoom=0) {
         const definition=`+proj=ortho +lat_0=${center[1]} +lon_0=${center[0]} +R=6378137 +units=m +no_defs`;
         maplibre.addProjection({name:type,definition,projection:proj4('EPSG:4326',definition),
             tileMatrixSet:{origin:[-6378137,6378137],extentAtZoom0:12756274}});
-        data=clippedLand(center,89.99999);
-        water=d3.geoCircle().center(center).radius(89.99999).precision(.5)();
+        data=window.t23Interaction?{type:'FeatureCollection',features:[]}:clippedLand(center,89.99999);
+        water=window.t23Interaction?null:d3.geoCircle().center(center).radius(89.99999).precision(.5)();
     } else if(type==='EPSG:3576') {
         data=clippedLand([90,90],45);
         water=d3.geoCircle().center([90,90]).radius(45).precision(.5)();
@@ -45,7 +55,8 @@ export async function create(type, center=[0,0], zoom=0) {
         canvasContextAttributes:{preserveDrawingBuffer:true},
         style:{version:8,projection:{type},sources:{land:{type:'geojson',data},
             ...(water?{water:{type:'geojson',data:water}}:{})},layers:[
-            {id:'background',type:'background',paint:{'background-color':water?'#102840':'#244c6c'}},
+            {id:'background',type:'background',paint:{'background-color':water?'#102840':'#244c6c',
+                'background-opacity':window.t23Interaction&&type==='hmc:orthographic'?0:1}},
             ...(water?[{id:'water',type:'fill',source:'water',paint:{'fill-color':'#244c6c'}}]:[]),
             {id:'land',type:'fill',source:'land',paint:{'fill-color':'#91b195'}}]}});
     map.on('error', e=>errors.push(String(e.error)));

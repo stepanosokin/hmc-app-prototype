@@ -1,14 +1,31 @@
 import * as maplibre from '/vendor/maplibre-gl.mjs';
-import {create} from '/geometry-probe.js';
+import {create,clippedLine} from '/geometry-probe.js';
 import {NativeLayer,nativeToWgs} from '/native-layer.js';
+import {OrthographicContext} from '/orthographic-context.js';
 
 const status=document.getElementById('status'),delay=ms=>new Promise(r=>setTimeout(r,ms));
-const ortho='+proj=ortho +lat_0=50 +lon_0=20 +R=6378137 +units=m +no_defs';
-let data,map,layer,activeMode,labels=[];
-let pendingPick,pointController,selectedPosition,selectedMarker,selectedMarkerHandler;
+let orthoCenter=[20,50];
+const orthoDefinition=()=>`+proj=ortho +lat_0=${orthoCenter[1]} +lon_0=${orthoCenter[0]} +R=6378137 +units=m +no_defs`;
+let ortho=orthoDefinition();
+const displayDefinition=mode=>mode==='EPSG:3576'?'EPSG:3576':mode==='mercator'?'EPSG:3857':ortho;
+const visible=position=>{
+    if(activeMode==='EPSG:3576')return position.lat>=45;
+    if(activeMode!=='hmc:orthographic')return true;
+    const phi=position.lat*Math.PI/180,phi0=orthoCenter[1]*Math.PI/180;
+    return Math.sin(phi)*Math.sin(phi0)+Math.cos(phi)*Math.cos(phi0)*Math.cos((position.lng-orthoCenter[0])*Math.PI/180)>0;
+};
+let data,map,layer,activeMode,labels=[],generation=0;
+let pendingPick,pointController,selectedPosition,selectedMarker,selectedMarkerHandler,lastScreenPixel;
+let displayUnits='K',selectedPoint;
+const fieldController=new AbortController();
+function pointStatus(point) {
+    const value=point.value===null?'Нет значения в точке.':
+        (point.value-(displayUnits==='°C'?273.15:0)).toFixed(2)+' '+displayUnits+' · ближайшая нативная ячейка';
+    status.textContent=(activeMode==='EPSG:3576'?'Показано к северу от 45° с. ш. · ':'')+value;
+}
 async function get(url) {
     for(let attempt=0;attempt<6;attempt++) {
-        const response=await fetch(url,{signal:AbortSignal.timeout(30000)});
+        const response=await fetch(url,{signal:AbortSignal.any([fieldController.signal,AbortSignal.timeout(30000)])});
         if(response.status===429){await delay(500);continue;}
         if(!response.ok)throw Error('Числовое поле недоступно. Повторите позже.');
         return response;
@@ -43,42 +60,68 @@ async function load(prepare) {
     await Promise.all([worker(),worker()]);
     return {reference,metadata,blocks,bytes,timings,load_ms:performance.now()-start};
 }
-function coverage() {
+function coverage(raw=false) {
     const ring=[];
     const west=-23.53125,east=62.53125,south=29.46875,north=70.53125;
     for(let i=0;i<=200;i++)ring.push([west+(east-west)*i/200,nativeToWgs(south)]);
     for(let i=0;i<=100;i++)ring.push([east,nativeToWgs(south+(north-south)*i/100)]);
     for(let i=0;i<=200;i++)ring.push([east-(east-west)*i/200,nativeToWgs(north)]);
     for(let i=0;i<=100;i++)ring.push([west,nativeToWgs(north-(north-south)*i/100)]);
-    // The LAEA product clips at geodetic 45N, including its coverage outline.
-    if(activeMode==='EPSG:3576')for(const p of ring)p[1]=Math.max(45,p[1]);
+    if(!raw&&activeMode!=='mercator')return clippedLine(ring,activeMode==='EPSG:3576'?[90,90]:orthoCenter,activeMode==='EPSG:3576'?45:89.99999);
     return {type:'Feature',properties:{},geometry:{type:'LineString',coordinates:ring}};
 }
-async function show(mode,preparedMap,preparedLayer) {
+async function show(mode,preparedMap,preparedLayer,camera) {
+    layer?.context?.remove();
     document.getElementById('ortho').disabled=true;document.getElementById('laea').disabled=true;
     pointController?.abort();
     if(selectedMarkerHandler)map.off('render',selectedMarkerHandler);
     selectedMarker?.remove();selectedMarker=undefined;selectedMarkerHandler=undefined;
     for(const label of labels)label.remove();labels=[];
     activeMode=mode;
-    map=await (preparedMap??create(mode,mode==='EPSG:3576'?[25,60]:[20,50],mode==='EPSG:3576'?.7:0));
+    if(camera?.center&&mode==='hmc:orthographic'){orthoCenter=[...camera.center];ortho=orthoDefinition();}
+    const center=camera?.center??(mode==='EPSG:3576'?[25,60]:orthoCenter);
+    const previousMap=map;
+    map=await (preparedMap??create(mode,center,camera?.zoom??(mode==='EPSG:3576'?.7:0)));
+    if(previousMap!==map)generation++;
     map.resize();await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     map.dragRotate.disable();map.touchZoomRotate.disableRotation();map.keyboard.disable();
-    const projection=proj4('EPSG:4326',mode==='EPSG:3576'?'EPSG:3576':ortho);
-    layer=preparedLayer??new NativeLayer(data.blocks,mode,projection,data.metadata);
+    const projection=proj4('EPSG:4326',displayDefinition(mode));
+    layer=preparedLayer??new NativeLayer(data.blocks,mode,projection,data.metadata,orthoCenter);
     if(!preparedLayer)map.addLayer(layer);
-    map.addSource('coverage',{type:'geojson',data:coverage()});
-    map.addLayer({id:'coverage',type:'line',source:'coverage',paint:{'line-color':'#fff','line-width':1.5}});
+    if(window.t23Interaction&&mode==='hmc:orthographic') {
+        layer.context=new OrthographicContext(map,coverage(true));
+    } else {
+        map.addSource('coverage',{type:'geojson',data:coverage()});
+        map.addLayer({id:'coverage',type:'line',source:'coverage',paint:{'line-color':'#fff','line-width':1.5}});
+    }
     for(const [name,point] of [['Москва',[37.6173,55.7558]],['Санкт-Петербург',[30.3158,59.9391]]]){
         const label=document.createElement('div');label.className='label';label.textContent='● '+name;
+        label.dataset.point=JSON.stringify(point);
         map.getContainer().append(label);labels.push(label);
-        const place=()=>{const p=map.project(point);label.style.left=p.x+'px';label.style.top=p.y+'px';};
+        label.style.zIndex='2';
+        const place=()=>{label.hidden=!visible({lng:point[0],lat:point[1]});if(label.hidden)return;const p=layer.project(point);label.style.left=p.x+'px';label.style.top=p.y+'px';};
         map.on('render',place);place();
     }
-    status.textContent=(mode==='EPSG:3576'?'Показано к северу от 45° с. ш. · ':'Сферическая ортография · ')+
-        data.reference.selection.valid_time+' · значения в K';
+    status.textContent=(mode==='EPSG:3576'?'Показано к северу от 45° с. ш. · ':mode==='mercator'?'Mercator · ':'Сферическая ортография · ')+
+        data.reference.selection.valid_time+' · значения в '+displayUnits;
+    if(selectedPoint)pointStatus(selectedPoint);
     await new Promise(resolve=>{map.once('render',resolve);map.triggerRepaint();});
     map.on('click',event=>{
+        if(activeMode==='hmc:orthographic'&&event.point){
+            const g=layer.geometry(),dpr=g.width/map.getContainer().clientWidth;
+            lastScreenPixel=[event.point.x*dpr,event.point.y*dpr];
+            // MapLibre's synthetic touch point can include rounded container
+            // dimensions. Invert the actual input against the rendered canvas.
+            const input=event.originalEvent?.changedTouches?.[0]??event.originalEvent;
+            if(Number.isFinite(input?.clientX)&&Number.isFinite(input?.clientY)){
+                const rect=map.getCanvas().getBoundingClientRect();
+                lastScreenPixel=[(input.clientX-rect.left)*g.width/rect.width,
+                    (input.clientY-rect.top)*g.height/rect.height];
+            }
+            const geo=layer.projection.inverse([(lastScreenPixel[0]-g.origin[0])/g.scale,(g.origin[1]-lastScreenPixel[1])/g.scale]);
+            event.lngLat={lng:geo[0],lat:geo[1]};
+        }
+        if(!Number.isFinite(event.lngLat.lng)||!Number.isFinite(event.lngLat.lat)||!visible(event.lngLat))return;
         pendingPick=pick(event.lngLat);
         pendingPick.catch(error=>{if(error.name!=='AbortError')status.textContent='Не удалось получить значение в точке. Повторите попытку.';});
     });
@@ -93,27 +136,32 @@ function placeMarker(position) {
     marker.textContent='⊕';marker.style.color='#ffed79';marker.style.fontSize='22px';
     map.getContainer().append(marker);selectedMarker=marker;
     const place=()=>{
-        marker.hidden=activeMode==='EPSG:3576'&&selectedPosition.lat<45;
-        const p=map.project([selectedPosition.lng,selectedPosition.lat]);
+        marker.hidden=!visible(selectedPosition);
+        const message=document.getElementById('visibility-message');
+        if(message)message.textContent=marker.hidden?(activeMode==='EPSG:3576'?'Точка сохранена вне области от 45° с. ш.':'Точка сохранена за горизонтом.'):'';
+        if(marker.hidden)return;
+        const p=layer.project([selectedPosition.lng,selectedPosition.lat]);
         marker.style.left=(p.x-11)+'px';marker.style.top=(p.y-14)+'px';
     };
     selectedMarkerHandler=place;
+    marker.style.zIndex='2';
     map.on('render',place);place();
 }
 async function pick(position) {
     pointController?.abort();pointController=new AbortController();
+    const controller=pointController;
     const selected=data.reference.selection;
     const query=new URLSearchParams(Object.fromEntries(['selection','run','revision','valid_time'].map(key=>[key,selected[key]])));
     query.set('layer',selected.field);query.set('lon',position.lng);query.set('lat',position.lat);
     query.set('crs','http://www.opengis.net/def/crs/OGC/1.3/CRS84');
-    const response=await fetch('/api/v1/point?'+query,{signal:pointController.signal});
+    const response=await fetch('/api/v1/point?'+query,{signal:controller.signal});
     if(!response.ok)throw Error('Не удалось получить значение в точке.');
     const point=await response.json();
+    controller.signal.throwIfAborted();
     if(point.selection!==selected.selection||point.spatial_selection!=='nearest-native-cell')
         throw Error('Изменился смысл выборки в точке.');
     placeMarker(position);
-    status.textContent=(activeMode==='EPSG:3576'?'Показано к северу от 45° с. ш. · ':'')+
-        (point.value===null?'Нет значения в точке.':point.value.toFixed(2)+' K · ближайшая нативная ячейка');
+    selectedPoint=point;pointStatus(point);
     return point;
 }
 // Start field I/O during worker/map initialization, before the driver calls runProbe.
@@ -133,7 +181,7 @@ window.runProbe=async()=>{
     data=await initialData;
     const result={selection:data.metadata.selection,contract:data.metadata.contract,views:[],experiments:[],
         transfer_bytes:data.bytes,load_ms:data.load_ms,requests:data.timings,
-        device_scope:'real desktop GPU; mobile viewports are desktop emulation'};
+        device_scope:window.t23PhysicalMobile?'physical mobile browser and GPU':'real desktop GPU; mobile viewports are desktop emulation'};
     for(const mode of ['hmc:orthographic','EPSG:3576']) {
         const switchStart=performance.now();await show(mode,result.views.length?undefined:initialMap,
             result.views.length?undefined:initialLayer);
@@ -141,9 +189,10 @@ window.runProbe=async()=>{
         else result.warm_mode_switch_ms=performance.now()-switchStart;
         const observations=layer.samples();
         observations.controls=[[37.6173,55.7558],[30.3158,59.9391],[0,45]].map(point=>{
-            const pixel=map.project(point);return {point,pixel:[pixel.x,pixel.y]};
+            const pixel=layer.project(point),dpr=map.getCanvas().width/map.getContainer().clientWidth;
+            return {point,pixel:[pixel.x*dpr,pixel.y*dpr]};
         });
-        const projection=proj4('EPSG:4326',mode==='EPSG:3576'?'EPSG:3576':ortho);
+        const projection=proj4('EPSG:4326',displayDefinition(mode));
         const geometryCases=[['pole',[90,90]],['dateline-positive',[180,80]],['dateline-negative',[-180,80]],
             ...(mode==='EPSG:3576'?[['south-of-cut',[90,44.999]],['north-of-cut',[90,45.001]]]:[])];
         const geometryPoints=geometryCases.map(([name,point])=>[name,...projection.forward(point)]);
@@ -162,9 +211,11 @@ window.runProbe=async()=>{
             map.jumpTo({center:[baseline.lng+.03*Math.sin(i/7),baseline.lat],zoom:zoom+.1*Math.sin(i/10)});
         });
         observations.scripted_pan_zoom_p95_ms=frames.sort((a,b)=>a-b)[Math.floor(frames.length*.95)];
-        observations.frame_scope='scripted flat-camera pan/zoom on desktop GPU; no physical mobile or globe rotation claim';
+        observations.frame_scope=window.t23PhysicalMobile?
+            'scripted flat-camera pan/zoom on physical mobile GPU; no continuous globe rotation claim':
+            'scripted flat-camera pan/zoom on desktop GPU; no physical mobile or globe rotation claim';
         observations.estimated_managed_bytes=data.bytes+258*258*2*4+observations.gpu_bytes+
-            map.getCanvas().width*map.getCanvas().height*8;
+            map.getCanvas().width*map.getCanvas().height*(layer.context?12:8);
         if(observations.estimated_managed_bytes>128*1024**2)throw Error('Превышен бюджет числовых ресурсов.');
         result.views.push(observations);
         const frame=data.reference.experiments.find(frame=>frame.mode===mode);
@@ -181,7 +232,64 @@ window.runProbe=async()=>{
     return result;
 };
 window.showProbe=async mode=>{await show(mode);return {mode};};
+function rotate(center){
+    if(activeMode!=='hmc:orthographic')return;
+    orthoCenter=[...center];ortho=orthoDefinition();
+    layer.setCenter(center,proj4('EPSG:4326',ortho));
+}
+function contextControls(){
+    if(!layer.context)return [];
+    const dpr=map.getCanvas().width/map.getContainer().clientWidth;
+    const result=[[37.6173,55.7558],[30.3158,59.9391],[orthoCenter[0],90],[orthoCenter[0]+80,0]]
+        .filter(point=>visible({lng:point[0],lat:point[1]}))
+        .map(point=>({point,pixel:layer.context.projection(point),source:'D3 Canvas2D projection'}));
+    for(const label of labels)if(!label.hidden){
+        const rect=label.getBoundingClientRect();
+        result.push({point:JSON.parse(label.dataset.point),pixel:[rect.left*dpr,rect.top*dpr],source:'laid-out DOM label'});
+    }
+    if(selectedMarker&&!selectedMarker.hidden){
+        const rect=selectedMarker.getBoundingClientRect();
+        result.push({point:[selectedPosition.lng,selectedPosition.lat],pixel:[(rect.left+11)*dpr,(rect.top+14)*dpr],source:'laid-out DOM marker'});
+    }
+    return result;
+}
+window.interactionState=()=>({center:[...orthoCenter],generation,mode:activeMode,zoom:map.getZoom()});
+window.captureCurrentView=()=>{const view=layer.samples();view.controls=contextControls();return view;};
+let screenTarget;
+window.prepareScreenPick=async()=>{
+    if(activeMode!=='hmc:orthographic')await show('hmc:orthographic');
+    map.jumpTo({center:layer.baseCenter,zoom:0});
+    rotate([10,50]);
+    await new Promise(resolve=>{map.once('render',resolve);map.triggerRepaint();});
+    const point=[37.6173,55.7558],pixel=layer.project(point),g=layer.geometry();
+    const dpr=g.width/map.getContainer().clientWidth;
+    pendingPick=undefined;
+    lastScreenPixel=undefined;
+    screenTarget={center:[...orthoCenter],...g,pixel:[pixel.x*dpr,pixel.y*dpr],css_pixel:[pixel.x,pixel.y]};
+    return screenTarget;
+};
+window.readScreenPick=async()=>pendingPick?{...screenTarget,requested_pixel:screenTarget.pixel,
+    point:await pendingPick,position:selectedPosition,pixel:lastScreenPixel}:null;
+window.releaseProbe=async()=>{
+    fieldController.abort();pointController?.abort();
+    layer?.context?.remove();
+    const active=map??await initialMap.catch(()=>null);
+    active?.remove();
+    const remaining=Boolean(document.querySelector('#map canvas'));
+    document.getElementById('map').replaceWith(document.createElement('div'));
+    for(const control of document.querySelectorAll('button,select'))control.disabled=true;
+    return {map_removed:!remaining,load_aborted:fieldController.signal.aborted};
+};
 const showError=()=>{status.textContent='Не удалось показать карту. Повторите попытку.';};
-document.getElementById('ortho').onclick=()=>show('hmc:orthographic').catch(showError);
-document.getElementById('laea').onclick=()=>show('EPSG:3576').catch(showError);
+if(window.t23Interaction){
+    const {installInteraction}=await import('/interaction.js');
+    installInteraction({show:(mode,camera)=>show(mode,undefined,undefined,camera),pick,
+        rotate,contextControls,
+        current:()=>({map,layer,mode:activeMode,center:[...orthoCenter],position:selectedPosition,selection:data?.reference.selection}),
+        setUnits:units=>{displayUnits=units;if(selectedPoint)pointStatus(selectedPoint);},placeMarker});
+}
+if(!window.t23Interaction){
+    document.getElementById('ortho').onclick=()=>show('hmc:orthographic').catch(showError);
+    document.getElementById('laea').onclick=()=>show('EPSG:3576').catch(showError);
+}
 window.probeReady=true;

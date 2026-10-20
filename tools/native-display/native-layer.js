@@ -10,6 +10,7 @@ uniform vec2 origin;
 uniform float scale;
 uniform float height;
 uniform int mode;
+uniform vec2 orthoCenter;
 uniform bool numeric;
 uniform bool geometryOnly;
 out vec4 color;
@@ -29,15 +30,16 @@ float preciseAtan2(float y,float x){
 }
 float preciseAsin(float x){return preciseAtan2(x,sqrt(max(0.,(1.-x)*(1.+x))));}
 vec2 position(vec2 p){
+    if(mode==2)return vec2(p.x/6378137.,2.*preciseAtan(exp(p.y/6378137.))-pi/2.)*180./pi;
     if(mode==0){
         vec2 v=p/6378137.;float rho=length(p);
         if(rho>6378137.)return vec2(1000.);
         float co=sqrt(max(0.,(6378137.-rho)*(6378137.+rho)))/6378137.;
-        float phi0=50.*pi/180.;
+        float phi0=orthoCenter.y*pi/180.;
         float north=co*cos(phi0)-v.y*sin(phi0);
         float up=co*sin(phi0)+v.y*cos(phi0);
         float lat=preciseAtan2(up,length(vec2(north,v.x)));
-        float lon=20.*pi/180.+preciseAtan2(v.x,north);
+        float lon=orthoCenter.x*pi/180.+preciseAtan2(v.x,north);
         return vec2(lon,lat)*180./pi;
     }
     float e2=0.0066943799901413165,e=sqrt(e2),a=6378137.;
@@ -89,13 +91,14 @@ function shader(gl, type, text) {
 
 export class NativeLayer {
     id='native-temperature';type='custom';renderingMode='2d';
-    constructor(blocks, mode, projection, metadata) {
+    constructor(blocks, mode, projection, metadata, center=[20,50]) {
+        this.center=[...center];this.baseCenter=[...center];this.baseProjection=projection;
         this.blocks=blocks;this.mode=mode;this.projection=projection;
         this.cacheIdentity={contract:metadata.contract,contract_sha256:metadata.contract_sha256,matrix:metadata.matrix,
             crs:metadata.crs,grid:metadata.grid,identity:metadata.identity,selection:metadata.selection,
             source_engine:metadata.engine,renderer_engine:'native-gpu-bilinear/1',
-            display_crs:mode,display_definition:mode==='EPSG:3576'?proj4.defs('EPSG:3576'):
-                '+proj=ortho +lat_0=50 +lon_0=20 +R=6378137'};
+            display_crs:mode,display_definition:mode==='EPSG:3576'?proj4.defs('EPSG:3576'):mode==='mercator'?proj4.defs('EPSG:3857'):
+                `+proj=ortho +lat_0=${center[1]} +lon_0=${center[0]} +R=6378137`};
     }
     onAdd(map,gl) {
         this.map=map;this.gl=gl;
@@ -113,27 +116,40 @@ export class NativeLayer {
         this.blocks.forEach((bytes,index)=>this.uploadBlock(index,bytes));
     }
     uploadBlock(index,bytes) {
+        const start=performance.now();
         const gl=this.gl,values=new Float32Array(bytes,0,258*258),mask=new Uint8Array(bytes,258*258*4);
         const upload=new Float32Array(258*258*2);
         for(let i=0;i<values.length;i++){upload[2*i]=values[i];upload[2*i+1]=mask[i];}
+        const decoded=performance.now();
         gl.bindTexture(gl.TEXTURE_2D_ARRAY,this.texture);
         gl.texSubImage3D(gl.TEXTURE_2D_ARRAY,0,0,0,index,258,258,1,gl.RG,gl.FLOAT,upload);
+        gl.finish();
+        (this.uploadTimings??=[]).push({index,decode_ms:decoded-start,upload_finish_ms:performance.now()-decoded});
         this.blocks[index]=bytes;
         this.ready=this.blocks.filter(Boolean).length===18;
         if(this.ready)this.map.triggerRepaint();
     }
     geometry() {
         const dpr=this.map.getCanvas().width/this.map.getContainer().clientWidth;
-        const center=this.mode==='hmc:orthographic'?[20,50]:[90,90];
-        const origin=this.map.project(center),anchor=this.mode==='hmc:orthographic'?[20,60]:[90,80];
-        const projected=this.projection.forward(anchor),pixel=this.map.project(anchor);
+        const center=this.mode==='hmc:orthographic'?this.baseCenter:this.mode==='mercator'?[0,0]:[90,90];
+        const origin=this.map.project(center),anchor=this.mode==='hmc:orthographic'?[center[0],center[1]>80?center[1]-10:center[1]+10]:this.mode==='mercator'?[0,10]:[90,80];
+        const projected=this.baseProjection.forward(anchor),pixel=this.map.project(anchor);
         return {origin:[origin.x*dpr,origin.y*dpr],scale:-(pixel.y-origin.y)*dpr/projected[1],
             width:this.map.getCanvas().width,height:this.map.getCanvas().height};
+    }
+    setCenter(center,projection) {
+        this.center=[...center];this.projection=projection;
+        this.cacheIdentity.display_definition=`+proj=ortho +lat_0=${center[1]} +lon_0=${center[0]} +R=6378137`;
+        this.map.triggerRepaint();
+    }
+    project(point) {
+        const g=this.geometry(),p=this.projection.forward(point),dpr=g.width/this.map.getContainer().clientWidth;
+        return {x:(g.origin[0]+p[0]*g.scale)/dpr,y:(g.origin[1]-p[1]*g.scale)/dpr};
     }
     checkBudget() {
         const gl=this.gl,width=this.map.getCanvas().width,height=this.map.getCanvas().height;
         const maximum=gl.getParameter(gl.MAX_TEXTURE_SIZE);
-        const bytes=5990760+258*258*8+258*258*18*8+width*height*24;
+        const bytes=5990760+258*258*8+258*258*18*8+width*height*(this.context?28:24);
         if(width>maximum||height>maximum||258>maximum||gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)<18
             ||bytes>128*1024**2)throw Error('Размер вида превышает бюджет числовых ресурсов.');
         return bytes;
@@ -142,16 +158,17 @@ export class NativeLayer {
         gl.useProgram(this.program);gl.bindVertexArray(this.vao);
         gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D_ARRAY,this.texture);
         const location=name=>gl.getUniformLocation(this.program,name);
+        gl.uniform2fv(location('orthoCenter'),this.center);
         gl.uniform1i(location('field'),0);gl.uniform2fv(location('origin'),view.origin);
         gl.uniform1f(location('scale'),view.scale);gl.uniform1f(location('height'),view.height);
-        gl.uniform1i(location('mode'),this.mode==='hmc:orthographic'?0:1);gl.uniform1i(location('numeric'),numeric?1:0);
+        gl.uniform1i(location('mode'),this.mode==='hmc:orthographic'?0:this.mode==='mercator'?2:1);gl.uniform1i(location('numeric'),numeric?1:0);
         gl.uniform1i(location('geometryOnly'),geometryOnly?1:0);
         gl.disable(gl.DEPTH_TEST);gl.disable(gl.STENCIL_TEST);
         numeric?gl.disable(gl.BLEND):gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLES,0,3);
         gl.bindVertexArray(null);return view;
     }
-    render(gl) {if(this.ready)this.draw(gl,false);}
+    render(gl) {this.context?.render(this.geometry(),this.center);if(this.ready)this.draw(gl,false);}
     samples(view=this.geometry()) {
         this.checkBudget();
         const gl=this.gl,{width,height}=view;
@@ -167,7 +184,8 @@ export class NativeLayer {
                 gl.readPixels(x,height-1-y,1,1,gl.RGBA,gl.FLOAT,pixel);
                 samples.push([x,y,pixel[0],pixel[1],pixel[2],pixel[3]]);
             }
-            return {mode:this.mode,...view,samples,cache_identity:this.cacheIdentity,gpu_bytes:258*258*18*8+width*height*16};
+            return {mode:this.mode,center:this.center,...view,samples,upload_timings:this.uploadTimings,
+                cache_identity:this.cacheIdentity,gpu_bytes:258*258*18*8+width*height*16};
         } finally {
             gl.bindFramebuffer(gl.FRAMEBUFFER,before);gl.deleteFramebuffer(fb);gl.deleteTexture(texture);
             gl.viewport(...viewport);
@@ -215,5 +233,5 @@ export class NativeLayer {
                 .map(sample=>sample.slice(0,5));
         } finally {upload(original);}
     }
-    onRemove(map,gl) {gl.deleteTexture(this.texture);gl.deleteProgram(this.program);gl.deleteVertexArray(this.vao);}
+    onRemove(map,gl) {this.context?.remove();gl.deleteTexture(this.texture);gl.deleteProgram(this.program);gl.deleteVertexArray(this.vao);}
 }

@@ -10,6 +10,7 @@ from pathlib import Path
 from functools import lru_cache
 
 import pg8000.dbapi
+from publication import reader_sessions
 from publication.limited import request_deadline
 
 from decoder.sampling import ManifestSampler, asset_path, canonical, file_hash
@@ -66,20 +67,35 @@ def database(*, timeout: int = 5):
         yield shared
         return
     remaining = max(0.05, deadline-time.time()) if deadline is not None else timeout
-    connection = pg8000.dbapi.connect(host='db', database='hmc', user=os.environ['DB_USER'],
-                                     password=os.environ['DB_PASSWORD'], timeout=min(timeout, remaining), ssl_context=False)
-    cursor = connection.cursor()
+    session = reader_sessions.acquire(min(timeout, remaining))
+    connection = session.connection
+    cursor = None
+    healthy = False
     try:
+        cursor = connection.cursor()
         if deadline is not None:
+            remaining = deadline-time.time()
+            if remaining <= 0:
+                raise TimeoutError('publication request deadline exceeded')
             cursor.execute("SELECT set_config('statement_timeout',%s,true)", (str(max(1, int(remaining*1000))),))
         yield Records(cursor)
         connection.commit()
+        healthy = True
     except BaseException:
-        connection.rollback()
+        try:
+            connection.rollback()
+        except Exception:
+            pass
         raise
     finally:
-        cursor.close()
-        connection.close()
+        try:
+            if cursor is not None:
+                cursor.close()
+        except BaseException:
+            healthy = False
+            raise
+        finally:
+            reader_sessions.release(session, healthy)
 
 
 def write_once(path: Path, value: dict) -> str:
