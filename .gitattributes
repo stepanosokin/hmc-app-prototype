@@ -29,3 +29,9 @@ docs/evidence/t11/*.log -whitespace
 
 docs/evidence/t12/** -text whitespace=cr-at-eol
 docs/evidence/t12/*.log -whitespace
+
+# T22 browser evidence binds the exact local mockup bytes.
+docs/prototypes/weather-map.prototype.* text eol=lf
+docs/prototypes/assets/land.js text eol=lf
+tools/check-weather-prototype.mjs text eol=lf
+docs/evidence/t22/** -text whitespace=cr-at-eol
