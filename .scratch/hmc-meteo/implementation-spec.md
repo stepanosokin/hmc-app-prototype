@@ -1,17 +1,17 @@
 # Hydrometcenter meteorology prototype — implementation specification
 
-Updated 2026-10-20 to bilingual specification v0.4: optional TLS using organization-provided certificates is assigned to T21 / #33. The accepted v0.3 browser amendment remains: numeric browser tiles and GPU scalar rendering replace primary browser colour-image delivery. Preserve milestone IDs M1–M5 and acceptance IDs A1–A12. Scope agreement does not establish completion of TLS or other implementation gates.
+Updated 2026-10-20 to bilingual specification v0.5: the user-confirmed Windy visual concept is assigned to T22 / #34 for an interactive desktop/phone mockup, followed by production viewer work in #25/#27. Optional TLS using organization-provided certificates remains assigned to T21 / #33. The accepted v0.3 browser amendment remains: numeric browser tiles and GPU scalar rendering replace primary browser colour-image delivery. Preserve milestone IDs M1–M5 and acceptance IDs A1–A12. Scope agreement does not establish completion of TLS or other implementation gates.
 
 Source of truth:
 
-- [Current specification v0.4 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.md)
-- [Текущая спецификация v0.4 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.ru.md)
+- [Current specification v0.5 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.md)
+- [Текущая спецификация v0.5 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.ru.md)
 - [Accepted specification v0.2 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/.scratch/hmc-meteo/spec.md)
 - [Согласованная спецификация v0.2 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/.scratch/hmc-meteo/spec.ru.md)
 - [Completed wayfinder map](https://github.com/stepanosokin/hmc-app-prototype/issues/1) and [explicit handoff acceptance](https://github.com/stepanosokin/hmc-app-prototype/issues/7#issuecomment-6263046933)
 - [Domain glossary](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/GLOSSARY.md)
 
-The pinned v0.2 links above preserve the historical accepted baseline. The working-tree specification files `.scratch/hmc-meteo/spec.md` and `spec.ru.md` are now v0.4; `docs/adr/0002-numeric-browser-tiles.md` records the accepted amendment. This issue carries the operative amendment below, with the same M1–M5/A1–A12 IDs. The completed wayfinder map remains historical and unchanged. Incompatibility requires recorded evidence and revisiting the affected decision; planning agreement does not prove implementation.
+The pinned v0.2 links above preserve the historical accepted baseline. The working-tree specification files `.scratch/hmc-meteo/spec.md` and `spec.ru.md` are now v0.5; `docs/adr/0002-numeric-browser-tiles.md` records the accepted amendment. This issue carries the operative amendment below, with the same M1–M5/A1–A12 IDs. The completed wayfinder map remains historical and unchanged. Incompatibility requires recorded evidence and revisiting the affected decision; planning agreement does not prove implementation.
 
 ## Problem Statement
 
@@ -128,6 +128,19 @@ This gate proves TLS readiness using test certificates. Organization DNS, real c
 - Domain longitude/latitude are named degrees; EDR follows its advertised CRS/profile and WMS follows version/CRS axis order. Domain errors distinguish 400 invalid input, 401/403 credentials/access, 404 unavailable selection, 410 expired data, 429 limits and 503 transient failure. OGC routes retain documented exception profiles. Publish OpenAPI and runnable examples.
 - Pin QGIS during integration and validate keyed header access, available times, legends, full-resolution identify, masks and both EPSG:4326/3857. Product installation alone does not establish OGC conformance. EDR run/revision parameters are extensions; do not claim standard Instances support. Tiles/Maps facades require proven dimension forwarding before enabling.
 
+### Accepted Windy visual concept — v0.5
+
+[Windy.com](https://www.windy.com/) is the accepted reference for layout and interface density. Use Hydrometcenter's own colours and identity, compact buttons and translucent panels, Russian controls/states/messages and UTC timestamps. The reference does not expand the accepted feature set: the first release shows the actual available temperature field; wind particles, temporal blending and other deferred products remain deferred. The [confirmed concept](https://github.com/stepanosokin/hmc-app-prototype/blob/main/docs/prototypes/design-concept.ru.md) records Q1–Q8; the earlier illustrative HTML remains an interaction artifact, not the agreed visual design.
+
+- The map fills the viewport with compact controls over it. On desktop, model/field/run controls sit at the upper left, layer selection on the right, the time bar at the bottom and the stable legend on the right above that bar. A selected point's value appears beside its marker.
+- Initially fit the full coverage of the available forecast. A Russian-labelled “К области данных” control returns to that extent. Keep the existing newest-usable-run/first-available-time default; this spatial choice does not change the pinned selection or missing-time behavior.
+- Keep reference time and valid time in UTC visible at all times. Source/publication details expand separately; retain the existing attribution, age, availability and completeness requirements.
+- On a phone, use one bottom sheet, initially collapsed. A map tap opens point details to half the screen; settings use that same sheet. The time bar and selected time remain accessible, and run/time context is preserved.
+- Use dark translucent panels, light text, a quiet basemap and a distinct temperature colour scale consistent with the legend. Exact shades, dimensions, opacity and readability are assessed on the visual mockup.
+- [T22 / #34](https://github.com/stepanosokin/hmc-app-prototype/issues/34) delivers an interactive desktop/phone HTML mockup with Russian labels and explicitly marked demonstration data, before connecting real data. Record visible interaction checks, desktop/phone captures and the user's visual approval. The concept is accepted; the mockup has not yet been created or approved.
+
+The approved mockup guides #25's production viewer and #27's responsive controls; those tickets must retain their actual-sample, numerical/GPU and Compose acceptance gates. A demonstration mockup cannot establish A2/A3/A8/A11 or replace real browser/GIS evidence. Basemap/style/font assets remain subject to local serving, attribution and redistribution requirements; the design reference does not imply reuse of Windy's assets or services.
+
 ### Access, viewer and operations
 
 - Public demo access has separate limits and no organization secret. External organizational API/GIS access uses protected key representations, independently revocable keys and organization-level budgets. Authenticate and enforce limits before protected cache access; block direct backend/asset bypass. Provide operator key creation/revocation/rotation and limit commands; an administration portal is unnecessary.
@@ -178,7 +191,7 @@ Preserve these acceptance criteria and attach reproducible evidence to each duri
 | A5 | Labelled fixtures exercise overlapping runs, missing times, late/corrected batches and old-revision readers without mixing, including delayed tile fetch/decode/upload during navigation and explicit updates. |
 | A6 | Crash/retry, numeric tile generation/metadata readiness and GIS derivative/indexing failures never expose unfinished selections or replace the last usable publication. |
 | A7 | Public/protected numerical, tile-metadata/tile and GIS routes exercise invalid/revoked keys, limits, warm cache hits, expiry, bypass prevention and usage records. |
-| A8 | Russian UI/UTC, GPU-rendered scalar values/masks/legend, loading/errors/nodata, stale point/tile rejection, bounded resource lifecycle and explicit GPU capability/context-loss behavior match the contract. |
+| A8 | Russian UI/UTC, the specification section 9.1's accepted Windy layout/mobile behavior and visually approved T22 mockup, GPU-rendered scalar values/masks/legend, loading/errors/nodata, stale point/tile rejection, bounded resource lifecycle and explicit GPU capability/context-loss behavior match the contract. Mockup evidence alone does not establish production behavior. |
 | A9 | Seven-/30-day retention safely expires managed runs and numeric tile/metadata/server caches; browser caches cannot resurrect expired selections; source mounts and historical demo rules remain intact. |
 | A10 | Compose startup/restart, persistent storage, health and recovery documentation work on the agreed Linux host; optional TLS enablement, certificate replacement and failure behavior pass specification section 10.1 using test certificates before organization credentials arrive. |
 | A11 | Network and disconnected-public-runtime checks confirm locally served basemap/styles/fonts, shaders, decoders and any required WASM/workers; no mandatory public runtime service. |
@@ -199,6 +212,6 @@ Local Compose integration results do not establish production sizing. Run operat
 
 ## Further Notes
 
-The completed wayfinder map stays closed. Bilingual v0.4 adds optional TLS readiness in T21 / #33 and preserves the accepted core and explicitly amends browser delivery to numeric tiles/GPU at the user's request. The current frontier is M2, including tile contract/engine selection in #16, followed by GIS/API, GPU viewer and operational gates. Existing issue relationships, milestone IDs and completion states remain unchanged.
+The completed wayfinder map stays closed. Bilingual v0.5 adds the confirmed Windy concept and T22 / #34 visual mockup before #25/#27. Optional TLS readiness from v0.4 in T21 / #33 and numeric browser tiles/GPU from v0.3 remain required. M1–M5/A1–A12 and existing completion states remain unchanged; T22 / #34 is added as the visual approval prerequisite for #25/#27. Existing numerical/GIS, real-browser and operational implementation gates remain mandatory.
 
 Before operational rollout obtain representative datasets, schema/access details, producer completion conventions, real per-model run cadence/daily volume, target server/storage/network, exact QGIS version, DNS/TLS/secrets and agreed service targets. Keep credentials out of this issue. Host sizing remains deferred until evidence exists; #15's narrow numerical-adapter choice remains bounded to the recorded point/metadata evidence; tile/GPU outcomes are not predetermined.

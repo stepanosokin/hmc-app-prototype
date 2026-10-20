@@ -1,12 +1,14 @@
 # Hydrometcenter meteorology prototype — specification
 
-Version: 0.4 · 2026-10-20 · **Accepted implementation handoff.**
+Version: 0.5 · 2026-10-20 · **Accepted implementation handoff.**
 
 The user accepted revision 0.2, milestones M1–M5 and acceptance criteria A1–A12 on 2026-10-19, then requested this browser-delivery amendment and the corresponding specification/ticket updates. Revision 0.3 preserves those IDs and extends their obligations to numeric display tiles and browser GPU rendering. Acceptance records scope agreement, not completion of the new gates.
 
 Revision 0.3 makes numeric data tiles and browser GPU rendering the primary web weather-display path. GeoServer temporal WMS remains required for QGIS. The Zarr core, point/EDR contract, interaction rules and Martin deferral remain accepted. [Ticket #15](https://github.com/stepanosokin/hmc-app-prototype/issues/15) selected the narrow numerical HTTP adapter for the measured point/metadata workload; tile encoding, tiling engine and GPU performance require separate evidence. See [ADR 0002](../../docs/adr/0002-numeric-browser-tiles.md).
 
 Revision 0.4 adds the user-approved optional TLS capability in section 10.1 and T21 / #33. It preserves M1–M5/A1–A12; TLS implementation and operational activation remain unverified.
+
+Revision 0.5 records the user-confirmed Windy design concept in section 9.1 and [T22 / #34](https://github.com/stepanosokin/hmc-app-prototype/issues/34). All Q1–Q8 decisions and the shared understanding were explicitly confirmed on 2026-10-20. It preserves functional scope and M1–M5/A1–A12; visual mockup approval and real viewer validation remain future gates.
 
 [Russian copy](spec.ru.md) · [Decision map](map.md) · [Domain glossary](../../GLOSSARY.md)
 
@@ -160,6 +162,19 @@ Differentiate loading, missing time, outside coverage, native nodata and service
 
 Render the scalar temperature overlay with numeric tile textures in a MapLibre GPU layer. Keep units, colour scale and legend consistent; handle masks without colour leakage at nodata edges or tile seams. Cap tile prefetch/cache, decoded arrays and GPU textures; cancel obsolete fetches, reject stale results before texture upload and release superseded resources, including context-loss recovery. Detect required GPU capabilities and provide a documented supported fallback or a clear unavailable-renderer message; silent blank output is unacceptable. Palette changes must not fetch unchanged numeric data. Do not blend across missing times, runs or revisions; temporal blending and wind particles remain deferred. The sample provides no U/V field.
 
+### 9.1. Windy visual concept — v0.5
+
+[Windy.com](https://www.windy.com/) is the accepted reference for layout and interface density. Use Hydrometcenter's own colours and identity, compact buttons and translucent panels, Russian controls/states/messages and UTC timestamps. The reference does not expand the accepted feature set: the first release shows the actual available temperature field; wind particles, temporal blending and other deferred products remain deferred. The [confirmed concept](../../docs/prototypes/design-concept.ru.md) records Q1–Q8; the earlier illustrative HTML remains an interaction artifact, not the agreed visual design.
+
+- The map fills the viewport with compact controls over it. On desktop, model/field/run controls sit at the upper left, layer selection on the right, the time bar at the bottom and the stable legend on the right above that bar. A selected point's value appears beside its marker.
+- Initially fit the full coverage of the available forecast. A Russian-labelled “К области данных” control returns to that extent. Keep the existing newest-usable-run/first-available-time default; this spatial choice does not change the pinned selection or missing-time behavior.
+- Keep reference time and valid time in UTC visible at all times. Source/publication details expand separately; retain the existing attribution, age, availability and completeness requirements.
+- On a phone, use one bottom sheet, initially collapsed. A map tap opens point details to half the screen; settings use that same sheet. The time bar and selected time remain accessible, and run/time context is preserved.
+- Use dark translucent panels, light text, a quiet basemap and a distinct temperature colour scale consistent with the legend. Exact shades, dimensions, opacity and readability are assessed on the visual mockup.
+- [T22 / #34](https://github.com/stepanosokin/hmc-app-prototype/issues/34) delivers an interactive desktop/phone HTML mockup with Russian labels and explicitly marked demonstration data, before connecting real data. Record visible interaction checks, desktop/phone captures and the user's visual approval. The concept is accepted; the mockup has not yet been created or approved.
+
+The approved mockup guides #25's production viewer and #27's responsive controls; those tickets must retain their actual-sample, numerical/GPU and Compose acceptance gates. A demonstration mockup cannot establish A2/A3/A8/A11 or replace real browser/GIS evidence. Basemap/style/font assets remain subject to local serving, attribution and redistribution requirements; the design reference does not imply reuse of Windy's assets or services.
+
 ## 10. Retention and operations
 
 Retain runs whose reference times are within the last seven days, including all their published forecast times even when valid times extend beyond that window. Configure the duration toward 30 days without changing identifiers. Retention is for application-managed originals/copies, Zarr batches, COGs, numeric tile products/metadata, manifests and server caches; organization source mounts are never cleanup targets.
@@ -201,7 +216,7 @@ Do not hide failed compatibility gates behind mock data or silently replace the 
 | A5 | Labelled fixtures exercise overlapping runs, missing times, late/corrected batches and old-revision readers without mixing, including delayed tile fetch/decode/upload during navigation and explicit updates. |
 | A6 | Crash/retry, numeric tile generation/metadata readiness and GIS derivative/indexing failures never expose unfinished selections or replace the last usable publication. |
 | A7 | Public/protected numerical, tile-metadata/tile and GIS routes exercise invalid/revoked keys, limits, warm cache hits, expiry, bypass prevention and usage records. |
-| A8 | Russian UI/UTC, GPU-rendered scalar values/masks/legend, loading/errors/nodata, stale point/tile rejection, bounded resource lifecycle and explicit GPU capability/context-loss behavior match the contract. |
+| A8 | Russian UI/UTC, section 9.1's accepted Windy layout/mobile behavior and visually approved T22 mockup, GPU-rendered scalar values/masks/legend, loading/errors/nodata, stale point/tile rejection, bounded resource lifecycle and explicit GPU capability/context-loss behavior match the contract. Mockup evidence alone does not establish production behavior. |
 | A9 | Seven-/30-day retention safely expires managed runs and numeric tile/metadata/server caches; browser caches cannot resurrect expired selections; source mounts and historical demo rules remain intact. |
 | A10 | Compose startup/restart, persistent storage, health and recovery documentation work on the agreed Linux host; optional TLS enablement, certificate replacement and failure behavior pass section 10.1 using test certificates before organization credentials arrive. |
 | A11 | Network and disconnected-public-runtime checks confirm locally served basemap/styles/fonts, shaders, decoders and any required WASM/workers; no mandatory public runtime service. |
