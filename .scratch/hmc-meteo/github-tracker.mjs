@@ -8,6 +8,7 @@ const repository='stepanosokin/hmc-app-prototype';
 const root=path.resolve(directory,'../..');
 const operations=JSON.parse(fs.readFileSync(process.argv[2],'utf8').replace(/^\uFEFF/,''));
 for(const op of operations) if(!['GET','POST','PATCH'].includes(op.method)||!/^\/(?:issues|labels)(?:[/?]|$)/.test(op.path)) throw Error('Only this repository issue/label API is allowed.');
+for(const op of operations) if(op.body && Object.hasOwn(op.body,'body') && typeof op.body.body !== 'string') throw Error('Issue body must be a plain JSON string; no request was sent.');
 let credential;
 try {
   credential=execFileSync('git',['credential','fill'],{cwd:root,input:'protocol=https\nhost=github.com\nusername=stepanosokin\n\n',encoding:'utf8',stdio:['pipe','pipe','pipe'],env:{...process.env,GIT_TERMINAL_PROMPT:'0',GCM_INTERACTIVE:'Never'}});

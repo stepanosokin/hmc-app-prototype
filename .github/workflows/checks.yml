@@ -16,6 +16,9 @@ jobs:
       - name: Check publication process exit handling
         shell: powershell
         run: ./tools/check-publication-process.ps1
+      - name: Check current documentation links
+        shell: powershell
+        run: ./tools/check-documentation.ps1
 
   source-and-runtime:
     runs-on: ubuntu-24.04

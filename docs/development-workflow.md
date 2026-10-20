@@ -1,5 +1,25 @@
 # Development workflow
 
+## Specification updates
+
+The current bilingual contract is tracked in
+`.scratch/hmc-meteo/spec.md` and `spec.ru.md`; the local mirror of canonical
+GitHub specification #12 is `implementation-spec.md` in that directory.
+Update both language copies and the canonical issue together. Preserve historical
+planning snapshots and acceptance IDs; a newly created implementation ticket
+keeps its criteria unchecked until implementation is verified.
+
+Run `powershell -NoProfile -File tools/check-documentation.ps1` for the current
+specification and workflow links. Use `-Path <files>` for additional documents.
+The check resolves local inline Markdown links relative to each file, including
+root README links; it does not validate remote URLs or section fragments.
+It also runs in the existing Windows CI job.
+
+For ad hoc PowerShell validation, set `$ErrorActionPreference = 'Stop'` before
+checking inputs and inspect native exit codes before reporting success. Resolve
+file paths before deriving their directory. A trailing success message or exit
+zero does not establish that earlier nonterminating errors were absent.
+
 ## Validation
 
 The [checks workflow](../.github/workflows/checks.yml) builds the existing
@@ -199,6 +219,20 @@ them. Supply operations and output paths in the ignored scratch directory, then
 read back the issue state. If the helper is absent or authentication fails,
 report the specific blocker. Keep credentials out of commands, logs and reports.
 
+When constructing an issue body in PowerShell, read it as a plain string with
+`[System.IO.File]::ReadAllText(<absolute-path>)` before `ConvertTo-Json`.
+`Get-Content` can carry PowerShell metadata into the serialized value and turn
+the required JSON string into an object, causing a GitHub 422. Verify that the
+serialized `body` is a string before submitting. Keep tracker responses in
+ignored files and inspect only the fields needed for readback; do not send a
+large document through tool output merely to serialize it again.
+The repository tracker helper rejects a non-string issue body before credential
+lookup or network access.
+
+Documentation-only checks allocate no Compose project and require no runtime
+acceptance run. Record that no test resources were created; the retirement
+procedure applies whenever a check actually allocates Docker resources.
+
 ## Retrospective basis
 
 These changes follow the [#16 review](evidence/t4/review.md),
@@ -238,3 +272,10 @@ artifact index was initially absent from the existing CI evidence checker; it
 is now included in that same check. A disposable corrupted T7 report escaped the
 old checker and is rejected by the updated one; the original archives pass.
 Historical reports remain unchanged.
+
+The [TLS planning session](evidence/tls-planning.md) exposed a documentation probe
+that printed success after nonterminating PowerShell path errors, plus an issue
+body serialized as an object. The documentation checker now fails on missing
+targets or unreadable inputs and runs in the existing Windows CI job. The
+specification pointer and plain-string issue-body recipe above address the
+navigation and serialization failures without changing third-party skills.
