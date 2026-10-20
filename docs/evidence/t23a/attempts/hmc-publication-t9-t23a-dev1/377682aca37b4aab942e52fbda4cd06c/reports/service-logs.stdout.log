@@ -1,0 +1,1415 @@
+api-1        | [2026-10-20 17:18:05 +0000] [1] [INFO] Starting gunicorn 23.0.0
+api-1        | [2026-10-20 17:18:05 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+api-1        | [2026-10-20 17:18:05 +0000] [1] [INFO] Using worker: gthread
+api-1        | [2026-10-20 17:18:05 +0000] [7] [INFO] Booting worker with pid: 7
+api-1        | [2026-10-20 17:21:29 +0000] [1] [INFO] Handling signal: term
+api-1        | [2026-10-20 17:21:30 +0000] [7] [INFO] Worker exiting (pid: 7)
+api-1        | [2026-10-20 17:21:31 +0000] [1] [INFO] Starting gunicorn 23.0.0
+api-1        | [2026-10-20 17:21:31 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+api-1        | [2026-10-20 17:21:31 +0000] [1] [INFO] Using worker: gthread
+api-1        | [2026-10-20 17:21:31 +0000] [7] [INFO] Booting worker with pid: 7
+gateway-1    | [2026-10-20 17:18:05 +0000] [1] [INFO] Starting gunicorn 23.0.0
+gateway-1    | [2026-10-20 17:18:05 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+gateway-1    | [2026-10-20 17:18:05 +0000] [1] [INFO] Using worker: gthread
+gateway-1    | [2026-10-20 17:18:05 +0000] [7] [INFO] Booting worker with pid: 7
+gateway-1    | {"request_id": "b98ab281-5cf4-4d66-80f7-8a667b8f91fa", "observed_at": "2026-10-20T17:21:20.641849+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "tile", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 503, "duration_ms": 7824.667368004157, "bytes": 187, "durable_store": "unavailable"}
+gateway-1    | [2026-10-20 17:21:29 +0000] [1] [INFO] Handling signal: term
+gateway-1    | [2026-10-20 17:21:30 +0000] [7] [INFO] Worker exiting (pid: 7)
+gateway-1    | [2026-10-20 17:21:31 +0000] [1] [INFO] Starting gunicorn 23.0.0
+gateway-1    | [2026-10-20 17:21:31 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+gateway-1    | [2026-10-20 17:21:31 +0000] [1] [INFO] Using worker: gthread
+gateway-1    | [2026-10-20 17:21:31 +0000] [7] [INFO] Booting worker with pid: 7
+geoserver-1  | Welcome to GeoServer 2.27.0
+geoserver-1  | SET_GEOSERVER_REQUIRE_FILE will be ignored because SKIP_DEMO_DATA is set to true
+geoserver-1  | Starting installation of extensions
+geoserver-1  | Finished installation of extensions
+geoserver-1  | Installing default server.xml with substituted environment variables
+geoserver-1  | Updating GeoServer Credentials ...
+db-1         | The files belonging to this database system will be owned by user "postgres".
+geoserver-1  | USING USERS XML ORIGINAL: /usr/local/tomcat/webapps/geoserver/data/security/usergroup/default/users.xml
+geoserver-1  | USING ROLES XML ORIGINAL: /usr/local/tomcat/webapps/geoserver/data/security/role/default/roles.xml
+geoserver-1  | SETTING USERS XML: /opt/geoserver_data//security/usergroup/default/users.xml
+geoserver-1  | SETTING ROLES XML: . /opt/geoserver_data//security/role/default/roles.xml
+geoserver-1  | Successfully replaced /opt/geoserver_data//security/usergroup/default/users.xml
+geoserver-1  | Successfully replaced /opt/geoserver_data//security/role/default/roles.xml
+geoserver-1  | ... DONE updating GeoServer Credentials ...
+geoserver-1  | NOTE: Picked up JDK_JAVA_OPTIONS:  --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+geoserver-1  | usage: java org.apache.catalina.startup.Catalina [ -config {pathname} ] [ -nonaming ] [ -generateCode [ {pathname} ] ] [ -useGeneratedCode ] { -help | start | stop }
+geoserver-1  | 20-Oct-2026 17:18:06.052 WARNING [main] org.apache.catalina.core.StandardContext.setPath A context path must either be an empty string or start with a '/' and do not end with a '/'. The path [geoserver] does not meet these criteria and has been changed to [/geoserver]
+geoserver-1  | 20-Oct-2026 17:18:06.070 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   i_am_a_teapot
+geoserver-1  | 20-Oct-2026 17:18:06.070 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          
+geoserver-1  | 20-Oct-2026 17:18:06.070 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: x.y.z.0
+geoserver-1  | 20-Oct-2026 17:18:06.070 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
+geoserver-1  | 20-Oct-2026 17:18:06.070 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            6.6.87.2-microsoft-standard-WSL2
+geoserver-1  | 20-Oct-2026 17:18:06.070 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+geoserver-1  | 20-Oct-2026 17:18:06.071 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /opt/java/openjdk
+geoserver-1  | 20-Oct-2026 17:18:06.071 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           17.0.14+7
+geoserver-1  | 20-Oct-2026 17:18:06.071 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Eclipse Adoptium
+geoserver-1  | 20-Oct-2026 17:18:06.071 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /usr/local/tomcat
+geoserver-1  | 20-Oct-2026 17:18:06.071 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /usr/local/tomcat
+geoserver-1  | 20-Oct-2026 17:18:06.072 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.072 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.072 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.074 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.074 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.075 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.075 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.075 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/usr/local/tomcat/conf/logging.properties
+geoserver-1  | 20-Oct-2026 17:18:06.075 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+geoserver-1  | 20-Oct-2026 17:18:06.075 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xms256m
+geoserver-1  | 20-Oct-2026 17:18:06.075 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xmx1536m
+geoserver-1  | 20-Oct-2026 17:18:06.075 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+geoserver-1  | 20-Oct-2026 17:18:06.075 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+geoserver-1  | 20-Oct-2026 17:18:06.075 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dsun.io.useCanonCaches=false
+geoserver-1  | 20-Oct-2026 17:18:06.075 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+geoserver-1  | 20-Oct-2026 17:18:06.076 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xms256m
+geoserver-1  | 20-Oct-2026 17:18:06.076 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xmx1g
+geoserver-1  | 20-Oct-2026 17:18:06.076 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-exports=java.desktop/sun.awt.image=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.076 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.076 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.076 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.076 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.text=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.076 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.desktop/java.awt.font=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.076 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.desktop/sun.awt.image=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.076 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.naming/com.sun.jndi.ldap=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.077 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.desktop/sun.java2d.pipe=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:18:06.077 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.awt.headless=true
+geoserver-1  | 20-Oct-2026 17:18:06.077 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dfile.encoding=UTF-8
+geoserver-1  | 20-Oct-2026 17:18:06.077 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djavax.servlet.request.encoding=UTF-8
+geoserver-1  | 20-Oct-2026 17:18:06.077 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djavax.servlet.response.encoding=UTF-8
+geoserver-1  | 20-Oct-2026 17:18:06.077 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -D-XX:SoftRefLRUPolicyMSPerMB=36000
+geoserver-1  | 20-Oct-2026 17:18:06.078 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xbootclasspath/a:/usr/local/tomcat/lib/marlin.jar
+geoserver-1  | 20-Oct-2026 17:18:06.078 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dsun.java2d.renderer=sun.java2d.marlin.DMarlinRenderingEngine
+geoserver-1  | 20-Oct-2026 17:18:06.078 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.geotools.coverage.jaiext.enabled=true
+geoserver-1  | 20-Oct-2026 17:18:06.078 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dignore.endorsed.dirs=
+geoserver-1  | 20-Oct-2026 17:18:06.078 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/usr/local/tomcat
+geoserver-1  | 20-Oct-2026 17:18:06.078 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/usr/local/tomcat
+geoserver-1  | 20-Oct-2026 17:18:06.079 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/usr/local/tomcat/temp
+geoserver-1  | 20-Oct-2026 17:18:06.081 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [1.3.1] using APR version [1.7.0].
+geoserver-1  | 20-Oct-2026 17:18:06.082 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent APR capabilities: IPv6 [true], sendfile [true], accept filters [false], random [true], UDS [true].
+geoserver-1  | 20-Oct-2026 17:18:06.082 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent APR/OpenSSL configuration: useAprConnector [false], useOpenSSL [true]
+geoserver-1  | 20-Oct-2026 17:18:06.085 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.2 15 Mar 2022]
+geoserver-1  | 20-Oct-2026 17:18:06.364 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+geoserver-1  | 20-Oct-2026 17:18:06.386 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [565] milliseconds
+geoserver-1  | 20-Oct-2026 17:18:06.423 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+geoserver-1  | 20-Oct-2026 17:18:06.423 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [i_am_a_teapot]
+geoserver-1  | 20-Oct-2026 17:18:09.763 SEVERE [main] org.apache.catalina.core.NamingContextListener.addResource Failed to bind object: [javax.naming.NamingException: Name is not valid]
+geoserver-1  | 20-Oct-2026 17:18:09.814 INFO [main] org.apache.jasper.servlet.TldScanner.scanJars At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+geoserver-1  | 17:18:10 CONFIG [geoserver.logging] - Logging policy: Log4J2
+geoserver-1  | 17:18:10 WARN   [geoserver.logging] - Could not find GeoServer logging.xml (or old services.xml) settings for logging
+geoserver-1  | 17:18:11 CONFIG [org.geoserver] - GeoServer configuration lock is enabled
+geoserver-1  | 17:18:12 CONFIG [geoserver.config] - Loading catalog /opt/geoserver_data
+geoserver-1  | 17:18:12 CONFIG [config.datadir] - Catalog and configuration loader uses 16 threads out of 24 available cores.
+geoserver-1  | 17:18:12 INFO   [geoserver.config] - Read Catalog in 88.84 ms: workspaces: 0, namespaces: 0, styles: 5, stores: 0, resources: 0, layers: 0, layer groups: 0.
+geoserver-1  | 17:18:12 CONFIG [config.datadir] - Loading GeoServer config...
+geoserver-1  | 17:18:12 CONFIG [config.datadir] - Loaded service 'WCSInfoImpl-79207488:1a15a521aa3:-7ffb', enabled
+geoserver-1  | 17:18:12 CONFIG [config.datadir] - Loaded service 'WFSInfoImpl-79207488:1a15a521aa3:-7ffa', enabled
+geoserver-1  | 17:18:12 CONFIG [config.datadir] - Loaded service 'WMTSInfoImpl-79207488:1a15a521aa3:-7ff9', enabled
+geoserver-1  | 17:18:12 CONFIG [config.datadir] - Loaded service 'WMSInfoImpl-79207488:1a15a521aa3:-7ff8', enabled
+geoserver-1  | 17:18:12 CONFIG [config.datadir] - Catalog and configuration loader uses 16 threads out of 24 available cores.
+geoserver-1  | 17:18:12 CONFIG [config.datadir] - Loading workspace services and settings...
+geoserver-1  | 17:18:12 CONFIG [config.datadir] - GeoServer config (settings and services) loaded in 67.53 ms
+geoserver-1  | 17:18:12 CONFIG [gwc.config] - Will look for 'geowebcache.xml' in directory '/opt/geoserver_data/gwc'.
+geoserver-1  | 17:18:12 CONFIG [gwc.config] - Create configuration file 'gwc/geowebcache.xml' from template jar:file:/usr/local/tomcat/webapps/geoserver/WEB-INF/lib/gwc-core-1.27.0.jar!/geowebcache_empty.xml
+geoserver-1  | 17:18:12 WARN   [config.XMLConfiguration] - GWC configuration validation error: cvc-elt.1.a: Cannot find the declaration of element 'gwcConfiguration'.
+geoserver-1  | 17:18:12 WARN   [config.XMLConfiguration] - Will try to use configuration anyway. Please check the order of declared elements against the schema.
+geoserver-1  | 17:18:12 CONFIG [gwc.layer] - Initializing GWC configuration based on GeoServer's Catalog
+geoserver-1  | 17:18:12 CONFIG [gwc.layer] - GeoServer TileLayer store base directory is: gwc-layers
+geoserver-1  | 17:18:12 CONFIG [gwc.layer] - Loading tile layers from gwc-layers
+geoserver-1  | 17:18:12 CONFIG [gwc.layer] - Loaded 0 tile layers in 1.535 ms
+geoserver-1  | 17:18:12 CONFIG [gwc.config] - Initializing GeoServer specific GWC configuration from gwc-gs.xml
+geoserver-1  | 17:18:13 INFO   [security.csp] - Creating csp.xml with the default configuration
+geoserver-1  | 17:18:13 INFO   [security.csp] - Creating csp_default.xml with the default configuration
+geoserver-1  | 17:18:13 CONFIG [geoserver.security] - AuthenticationCache Initialized with 1000 Max Entries, 300 seconds idle time, 600 seconds time to live and 3 concurrency level
+geoserver-1  | 17:18:13 CONFIG [geoserver.security] - AuthenticationCache Eviction Task created to run every 600 seconds
+geoserver-1  | 17:18:14 CONFIG [gwc.config] - Will look for 'geowebcache-diskquota.xml' in directory '/opt/geoserver_data/gwc'.
+geoserver-1  | 17:18:14 CONFIG [gwc.config] - Will look for 'geowebcache-diskquota-jdbc.xml' in directory '/opt/geoserver_data/gwc'.
+geoserver-1  | 17:18:15 INFO   [geoserver.security] - Strong cryptography is available
+geoserver-1  | 17:18:15 CONFIG [geoserver.security] - Start reloading user/groups for service named default
+geoserver-1  | 17:18:15 CONFIG [geoserver.security] - Reloading user/groups successful for service named default
+geoserver-1  | 17:18:15 INFO   [geoserver.security] - Start encrypting configuration passwords using pbePasswordEncoder
+geoserver-1  | 17:18:15 INFO   [geoserver.security] - End encrypting configuration passwords
+geoserver-1  | 20-Oct-2026 17:18:16.084 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+geoserver-1  | 20-Oct-2026 17:18:16.094 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [9707] milliseconds
+geoserver-1  | 17:18:27 INFO   [rest.catalog] - Added workspace pd439a28ad4818411696977a5
+geoserver-1  | 17:18:27 INFO   [rest.catalog] - POST workspace pd439a28ad4818411696977a5
+geoserver-1  | 17:18:27 INFO   [rest.catalog] - Auto-configuring coverage store: temperature
+geoserver-1  | 17:18:28 ERROR  [referencing.factory] - Failed to initialize pivot CRSs, please ensure you have a valid EPSG database
+geoserver-1  | org.geotools.api.referencing.NoSuchAuthorityCodeException: No code "4258" from authority "European Petroleum Survey Group" found for object of type "interface org.geotools.api.referencing.IdentifiedObject".
+geoserver-1  | 	at org.geotools.referencing.factory.AbstractAuthorityFactory.noSuchAuthorityCode(AbstractAuthorityFactory.java:870)
+geoserver-1  | 	at org.geotools.referencing.factory.AbstractAuthorityFactory.createObject(AbstractAuthorityFactory.java:158)
+geoserver-1  | 	at org.geotools.referencing.factory.BufferedAuthorityFactory.createObject(BufferedAuthorityFactory.java:358)
+geoserver-1  | 	at org.geotools.referencing.operation.AuthorityBackedFactory.getPivotCoordinateReferenceSystems(AuthorityBackedFactory.java:323)
+geoserver-1  | 	at org.geotools.referencing.operation.AuthorityBackedFactory.tryWellKnownPivots(AuthorityBackedFactory.java:296)
+geoserver-1  | 	at org.geotools.referencing.operation.DefaultCoordinateOperationFactory.createOperationStep(DefaultCoordinateOperationFactory.java:791)
+geoserver-1  | 	at org.geotools.referencing.operation.DefaultCoordinateOperationFactory.findOperations(DefaultCoordinateOperationFactory.java:309)
+geoserver-1  | 	at org.geotools.referencing.operation.DefaultCoordinateOperationFactory.createOperation(DefaultCoordinateOperationFactory.java:202)
+geoserver-1  | 	at org.geotools.referencing.operation.BufferedCoordinateOperationFactory.createOperation(BufferedCoordinateOperationFactory.java:223)
+geoserver-1  | 	at org.geotools.referencing.CRS.findMathTransform(CRS.java:1272)
+geoserver-1  | 	at org.geotools.referencing.CRS.findMathTransform(CRS.java:1171)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicConfigHandler.transformResolutionLevels(ImageMosaicConfigHandler.java:1550)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicConfigHandler.getResolutionLevels(ImageMosaicConfigHandler.java:1516)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicConfigHandler.updateConfiguration(ImageMosaicConfigHandler.java:1367)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicFileFeatureConsumer$ImageMosaicFileConsumer.handleElement(ImageMosaicFileFeatureConsumer.java:256)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicFileFeatureConsumer$ImageMosaicFileConsumer.handleElement(ImageMosaicFileFeatureConsumer.java:128)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicDirectoryWalker$MosaicDirectoryWalker.handleElement(ImageMosaicDirectoryWalker.java:165)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicDirectoryWalker$MosaicDirectoryWalker.handleFile(ImageMosaicDirectoryWalker.java:96)
+geoserver-1  | 	at org.apache.commons.io.DirectoryWalker.walk(DirectoryWalker.java:657)
+geoserver-1  | 	at org.apache.commons.io.DirectoryWalker.walk(DirectoryWalker.java:625)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicDirectoryWalker$MosaicDirectoryWalker.<init>(ImageMosaicDirectoryWalker.java:117)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicDirectoryWalker.run(ImageMosaicDirectoryWalker.java:205)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.Utils.createMosaicInternal(Utils.java:577)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.Utils.createMosaic(Utils.java:544)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.Utils.checkSource(Utils.java:1666)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicReader.initReaderFromURL(ImageMosaicReader.java:249)
+db-1         | This user must also own the server process.
+db-1         | 
+db-1         | The database cluster will be initialized with locale "en_US.utf8".
+db-1         | The default database encoding has accordingly been set to "UTF8".
+db-1         | The default text search configuration will be set to "english".
+db-1         | 
+db-1         | Data page checksums are enabled.
+db-1         | 
+db-1         | fixing permissions on existing directory /var/lib/postgresql/18/docker ... ok
+db-1         | creating subdirectories ... ok
+db-1         | selecting dynamic shared memory implementation ... posix
+db-1         | selecting default "max_connections" ... 100
+db-1         | selecting default "shared_buffers" ... 128MB
+db-1         | selecting default time zone ... Etc/UTC
+db-1         | creating configuration files ... ok
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicReader.<init>(ImageMosaicReader.java:210)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicFormat.getReader(ImageMosaicFormat.java:518)
+geoserver-1  | 	at org.geotools.gce.imagemosaic.ImageMosaicFormat.getReader(ImageMosaicFormat.java:101)
+geoserver-1  | 	at org.geoserver.rest.catalog.CoverageStoreFileController.coverageStorePut(CoverageStoreFileController.java:237)
+geoserver-1  | 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+geoserver-1  | 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+geoserver-1  | 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+geoserver-1  | 	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+geoserver-1  | 	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205)
+geoserver-1  | 	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150)
+geoserver-1  | 	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+geoserver-1  | 	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:903)
+geoserver-1  | 	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:809)
+geoserver-1  | 	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+geoserver-1  | 	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1072)
+geoserver-1  | 	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+geoserver-1  | 	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+geoserver-1  | 	at org.springframework.web.servlet.FrameworkServlet.doPut(FrameworkServlet.java:920)
+geoserver-1  | 	at javax.servlet.http.HttpServlet.service(HttpServlet.java:558)
+geoserver-1  | 	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+geoserver-1  | 	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:199)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.ThreadLocalsCleanupFilter.doFilter(ThreadLocalsCleanupFilter.java:28)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:70)
+geoserver-1  | 	at org.geoserver.ows.HTTPHeadersCollector.doFilter(HTTPHeadersCollector.java:48)
+geoserver-1  | 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:67)
+geoserver-1  | 	at org.geoserver.filters.HTTPMethodFilter.doFilter(HTTPMethodFilter.java:36)
+geoserver-1  | 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:67)
+geoserver-1  | 	at org.geoserver.filters.LoggingFilter.doFilter(LoggingFilter.java:181)
+geoserver-1  | 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:67)
+geoserver-1  | 	at org.geoserver.filters.SpringDelegatingFilter.doFilter(SpringDelegatingFilter.java:41)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.platform.AdvancedDispatchFilter.doFilter(AdvancedDispatchFilter.java:39)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:352)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:100)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+db-1         | running bootstrap script ... ok
+db-1         | performing post-bootstrap initialization ... ok
+db-1         | syncing data to disk ... ok
+db-1         | 
+db-1         | 
+db-1         | Success. You can now start the database server using:
+db-1         | 
+db-1         |     pg_ctl -D /var/lib/postgresql/18/docker -l logfile start
+db-1         | 
+db-1         | initdb: warning: enabling "trust" authentication for local connections
+db-1         | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+db-1         | waiting for server to start....2026-10-20 17:18:06.871 UTC [54] LOG:  starting PostgreSQL 18.4 (Debian 18.4-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+db-1         | 2026-10-20 17:18:06.879 UTC [54] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+db-1         | 2026-10-20 17:18:06.899 UTC [60] LOG:  database system was shut down at 2026-10-20 17:18:06 UTC
+db-1         | 2026-10-20 17:18:06.908 UTC [54] LOG:  database system is ready to accept connections
+db-1         |  done
+db-1         | server started
+db-1         | CREATE DATABASE
+db-1         | 
+db-1         | 
+db-1         | /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/010-hmc.sh
+db-1         | CREATE EXTENSION
+db-1         | INSERT 0 1
+db-1         | REVOKE
+db-1         | CREATE ROLE
+db-1         | CREATE ROLE
+db-1         | CREATE ROLE
+geoserver-1  | 	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerAnonymousAuthenticationFilter.doFilter(GeoServerAnonymousAuthenticationFilter.java:52)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 	at org.springframework.security.web.authentication.www.BasicAuthenticationFilter.doFilterInternal(BasicAuthenticationFilter.java:200)
+geoserver-1  | 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerBasicAuthenticationFilter.doFilter(GeoServerBasicAuthenticationFilter.java:80)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerSecurityContextPersistenceFilter$1.doFilterInternal(GeoServerSecurityContextPersistenceFilter.java:66)
+geoserver-1  | 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:225)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:190)
+geoserver-1  | 	at org.geoserver.security.GeoServerSecurityFilterChainProxy.doFilter(GeoServerSecurityFilterChainProxy.java:139)
+geoserver-1  | 	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+geoserver-1  | 	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.SecurityHeadersFilter.doFilter(SecurityHeadersFilter.java:116)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.GZIPFilter.doFilter(GZIPFilter.java:47)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.SessionDebugFilter.doFilter(SessionDebugFilter.java:48)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.FlushSafeFilter.doFilter(FlushSafeFilter.java:42)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+geoserver-1  | 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+geoserver-1  | 	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+geoserver-1  | 	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+geoserver-1  | 	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+geoserver-1  | 	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+geoserver-1  | 	at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:660)
+geoserver-1  | 	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+geoserver-1  | 	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
+geoserver-1  | 	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:396)
+geoserver-1  | 	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+geoserver-1  | 	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
+geoserver-1  | 	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1793)
+geoserver-1  | 	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+geoserver-1  | 	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
+geoserver-1  | 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+geoserver-1  | 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+geoserver-1  | 	at java.base/java.lang.Thread.run(Thread.java:840)
+geoserver-1  | 17:18:28 WARN   [geotools.jdbc] - Fetching fields from Database
+geoserver-1  | 17:18:30 INFO   [rest.catalog] - POST Style raster
+geoserver-1  | 17:18:30 INFO   [gwc.layer] - Truncating default style for layer pd439a28ad4818411696977a5:gd439a28ad4818411696977a5, as it changed from raster to pd439a28ad4818411696977a5:raster
+geoserver-1  | 17:18:30 WARN   [gwc.layer] - Can't compute bounds for tile layer pd439a28ad4818411696977a5:gd439a28ad4818411696977a5 in CRS EPSG:900913. Assuming full GridSet bounds. (org.geotools.api.referencing.NoSuchAuthorityCodeException: No code "EPSG:900913" from authority "European Petroleum Survey Group" found for object of type "interface org.geotools.api.referencing.IdentifiedObject".)
+geoserver-1  | 17:18:30 INFO   [geoserver.gwc] - Saving GeoSeverTileLayer pd439a28ad4818411696977a5:gd439a28ad4818411696977a5
+geoserver-1  | 17:18:30 INFO   [rest.catalog] - PUT layer pd439a28ad4818411696977a5:gd439a28ad4818411696977a5
+geoserver-1  | 17:18:30 INFO   [rest.catalog] - PUT coverage temperature,CoverageInfoImpl[gd439a28ad4818411696977a5]
+geoserver-1  | 17:18:30 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:18:30 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getCapabilities
+geoserver-1  | 	AcceptLanguages = null
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Get = false
+geoserver-1  | 	Namespace = pd439a28ad4818411696977a5
+geoserver-1  | 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 	Request = GetCapabilities
+geoserver-1  | 	RequestCharset = null
+geoserver-1  | 	RootLayerEnabled = null
+geoserver-1  | 	UpdateSequence = null
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 17:18:31 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 20-Oct-2026 17:18:31.454 INFO [http-nio-8080-exec-9] java.util.prefs.FileSystemPreferences$1.run Created user preferences directory.
+geoserver-1  | 17:18:31 WARN   [operation.projection] - Possible use of "Popular Visualisation Pseudo Mercator" projection outside its valid area.
+geoserver-1  | Longitude 2147483287°00.0'W is out of range (±180°).
+geoserver-1  | 17:18:31 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getMap
+geoserver-1  | 	Angle = 0.0
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 	Buffer = 0
+geoserver-1  | 	Clip = null
+geoserver-1  | 	CQLFilter = null
+geoserver-1  | 	Crs = PROJCS["WGS 84 / Pseudo-Mercator", 
+geoserver-1  |   GEOGCS["WGS 84", 
+geoserver-1  |     DATUM["World Geodetic System 1984", 
+geoserver-1  |       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
+geoserver-1  |       AUTHORITY["EPSG","6326"]], 
+geoserver-1  |     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
+geoserver-1  |     UNIT["degree", 0.017453292519943295], 
+geoserver-1  |     AXIS["Geodetic latitude", NORTH], 
+geoserver-1  |     AXIS["Geodetic longitude", EAST], 
+geoserver-1  |     AUTHORITY["EPSG","4326"]], 
+geoserver-1  |   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]], 
+geoserver-1  |   PARAMETER["semi_minor", 6378137.0], 
+geoserver-1  |   PARAMETER["latitude_of_origin", 0.0], 
+geoserver-1  |   PARAMETER["central_meridian", 0.0], 
+geoserver-1  |   PARAMETER["scale_factor", 1.0], 
+geoserver-1  |   PARAMETER["false_easting", 0.0], 
+geoserver-1  |   PARAMETER["false_northing", 0.0], 
+geoserver-1  |   UNIT["m", 1.0], 
+geoserver-1  |   AXIS["Easting", EAST], 
+geoserver-1  |   AXIS["Northing", NORTH], 
+geoserver-1  |   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 	Elevation = []
+geoserver-1  | 	Env = {}
+geoserver-1  | 	Exceptions = SE_XML
+geoserver-1  | 	FeatureId = null
+geoserver-1  | 	FeatureVersion = null
+geoserver-1  | 	Filter = null
+geoserver-1  | 	Format = image/png
+geoserver-1  | 	FormatOptions = {}
+geoserver-1  | 	Get = true
+geoserver-1  | 	Height = 64
+geoserver-1  | 	Interpolations = []
+geoserver-1  | 	Layers = [org.geoserver.wms.MapLayerInfo@399384e7]
+geoserver-1  | 	MaxFeatures = null
+geoserver-1  | 	Palette = null
+geoserver-1  | 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5}
+geoserver-1  | 	RemoteOwsType = null
+geoserver-1  | 	RemoteOwsURL = null
+geoserver-1  | 	Request = GetMap
+geoserver-1  | 	RequestCharset = UTF-8
+geoserver-1  | 	ScaleMethod = null
+geoserver-1  | 	Sld = null
+geoserver-1  | 	SldBody = null
+geoserver-1  | 	SldVersion = null
+geoserver-1  | 	SortBy = null
+geoserver-1  | 	SortByArrays = null
+geoserver-1  | 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 	StartIndex = null
+geoserver-1  | 	StyleBody = null
+geoserver-1  | 	StyleFormat = sld
+geoserver-1  | 	Styles = [StyleImpl[ name=pd439a28ad4818411696977a5:raster]]
+geoserver-1  | 	StyleUrl = null
+geoserver-1  | 	StyleVersion = null
+geoserver-1  | 	Tiled = false
+geoserver-1  | 	TilesOrigin = null
+geoserver-1  | 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 	Transparent = true
+db-1         | CREATE SCHEMA
+db-1         | CREATE SCHEMA
+db-1         | SET
+db-1         | CREATE TABLE
+db-1         | CREATE TABLE
+db-1         | GRANT
+db-1         | GRANT
+db-1         | GRANT
+db-1         | CREATE TABLE
+db-1         | GRANT
+db-1         | RESET
+db-1         | 
+db-1         | /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/020-access.sh
+db-1         | CREATE ROLE
+db-1         | ALTER ROLE
+db-1         | CREATE SCHEMA
+db-1         | 
+db-1         | /usr/local/bin/docker-entrypoint.sh: sourcing /docker-entrypoint-initdb.d/10_postgis.sh
+db-1         | CREATE DATABASE
+db-1         | Loading PostGIS extensions into template_postgis
+db-1         | CREATE EXTENSION
+db-1         | CREATE EXTENSION
+db-1         | You are now connected to database "template_postgis" as user "postgres".
+db-1         | DO
+db-1         | Loading PostGIS extensions into hmc
+db-1         | CREATE EXTENSION
+db-1         | NOTICE:  extension "postgis" already exists, skipping
+db-1         | CREATE EXTENSION
+db-1         | You are now connected to database "hmc" as user "postgres".
+db-1         | DO
+db-1         | 
+db-1         | /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/native-crs.sql
+db-1         | INSERT 0 0
+db-1         | 
+db-1         | 
+db-1         | waiting for server to shut down...2026-10-20 17:18:08.586 UTC [54] LOG:  received fast shutdown request
+db-1         | .2026-10-20 17:18:08.592 UTC [54] LOG:  aborting any active transactions
+db-1         | 2026-10-20 17:18:08.595 UTC [54] LOG:  background worker "logical replication launcher" (PID 63) exited with exit code 1
+db-1         | 2026-10-20 17:18:08.595 UTC [58] LOG:  shutting down
+db-1         | 2026-10-20 17:18:08.599 UTC [58] LOG:  checkpoint starting: shutdown immediate
+geoserver-1  | 	ValidateSchema = false
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 	ViewParams = null
+geoserver-1  | 	Width = 64
+geoserver-1  | 17:18:32 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:18:32 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getFeatureInfo
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 	ExcludeNodataResults = false
+geoserver-1  | 	FeatureCount = 1
+geoserver-1  | 	Get = false
+geoserver-1  | 	GetMapRequest = 
+geoserver-1  | GetMap Request
+geoserver-1  |  version: 1.3.0
+geoserver-1  |  output format: image/png
+geoserver-1  |  width height: 3,3
+geoserver-1  |  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  |  layers: pd439a28ad4818411696977a5:gd439a28ad4818411696977a5
+geoserver-1  |  styles: pd439a28ad4818411696977a5:raster
+geoserver-1  | 	InfoFormat = text/plain
+geoserver-1  | 	PropertyNames = null
+geoserver-1  | 	QueryLayers = [org.geoserver.wms.MapLayerInfo@399384e7]
+geoserver-1  | 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T01:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5}
+geoserver-1  | 	Request = GetFeatureInfo
+geoserver-1  | 	RequestCharset = null
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 	XPixel = 1
+geoserver-1  | 	YPixel = 1
+geoserver-1  | 17:18:32 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:18:32 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getCapabilities
+geoserver-1  | 	AcceptLanguages = null
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Get = false
+geoserver-1  | 	Namespace = pd439a28ad4818411696977a5
+geoserver-1  | 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 	Request = GetCapabilities
+geoserver-1  | 	RequestCharset = null
+geoserver-1  | 	RootLayerEnabled = null
+geoserver-1  | 	UpdateSequence = null
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 17:18:32 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:18:32 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getMap
+geoserver-1  | 	Angle = 0.0
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 	Buffer = 0
+geoserver-1  | 	Clip = null
+geoserver-1  | 	CQLFilter = null
+geoserver-1  | 	Crs = PROJCS["WGS 84 / Pseudo-Mercator", 
+geoserver-1  |   GEOGCS["WGS 84", 
+geoserver-1  |     DATUM["World Geodetic System 1984", 
+geoserver-1  |       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
+geoserver-1  |       AUTHORITY["EPSG","6326"]], 
+geoserver-1  |     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
+geoserver-1  |     UNIT["degree", 0.017453292519943295], 
+geoserver-1  |     AXIS["Geodetic latitude", NORTH], 
+geoserver-1  |     AXIS["Geodetic longitude", EAST], 
+geoserver-1  |     AUTHORITY["EPSG","4326"]], 
+geoserver-1  |   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]], 
+geoserver-1  |   PARAMETER["semi_minor", 6378137.0], 
+geoserver-1  |   PARAMETER["latitude_of_origin", 0.0], 
+geoserver-1  |   PARAMETER["central_meridian", 0.0], 
+geoserver-1  |   PARAMETER["scale_factor", 1.0], 
+geoserver-1  |   PARAMETER["false_easting", 0.0], 
+geoserver-1  |   PARAMETER["false_northing", 0.0], 
+geoserver-1  |   UNIT["m", 1.0], 
+geoserver-1  |   AXIS["Easting", EAST], 
+geoserver-1  |   AXIS["Northing", NORTH], 
+geoserver-1  |   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 	Elevation = []
+geoserver-1  | 	Env = {}
+geoserver-1  | 	Exceptions = SE_XML
+geoserver-1  | 	FeatureId = null
+geoserver-1  | 	FeatureVersion = null
+geoserver-1  | 	Filter = null
+geoserver-1  | 	Format = image/png
+geoserver-1  | 	FormatOptions = {}
+geoserver-1  | 	Get = true
+geoserver-1  | 	Height = 64
+geoserver-1  | 	Interpolations = []
+geoserver-1  | 	Layers = [org.geoserver.wms.MapLayerInfo@399384e7]
+geoserver-1  | 	MaxFeatures = null
+geoserver-1  | 	Palette = null
+geoserver-1  | 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5}
+geoserver-1  | 	RemoteOwsType = null
+geoserver-1  | 	RemoteOwsURL = null
+geoserver-1  | 	Request = GetMap
+geoserver-1  | 	RequestCharset = UTF-8
+geoserver-1  | 	ScaleMethod = null
+geoserver-1  | 	Sld = null
+geoserver-1  | 	SldBody = null
+geoserver-1  | 	SldVersion = null
+geoserver-1  | 	SortBy = null
+geoserver-1  | 	SortByArrays = null
+geoserver-1  | 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 	StartIndex = null
+geoserver-1  | 	StyleBody = null
+geoserver-1  | 	StyleFormat = sld
+geoserver-1  | 	Styles = [StyleImpl[ name=pd439a28ad4818411696977a5:raster]]
+geoserver-1  | 	StyleUrl = null
+geoserver-1  | 	StyleVersion = null
+geoserver-1  | 	Tiled = false
+geoserver-1  | 	TilesOrigin = null
+geoserver-1  | 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 	Transparent = true
+geoserver-1  | 	ValidateSchema = false
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 	ViewParams = null
+geoserver-1  | 	Width = 64
+geoserver-1  | 17:18:32 CONFIG [platform.resource] - Notifying ENTRY_CREATE change on /opt/geoserver_data/gwc-layers. Created: 1, removed: 0, modified: 0
+geoserver-1  | 17:18:33 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:18:33 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getFeatureInfo
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 	ExcludeNodataResults = false
+geoserver-1  | 	FeatureCount = 1
+geoserver-1  | 	Get = false
+geoserver-1  | 	GetMapRequest = 
+geoserver-1  | GetMap Request
+geoserver-1  |  version: 1.3.0
+geoserver-1  |  output format: image/png
+geoserver-1  |  width height: 3,3
+geoserver-1  |  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  |  layers: pd439a28ad4818411696977a5:gd439a28ad4818411696977a5
+geoserver-1  |  styles: pd439a28ad4818411696977a5:raster
+geoserver-1  | 	InfoFormat = text/plain
+geoserver-1  | 	PropertyNames = null
+geoserver-1  | 	QueryLayers = [org.geoserver.wms.MapLayerInfo@399384e7]
+geoserver-1  | 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T01:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5}
+geoserver-1  | 	Request = GetFeatureInfo
+geoserver-1  | 	RequestCharset = null
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 	XPixel = 1
+geoserver-1  | 	YPixel = 1
+geoserver-1  | 17:18:35 INFO   [rest.catalog] - PUT coverage temperature,CoverageInfoImpl[gd439a28ad4818411696977a5]
+geoserver-1  | 17:18:36 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:18:36 ERROR  [geoserver.ows] - 
+geoserver-1  | org.geoserver.platform.ServiceException: Could not find layer pd439a28ad4818411696977a5:gd439a28ad4818411696977a5
+geoserver-1  | 	at org.geoserver.wms.map.GetMapKvpRequestReader.parseLayers(GetMapKvpRequestReader.java:1449)
+geoserver-1  | 	at org.geoserver.wms.map.GetMapKvpRequestReader.read(GetMapKvpRequestReader.java:350)
+geoserver-1  | 	at org.geoserver.wms.map.GetMapKvpRequestReader.read(GetMapKvpRequestReader.java:107)
+geoserver-1  | 	at org.geoserver.ows.Dispatcher.parseRequestKVP(Dispatcher.java:1568)
+geoserver-1  | 	at org.geoserver.ows.Dispatcher.dispatch(Dispatcher.java:785)
+geoserver-1  | 	at org.geoserver.ows.Dispatcher.handleRequestInternal(Dispatcher.java:261)
+geoserver-1  | 	at org.springframework.web.servlet.mvc.AbstractController.handleRequest(AbstractController.java:177)
+geoserver-1  | 	at org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter.handle(SimpleControllerHandlerAdapter.java:51)
+geoserver-1  | 	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1072)
+geoserver-1  | 	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+geoserver-1  | 	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+geoserver-1  | 	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:898)
+geoserver-1  | 	at javax.servlet.http.HttpServlet.service(HttpServlet.java:529)
+geoserver-1  | 	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+geoserver-1  | 	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:199)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.ThreadLocalsCleanupFilter.doFilter(ThreadLocalsCleanupFilter.java:28)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+db-1         | .2026-10-20 17:18:09.643 UTC [58] LOG:  checkpoint complete: wrote 4494 buffers (27.4%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 2 recycled; write=0.054 s, sync=0.973 s, total=1.048 s; sync files=985, longest=0.009 s, average=0.001 s; distance=35223 kB, estimate=35223 kB; lsn=0/39C54F8, redo lsn=0/39C54F8
+db-1         | 2026-10-20 17:18:09.656 UTC [54] LOG:  database system is shut down
+db-1         |  done
+db-1         | server stopped
+db-1         | 
+db-1         | PostgreSQL init process complete; ready for start up.
+db-1         | 
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:70)
+geoserver-1  | 	at org.geoserver.ows.HTTPHeadersCollector.doFilter(HTTPHeadersCollector.java:48)
+geoserver-1  | 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:67)
+geoserver-1  | 	at org.geoserver.filters.HTTPMethodFilter.doFilter(HTTPMethodFilter.java:36)
+geoserver-1  | 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:67)
+geoserver-1  | 	at org.geoserver.filters.LoggingFilter.doFilter(LoggingFilter.java:181)
+geoserver-1  | 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:67)
+geoserver-1  | 	at org.geoserver.filters.SpringDelegatingFilter.doFilter(SpringDelegatingFilter.java:41)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.platform.AdvancedDispatchFilter.doFilter(AdvancedDispatchFilter.java:39)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:352)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:100)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+geoserver-1  | 	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerAnonymousAuthenticationFilter.doFilter(GeoServerAnonymousAuthenticationFilter.java:52)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 	at org.springframework.security.web.authentication.www.BasicAuthenticationFilter.doFilterInternal(BasicAuthenticationFilter.java:168)
+geoserver-1  | 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerBasicAuthenticationFilter.doFilter(GeoServerBasicAuthenticationFilter.java:80)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerSecurityContextPersistenceFilter$1.doFilterInternal(GeoServerSecurityContextPersistenceFilter.java:66)
+geoserver-1  | 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:225)
+geoserver-1  | 	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:190)
+geoserver-1  | 	at org.geoserver.security.GeoServerSecurityFilterChainProxy.doFilter(GeoServerSecurityFilterChainProxy.java:139)
+geoserver-1  | 	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+geoserver-1  | 	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.SecurityHeadersFilter.doFilter(SecurityHeadersFilter.java:116)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.GZIPFilter.doFilter(GZIPFilter.java:47)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.SessionDebugFilter.doFilter(SessionDebugFilter.java:48)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.geoserver.filters.FlushSafeFilter.doFilter(FlushSafeFilter.java:42)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+geoserver-1  | 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+geoserver-1  | 	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+geoserver-1  | 	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+geoserver-1  | 	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+geoserver-1  | 	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+geoserver-1  | 	at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:660)
+geoserver-1  | 	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+geoserver-1  | 	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
+geoserver-1  | 	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:396)
+geoserver-1  | 	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+geoserver-1  | 	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
+geoserver-1  | 	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1793)
+geoserver-1  | 	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+geoserver-1  | 	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
+geoserver-1  | 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+geoserver-1  | 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+geoserver-1  | 	at java.base/java.lang.Thread.run(Thread.java:840)
+geoserver-1  | 17:18:36 INFO   [rest.catalog] - PUT coverage temperature,CoverageInfoImpl[gd439a28ad4818411696977a5]
+geoserver-1  | 17:18:36 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:18:36 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getMap
+geoserver-1  | 	Angle = 0.0
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 	Buffer = 0
+geoserver-1  | 	Clip = null
+geoserver-1  | 	CQLFilter = null
+geoserver-1  | 	Crs = PROJCS["WGS 84 / Pseudo-Mercator", 
+geoserver-1  |   GEOGCS["WGS 84", 
+geoserver-1  |     DATUM["World Geodetic System 1984", 
+geoserver-1  |       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
+geoserver-1  |       AUTHORITY["EPSG","6326"]], 
+geoserver-1  |     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
+geoserver-1  |     UNIT["degree", 0.017453292519943295], 
+geoserver-1  |     AXIS["Geodetic latitude", NORTH], 
+geoserver-1  |     AXIS["Geodetic longitude", EAST], 
+geoserver-1  |     AUTHORITY["EPSG","4326"]], 
+geoserver-1  |   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]], 
+geoserver-1  |   PARAMETER["semi_minor", 6378137.0], 
+geoserver-1  |   PARAMETER["latitude_of_origin", 0.0], 
+geoserver-1  |   PARAMETER["central_meridian", 0.0], 
+geoserver-1  |   PARAMETER["scale_factor", 1.0], 
+geoserver-1  |   PARAMETER["false_easting", 0.0], 
+geoserver-1  |   PARAMETER["false_northing", 0.0], 
+geoserver-1  |   UNIT["m", 1.0], 
+geoserver-1  |   AXIS["Easting", EAST], 
+geoserver-1  |   AXIS["Northing", NORTH], 
+geoserver-1  |   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 	Elevation = []
+geoserver-1  | 	Env = {}
+geoserver-1  | 	Exceptions = SE_XML
+geoserver-1  | 	FeatureId = null
+geoserver-1  | 	FeatureVersion = null
+geoserver-1  | 	Filter = null
+geoserver-1  | 	Format = image/png
+geoserver-1  | 	FormatOptions = {}
+geoserver-1  | 	Get = true
+geoserver-1  | 	Height = 64
+geoserver-1  | 	Interpolations = []
+geoserver-1  | 	Layers = [org.geoserver.wms.MapLayerInfo@399384e7]
+geoserver-1  | 	MaxFeatures = null
+geoserver-1  | 	Palette = null
+geoserver-1  | 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5}
+geoserver-1  | 	RemoteOwsType = null
+geoserver-1  | 	RemoteOwsURL = null
+db-1         | 2026-10-20 17:18:09.708 UTC [1] LOG:  starting PostgreSQL 18.4 (Debian 18.4-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+db-1         | 2026-10-20 17:18:09.708 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+db-1         | 2026-10-20 17:18:09.708 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+db-1         | 2026-10-20 17:18:09.713 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+db-1         | 2026-10-20 17:18:09.721 UTC [107] LOG:  database system was shut down at 2026-10-20 17:18:09 UTC
+db-1         | 2026-10-20 17:18:09.722 UTC [108] FATAL:  the database system is starting up
+db-1         | 2026-10-20 17:18:09.726 UTC [1] LOG:  database system is ready to accept connections
+db-1         | 2026-10-20 17:21:19.346 UTC [1] LOG:  received fast shutdown request
+db-1         | 2026-10-20 17:21:19.349 UTC [1] LOG:  aborting any active transactions
+db-1         | 2026-10-20 17:21:19.349 UTC [563] FATAL:  terminating connection due to administrator command
+db-1         | 2026-10-20 17:21:19.349 UTC [298] FATAL:  terminating connection due to administrator command
+db-1         | 2026-10-20 17:21:19.351 UTC [1] LOG:  background worker "logical replication launcher" (PID 111) exited with exit code 1
+db-1         | 2026-10-20 17:21:19.352 UTC [105] LOG:  shutting down
+db-1         | 2026-10-20 17:21:19.354 UTC [105] LOG:  checkpoint starting: shutdown immediate
+db-1         | 2026-10-20 17:21:19.486 UTC [105] LOG:  checkpoint complete: wrote 815 buffers (5.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 1 recycled; write=0.009 s, sync=0.110 s, total=0.135 s; sync files=170, longest=0.008 s, average=0.001 s; distance=20899 kB, estimate=20899 kB; lsn=0/4E2E3E8, redo lsn=0/4E2E3E8
+db-1         | 2026-10-20 17:21:19.496 UTC [1] LOG:  database system is shut down
+db-1         | 
+db-1         | PostgreSQL Database directory appears to contain a database; Skipping initialization
+db-1         | 
+db-1         | 2026-10-20 17:21:29.289 UTC [1] LOG:  starting PostgreSQL 18.4 (Debian 18.4-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+db-1         | 2026-10-20 17:21:29.289 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+db-1         | 2026-10-20 17:21:29.289 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+db-1         | 2026-10-20 17:21:29.294 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+db-1         | 2026-10-20 17:21:29.301 UTC [33] LOG:  database system was shut down at 2026-10-20 17:21:19 UTC
+db-1         | 2026-10-20 17:21:29.306 UTC [1] LOG:  database system is ready to accept connections
+geoserver-1  | 	Request = GetMap
+geoserver-1  | 	RequestCharset = UTF-8
+geoserver-1  | 	ScaleMethod = null
+geoserver-1  | 	Sld = null
+geoserver-1  | 	SldBody = null
+geoserver-1  | 	SldVersion = null
+geoserver-1  | 	SortBy = null
+geoserver-1  | 	SortByArrays = null
+geoserver-1  | 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 	StartIndex = null
+geoserver-1  | 	StyleBody = null
+geoserver-1  | 	StyleFormat = sld
+geoserver-1  | 	Styles = [StyleImpl[ name=pd439a28ad4818411696977a5:raster]]
+geoserver-1  | 	StyleUrl = null
+geoserver-1  | 	StyleVersion = null
+geoserver-1  | 	Tiled = false
+geoserver-1  | 	TilesOrigin = null
+geoserver-1  | 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 	Transparent = false
+geoserver-1  | 	ValidateSchema = false
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 	ViewParams = null
+geoserver-1  | 	Width = 64
+geoserver-1  | 17:18:51 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:18:51 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getCapabilities
+geoserver-1  | 	AcceptLanguages = null
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Get = false
+geoserver-1  | 	Namespace = pd439a28ad4818411696977a5
+geoserver-1  | 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 	Request = GetCapabilities
+geoserver-1  | 	RequestCharset = null
+geoserver-1  | 	RootLayerEnabled = null
+geoserver-1  | 	UpdateSequence = null
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 17:20:49 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:20:49 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getCapabilities
+geoserver-1  | 	AcceptLanguages = null
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Get = false
+geoserver-1  | 	Namespace = pd439a28ad4818411696977a5
+geoserver-1  | 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 	Request = GetCapabilities
+geoserver-1  | 	RequestCharset = null
+geoserver-1  | 	RootLayerEnabled = null
+geoserver-1  | 	UpdateSequence = null
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 17:20:50 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:20:50 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getMap
+geoserver-1  | 	Angle = 0.0
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 	Buffer = 0
+geoserver-1  | 	Clip = null
+geoserver-1  | 	CQLFilter = null
+geoserver-1  | 	Crs = PROJCS["WGS 84 / Pseudo-Mercator", 
+geoserver-1  |   GEOGCS["WGS 84", 
+geoserver-1  |     DATUM["World Geodetic System 1984", 
+geoserver-1  |       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
+geoserver-1  |       AUTHORITY["EPSG","6326"]], 
+geoserver-1  |     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
+geoserver-1  |     UNIT["degree", 0.017453292519943295], 
+geoserver-1  |     AXIS["Geodetic latitude", NORTH], 
+geoserver-1  |     AXIS["Geodetic longitude", EAST], 
+geoserver-1  |     AUTHORITY["EPSG","4326"]], 
+geoserver-1  |   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]], 
+geoserver-1  |   PARAMETER["semi_minor", 6378137.0], 
+geoserver-1  |   PARAMETER["latitude_of_origin", 0.0], 
+geoserver-1  |   PARAMETER["central_meridian", 0.0], 
+geoserver-1  |   PARAMETER["scale_factor", 1.0], 
+geoserver-1  |   PARAMETER["false_easting", 0.0], 
+geoserver-1  |   PARAMETER["false_northing", 0.0], 
+geoserver-1  |   UNIT["m", 1.0], 
+geoserver-1  |   AXIS["Easting", EAST], 
+geoserver-1  |   AXIS["Northing", NORTH], 
+geoserver-1  |   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 	Elevation = []
+geoserver-1  | 	Env = {}
+geoserver-1  | 	Exceptions = SE_XML
+geoserver-1  | 	FeatureId = null
+geoserver-1  | 	FeatureVersion = null
+geoserver-1  | 	Filter = null
+geoserver-1  | 	Format = image/png
+geoserver-1  | 	FormatOptions = {}
+geoserver-1  | 	Get = true
+geoserver-1  | 	Height = 64
+geoserver-1  | 	Interpolations = []
+geoserver-1  | 	Layers = [org.geoserver.wms.MapLayerInfo@399384e7]
+geoserver-1  | 	MaxFeatures = null
+geoserver-1  | 	Palette = null
+geoserver-1  | 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5}
+geoserver-1  | 	RemoteOwsType = null
+geoserver-1  | 	RemoteOwsURL = null
+geoserver-1  | 	Request = GetMap
+geoserver-1  | 	RequestCharset = UTF-8
+geoserver-1  | 	ScaleMethod = null
+geoserver-1  | 	Sld = null
+geoserver-1  | 	SldBody = null
+geoserver-1  | 	SldVersion = null
+geoserver-1  | 	SortBy = null
+geoserver-1  | 	SortByArrays = null
+geoserver-1  | 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 	StartIndex = null
+geoserver-1  | 	StyleBody = null
+geoserver-1  | 	StyleFormat = sld
+geoserver-1  | 	Styles = [StyleImpl[ name=pd439a28ad4818411696977a5:raster]]
+geoserver-1  | 	StyleUrl = null
+geoserver-1  | 	StyleVersion = null
+geoserver-1  | 	Tiled = false
+geoserver-1  | 	TilesOrigin = null
+geoserver-1  | 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 	Transparent = false
+geoserver-1  | 	ValidateSchema = false
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 	ViewParams = null
+geoserver-1  | 	Width = 64
+geoserver-1  | 17:20:50 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:20:50 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getMap
+geoserver-1  | 	Angle = 0.0
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 	Buffer = 0
+geoserver-1  | 	Clip = null
+geoserver-1  | 	CQLFilter = null
+geoserver-1  | 	Crs = PROJCS["WGS 84 / Pseudo-Mercator", 
+geoserver-1  |   GEOGCS["WGS 84", 
+geoserver-1  |     DATUM["World Geodetic System 1984", 
+geoserver-1  |       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
+geoserver-1  |       AUTHORITY["EPSG","6326"]], 
+geoserver-1  |     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
+geoserver-1  |     UNIT["degree", 0.017453292519943295], 
+geoserver-1  |     AXIS["Geodetic latitude", NORTH], 
+geoserver-1  |     AXIS["Geodetic longitude", EAST], 
+geoserver-1  |     AUTHORITY["EPSG","4326"]], 
+geoserver-1  |   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]], 
+geoserver-1  |   PARAMETER["semi_minor", 6378137.0], 
+geoserver-1  |   PARAMETER["latitude_of_origin", 0.0], 
+geoserver-1  |   PARAMETER["central_meridian", 0.0], 
+geoserver-1  |   PARAMETER["scale_factor", 1.0], 
+geoserver-1  |   PARAMETER["false_easting", 0.0], 
+geoserver-1  |   PARAMETER["false_northing", 0.0], 
+geoserver-1  |   UNIT["m", 1.0], 
+geoserver-1  |   AXIS["Easting", EAST], 
+geoserver-1  |   AXIS["Northing", NORTH], 
+geoserver-1  |   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 	Elevation = []
+geoserver-1  | 	Env = {}
+geoserver-1  | 	Exceptions = SE_XML
+geoserver-1  | 	FeatureId = null
+geoserver-1  | 	FeatureVersion = null
+geoserver-1  | 	Filter = null
+geoserver-1  | 	Format = image/png
+geoserver-1  | 	FormatOptions = {}
+geoserver-1  | 	Get = true
+geoserver-1  | 	Height = 64
+geoserver-1  | 	Interpolations = []
+geoserver-1  | 	Layers = [org.geoserver.wms.MapLayerInfo@399384e7]
+geoserver-1  | 	MaxFeatures = null
+geoserver-1  | 	Palette = null
+geoserver-1  | 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5}
+geoserver-1  | 	RemoteOwsType = null
+geoserver-1  | 	RemoteOwsURL = null
+geoserver-1  | 	Request = GetMap
+geoserver-1  | 	RequestCharset = UTF-8
+geoserver-1  | 	ScaleMethod = null
+geoserver-1  | 	Sld = null
+geoserver-1  | 	SldBody = null
+geoserver-1  | 	SldVersion = null
+geoserver-1  | 	SortBy = null
+geoserver-1  | 	SortByArrays = null
+geoserver-1  | 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 	StartIndex = null
+geoserver-1  | 	StyleBody = null
+geoserver-1  | 	StyleFormat = sld
+geoserver-1  | 	Styles = [StyleImpl[ name=pd439a28ad4818411696977a5:raster]]
+geoserver-1  | 	StyleUrl = null
+geoserver-1  | 	StyleVersion = null
+geoserver-1  | 	Tiled = false
+geoserver-1  | 	TilesOrigin = null
+geoserver-1  | 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 	Transparent = false
+geoserver-1  | 	ValidateSchema = false
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 	ViewParams = null
+geoserver-1  | 	Width = 64
+geoserver-1  | 17:20:54 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:20:54 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getCapabilities
+geoserver-1  | 	AcceptLanguages = null
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Get = false
+geoserver-1  | 	Namespace = pd439a28ad4818411696977a5
+geoserver-1  | 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 	Request = GetCapabilities
+geoserver-1  | 	RequestCharset = null
+geoserver-1  | 	RootLayerEnabled = null
+geoserver-1  | 	UpdateSequence = null
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 17:20:54 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:20:54 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getCapabilities
+geoserver-1  | 	AcceptLanguages = null
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Get = false
+geoserver-1  | 	Namespace = pd439a28ad4818411696977a5
+geoserver-1  | 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 	Request = GetCapabilities
+geoserver-1  | 	RequestCharset = null
+geoserver-1  | 	RootLayerEnabled = null
+geoserver-1  | 	UpdateSequence = null
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 17:20:55 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:20:55 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getMap
+geoserver-1  | 	Angle = 0.0
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 	Buffer = 0
+geoserver-1  | 	Clip = null
+geoserver-1  | 	CQLFilter = null
+geoserver-1  | 	Crs = PROJCS["WGS 84 / Pseudo-Mercator", 
+geoserver-1  |   GEOGCS["WGS 84", 
+geoserver-1  |     DATUM["World Geodetic System 1984", 
+geoserver-1  |       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
+geoserver-1  |       AUTHORITY["EPSG","6326"]], 
+geoserver-1  |     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
+geoserver-1  |     UNIT["degree", 0.017453292519943295], 
+geoserver-1  |     AXIS["Geodetic latitude", NORTH], 
+geoserver-1  |     AXIS["Geodetic longitude", EAST], 
+geoserver-1  |     AUTHORITY["EPSG","4326"]], 
+geoserver-1  |   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]], 
+geoserver-1  |   PARAMETER["semi_minor", 6378137.0], 
+geoserver-1  |   PARAMETER["latitude_of_origin", 0.0], 
+geoserver-1  |   PARAMETER["central_meridian", 0.0], 
+geoserver-1  |   PARAMETER["scale_factor", 1.0], 
+geoserver-1  |   PARAMETER["false_easting", 0.0], 
+geoserver-1  |   PARAMETER["false_northing", 0.0], 
+geoserver-1  |   UNIT["m", 1.0], 
+geoserver-1  |   AXIS["Easting", EAST], 
+geoserver-1  |   AXIS["Northing", NORTH], 
+geoserver-1  |   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 	Elevation = []
+geoserver-1  | 	Env = {}
+geoserver-1  | 	Exceptions = SE_XML
+geoserver-1  | 	FeatureId = null
+geoserver-1  | 	FeatureVersion = null
+geoserver-1  | 	Filter = null
+geoserver-1  | 	Format = image/png
+geoserver-1  | 	FormatOptions = {}
+geoserver-1  | 	Get = true
+geoserver-1  | 	Height = 64
+geoserver-1  | 	Interpolations = []
+geoserver-1  | 	Layers = [org.geoserver.wms.MapLayerInfo@399384e7]
+geoserver-1  | 	MaxFeatures = null
+geoserver-1  | 	Palette = null
+geoserver-1  | 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5}
+geoserver-1  | 	RemoteOwsType = null
+geoserver-1  | 	RemoteOwsURL = null
+geoserver-1  | 	Request = GetMap
+geoserver-1  | 	RequestCharset = UTF-8
+geoserver-1  | 	ScaleMethod = null
+geoserver-1  | 	Sld = null
+geoserver-1  | 	SldBody = null
+geoserver-1  | 	SldVersion = null
+geoserver-1  | 	SortBy = null
+geoserver-1  | 	SortByArrays = null
+geoserver-1  | 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 	StartIndex = null
+geoserver-1  | 	StyleBody = null
+geoserver-1  | 	StyleFormat = sld
+geoserver-1  | 	Styles = [StyleImpl[ name=pd439a28ad4818411696977a5:raster]]
+geoserver-1  | 	StyleUrl = null
+geoserver-1  | 	StyleVersion = null
+geoserver-1  | 	Tiled = false
+geoserver-1  | 	TilesOrigin = null
+geoserver-1  | 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 	Transparent = false
+geoserver-1  | 	ValidateSchema = false
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 	ViewParams = null
+geoserver-1  | 	Width = 64
+geoserver-1  | 17:20:55 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:20:55 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getMap
+geoserver-1  | 	Angle = 0.0
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 	Buffer = 0
+geoserver-1  | 	Clip = null
+geoserver-1  | 	CQLFilter = null
+geoserver-1  | 	Crs = PROJCS["WGS 84 / Pseudo-Mercator", 
+geoserver-1  |   GEOGCS["WGS 84", 
+geoserver-1  |     DATUM["World Geodetic System 1984", 
+geoserver-1  |       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
+geoserver-1  |       AUTHORITY["EPSG","6326"]], 
+geoserver-1  |     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
+geoserver-1  |     UNIT["degree", 0.017453292519943295], 
+geoserver-1  |     AXIS["Geodetic latitude", NORTH], 
+geoserver-1  |     AXIS["Geodetic longitude", EAST], 
+geoserver-1  |     AUTHORITY["EPSG","4326"]], 
+geoserver-1  |   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]], 
+geoserver-1  |   PARAMETER["semi_minor", 6378137.0], 
+geoserver-1  |   PARAMETER["latitude_of_origin", 0.0], 
+geoserver-1  |   PARAMETER["central_meridian", 0.0], 
+geoserver-1  |   PARAMETER["scale_factor", 1.0], 
+geoserver-1  |   PARAMETER["false_easting", 0.0], 
+geoserver-1  |   PARAMETER["false_northing", 0.0], 
+geoserver-1  |   UNIT["m", 1.0], 
+geoserver-1  |   AXIS["Easting", EAST], 
+geoserver-1  |   AXIS["Northing", NORTH], 
+geoserver-1  |   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 	Elevation = []
+geoserver-1  | 	Env = {}
+geoserver-1  | 	Exceptions = SE_XML
+geoserver-1  | 	FeatureId = null
+geoserver-1  | 	FeatureVersion = null
+geoserver-1  | 	Filter = null
+geoserver-1  | 	Format = image/png
+geoserver-1  | 	FormatOptions = {}
+geoserver-1  | 	Get = true
+geoserver-1  | 	Height = 64
+geoserver-1  | 	Interpolations = []
+geoserver-1  | 	Layers = [org.geoserver.wms.MapLayerInfo@399384e7]
+geoserver-1  | 	MaxFeatures = null
+geoserver-1  | 	Palette = null
+geoserver-1  | 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5}
+geoserver-1  | 	RemoteOwsType = null
+geoserver-1  | 	RemoteOwsURL = null
+geoserver-1  | 	Request = GetMap
+geoserver-1  | 	RequestCharset = UTF-8
+geoserver-1  | 	ScaleMethod = null
+geoserver-1  | 	Sld = null
+geoserver-1  | 	SldBody = null
+geoserver-1  | 	SldVersion = null
+geoserver-1  | 	SortBy = null
+geoserver-1  | 	SortByArrays = null
+geoserver-1  | 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 	StartIndex = null
+geoserver-1  | 	StyleBody = null
+geoserver-1  | 	StyleFormat = sld
+geoserver-1  | 	Styles = [StyleImpl[ name=pd439a28ad4818411696977a5:raster]]
+geoserver-1  | 	StyleUrl = null
+geoserver-1  | 	StyleVersion = null
+geoserver-1  | 	Tiled = false
+geoserver-1  | 	TilesOrigin = null
+geoserver-1  | 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 	Transparent = false
+geoserver-1  | 	ValidateSchema = false
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 	ViewParams = null
+geoserver-1  | 	Width = 64
+geoserver-1  | 17:20:58 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:20:58 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getCapabilities
+geoserver-1  | 	AcceptLanguages = null
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Get = false
+geoserver-1  | 	Namespace = pd439a28ad4818411696977a5
+geoserver-1  | 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 	Request = GetCapabilities
+geoserver-1  | 	RequestCharset = null
+geoserver-1  | 	RootLayerEnabled = null
+geoserver-1  | 	UpdateSequence = null
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 17:20:58 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:20:58 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getMap
+geoserver-1  | 	Angle = 0.0
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 	Buffer = 0
+geoserver-1  | 	Clip = null
+geoserver-1  | 	CQLFilter = null
+geoserver-1  | 	Crs = PROJCS["WGS 84 / Pseudo-Mercator", 
+geoserver-1  |   GEOGCS["WGS 84", 
+geoserver-1  |     DATUM["World Geodetic System 1984", 
+geoserver-1  |       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
+geoserver-1  |       AUTHORITY["EPSG","6326"]], 
+geoserver-1  |     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
+geoserver-1  |     UNIT["degree", 0.017453292519943295], 
+geoserver-1  |     AXIS["Geodetic latitude", NORTH], 
+geoserver-1  |     AXIS["Geodetic longitude", EAST], 
+geoserver-1  |     AUTHORITY["EPSG","4326"]], 
+geoserver-1  |   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]], 
+geoserver-1  |   PARAMETER["semi_minor", 6378137.0], 
+geoserver-1  |   PARAMETER["latitude_of_origin", 0.0], 
+geoserver-1  |   PARAMETER["central_meridian", 0.0], 
+geoserver-1  |   PARAMETER["scale_factor", 1.0], 
+geoserver-1  |   PARAMETER["false_easting", 0.0], 
+geoserver-1  |   PARAMETER["false_northing", 0.0], 
+geoserver-1  |   UNIT["m", 1.0], 
+geoserver-1  |   AXIS["Easting", EAST], 
+geoserver-1  |   AXIS["Northing", NORTH], 
+geoserver-1  |   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 	Elevation = []
+geoserver-1  | 	Env = {}
+geoserver-1  | 	Exceptions = SE_XML
+geoserver-1  | 	FeatureId = null
+geoserver-1  | 	FeatureVersion = null
+geoserver-1  | 	Filter = null
+geoserver-1  | 	Format = image/png
+geoserver-1  | 	FormatOptions = {}
+geoserver-1  | 	Get = true
+geoserver-1  | 	Height = 64
+geoserver-1  | 	Interpolations = []
+geoserver-1  | 	Layers = [org.geoserver.wms.MapLayerInfo@399384e7]
+geoserver-1  | 	MaxFeatures = null
+geoserver-1  | 	Palette = null
+geoserver-1  | 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, LAYERS=pd439a28ad4818411696977a5:gd439a28ad4818411696977a5}
+geoserver-1  | 	RemoteOwsType = null
+geoserver-1  | 	RemoteOwsURL = null
+geoserver-1  | 	Request = GetMap
+geoserver-1  | 	RequestCharset = UTF-8
+geoserver-1  | 	ScaleMethod = null
+geoserver-1  | 	Sld = null
+geoserver-1  | 	SldBody = null
+geoserver-1  | 	SldVersion = null
+geoserver-1  | 	SortBy = null
+geoserver-1  | 	SortByArrays = null
+geoserver-1  | 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 	StartIndex = null
+geoserver-1  | 	StyleBody = null
+geoserver-1  | 	StyleFormat = sld
+geoserver-1  | 	Styles = [StyleImpl[ name=pd439a28ad4818411696977a5:raster]]
+geoserver-1  | 	StyleUrl = null
+geoserver-1  | 	StyleVersion = null
+geoserver-1  | 	Tiled = false
+geoserver-1  | 	TilesOrigin = null
+geoserver-1  | 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 	Transparent = false
+geoserver-1  | 	ValidateSchema = false
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 	ViewParams = null
+geoserver-1  | 	Width = 64
+geoserver-1  | 17:21:01 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getServiceInfo
+geoserver-1  | 17:21:01 INFO   [geoserver.wms] - 
+geoserver-1  | Request: getCapabilities
+geoserver-1  | 	AcceptLanguages = null
+geoserver-1  | 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 	Get = false
+geoserver-1  | 	Namespace = pd439a28ad4818411696977a5
+geoserver-1  | 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 	Request = GetCapabilities
+geoserver-1  | 	RequestCharset = null
+geoserver-1  | 	RootLayerEnabled = null
+geoserver-1  | 	UpdateSequence = null
+geoserver-1  | 	Version = 1.3.0
+geoserver-1  | 20-Oct-2026 17:21:29.504 INFO [Thread-4] org.apache.coyote.AbstractProtocol.pause Pausing ProtocolHandler ["http-nio-8080"]
+geoserver-1  | 20-Oct-2026 17:21:29.506 INFO [Thread-4] org.apache.catalina.core.StandardService.stopInternal Stopping service [Catalina]
+geoserver-1  | 17:21:29 CONFIG [gwc.layer] - GeoServer TileLayer store base directory is: gwc-layers
+geoserver-1  | 17:21:29 CONFIG [gwc.layer] - Loading tile layers from gwc-layers
+geoserver-1  | 17:21:29 CONFIG [gwc.layer] - Loaded 1 tile layers in 3.613 ms
+geoserver-1  | 17:21:29 CONFIG [gwc.layer] - GeoServer TileLayer store base directory is: gwc-layers
+geoserver-1  | 17:21:29 CONFIG [gwc.layer] - Loading tile layers from gwc-layers
+geoserver-1  | 17:21:29 CONFIG [gwc.layer] - Loaded 1 tile layers in 3.204 ms
+geoserver-1  | 17:21:29 WARN   [support.DisposableBeanAdapter] - Custom destroy method 'destroy' on bean with name 'gwcMemoryBlobStore' threw an exception: java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.FutureTask@5d1da05e[Not completed, task = org.geowebcache.storage.blobstore.memory.MemoryBlobStore$BlobStoreTask@19ea4260] rejected from java.util.concurrent.ThreadPoolExecutor@25753ec5[Terminated, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 1]
+geoserver-1  | 17:21:29 INFO   [geoserver.logging] - Beginning GeoServer cleanup sequence
+geoserver-1  | 20-Oct-2026 17:21:29.811 WARNING [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [geoserver] appears to have started a thread named [FileSystemWatcher-1] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+geoserver-1  |  java.base@17.0.14/jdk.internal.misc.Unsafe.park(Native Method)
+geoserver-1  |  java.base@17.0.14/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+geoserver-1  |  java.base@17.0.14/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1679)
+geoserver-1  |  java.base@17.0.14/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+geoserver-1  |  java.base@17.0.14/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+geoserver-1  |  java.base@17.0.14/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+geoserver-1  |  java.base@17.0.14/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+geoserver-1  |  java.base@17.0.14/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+geoserver-1  |  java.base@17.0.14/java.lang.Thread.run(Thread.java:840)
+geoserver-1  | 20-Oct-2026 17:21:29.813 WARNING [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [geoserver] appears to have started a thread named [EMF Reference Cleaner] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+geoserver-1  |  java.base@17.0.14/java.lang.Object.wait(Native Method)
+geoserver-1  |  java.base@17.0.14/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:155)
+geoserver-1  |  java.base@17.0.14/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:176)
+geoserver-1  |  org.eclipse.emf.common.util.CommonUtil$1ReferenceClearingQueuePollingThread.run(CommonUtil.java:70)
+geoserver-1  | 20-Oct-2026 17:21:29.815 WARNING [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [geoserver] appears to have started a thread named [FileCleaner] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+geoserver-1  |  java.base@17.0.14/java.lang.Thread.sleep(Native Method)
+geoserver-1  |  org.geoserver.rest.util.IOUtils$FileCleaner.run(IOUtils.java:207)
+geoserver-1  | 20-Oct-2026 17:21:29.815 SEVERE [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [geoserver] created a ThreadLocal with key of type [java.lang.ThreadLocal.SuppliedThreadLocal] (value [java.lang.ThreadLocal$SuppliedThreadLocal@380d94da]) and a value of type [org.geowebcache.storage.CompositeBlobStore.StoreSuitabilityCheck] (value [EXISTING]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+geoserver-1  | 20-Oct-2026 17:21:29.816 SEVERE [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [geoserver] created a ThreadLocal with key of type [java.lang.ThreadLocal] (value [java.lang.ThreadLocal@4994e5ad]) and a value of type [org.springframework.security.core.context.ThreadLocalSecurityContextHolderStrategy$$Lambda$359/0x000075f8e454dcb0] (value [org.springframework.security.core.context.ThreadLocalSecurityContextHolderStrategy$$Lambda$359/0x000075f8e454dcb0@1cb211f7]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+geoserver-1  | 20-Oct-2026 17:21:29.816 SEVERE [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [geoserver] created a ThreadLocal with key of type [java.lang.ThreadLocal] (value [java.lang.ThreadLocal@626ca902]) and a value of type [org.geoserver.config.util.XStreamPersister] (value [org.geoserver.config.util.XStreamPersister@5991b91b]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+geoserver-1  | 20-Oct-2026 17:21:29.817 SEVERE [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [geoserver] created a ThreadLocal with key of type [org.geotools.renderer.lite.RendererUtilities$1] (value [org.geotools.renderer.lite.RendererUtilities$1@70c2535b]) and a value of type [org.geotools.referencing.operation.builder.GridToEnvelopeMapper] (value [org.geotools.referencing.operation.builder.GridToEnvelopeMapper@55327938]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+geoserver-1  | 20-Oct-2026 17:21:29.817 SEVERE [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [geoserver] created a ThreadLocal with key of type [org.geotools.renderer.lite.RendererUtilities$1] (value [org.geotools.renderer.lite.RendererUtilities$1@70c2535b]) and a value of type [org.geotools.referencing.operation.builder.GridToEnvelopeMapper] (value [org.geotools.referencing.operation.builder.GridToEnvelopeMapper@7ff32efb]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+geoserver-1  | 20-Oct-2026 17:21:29.817 SEVERE [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [geoserver] created a ThreadLocal with key of type [org.geotools.renderer.lite.RendererUtilities$1] (value [org.geotools.renderer.lite.RendererUtilities$1@70c2535b]) and a value of type [org.geotools.referencing.operation.builder.GridToEnvelopeMapper] (value [org.geotools.referencing.operation.builder.GridToEnvelopeMapper@49425bed]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+geoserver-1  | 20-Oct-2026 17:21:29.818 SEVERE [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [geoserver] created a ThreadLocal with key of type [org.geotools.renderer.lite.RendererUtilities$1] (value [org.geotools.renderer.lite.RendererUtilities$1@70c2535b]) and a value of type [org.geotools.referencing.operation.builder.GridToEnvelopeMapper] (value [org.geotools.referencing.operation.builder.GridToEnvelopeMapper@6fb650c7]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+geoserver-1  | 20-Oct-2026 17:21:29.818 SEVERE [Thread-4] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [geoserver] created a ThreadLocal with key of type [org.geotools.renderer.lite.RendererUtilities$1] (value [org.geotools.renderer.lite.RendererUtilities$1@70c2535b]) and a value of type [org.geotools.referencing.operation.builder.GridToEnvelopeMapper] (value [org.geotools.referencing.operation.builder.GridToEnvelopeMapper@3cd1648e]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+geoserver-1  | 20-Oct-2026 17:21:29.824 INFO [Thread-4] org.apache.coyote.AbstractProtocol.stop Stopping ProtocolHandler ["http-nio-8080"]
+geoserver-1  | 20-Oct-2026 17:21:29.829 INFO [Thread-4] org.apache.coyote.AbstractProtocol.destroy Destroying ProtocolHandler ["http-nio-8080"]
+geoserver-1  | Welcome to GeoServer 2.27.0
+geoserver-1  | SET_GEOSERVER_REQUIRE_FILE will be ignored because SKIP_DEMO_DATA is set to true
+geoserver-1  | Starting installation of extensions
+geoserver-1  | Finished installation of extensions
+geoserver-1  | Installing default server.xml with substituted environment variables
+geoserver-1  | Updating GeoServer Credentials ...
+geoserver-1  | USING USERS XML ORIGINAL: /usr/local/tomcat/webapps/geoserver/data/security/usergroup/default/users.xml
+geoserver-1  | USING ROLES XML ORIGINAL: /usr/local/tomcat/webapps/geoserver/data/security/role/default/roles.xml
+geoserver-1  | SETTING USERS XML: /opt/geoserver_data//security/usergroup/default/users.xml
+geoserver-1  | SETTING ROLES XML: . /opt/geoserver_data//security/role/default/roles.xml
+geoserver-1  | Successfully replaced /opt/geoserver_data//security/usergroup/default/users.xml
+geoserver-1  | Successfully replaced /opt/geoserver_data//security/role/default/roles.xml
+geoserver-1  | ... DONE updating GeoServer Credentials ...
+geoserver-1  | NOTE: Picked up JDK_JAVA_OPTIONS:  --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+geoserver-1  | usage: java org.apache.catalina.startup.Catalina [ -config {pathname} ] [ -nonaming ] [ -generateCode [ {pathname} ] ] [ -useGeneratedCode ] { -help | start | stop }
+geoserver-1  | 20-Oct-2026 17:21:30.629 WARNING [main] org.apache.catalina.core.StandardContext.setPath A context path must either be an empty string or start with a '/' and do not end with a '/'. The path [geoserver] does not meet these criteria and has been changed to [/geoserver]
+geoserver-1  | 20-Oct-2026 17:21:30.639 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   i_am_a_teapot
+geoserver-1  | 20-Oct-2026 17:21:30.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          
+geoserver-1  | 20-Oct-2026 17:21:30.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: x.y.z.0
+geoserver-1  | 20-Oct-2026 17:21:30.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
+geoserver-1  | 20-Oct-2026 17:21:30.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            6.6.87.2-microsoft-standard-WSL2
+geoserver-1  | 20-Oct-2026 17:21:30.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+geoserver-1  | 20-Oct-2026 17:21:30.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /opt/java/openjdk
+geoserver-1  | 20-Oct-2026 17:21:30.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           17.0.14+7
+geoserver-1  | 20-Oct-2026 17:21:30.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Eclipse Adoptium
+geoserver-1  | 20-Oct-2026 17:21:30.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /usr/local/tomcat
+geoserver-1  | 20-Oct-2026 17:21:30.641 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /usr/local/tomcat
+geoserver-1  | 20-Oct-2026 17:21:30.641 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.642 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.642 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.642 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.642 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.642 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.642 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.642 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/usr/local/tomcat/conf/logging.properties
+geoserver-1  | 20-Oct-2026 17:21:30.642 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+geoserver-1  | 20-Oct-2026 17:21:30.642 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xms256m
+geoserver-1  | 20-Oct-2026 17:21:30.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xmx1536m
+geoserver-1  | 20-Oct-2026 17:21:30.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+geoserver-1  | 20-Oct-2026 17:21:30.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+geoserver-1  | 20-Oct-2026 17:21:30.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dsun.io.useCanonCaches=false
+geoserver-1  | 20-Oct-2026 17:21:30.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+geoserver-1  | 20-Oct-2026 17:21:30.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xms256m
+geoserver-1  | 20-Oct-2026 17:21:30.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xmx1g
+geoserver-1  | 20-Oct-2026 17:21:30.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-exports=java.desktop/sun.awt.image=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.644 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.644 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.text=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.644 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.desktop/java.awt.font=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.644 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.desktop/sun.awt.image=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.644 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.naming/com.sun.jndi.ldap=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.645 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.desktop/sun.java2d.pipe=ALL-UNNAMED
+geoserver-1  | 20-Oct-2026 17:21:30.645 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.awt.headless=true
+geoserver-1  | 20-Oct-2026 17:21:30.645 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dfile.encoding=UTF-8
+geoserver-1  | 20-Oct-2026 17:21:30.645 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djavax.servlet.request.encoding=UTF-8
+geoserver-1  | 20-Oct-2026 17:21:30.645 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djavax.servlet.response.encoding=UTF-8
+geoserver-1  | 20-Oct-2026 17:21:30.645 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -D-XX:SoftRefLRUPolicyMSPerMB=36000
+geoserver-1  | 20-Oct-2026 17:21:30.646 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xbootclasspath/a:/usr/local/tomcat/lib/marlin.jar
+geoserver-1  | 20-Oct-2026 17:21:30.646 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dsun.java2d.renderer=sun.java2d.marlin.DMarlinRenderingEngine
+geoserver-1  | 20-Oct-2026 17:21:30.646 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.geotools.coverage.jaiext.enabled=true
+geoserver-1  | 20-Oct-2026 17:21:30.646 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dignore.endorsed.dirs=
+geoserver-1  | 20-Oct-2026 17:21:30.646 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/usr/local/tomcat
+geoserver-1  | 20-Oct-2026 17:21:30.646 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/usr/local/tomcat
+geoserver-1  | 20-Oct-2026 17:21:30.646 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/usr/local/tomcat/temp
+geoserver-1  | 20-Oct-2026 17:21:30.648 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [1.3.1] using APR version [1.7.0].
+geoserver-1  | 20-Oct-2026 17:21:30.648 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent APR capabilities: IPv6 [true], sendfile [true], accept filters [false], random [true], UDS [true].
+geoserver-1  | 20-Oct-2026 17:21:30.648 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent APR/OpenSSL configuration: useAprConnector [false], useOpenSSL [true]
+geoserver-1  | 20-Oct-2026 17:21:30.650 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.2 15 Mar 2022]
+geoserver-1  | 20-Oct-2026 17:21:30.841 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+geoserver-1  | 20-Oct-2026 17:21:30.860 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [395] milliseconds
+geoserver-1  | 20-Oct-2026 17:21:30.889 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+geoserver-1  | 20-Oct-2026 17:21:30.889 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [i_am_a_teapot]
+geoserver-1  | 20-Oct-2026 17:21:33.781 SEVERE [main] org.apache.catalina.core.NamingContextListener.addResource Failed to bind object: [javax.naming.NamingException: Name is not valid]
+geoserver-1  | 20-Oct-2026 17:21:33.829 INFO [main] org.apache.jasper.servlet.TldScanner.scanJars At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+geoserver-1  | 17:21:34 CONFIG [geoserver.logging] - Logging policy: Log4J2
+geoserver-1  | 20 Oct 17:21:34 CONFIG [geoserver.logging] - Log4j 2 configuration set to DEFAULT_LOGGING.xml
+geoserver-1  | 20 Oct 17:21:35 CONFIG [org.geoserver] - GeoServer configuration lock is enabled
+geoserver-1  | 20 Oct 17:21:36 CONFIG [geoserver.config] - Loading catalog /opt/geoserver_data
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Catalog and configuration loader uses 16 threads out of 24 available cores.
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded style generic
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded style line
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded style polygon
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded style raster
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded style point
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded workspace pd439a28ad4818411696977a5
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded namespace pd439a28ad4818411696977a5
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded style raster
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded coverage store temperature
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded coverage gd439a28ad4818411696977a5, enabled
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded layer gd439a28ad4818411696977a5
+geoserver-1  | 20 Oct 17:21:36 INFO   [geoserver.config] - Read Catalog in 277.6 ms: workspaces: 1, namespaces: 1, styles: 6, stores: 1, resources: 1, layers: 1, layer groups: 0.
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loading GeoServer config...
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded service 'WCSInfoImpl-79207488:1a15a521aa3:-7ffb', enabled
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded service 'WFSInfoImpl-79207488:1a15a521aa3:-7ffa', enabled
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded service 'WMTSInfoImpl-79207488:1a15a521aa3:-7ff9', enabled
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loaded service 'WMSInfoImpl-79207488:1a15a521aa3:-7ff8', enabled
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Catalog and configuration loader uses 16 threads out of 24 available cores.
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - Loading workspace services and settings...
+geoserver-1  | 20 Oct 17:21:36 CONFIG [config.datadir] - GeoServer config (settings and services) loaded in 64.73 ms
+geoserver-1  | 20 Oct 17:21:36 CONFIG [gwc.config] - Will look for 'geowebcache.xml' in directory '/opt/geoserver_data/gwc'.
+geoserver-1  | 20 Oct 17:21:36 WARN   [config.XMLConfiguration] - GWC configuration validation error: cvc-elt.1.a: Cannot find the declaration of element 'gwcConfiguration'.
+geoserver-1  | 20 Oct 17:21:36 WARN   [config.XMLConfiguration] - Will try to use configuration anyway. Please check the order of declared elements against the schema.
+geoserver-1  | 20 Oct 17:21:37 CONFIG [config.XMLConfiguration] - Initializing GridSets from gwc
+geoserver-1  | 20 Oct 17:21:37 CONFIG [config.XMLConfiguration] - Initializing layers from gwc
+geoserver-1  | 20 Oct 17:21:37 CONFIG [gwc.layer] - Initializing GWC configuration based on GeoServer's Catalog
+geoserver-1  | 20 Oct 17:21:37 CONFIG [gwc.layer] - GeoServer TileLayer store base directory is: gwc-layers
+geoserver-1  | 20 Oct 17:21:37 CONFIG [gwc.layer] - Loading tile layers from gwc-layers
+geoserver-1  | 20 Oct 17:21:37 CONFIG [gwc.layer] - Loaded 1 tile layers in 5.997 ms
+geoserver-1  | 20 Oct 17:21:37 CONFIG [storage.BlobStoreAggregator] - BlobStoreConfiguration gwc contained no blob store infos.
+geoserver-1  | 20 Oct 17:21:37 CONFIG [storage.DefaultStorageFinder] - Found system environment variableGEOSERVER_DATA_DIR set to /opt/geoserver_data/, using it as the default prefix.
+geoserver-1  | 20 Oct 17:21:37 CONFIG [gwc.config] - Initializing GeoServer specific GWC configuration from gwc-gs.xml
+geoserver-1  | 20 Oct 17:21:37 CONFIG [geoserver.security] - AuthenticationCache Initialized with 1000 Max Entries, 300 seconds idle time, 600 seconds time to live and 3 concurrency level
+geoserver-1  | 20 Oct 17:21:37 CONFIG [geoserver.security] - AuthenticationCache Eviction Task created to run every 600 seconds
+geoserver-1  | 20 Oct 17:21:38 CONFIG [gwc.config] - Will look for 'geowebcache-diskquota.xml' in directory '/opt/geoserver_data/gwc'.
+geoserver-1  | 20 Oct 17:21:38 CONFIG [gwc.config] - Will look for 'geowebcache-diskquota-jdbc.xml' in directory '/opt/geoserver_data/gwc'.
+geoserver-1  | 20 Oct 17:21:38 CONFIG [diskquota.ConfigLoader] - DiskQuota configuration is not readable: gwc/geowebcache-diskquota.xml
+geoserver-1  | 20 Oct 17:21:38 CONFIG [diskquota.ConfigLoader] - DiskQuota configuration is not readable: gwc/geowebcache-diskquota.xml
+geoserver-1  | 20 Oct 17:21:38 CONFIG [geowebcache.GeoWebCacheDispatcher] - Invoked setServletPrefix(gwc)
+geoserver-1  | 20 Oct 17:21:38 CONFIG [wms.WMSService] - Will NOT recombine tiles for non-tiling clients.
+geoserver-1  | 20 Oct 17:21:38 CONFIG [wms.WMSService] - Will proxy requests to backend that are not getmap or getcapabilities.
+geoserver-1  | 20 Oct 17:21:39 CONFIG [diskquota.ConfigLoader] - DiskQuota configuration is not readable: gwc/geowebcache-diskquota.xml
+geoserver-1  | 20 Oct 17:21:39 CONFIG [diskquota.DiskQuotaMonitor] - Setting up disk quota periodic enforcement task
+geoserver-1  | 20 Oct 17:21:39 CONFIG [diskquota.DiskQuotaMonitor] - 0 layers configured with their own quotas. 
+geoserver-1  | 20 Oct 17:21:39 CONFIG [diskquota.DiskQuotaMonitor] - 1 layers attached to global quota 500.0 MB
+geoserver-1  | 20 Oct 17:21:39 CONFIG [diskquota.DiskQuotaMonitor] - Disk quota periodic enforcement task set up every 10 SECONDS
+geoserver-1  | 20 Oct 17:21:40 CONFIG [geoserver.security] - Start reloading user/groups for service named default
+geoserver-1  | 20 Oct 17:21:40 CONFIG [geoserver.security] - Reloading user/groups successful for service named default
+geoserver-1  | 20-Oct-2026 17:21:40.214 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+geoserver-1  | 20-Oct-2026 17:21:40.226 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [9366] milliseconds

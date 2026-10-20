@@ -23,6 +23,8 @@ from publication import revisions
 from publication import retention
 from publication import budgets
 from publication import numerical
+from publication import native_display
+from publication.process_channel import ProcessChannel
 from publication.tile_cache import TileCache
 from publication.limited import run as limited_work, WorkLimit, request_deadline
 
@@ -44,6 +46,7 @@ def links(manifest: dict) -> dict:
             'batch': manifest.get('batch_selection', selection),
             'point': prefix + '/api/v1/point',
             'tiles': prefix + f'/api/v1/selections/{selection}/tiles.json',
+            'native_display': prefix + f'/api/v1/selections/{selection}/display/1/native.json',
             'wms': prefix + '/gis/v1/runs/' + quote(identity['run'], safe='') + '/revisions/' + identity['revision'] + '/wms'}
 
 
@@ -58,6 +61,14 @@ def revision_links(row: dict) -> list[dict]:
 def create_app() -> Flask:
     app = Flask('hmc-publication')
     tile_cache = TileCache()
+    native_cache = TileCache(cap=16 * 1024**2)
+    native_work = ProcessChannel('publication.native_process', 332820)
+    # Load reader code during service startup, without warming any field data.
+    # Native readiness is still established separately by metadata probes.
+    try:
+        native_work.run('native-initialize', {}, 10)
+    except (WorkLimit, OSError):
+        print(json.dumps({'native_reader': 'initialization-deferred'}), file=sys.stderr, flush=True)
     work = threading.BoundedSemaphore(4)
 
     @app.before_request
@@ -89,6 +100,7 @@ def create_app() -> Flask:
         _, _, rows = retention.snapshot()
         g.expired_roots = {row['root'] for row in rows if row['state'] == 'expired'}
         tile_cache.expire(g.expired_roots)
+        native_cache.expire(g.expired_roots)
 
     @app.teardown_request
     def release_reader(error):
@@ -331,6 +343,70 @@ def create_app() -> Flask:
         response.headers['X-HMC-Cache'] = outcome
         response.headers['Cache-Control'] = 'private, no-cache'
         response.set_etag(hashlib.sha256(payload).hexdigest())
+        return response
+
+    def native_response(selection, coordinates=None, experiment=None):
+        arguments(set())
+        deadline = min(g.deadline, time.time() + 10)
+        def bounded(operation, arguments):
+            remaining = deadline-time.time()
+            if remaining <= 0:
+                raise WorkLimit(504)
+            try:
+                return native_work.run(operation, {**arguments, 'deadline': deadline}, remaining)['body']
+            except WorkLimit as error:
+                if error.status == 404:
+                    raise KeyError('unavailable native selection') from error
+                if error.status == 410:
+                    raise retention.ExpiredSelection(selection) from error
+                raise
+        manifest = json.loads(bounded('native-resolve', {'selection': selection}))
+        g.identity = manifest['identity']
+        if coordinates is not None:
+            native_display.validate_address(*coordinates)
+        source = json.loads(bounded('native-source', {'manifest': manifest}))
+        root, item = source['root'], source['item']
+        operation = 'native-experiment' if experiment else 'native-metadata' if coordinates is None else 'native-block'
+        frame = None
+        if experiment:
+            from publication.display_experiment import FRAMES
+            frame = FRAMES[experiment]
+        payload, outcome = native_cache.lookup(native_display.key(manifest, item, operation, coordinates,
+            json.dumps(frame, sort_keys=True)),
+            lambda: bounded(operation, {'root': root, 'item': item, 'coordinates': coordinates, 'mode': experiment}),
+            metadata=coordinates is None and experiment is None, seconds=max(0, deadline-time.time()))
+        if time.time() >= deadline:
+            raise WorkLimit(504)
+        if coordinates is None and experiment is None:
+            metadata = json.loads(payload)
+            prefix = request.headers.get('X-Publication-Prefix', '')
+            metadata.update(selection=selection, identity=manifest['identity'])
+            for name in ('metadata_url', 'url_template'):
+                metadata[name] = prefix + metadata[name].replace('{selection}', selection)
+            metadata['url'] = metadata['url_template']
+            response = jsonify(metadata)
+        else:
+            response = Response(payload, content_type=native_display.CONTRACT['content_type'])
+        response.headers['X-HMC-Cache'] = outcome
+        response.headers['Cache-Control'] = 'private, no-cache'
+        response.set_etag(hashlib.sha256(response.get_data()).hexdigest())
+        return response
+
+    @app.get('/api/v1/selections/<selection>/display/1/native.json')
+    def native_metadata(selection):
+        return native_response(selection)
+
+    @app.get('/api/v1/selections/<selection>/display/1/native/<int:column>/<int:row>.f32')
+    def native_block(selection, column, row):
+        return native_response(selection, (column, row))
+
+    @app.get('/api/v1/selections/<selection>/display/1/experiment/<mode>.f32')
+    def display_experiment(selection, mode):
+        if os.environ.get('T6_TEST_FAULTS') != '1' or mode not in ('ortho', 'laea'):
+            raise KeyError('isolated display experiment')
+        response = native_response(selection, experiment=mode)
+        response.content_type = 'application/vnd.hmc.experimental-screen-f32'
+        response.headers['Cache-Control'] = 'no-store'
         return response
 
     @app.get('/gis/v1/runs/<path:run_id>/revisions/<revision>/wms')

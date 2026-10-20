@@ -63,6 +63,11 @@ jobs:
           --volume "$PWD:/workspace:ro" --workdir /workspace
           --entrypoint python hmc-publication:checks
           -m unittest discover -s tools -p test_evidence.py -v
+      - name: Verify native display proof and regression archives
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py --native-display
       - name: Check evidence archival and project retirement
         shell: pwsh
         run: ./tools/check-publication-retirement.ps1 -Image hmc-publication:checks

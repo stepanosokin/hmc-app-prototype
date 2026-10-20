@@ -1,0 +1,18 @@
+test_native_metadata_and_first_cell_preserve_selection (test_native_display.NativeDisplay.test_native_metadata_and_first_cell_preserve_selection) ... FAIL
+
+======================================================================
+FAIL: test_native_metadata_and_first_cell_preserve_selection (test_native_display.NativeDisplay.test_native_metadata_and_first_cell_preserve_selection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_native_display.py", line 23, in test_native_metadata_and_first_cell_preserve_selection
+    metadata = self.get(path).json()
+               ^^^^^^^^^^^^^^
+  File "/app/tests/test_native_display.py", line 16, in get
+    self.assertEqual(response.status_code, expected, response.text[:200] if expected != 200 else path)
+AssertionError: 404 != 200 : /api/v1/selections/f17aab527bd9148347fc9ddacdb82d86adff87caa29b970ef0dc03b4c69123e2.aa011fd49e82f2029a309f5e98578a7797007e2828587100360da1976d1759ff/display/1/native.json
+
+----------------------------------------------------------------------
+Ran 1 test in 0.464s
+
+FAILED (failures=1)
+

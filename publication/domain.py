@@ -5,6 +5,7 @@ import json
 import os
 import time
 from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 from functools import lru_cache
 
@@ -41,11 +42,29 @@ class Records:
         return [dict(zip(names, row)) for row in self.cursor.fetchall()]
 
 
+_transaction: ContextVar[Records | None] = ContextVar('publication_transaction', default=None)
+
+
+@contextmanager
+def database_transaction():
+    """Group related reads in one transaction without caching authorization/data."""
+    with database() as cursor:
+        token = _transaction.set(cursor)
+        try:
+            yield
+        finally:
+            _transaction.reset(token)
+
+
 @contextmanager
 def database(*, timeout: int = 5):
     deadline = request_deadline.get()
     if deadline is not None and deadline <= time.time():
         raise TimeoutError('publication request deadline exceeded')
+    shared = _transaction.get()
+    if shared is not None:
+        yield shared
+        return
     remaining = max(0.05, deadline-time.time()) if deadline is not None else timeout
     connection = pg8000.dbapi.connect(host='db', database='hmc', user=os.environ['DB_USER'],
                                      password=os.environ['DB_PASSWORD'], timeout=min(timeout, remaining), ssl_context=False)

@@ -5,6 +5,7 @@ import json
 import sys
 import time
 import uuid
+import queue
 from datetime import datetime, timezone
 
 import pg8000.dbapi
@@ -13,13 +14,16 @@ from flask import Flask, Response, jsonify, request, g
 
 from publication.access import identify
 from publication import budgets
-from publication.limited import run, WorkLimit
+from publication.limited import WorkLimit
+from publication.process_channel import ProcessChannel
 
 ROUTES = (
     re.compile(r'api/v1/(?:catalogue|point|modules|models|runs|revisions|openapi\.json)'),
     re.compile(r'ogc(?:/(?:conformance|collections(?:/[0-9a-f.]+(?:/position)?)?))?'),
     re.compile(r'api/v1/jobs/[0-9a-f-]{36}'),
     re.compile(r'api/v1/selections/[0-9a-f.]+/(?:tiles\.json|tiles/2/[0-9]+/[0-9]+/[0-9]+\.f32)'),
+    re.compile(r'api/v1/selections/[0-9a-f.]+/display/1/(?:native\.json|native/[0-9]+/[0-9]+\.f32)'),
+    re.compile(r'api/v1/selections/[0-9a-f.]+/display/1/experiment/(?:ortho|laea)\.f32'),
     re.compile(r'gis/v1/runs/[A-Za-z0-9_.:/-]+/revisions/[0-9a-f]+/wms'),
 )
 SECRET_PARAMETERS = {'key', 'api_key', 'apikey', 'token', 'access_token', 'authorization', 'x-api-key'}
@@ -27,6 +31,28 @@ SECRET_PARAMETERS = {'key', 'api_key', 'apikey', 'token', 'access_token', 'autho
 
 def create_app() -> Flask:
     app = Flask('hmc-gateway', static_folder=None)
+    channels: queue.Queue = queue.LifoQueue(maxsize=8)
+    for _ in range(8):
+        channels.put(ProcessChannel('publication.http_process', 4*1024**2))
+    # Prepare code for the browser's two fetches; no field data is requested.
+    startup = [channels.get(), channels.get()]
+    for channel in startup:
+        try:
+            channel.run('initialize', {}, 5)
+        except (WorkLimit, OSError):
+            print(json.dumps({'http_worker': 'initialization-deferred'}), file=sys.stderr, flush=True)
+        channels.put(channel)
+
+    def forward_work(arguments, seconds):
+        deadline = time.monotonic()+seconds
+        try:
+            channel = channels.get(timeout=seconds)
+        except queue.Empty as error:
+            raise WorkLimit(504) from error
+        try:
+            return channel.run('http', arguments, deadline-time.monotonic())
+        finally:
+            channels.put(channel)
 
     def failure(status: int):
         code, description = {
@@ -53,7 +79,7 @@ def create_app() -> Flask:
         protected = request.path.startswith('/org/')
         path = request.path[5:] if protected else request.path[1:]
         # Store categories, never client-supplied URLs/query strings.
-        operation = ('tile-metadata' if path.endswith('/tiles.json') else 'tile' if '/tiles/2/' in path
+        operation = ('tile-metadata' if path.endswith(('/tiles.json', '/native.json')) else 'tile' if '/tiles/2/' in path or '/display/1/native/' in path or '/display/1/experiment/' in path
                      else 'wms' if path.startswith('gis/') else 'point' if path == 'api/v1/point'
                      else 'position' if path.endswith('/position') else 'discovery' if path.startswith('ogc')
                      or path in ('api/v1/modules', 'api/v1/models', 'api/v1/runs', 'api/v1/revisions', 'api/v1/openapi.json')
@@ -147,7 +173,7 @@ def create_app() -> Flask:
                     return failure(400)
             # Never forward credentials or trust client prefix/identity headers.
             g.event['cache'] = 'unavailable'
-            upstream = run('http', {'url': 'http://api:8000/' + upstream_path,
+            upstream = forward_work({'url': 'http://api:8000/' + upstream_path,
                                    'params': list(request.args.items(multi=True)),
                                    'headers': {'X-Publication-Prefix': '/org' if protected else '',
                                                'X-HMC-Request-ID': g.event['request_id'],

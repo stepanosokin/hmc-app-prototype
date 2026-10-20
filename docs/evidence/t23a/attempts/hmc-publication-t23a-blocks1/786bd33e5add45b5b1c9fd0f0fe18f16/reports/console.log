@@ -1,0 +1,58 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261020193215
+Username: STAFF\s.osokin
+RunAs User: STAFF\s.osokin
+Configuration Name: 
+Machine: N626798 (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File tools/run-native-display.ps1 -Project hmc-publication-t23a-blocks1
+Process ID: 45844
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Success: no issues found in 53 source files
+ Network hmc-publication-t23a-blocks1_publication  Creating
+ Network hmc-publication-t23a-blocks1_publication  Created
+ Volume hmc-publication-t23a-blocks1_assets  Creating
+ Volume hmc-publication-t23a-blocks1_assets  Created
+ Network hmc-publication-t23a-blocks1_edge  Creating
+ Network hmc-publication-t23a-blocks1_edge  Created
+ Volume hmc-publication-t23a-blocks1_postgres  Creating
+ Volume hmc-publication-t23a-blocks1_postgres  Created
+ Volume hmc-publication-t23a-blocks1_geoserver  Creating
+ Volume hmc-publication-t23a-blocks1_geoserver  Created
+ Container hmc-publication-t23a-blocks1-gateway-1  Creating
+ Container hmc-publication-t23a-blocks1-geoserver-1  Creating
+ Container hmc-publication-t23a-blocks1-db-1  Creating
+ Container hmc-publication-t23a-blocks1-api-1  Creating
+ Container hmc-publication-t23a-blocks1-gateway-1  Created
+ Container hmc-publication-t23a-blocks1-api-1  Created
+ Container hmc-publication-t23a-blocks1-geoserver-1  Created
+ Container hmc-publication-t23a-blocks1-db-1  Created
+ Container hmc-publication-t23a-blocks1-db-1  Starting
+ Container hmc-publication-t23a-blocks1-api-1  Starting
+ Container hmc-publication-t23a-blocks1-geoserver-1  Starting
+ Container hmc-publication-t23a-blocks1-gateway-1  Starting
+ Container hmc-publication-t23a-blocks1-db-1  Started
+ Container hmc-publication-t23a-blocks1-geoserver-1  Started
+ Container hmc-publication-t23a-blocks1-api-1  Started
+ Container hmc-publication-t23a-blocks1-gateway-1  Started
+bf73121d-d8f1-45c8-b07c-5830b6c8ae31
+test_all_blocks_equal_independent_grib_and_share_halos (test_native_display.NativeDisplay.test_all_blocks_equal_independent_grib_and_share_halos) ... ok
+test_gateway_native_access_and_validation (test_native_display.NativeDisplay.test_gateway_native_access_and_validation) ... ok
+test_native_metadata_and_first_cell_preserve_selection (test_native_display.NativeDisplay.test_native_metadata_and_first_cell_preserve_selection) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 30.394s
+
+OK
+**********************
+Windows PowerShell transcript end
+End time: 20261020193346
+**********************

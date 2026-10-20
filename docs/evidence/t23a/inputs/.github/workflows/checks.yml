@@ -1,0 +1,73 @@
+name: Checks
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  windows-process:
+    runs-on: windows-2022
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check publication process exit handling
+        shell: powershell
+        run: ./tools/check-publication-process.ps1
+      - name: Check current documentation links
+        shell: powershell
+        run: ./tools/check-documentation.ps1
+
+  source-and-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Build locked validation image
+        run: docker build -f Dockerfile.publication -t hmc-publication:checks .
+      - name: Check types
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint mypy hmc-publication:checks
+          --ignore-missing-imports --check-untyped-defs --cache-dir=/tmp/mypy
+          decoder tests trials publication tools
+      - name: Check numeric boundary behavior
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_publication_tiles.py -v
+      - name: Check access gateway boundaries
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_publication_access.py -v
+      - name: Check interpreter startup and shutdown
+        run: >-
+          docker run --rm --network none --tmpfs /evidence:mode=1777
+          --entrypoint python hmc-publication:checks -m publication.runtime
+      - name: Check retention policy boundaries
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_publication_retention.py -v
+      - name: Verify archived evidence bytes
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py
+      - name: Check archive validation failures
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks
+          -m unittest discover -s tools -p test_evidence.py -v
+      - name: Verify native display proof and regression archives
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py --native-display
+      - name: Check evidence archival and project retirement
+        shell: pwsh
+        run: ./tools/check-publication-retirement.ps1 -Image hmc-publication:checks

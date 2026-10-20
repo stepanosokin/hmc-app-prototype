@@ -1,0 +1,48 @@
+[
+    {
+        "networks":  [
+                         "hmc-publication-t12-t23a-final1_publication"
+                     ],
+        "ports":  {
+
+                  },
+        "name":  "/hmc-publication-t12-t23a-final1-api-1",
+        "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49"
+    },
+    {
+        "networks":  [
+                         "hmc-publication-t12-t23a-final1_publication"
+                     ],
+        "ports":  {
+
+                  },
+        "name":  "/hmc-publication-t12-t23a-final1-db-1",
+        "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96"
+    },
+    {
+        "networks":  [
+                         "hmc-publication-t12-t23a-final1_publication"
+                     ],
+        "ports":  {
+
+                  },
+        "name":  "/hmc-publication-t12-t23a-final1-geoserver-1",
+        "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633"
+    },
+    {
+        "networks":  [
+                         "hmc-publication-t12-t23a-final1_edge",
+                         "hmc-publication-t12-t23a-final1_publication"
+                     ],
+        "ports":  {
+                      "8000/tcp":  [
+                                       {
+                                           "HostIp":  "127.0.0.1",
+                                           "HostPort":  "8140"
+                                       }
+                                   ]
+                  },
+        "name":  "/hmc-publication-t12-t23a-final1-gateway-1",
+        "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49"
+    }
+]

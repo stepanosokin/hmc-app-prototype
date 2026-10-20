@@ -1,0 +1,47 @@
+# Measurement artifacts are byte-addressed by artifact-index.json.
+# Preserve their exact recorded bytes across Windows/Linux checkouts.
+docs/evidence/t3/** -text whitespace=cr-at-eol
+
+# Shell execution and retained JSON hashes must survive Windows checkouts.
+publication/** text eol=lf
+tools/*.ps1 text eol=lf
+requirements.publication.lock text eol=lf
+docs/evidence/t4/** text eol=lf
+docs/evidence/t5/** -text whitespace=cr-at-eol
+docs/evidence/t6/** -text whitespace=cr-at-eol
+docs/evidence/t7/** -text whitespace=cr-at-eol
+docs/evidence/t8/** -text whitespace=cr-at-eol
+# Raw service/transcript output retains the producer's whitespace verbatim.
+docs/evidence/t8/*.log -whitespace
+
+docs/evidence/t9/** -text whitespace=cr-at-eol
+docs/evidence/t9/*.log -whitespace
+
+docs/evidence/t10/** -text whitespace=cr-at-eol
+docs/evidence/t10/*.log -whitespace
+
+# This checker is byte-addressed in acceptance input inventories.
+tools/check_evidence.py -text whitespace=cr-at-eol
+docs/development-workflow.md text eol=lf
+
+docs/evidence/t11/** -text whitespace=cr-at-eol
+docs/evidence/t11/*.log -whitespace
+
+docs/evidence/t12/** -text whitespace=cr-at-eol
+docs/evidence/t12/*.log -whitespace
+
+# T22 browser evidence binds the exact local mockup bytes.
+docs/prototypes/weather-map.prototype.* text eol=lf
+docs/prototypes/assets/land.js text eol=lf
+tools/check-weather-prototype.mjs text eol=lf
+docs/evidence/t22/** -text whitespace=cr-at-eol
+
+# T23 probe code and byte-addressed successful/rejected development evidence.
+tools/check-display-projections.mjs text eol=lf
+tools/display-projections/** text eol=lf
+docs/evidence/t23/** -text whitespace=cr-at-eol
+docs/evidence/t23/**/*.log -whitespace
+
+tools/native-display/** text eol=lf
+docs/evidence/t23a/** -text whitespace=cr-at-eol
+docs/evidence/t23a/**/*.log -whitespace

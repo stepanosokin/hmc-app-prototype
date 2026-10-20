@@ -54,6 +54,18 @@ contents; their recorded identities must agree with the selected report.
 
 ### Service checks
 
+For the approved T23a native display profile, use
+`tools/run-native-display.ps1 -Project <fresh-hmc-publication-t23a-name> -WithEdge`.
+It checks actual-source native blocks, independent raw-GRIB/PROJ comparisons,
+real desktop GPU readback, both display projections, synthetic masks and
+pole/dateline/horizon/cut cases. Keep physical Android/iOS acceptance separate
+from desktop viewport emulation. Timeout probes use a distinct organization:
+the existing conservative reservation must not occupy public browser slots.
+The native evidence CI command is `tools/check_evidence.py --native-display`;
+it verifies the selected Chrome/Edge reports, frozen inputs and contract,
+numerical/resource bounds, required T12/T6 service regressions and retirement
+receipts. The default evidence command preserves historical T3–T12/T22 checks.
+
 The [checks workflow](../.github/workflows/checks.yml) builds the existing
 hash-locked publication image and runs mypy, numeric boundary tests, interpreter
 startup/shutdown probes and archived-evidence integrity checks. Its Windows job

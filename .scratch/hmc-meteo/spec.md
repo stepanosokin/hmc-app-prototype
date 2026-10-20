@@ -14,6 +14,18 @@ Revision 0.6 records the confirmed web-map-only projection requirements in secti
 
 [Russian copy](spec.ru.md) · [Decision map](map.md) · [Domain glossary](../../GLOSSARY.md)
 
+T23a / [#37](https://github.com/stepanosokin/hmc-app-prototype/issues/37) amendment,
+explicitly approved on 2026-10-20: implement the versioned
+[`hmc-native-display/1`](../../publication/native-display.v1.json) candidate
+alongside frozen `hmc-temperature-tile/2`. Deliver native float32 cells, validity
+masks and one-cell halos for a single GPU bilinear interpolation; compare with
+bounded server display derivatives using independent raw-GRIB values at identical
+geographic points. The [approved design](../../docs/design/t23a-native-display-draft.md)
+defines URL, matrix/CRS, height-zero operation, immutable cache identity and resource
+limits. Point/EDR remain canonical nearest-native-cell. This technical experiment
+does not establish rotating-globe or physical Android/iOS acceptance; T23 and the
+production viewer gates retain those obligations. M1–M5/A1–A12 are unchanged.
+
 ## 1. Purpose and scope
 
 Build a self-hosted meteorology prototype that proves ingestion of the supplied GRIB2 file, numerical normalization, web-map publication and authenticated external access from QGIS. The product has a Russian interface and UTC timestamps. This document is the current implementation contract; completed planning and local numerical checks do not establish deployed-stack readiness.

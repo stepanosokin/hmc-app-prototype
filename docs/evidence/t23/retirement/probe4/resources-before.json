@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t23-probe4",
+    "repository":  "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "208830bd749fc752bbe12e6980abfdafdbb803cf438dbba4ea8d83e10a81f79e",
+                           "name":  "/hmc-publication-t23-probe4-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23-probe4"
+                       },
+                       {
+                           "id":  "9cfa244ccebbfd2e902009a8a8442ccf89ad0b956ef02e8ea61731428a4cd0b5",
+                           "name":  "/hmc-publication-t23-probe4-api-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23-probe4"
+                       },
+                       {
+                           "id":  "beaa53fbf8123401f39ff025cd035e035fbe4c3e67a76221607f160306d080b8",
+                           "name":  "/hmc-publication-t23-probe4-gateway-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23-probe4"
+                       },
+                       {
+                           "id":  "801686d2549f91b95ab2371a4e004df329a1012836c0b7dc483c2a800914e93f",
+                           "name":  "/hmc-publication-t23-probe4-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23-probe4"
+                       }
+                   ],
+    "networks":  [
+                     "7b872789ea00",
+                     "3fa83e670f3a"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t23-probe4_assets",
+                    "hmc-publication-t23-probe4_geoserver",
+                    "hmc-publication-t23-probe4_postgres"
+                ]
+}

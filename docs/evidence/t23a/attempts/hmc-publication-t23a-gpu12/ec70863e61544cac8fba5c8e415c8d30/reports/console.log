@@ -1,0 +1,67 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261020205355
+Username: STAFF\s.osokin
+RunAs User: STAFF\s.osokin
+Configuration Name: 
+Machine: N626798 (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File tools/run-native-display.ps1 -Project hmc-publication-t23a-gpu12 -WithEdge
+Process ID: 42924
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Success: no issues found in 57 source files
+ Network hmc-publication-t23a-gpu12_publication  Creating
+ Network hmc-publication-t23a-gpu12_publication  Created
+ Volume hmc-publication-t23a-gpu12_assets  Creating
+ Volume hmc-publication-t23a-gpu12_assets  Created
+ Network hmc-publication-t23a-gpu12_edge  Creating
+ Network hmc-publication-t23a-gpu12_edge  Created
+ Volume hmc-publication-t23a-gpu12_geoserver  Creating
+ Volume hmc-publication-t23a-gpu12_geoserver  Created
+ Volume hmc-publication-t23a-gpu12_postgres  Creating
+ Volume hmc-publication-t23a-gpu12_postgres  Created
+ Container hmc-publication-t23a-gpu12-api-1  Creating
+ Container hmc-publication-t23a-gpu12-geoserver-1  Creating
+ Container hmc-publication-t23a-gpu12-db-1  Creating
+ Container hmc-publication-t23a-gpu12-gateway-1  Creating
+ Container hmc-publication-t23a-gpu12-api-1  Created
+ Container hmc-publication-t23a-gpu12-geoserver-1  Created
+ Container hmc-publication-t23a-gpu12-db-1  Created
+ Container hmc-publication-t23a-gpu12-gateway-1  Created
+ Container hmc-publication-t23a-gpu12-db-1  Starting
+ Container hmc-publication-t23a-gpu12-api-1  Starting
+ Container hmc-publication-t23a-gpu12-geoserver-1  Starting
+ Container hmc-publication-t23a-gpu12-gateway-1  Starting
+ Container hmc-publication-t23a-gpu12-db-1  Started
+ Container hmc-publication-t23a-gpu12-api-1  Started
+ Container hmc-publication-t23a-gpu12-geoserver-1  Started
+ Container hmc-publication-t23a-gpu12-gateway-1  Started
+b8e3e087-d571-4087-888a-8667bfa4599d
+test_all_blocks_equal_independent_grib_and_share_halos (test_native_display.NativeDisplay.test_all_blocks_equal_independent_grib_and_share_halos) ... ok
+test_gateway_native_access_and_validation (test_native_display.NativeDisplay.test_gateway_native_access_and_validation) ... ok
+test_native_metadata_and_first_cell_preserve_selection (test_native_display.NativeDisplay.test_native_metadata_and_first_cell_preserve_selection) ... ok
+test_warm_storage_loss_expiry_and_deadline (test_native_display.NativeDisplay.test_warm_storage_loss_expiry_and_deadline) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 22.272s
+
+OK
+ Container hmc-publication-t23a-gpu12-gateway-1  Restarting
+ Container hmc-publication-t23a-gpu12-api-1  Restarting
+ Container hmc-publication-t23a-gpu12-api-1  Started
+ Container hmc-publication-t23a-gpu12-gateway-1  Started
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t23a\\hmc-publication-t23a-gpu12\\browser","status":"compatibility-probe-complete","acceptance":"incomplete","cleanup":{"browser_processes_remaining":0,"profile_removed":true,"http_server_closed":true,"compose_projects_created":0}}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "views": [{"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 250, "max_abs_error_K": 0.0006846233855526407, "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "EPSG:3576", "scope": "map", "valid_samples": 592, "max_abs_error_K": 0.0016693804187752903, "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "server-screen-comparison", "valid_samples": 63, "max_abs_error_K": 0.002397316668179883, "server_max_abs_error_K": 1.5056222878229164e-05}, {"viewport": [1440, 900], "mode": "EPSG:3576", "scope": "server-screen-comparison", "valid_samples": 55, "max_abs_error_K": 0.0013643835930565729, "server_max_abs_error_K": 1.4764876652861858e-05}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 248, "max_abs_error_K": 0.000781316647589847, "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "EPSG:3576", "scope": "map", "valid_samples": 594, "max_abs_error_K": 0.0008156764233149261, "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "server-screen-comparison", "valid_samples": 63, "max_abs_error_K": 0.002397316668179883, "server_max_abs_error_K": 1.5056222878229164e-05}, {"viewport": [390, 844], "mode": "EPSG:3576", "scope": "server-screen-comparison", "valid_samples": 55, "max_abs_error_K": 0.0013643835930565729, "server_max_abs_error_K": 1.4764876652861858e-05}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 249, "max_abs_error_K": 0.0013279983517122673, "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "EPSG:3576", "scope": "map", "valid_samples": 594, "max_abs_error_K": 0.0013879258790439053, "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "server-screen-comparison", "valid_samples": 63, "max_abs_error_K": 0.002397316668179883, "server_max_abs_error_K": 1.5056222878229164e-05}, {"viewport": [360, 740], "mode": "EPSG:3576", "scope": "server-screen-comparison", "valid_samples": 55, "max_abs_error_K": 0.0013643835930565729, "server_max_abs_error_K": 1.4764876652861858e-05}], "max_abs_error_K": 0.002397316668179883, "mask_differences": 0, "geometry_max_error_pixels": 5.400124791776761e-13, "synthetic_projection_error_m": 1.6476029491543485, "synthetic_scope": "projection-only pole/dateline/horizon/cut probes, not forecast coverage"}
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t23a\\hmc-publication-t23a-gpu12\\browser-edge","status":"compatibility-probe-complete","acceptance":"incomplete","cleanup":{"browser_processes_remaining":0,"profile_removed":true,"http_server_closed":true,"compose_projects_created":0}}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "views": [{"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 250, "max_abs_error_K": 0.0006846233855526407, "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "EPSG:3576", "scope": "map", "valid_samples": 592, "max_abs_error_K": 0.0016693804187752903, "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "server-screen-comparison", "valid_samples": 63, "max_abs_error_K": 0.002397316668179883, "server_max_abs_error_K": 1.5056222878229164e-05}, {"viewport": [1440, 900], "mode": "EPSG:3576", "scope": "server-screen-comparison", "valid_samples": 55, "max_abs_error_K": 0.0013643835930565729, "server_max_abs_error_K": 1.4764876652861858e-05}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 248, "max_abs_error_K": 0.000781316647589847, "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "EPSG:3576", "scope": "map", "valid_samples": 594, "max_abs_error_K": 0.0008156764233149261, "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "server-screen-comparison", "valid_samples": 63, "max_abs_error_K": 0.002397316668179883, "server_max_abs_error_K": 1.5056222878229164e-05}, {"viewport": [390, 844], "mode": "EPSG:3576", "scope": "server-screen-comparison", "valid_samples": 55, "max_abs_error_K": 0.0013643835930565729, "server_max_abs_error_K": 1.4764876652861858e-05}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 249, "max_abs_error_K": 0.0013279983517122673, "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "EPSG:3576", "scope": "map", "valid_samples": 594, "max_abs_error_K": 0.0013879258790439053, "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "server-screen-comparison", "valid_samples": 63, "max_abs_error_K": 0.002397316668179883, "server_max_abs_error_K": 1.5056222878229164e-05}, {"viewport": [360, 740], "mode": "EPSG:3576", "scope": "server-screen-comparison", "valid_samples": 55, "max_abs_error_K": 0.0013643835930565729, "server_max_abs_error_K": 1.4764876652861858e-05}], "max_abs_error_K": 0.002397316668179883, "mask_differences": 0, "geometry_max_error_pixels": 5.400124791776761e-13, "synthetic_projection_error_m": 1.6476029491543485, "synthetic_scope": "projection-only pole/dateline/horizon/cut probes, not forecast coverage"}
+**********************
+Windows PowerShell transcript end
+End time: 20261020205627
+**********************

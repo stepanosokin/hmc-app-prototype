@@ -1,0 +1,37 @@
+{
+  "scope": "T23a native display; mobile viewports are desktop emulation",
+  "starting_commit": "ff451d1cd381b896a1e08147973f33291f9318c3",
+  "inputs": {
+    "tools/native-display/browser.html": "87e1922bc8c4ff4e2c08d0badf2dee78cb3cf64bb4a6fdfe01012d0bedbbf43b",
+    "tools/native-display/probe.js": "4f2477febf428c22b9c4433fd0ed8116f16e20c6b5011356a3ed0c5ef8796411",
+    "tools/display-projections/worker-projection.mjs": "8770127110b1fa2c8e24807efe7ca85f7587a340ea45f39e39514d65d86457fe",
+    "docs/prototypes/assets/land.js": "09dcaef6ba7af5caa974dd1000c109a1ee339857f7b3bf7dcaadeda89cc7d4e7",
+    "tools/native-display/native-layer.js": "0be300b1cb29f2ff8501c4199897304a5226a79d8dbf407cad789d75405dd201",
+    "tools/display-projections/probe.js": "bb538d01b3a9f2a47f600b9e1e1ffe1bfa15e0a08ccb7df856f0f497239c36a0",
+    "tools/display-projections/vendor-lock.json": "7aff1441d061f5f66812e2eb6a5ecf6781c99f9e37e9dbb5035e5801a3af4feb",
+    "tools/check-display-projections.mjs": "2594a0be365f6c606f6140bd509bbd804c11880910bfeb59f07e1d85d686935c"
+  },
+  "viewports": [],
+  "cleanup": {
+    "browser_processes_remaining": 0,
+    "profile_removed": true,
+    "http_server_closed": true,
+    "compose_projects_created": 0
+  },
+  "reference_sha256": "77ddbf9b85e563845ab9a59321e6b5c8ef942e4e5ad318f63e0bbd292e93a668",
+  "external_requests": [],
+  "exceptions": [],
+  "console": [],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.82",
+    "revision": "@c56fe5daef8be123f68808a4bb705ff378cd2019",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.23"
+  },
+  "system": {
+    "unavailable": "Error: {\"code\":-32000,\"message\":\"SystemInfo.getInfo is only supported on the browser target\"}"
+  },
+  "status": "failed",
+  "failure": "Error: {\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Сервис занят. Повторите позже.\",\"lineNumber\":16,\"columnNumber\":11,\"scriptId\":\"6\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"get\",\"scriptId\":\"6\",\"url\":\"http://127.0.0.1:54907/probe.js\",\"lineNumber\":15,\"columnNumber\":10}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Сервис занят. Повторите позже.\\n    at get (http://127.0.0.1:54907/probe.js:16:11)\\n    at async worker (http://127.0.0.1:54907/probe.js:31:34)\\n    at async Promise.all (index 1)\\n    at async load (http://127.0.0.1:54907/probe.js:41:5)\\n    at async window.runProbe (http://127.0.0.1:54907/probe.js:111:40)\",\"objectId\":\"8366416230782102533.2.1\"}}"
+}

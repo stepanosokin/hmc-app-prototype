@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t23a-gpu10",
+    "repository":  "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "0124fe5e7058c8083c76af299627250b6e954c93f0703ccd3628b4eccc15e3a1",
+                           "name":  "/hmc-publication-t23a-gpu10-api-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-gpu10"
+                       },
+                       {
+                           "id":  "10c35ba47a036094bb11fddbb08300293c01a06a40aad9329aa12d478c2058d9",
+                           "name":  "/hmc-publication-t23a-gpu10-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-gpu10"
+                       },
+                       {
+                           "id":  "0bcc6353001c5230cdd9f6323858b36c2c74a5a39512fd1078a73aff7fd91eb0",
+                           "name":  "/hmc-publication-t23a-gpu10-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-gpu10"
+                       },
+                       {
+                           "id":  "45a201936447a19ef36016afe5fc877ee9ea0f72074829497313e538ed4e8263",
+                           "name":  "/hmc-publication-t23a-gpu10-gateway-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-gpu10"
+                       }
+                   ],
+    "networks":  [
+                     "a742ab9dac15",
+                     "21ee0acc1e12"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t23a-gpu10_assets",
+                    "hmc-publication-t23a-gpu10_geoserver",
+                    "hmc-publication-t23a-gpu10_postgres"
+                ]
+}

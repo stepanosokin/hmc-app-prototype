@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t23a-green1",
+    "repository":  "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "cd487d555f437f182b2ab3e861bf9744a3347245aa9d4d13c7bced703ba324d7",
+                           "name":  "/hmc-publication-t23a-green1-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-green1"
+                       },
+                       {
+                           "id":  "f02f6e576bdb320bc4bbf32b1246de101a2ef7fcaff9dc8ded7e497d29f4c5fb",
+                           "name":  "/hmc-publication-t23a-green1-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-green1"
+                       },
+                       {
+                           "id":  "a308c187c7bf4d881213d37bb11c6b0628b86bb33672794975ae20d4d5df9dd9",
+                           "name":  "/hmc-publication-t23a-green1-api-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-green1"
+                       },
+                       {
+                           "id":  "8e3303f597868f0f9e84c8d6a58f6f7510d712a13a961e8d6ec03ecad81bdb92",
+                           "name":  "/hmc-publication-t23a-green1-gateway-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-green1"
+                       }
+                   ],
+    "networks":  [
+                     "783687d9cf9a",
+                     "edf3a0f5b705"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t23a-green1_assets",
+                    "hmc-publication-t23a-green1_geoserver",
+                    "hmc-publication-t23a-green1_postgres"
+                ]
+}
