@@ -1,0 +1,50 @@
+{
+    "project":  "hmc-publication-t13-t15-android2",
+    "repository":  "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "1f616647b7e99c2845b586cfee5009f6ad633457fc8737a3260a21363715d9ff",
+                           "name":  "/hmc-publication-t13-t15-android2-gateway-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t15-android2"
+                       },
+                       {
+                           "id":  "79b4784e7135705b0aa22d9729cba22d8540b6cdfaec2deb170be44802456303",
+                           "name":  "/hmc-publication-t13-t15-android2-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t15-android2"
+                       },
+                       {
+                           "id":  "af4cbcabf9e2a248c33a2959969bbc595507419d5998c58d3c1c67f83e94707e",
+                           "name":  "/hmc-publication-t13-t15-android2-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t15-android2"
+                       },
+                       {
+                           "id":  "fc9335ad00932f3aa6cc7dee1e5c2df113dfc50f09141e16699ffb9e01b00225",
+                           "name":  "/hmc-publication-t13-t15-android2-api-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t15-android2"
+                       },
+                       {
+                           "id":  "4d00388b6857f34f0c5ddc673b45f51d1a3897f1692f0e2aae3cc3ee5b8cf04a",
+                           "name":  "/hmc-publication-t13-t15-android2-viewer-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t15-android2"
+                       }
+                   ],
+    "networks":  [
+                     "1b8f9e3883a6",
+                     "af08324d70c7"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t13-t15-android2_assets",
+                    "hmc-publication-t13-t15-android2_geoserver",
+                    "hmc-publication-t13-t15-android2_postgres"
+                ]
+}

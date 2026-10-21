@@ -21,7 +21,7 @@
   <section id="pointCard" class="panel point" hidden aria-label="Значение выбранной точки"><button id="closePoint" aria-label="Закрыть значение точки" title="Закрыть">×</button><div id="pointContent"></div></section>
   <details id="legendPanel" class="panel legend" aria-label="Шкала температуры" open><summary class="widgetToggle"><span id="legendSummary">Температура · °C</span></summary><div class="widgetBody"><div>Температура <b class="unit">°C</b></div><div class="ramp"></div><div class="ticks"><span>−20</span><span>0</span><span>20</span><span>40</span></div><small>T_G · поверхность · числовые данные</small></div></details>
   <section id="drawer" class="panel drawer" aria-label="Подробности и настройки" hidden>
-    <button id="collapsePoint" aria-label="Свернуть значение точки" title="Свернуть значение точки" hidden>⌄</button>
+    <nav class="sheetTabs" aria-label="Содержимое панели"><button id="sheetSettings">Настройки</button><button id="sheetPoint" hidden>Точка</button></nav>
     <button id="closeDrawer" aria-label="Свернуть панель">Свернуть ⌄</button><button id="clearMobilePoint" aria-label="Закрыть значение точки">Удалить выбранную точку ×</button><div id="mobilePoint"></div>
     <div id="settingsBody">
       <h2>Источник и публикация</h2><p>Числовое поле ICON-EU T_G: температура поверхности, не воздуха на высоте 2 м. Значение точки — ближайшая нативная ячейка; отображение — билинейная интерполяция.</p>
@@ -29,11 +29,17 @@
       <small id="timezoneInfo"></small>
       <label>Единицы<select id="units"><option value="C">Градусы Цельсия · °C</option><option value="K">Кельвины · K</option></select></label>
       <label>Палитра<select id="palette"><option value="temperature">Температурная</option><option value="contrast">Контрастная</option></select></label>
-      <dl id="metadata"></dl>
-      <button id="retry">Повторить загрузку</button><button id="refresh">Проверить обновления</button><button id="acceptUpdate" hidden>Принять обновление</button><p id="updateStatus"></p>
+      <details><summary>Происхождение и числовой контракт</summary><p id="metadata"></p></details>
+      <button id="retry">Повторить загрузку</button><button id="refresh">Проверить обновления</button>
       <small>Подложка: Natural Earth 1:110m, общественное достояние. Береговая линия без государственных границ; подписи городов добавлены для ориентации. Все ресурсы локальные.</small>
       <small>Лицензии: <a href="/vendor/MapLibre.LICENSE.txt">MapLibre</a> · <a href="/vendor/proj4.LICENSE.md">proj4js</a> · <a href="/vendor/d3-geo.LICENSE.txt">D3 Geo</a> · <a href="/vendor/d3-array.LICENSE.txt">D3 Array</a></small>
     </div>
+  </section>
+  <section id="updates" class="panel updates" aria-label="Обновления публикации" hidden>
+    <p id="updateStatus" role="status" aria-live="polite"></p>
+    <button id="acceptUpdate" hidden>Обновить текущий расчёт</button>
+    <button id="latestRun" hidden>Перейти к новому расчёту</button>
+    <button id="declineUpdate">Позже</button>
   </section>
   <details id="timelinePanel" class="panel timeline" open><summary class="widgetToggle"><span id="compactTime">Срок прогноза UTC</span></summary><div class="widgetBody"><div class="timeHeading"><strong id="timeLabel"></strong><div class="timeMeta"><span id="availability"></span><select id="timezone" aria-label="Часовой пояс отображения"><option value="utc">UTC</option></select></div></div><div class="timeControls"><button id="previous" aria-label="Предыдущий срок">‹</button><label><span id="timeZoneLabel">Срок UTC</span><select id="time"></select></label><button id="next" aria-label="Следующий срок">›</button></div><input id="timeRange" type="range" min="1" max="12" value="1" aria-label="Час прогноза"></div></details>
   <label class="attribution fontPicker">Шрифт: <select id="font" aria-label="Шрифт страницы"><option value="system">Системный</option><option value="courier">Courier New</option></select></label>

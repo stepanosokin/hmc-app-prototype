@@ -10,11 +10,16 @@ export const referenceTime=(run: string)=>run.slice(run.lastIndexOf('/')+1);
 /** Catalogue ordering preserves publication order, including corrected revisions. */
 export function publishedGroups(selections: Selection[],validationFixtures=false): PublishedGroup[] {
     const groups=new Map<string,PublishedGroup>();
+    const syntheticRevisions=new Set(selections.filter(item=>item.fixture&&item.fixture!=='actual').map(item=>item.revision));
     for(const item of selections){
+        if(!validationFixtures&&syntheticRevisions.has(item.revision))continue;
         if(item.state!=='published'||item.field!=='T_G:surface:0'||item.units!=='K'||
-            item.fixture&&item.fixture!=='actual'&&!(validationFixtures&&item.fixture==='overlap'))continue;
+            item.fixture&&item.fixture!=='actual'&&!(validationFixtures&&['overlap','correction'].includes(item.fixture)))continue;
         const key=JSON.stringify([item.model,item.run,item.revision,item.field,item.level]);
         if(!groups.has(key))groups.set(key,{key,selection:item,times:[],start:0});
+        // A revision can inherit real batches while other times are corrected.
+        // Label the entire validation revision, regardless of catalogue ordering.
+        if(item.fixture==='correction')groups.get(key)!.selection=item;
         groups.get(key)!.times.push(item);
     }
     return [...groups.values()].reverse().sort((a,b)=>

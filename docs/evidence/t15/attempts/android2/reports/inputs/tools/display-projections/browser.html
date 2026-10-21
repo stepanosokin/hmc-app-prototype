@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>T23 — проверка совместимости проекций</title>
+<style>
+html,body{margin:0;height:100%;font:14px system-ui;background:#102840;color:white}
+#map{position:absolute;inset:0}canvas{display:block}.maplibregl-control-container{display:none}
+#status{position:absolute;left:12px;right:12px;top:12px;padding:12px;background:#102840ed;pointer-events:none}
+#attribution{position:absolute;bottom:8px;left:12px;background:#102840ed}
+</style>
+<div id="map"></div><div id="status">T23: техническая проверка. Это не рабочая карта.</div>
+<div id="attribution">Подложка Natural Earth 5.1.2 · общественное достояние</div>
+<script src="/vendor/proj4.js"></script><script src="/land.js"></script>
+<script src="/vendor/d3-array.min.js"></script><script src="/vendor/d3-geo.min.js"></script>
+<script type="module" src="/probe.js"></script></html>

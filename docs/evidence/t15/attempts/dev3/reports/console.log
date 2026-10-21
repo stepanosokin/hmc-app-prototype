@@ -1,0 +1,2103 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261021163130
+Username: STAFF\s.osokin
+RunAs User: STAFF\s.osokin
+Configuration Name: 
+Machine: N626798 (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File tools/run-weather-viewer.ps1 -Project hmc-publication-t13-t15-dev3 -Navigation -Updates -UpdatesOnly
+Process ID: 28960
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+{"phase":"start","files":177,"status":"passed"}
+ Network hmc-publication-t13-t15-dev3_publication  Creating
+ Network hmc-publication-t13-t15-dev3_publication  Created
+ Network hmc-publication-t13-t15-dev3_edge  Creating
+ Network hmc-publication-t13-t15-dev3_edge  Created
+ Volume hmc-publication-t13-t15-dev3_postgres  Creating
+ Volume hmc-publication-t13-t15-dev3_postgres  Created
+ Volume hmc-publication-t13-t15-dev3_assets  Creating
+ Volume hmc-publication-t13-t15-dev3_assets  Created
+ Volume hmc-publication-t13-t15-dev3_geoserver  Creating
+ Volume hmc-publication-t13-t15-dev3_geoserver  Created
+ Container hmc-publication-t13-t15-dev3-db-1  Creating
+ Container hmc-publication-t13-t15-dev3-geoserver-1  Creating
+ Container hmc-publication-t13-t15-dev3-gateway-1  Creating
+ Container hmc-publication-t13-t15-dev3-api-1  Creating
+ Container hmc-publication-t13-t15-dev3-viewer-1  Creating
+ Container hmc-publication-t13-t15-dev3-gateway-1  Created
+ Container hmc-publication-t13-t15-dev3-geoserver-1  Created
+ Container hmc-publication-t13-t15-dev3-db-1  Created
+ Container hmc-publication-t13-t15-dev3-viewer-1  Created
+ Container hmc-publication-t13-t15-dev3-api-1  Created
+ Container hmc-publication-t13-t15-dev3-gateway-1  Starting
+ Container hmc-publication-t13-t15-dev3-api-1  Starting
+ Container hmc-publication-t13-t15-dev3-geoserver-1  Starting
+ Container hmc-publication-t13-t15-dev3-db-1  Starting
+ Container hmc-publication-t13-t15-dev3-viewer-1  Starting
+ Container hmc-publication-t13-t15-dev3-db-1  Started
+ Container hmc-publication-t13-t15-dev3-api-1  Started
+ Container hmc-publication-t13-t15-dev3-geoserver-1  Started
+ Container hmc-publication-t13-t15-dev3-gateway-1  Started
+ Container hmc-publication-t13-t15-dev3-viewer-1  Started
+6b86e223-b705-4f14-90b2-6b8ec1803d52
+ Container hmc-publication-t13-t15-dev3-api-1  Restarting
+ Container hmc-publication-t13-t15-dev3-gateway-1  Restarting
+ Container hmc-publication-t13-t15-dev3-api-1  Started
+ Container hmc-publication-t13-t15-dev3-gateway-1  Started
+37357502-5c62-4932-aa92-4edf57de3633
+ Container hmc-publication-t13-t15-dev3-gateway-1  Restarting
+ Container hmc-publication-t13-t15-dev3-api-1  Restarting
+ Container hmc-publication-t13-t15-dev3-api-1  Started
+ Container hmc-publication-t13-t15-dev3-gateway-1  Started
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t13\\hmc-publication-t13-t15-dev3\\browser","status":"failed","failure":"Error: Timed out: old mode point held","cleanup":{"page_released":true,"browser_stopped":true,"profile_removed":true,"browser_processes_remaining":0}}
+PS>TerminatingError(): "browser failed with native exit 1"
+gateway-1    | 2026-10-21T13:31:34.157875395Z [2026-10-21 13:31:34 +0000] [1] [INFO] Starting gunicorn 23.0.0
+gateway-1    | 2026-10-21T13:31:34.158152007Z [2026-10-21 13:31:34 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+gateway-1    | 2026-10-21T13:31:34.158167047Z [2026-10-21 13:31:34 +0000] [1] [INFO] Using worker: gthread
+gateway-1    | 2026-10-21T13:31:34.160947473Z [2026-10-21 13:31:34 +0000] [7] [INFO] Booting worker with pid: 7
+gateway-1    | 2026-10-21T13:32:03.236725754Z [2026-10-21 13:32:03 +0000] [1] [INFO] Handling signal: term
+gateway-1    | 2026-10-21T13:32:03.347269222Z [2026-10-21 13:32:03 +0000] [7] [INFO] Worker exiting (pid: 7)
+gateway-1    | 2026-10-21T13:32:03.537425166Z [2026-10-21 13:32:03 +0000] [1] [INFO] Shutting down: Master
+gateway-1    | 2026-10-21T13:32:04.544513597Z [2026-10-21 13:32:04 +0000] [1] [INFO] Starting gunicorn 23.0.0
+gateway-1    | 2026-10-21T13:32:04.544548356Z [2026-10-21 13:32:04 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+gateway-1    | 2026-10-21T13:32:04.544551031Z [2026-10-21 13:32:04 +0000] [1] [INFO] Using worker: gthread
+gateway-1    | 2026-10-21T13:32:04.546128903Z [2026-10-21 13:32:04 +0000] [7] [INFO] Booting worker with pid: 7
+gateway-1    | 2026-10-21T13:32:19.479732240Z [2026-10-21 13:32:19 +0000] [1] [INFO] Handling signal: term
+gateway-1    | 2026-10-21T13:32:19.570417777Z [2026-10-21 13:32:19 +0000] [7] [INFO] Worker exiting (pid: 7)
+gateway-1    | 2026-10-21T13:32:19.680820474Z [2026-10-21 13:32:19 +0000] [1] [INFO] Shutting down: Master
+gateway-1    | 2026-10-21T13:32:20.779109426Z [2026-10-21 13:32:20 +0000] [1] [INFO] Starting gunicorn 23.0.0
+gateway-1    | 2026-10-21T13:32:20.779166419Z [2026-10-21 13:32:20 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+geoserver-1  | 2026-10-21T13:31:33.750326061Z Welcome to GeoServer 2.27.0
+geoserver-1  | 2026-10-21T13:31:33.754042862Z SET_GEOSERVER_REQUIRE_FILE will be ignored because SKIP_DEMO_DATA is set to true
+geoserver-1  | 2026-10-21T13:31:33.756494099Z Starting installation of extensions
+geoserver-1  | 2026-10-21T13:31:33.758687046Z Finished installation of extensions
+geoserver-1  | 2026-10-21T13:31:33.764051870Z Installing default server.xml with substituted environment variables
+geoserver-1  | 2026-10-21T13:31:33.772303088Z Updating GeoServer Credentials ...
+api-1        | 2026-10-21T13:31:34.132102727Z [2026-10-21 13:31:34 +0000] [1] [INFO] Starting gunicorn 23.0.0
+api-1        | 2026-10-21T13:31:34.132266432Z [2026-10-21 13:31:34 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+api-1        | 2026-10-21T13:31:34.132275730Z [2026-10-21 13:31:34 +0000] [1] [INFO] Using worker: gthread
+api-1        | 2026-10-21T13:31:34.135356470Z [2026-10-21 13:31:34 +0000] [7] [INFO] Booting worker with pid: 7
+api-1        | 2026-10-21T13:32:03.236177848Z [2026-10-21 13:32:03 +0000] [1] [INFO] Handling signal: term
+api-1        | 2026-10-21T13:32:03.347293767Z [2026-10-21 13:32:03 +0000] [7] [INFO] Worker exiting (pid: 7)
+api-1        | 2026-10-21T13:32:03.537051719Z [2026-10-21 13:32:03 +0000] [1] [INFO] Shutting down: Master
+api-1        | 2026-10-21T13:32:04.348556338Z [2026-10-21 13:32:04 +0000] [1] [INFO] Starting gunicorn 23.0.0
+api-1        | 2026-10-21T13:32:04.348655114Z [2026-10-21 13:32:04 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+api-1        | 2026-10-21T13:32:04.348665444Z [2026-10-21 13:32:04 +0000] [1] [INFO] Using worker: gthread
+api-1        | 2026-10-21T13:32:04.350319273Z [2026-10-21 13:32:04 +0000] [7] [INFO] Booting worker with pid: 7
+api-1        | 2026-10-21T13:32:19.479787086Z [2026-10-21 13:32:19 +0000] [1] [INFO] Handling signal: term
+api-1        | 2026-10-21T13:32:19.745911847Z [2026-10-21 13:32:19 +0000] [7] [INFO] Worker exiting (pid: 7)
+api-1        | 2026-10-21T13:32:19.980894087Z [2026-10-21 13:32:19 +0000] [1] [INFO] Shutting down: Master
+api-1        | 2026-10-21T13:32:20.647238780Z [2026-10-21 13:32:20 +0000] [1] [INFO] Starting gunicorn 23.0.0
+api-1        | 2026-10-21T13:32:20.647299912Z [2026-10-21 13:32:20 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+api-1        | 2026-10-21T13:32:20.647303058Z [2026-10-21 13:32:20 +0000] [1] [INFO] Using worker: gthread
+api-1        | 2026-10-21T13:32:20.648953414Z [2026-10-21 13:32:20 +0000] [7] [INFO] Booting worker with pid: 7
+api-1        | 2026-10-21T13:32:48.044253297Z [2026-10-21 13:32:48 +0000] [1] [INFO] Handling signal: term
+api-1        | 2026-10-21T13:32:48.453298082Z [2026-10-21 13:32:48 +0000] [7] [INFO] Worker exiting (pid: 7)
+api-1        | 2026-10-21T13:32:48.745791862Z [2026-10-21 13:32:48 +0000] [1] [INFO] Shutting down: Master
+api-1        | 2026-10-21T13:32:59.588127747Z [2026-10-21 13:32:59 +0000] [1] [INFO] Starting gunicorn 23.0.0
+api-1        | 2026-10-21T13:32:59.588172165Z [2026-10-21 13:32:59 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+api-1        | 2026-10-21T13:32:59.588174680Z [2026-10-21 13:32:59 +0000] [1] [INFO] Using worker: gthread
+api-1        | 2026-10-21T13:32:59.589963115Z [2026-10-21 13:32:59 +0000] [7] [INFO] Booting worker with pid: 7
+viewer-1     | 2026-10-21T13:31:34.172969930Z [2026-10-21 13:31:34 +0000] [1] [INFO] Starting gunicorn 23.0.0
+viewer-1     | 2026-10-21T13:31:34.173231427Z [2026-10-21 13:31:34 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+viewer-1     | 2026-10-21T13:31:34.173254332Z [2026-10-21 13:31:34 +0000] [1] [INFO] Using worker: gthread
+viewer-1     | 2026-10-21T13:31:34.175818791Z [2026-10-21 13:31:34 +0000] [7] [INFO] Booting worker with pid: 7
+gateway-1    | 2026-10-21T13:32:20.779172461Z [2026-10-21 13:32:20 +0000] [1] [INFO] Using worker: gthread
+gateway-1    | 2026-10-21T13:32:20.780768784Z [2026-10-21 13:32:20 +0000] [7] [INFO] Booting worker with pid: 7
+geoserver-1  | 2026-10-21T13:31:33.778332903Z USING USERS XML ORIGINAL: /usr/local/tomcat/webapps/geoserver/data/security/usergroup/default/users.xml
+db-1         | 2026-10-21T13:31:33.782488662Z The files belonging to this database system will be owned by user "postgres".
+db-1         | 2026-10-21T13:31:33.782551456Z This user must also own the server process.
+db-1         | 2026-10-21T13:31:33.782554142Z
+db-1         | 2026-10-21T13:31:33.782555635Z The database cluster will be initialized with locale "en_US.utf8".
+db-1         | 2026-10-21T13:31:33.782557158Z The default database encoding has accordingly been set to "UTF8".
+db-1         | 2026-10-21T13:31:33.782558470Z The default text search configuration will be set to "english".
+db-1         | 2026-10-21T13:31:33.782559723Z
+db-1         | 2026-10-21T13:31:33.782560785Z Data page checksums are enabled.
+db-1         | 2026-10-21T13:31:33.782562147Z
+db-1         | 2026-10-21T13:31:33.782563280Z fixing permissions on existing directory /var/lib/postgresql/18/docker ... ok
+db-1         | 2026-10-21T13:31:33.784445580Z creating subdirectories ... ok
+db-1         | 2026-10-21T13:31:33.784465891Z selecting dynamic shared memory implementation ... posix
+db-1         | 2026-10-21T13:31:33.797206593Z selecting default "max_connections" ... 100
+db-1         | 2026-10-21T13:31:33.817644917Z selecting default "shared_buffers" ... 128MB
+db-1         | 2026-10-21T13:31:33.826525494Z selecting default time zone ... Etc/UTC
+db-1         | 2026-10-21T13:31:33.826971517Z creating configuration files ... ok
+db-1         | 2026-10-21T13:31:33.946591221Z running bootstrap script ... ok
+db-1         | 2026-10-21T13:31:34.221641692Z performing post-bootstrap initialization ... ok
+geoserver-1  | 2026-10-21T13:31:33.778355067Z USING ROLES XML ORIGINAL: /usr/local/tomcat/webapps/geoserver/data/security/role/default/roles.xml
+geoserver-1  | 2026-10-21T13:31:33.778361189Z SETTING USERS XML: /opt/geoserver_data//security/usergroup/default/users.xml
+geoserver-1  | 2026-10-21T13:31:33.778363183Z SETTING ROLES XML: . /opt/geoserver_data//security/role/default/roles.xml
+geoserver-1  | 2026-10-21T13:31:33.935669663Z Successfully replaced /opt/geoserver_data//security/usergroup/default/users.xml
+geoserver-1  | 2026-10-21T13:31:33.939213859Z Successfully replaced /opt/geoserver_data//security/role/default/roles.xml
+geoserver-1  | 2026-10-21T13:31:33.939235703Z ... DONE updating GeoServer Credentials ...
+db-1         | 2026-10-21T13:31:34.838852048Z syncing data to disk ... ok
+db-1         | 2026-10-21T13:31:34.838895735Z
+db-1         | 2026-10-21T13:31:34.838897909Z
+db-1         | 2026-10-21T13:31:34.838899382Z Success. You can now start the database server using:
+db-1         | 2026-10-21T13:31:34.838900825Z
+db-1         | 2026-10-21T13:31:34.838901997Z     pg_ctl -D /var/lib/postgresql/18/docker -l logfile start
+db-1         | 2026-10-21T13:31:34.838903400Z
+db-1         | 2026-10-21T13:31:34.838888341Z initdb: warning: enabling "trust" authentication for local connections
+geoserver-1  | 2026-10-21T13:31:33.948444627Z NOTE: Picked up JDK_JAVA_OPTIONS:  --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.151272070Z usage: java org.apache.catalina.startup.Catalina [ -config {pathname} ] [ -nonaming ] [ -generateCode [ {pathname} ] ] [ -useGeneratedCode ] { -help | start | stop }
+geoserver-1  | 2026-10-21T13:31:34.363589465Z 21-Oct-2026 13:31:34.359 WARNING [main] org.apache.catalina.core.StandardContext.setPath A context path must either be an empty string or start with a '/' and do not end with a '/'. The path [geoserver] does not meet these criteria and has been changed to [/geoserver]
+geoserver-1  | 2026-10-21T13:31:34.375829743Z 21-Oct-2026 13:31:34.375 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   i_am_a_teapot
+geoserver-1  | 2026-10-21T13:31:34.375932869Z 21-Oct-2026 13:31:34.375 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:
+geoserver-1  | 2026-10-21T13:31:34.376028761Z 21-Oct-2026 13:31:34.375 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: x.y.z.0
+geoserver-1  | 2026-10-21T13:31:34.376301319Z 21-Oct-2026 13:31:34.375 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
+geoserver-1  | 2026-10-21T13:31:34.376395556Z 21-Oct-2026 13:31:34.376 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            6.6.87.2-microsoft-standard-WSL2
+geoserver-1  | 2026-10-21T13:31:34.376547726Z 21-Oct-2026 13:31:34.376 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+geoserver-1  | 2026-10-21T13:31:34.376613697Z 21-Oct-2026 13:31:34.376 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /opt/java/openjdk
+geoserver-1  | 2026-10-21T13:31:34.376849885Z 21-Oct-2026 13:31:34.376 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           17.0.14+7
+geoserver-1  | 2026-10-21T13:31:34.376857189Z 21-Oct-2026 13:31:34.376 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Eclipse Adoptium
+geoserver-1  | 2026-10-21T13:31:34.377035803Z 21-Oct-2026 13:31:34.376 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /usr/local/tomcat
+geoserver-1  | 2026-10-21T13:31:34.377372817Z 21-Oct-2026 13:31:34.376 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /usr/local/tomcat
+geoserver-1  | 2026-10-21T13:31:34.378399069Z 21-Oct-2026 13:31:34.378 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.378645166Z 21-Oct-2026 13:31:34.378 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.378830879Z 21-Oct-2026 13:31:34.378 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.378971292Z 21-Oct-2026 13:31:34.378 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.379420609Z 21-Oct-2026 13:31:34.379 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.379451510Z 21-Oct-2026 13:31:34.379 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.379727133Z 21-Oct-2026 13:31:34.379 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.379891624Z 21-Oct-2026 13:31:34.379 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/usr/local/tomcat/conf/logging.properties
+geoserver-1  | 2026-10-21T13:31:34.380065693Z 21-Oct-2026 13:31:34.379 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+geoserver-1  | 2026-10-21T13:31:34.380359306Z 21-Oct-2026 13:31:34.379 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xms256m
+geoserver-1  | 2026-10-21T13:31:34.380492771Z 21-Oct-2026 13:31:34.380 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xmx1536m
+geoserver-1  | 2026-10-21T13:31:34.380967986Z 21-Oct-2026 13:31:34.380 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+geoserver-1  | 2026-10-21T13:31:34.381089741Z 21-Oct-2026 13:31:34.380 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+geoserver-1  | 2026-10-21T13:31:34.381155832Z 21-Oct-2026 13:31:34.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dsun.io.useCanonCaches=false
+geoserver-1  | 2026-10-21T13:31:34.381392180Z 21-Oct-2026 13:31:34.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+geoserver-1  | 2026-10-21T13:31:34.381584060Z 21-Oct-2026 13:31:34.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xms256m
+geoserver-1  | 2026-10-21T13:31:34.381698587Z 21-Oct-2026 13:31:34.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xmx1g
+geoserver-1  | 2026-10-21T13:31:34.381805820Z 21-Oct-2026 13:31:34.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-exports=java.desktop/sun.awt.image=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.382067920Z 21-Oct-2026 13:31:34.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.382083160Z 21-Oct-2026 13:31:34.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.382336112Z 21-Oct-2026 13:31:34.382 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.382345761Z 21-Oct-2026 13:31:34.382 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.text=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.383093725Z 21-Oct-2026 13:31:34.382 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.desktop/java.awt.font=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.383102232Z 21-Oct-2026 13:31:34.382 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.desktop/sun.awt.image=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.383837440Z 21-Oct-2026 13:31:34.383 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.naming/com.sun.jndi.ldap=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.383860576Z 21-Oct-2026 13:31:34.383 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.desktop/sun.java2d.pipe=ALL-UNNAMED
+geoserver-1  | 2026-10-21T13:31:34.384037492Z 21-Oct-2026 13:31:34.383 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.awt.headless=true
+geoserver-1  | 2026-10-21T13:31:34.384047482Z 21-Oct-2026 13:31:34.383 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dfile.encoding=UTF-8
+geoserver-1  | 2026-10-21T13:31:34.384050037Z 21-Oct-2026 13:31:34.383 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djavax.servlet.request.encoding=UTF-8
+geoserver-1  | 2026-10-21T13:31:34.384313830Z 21-Oct-2026 13:31:34.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djavax.servlet.response.encoding=UTF-8
+db-1         | 2026-10-21T13:31:34.838915806Z initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+geoserver-1  | 2026-10-21T13:31:34.384817228Z 21-Oct-2026 13:31:34.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -D-XX:SoftRefLRUPolicyMSPerMB=36000
+geoserver-1  | 2026-10-21T13:31:34.385042400Z 21-Oct-2026 13:31:34.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xbootclasspath/a:/usr/local/tomcat/lib/marlin.jar
+geoserver-1  | 2026-10-21T13:31:34.385059754Z 21-Oct-2026 13:31:34.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dsun.java2d.renderer=sun.java2d.marlin.DMarlinRenderingEngine
+geoserver-1  | 2026-10-21T13:31:34.385309435Z 21-Oct-2026 13:31:34.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.geotools.coverage.jaiext.enabled=true
+geoserver-1  | 2026-10-21T13:31:34.385319686Z 21-Oct-2026 13:31:34.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dignore.endorsed.dirs=
+geoserver-1  | 2026-10-21T13:31:34.385321679Z 21-Oct-2026 13:31:34.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/usr/local/tomcat
+geoserver-1  | 2026-10-21T13:31:34.385566210Z 21-Oct-2026 13:31:34.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/usr/local/tomcat
+geoserver-1  | 2026-10-21T13:31:34.385576601Z 21-Oct-2026 13:31:34.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/usr/local/tomcat/temp
+geoserver-1  | 2026-10-21T13:31:34.389147187Z 21-Oct-2026 13:31:34.388 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [1.3.1] using APR version [1.7.0].
+geoserver-1  | 2026-10-21T13:31:34.389182568Z 21-Oct-2026 13:31:34.388 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent APR capabilities: IPv6 [true], sendfile [true], accept filters [false], random [true], UDS [true].
+geoserver-1  | 2026-10-21T13:31:34.389185974Z 21-Oct-2026 13:31:34.388 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent APR/OpenSSL configuration: useAprConnector [false], useOpenSSL [true]
+geoserver-1  | 2026-10-21T13:31:34.392148279Z 21-Oct-2026 13:31:34.391 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.2 15 Mar 2022]
+geoserver-1  | 2026-10-21T13:31:34.625554920Z 21-Oct-2026 13:31:34.625 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+geoserver-1  | 2026-10-21T13:31:34.648048046Z 21-Oct-2026 13:31:34.647 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [496] milliseconds
+geoserver-1  | 2026-10-21T13:31:34.681856853Z 21-Oct-2026 13:31:34.681 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+geoserver-1  | 2026-10-21T13:31:34.681891622Z 21-Oct-2026 13:31:34.681 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [i_am_a_teapot]
+geoserver-1  | 2026-10-21T13:31:37.709259310Z 21-Oct-2026 13:31:37.708 SEVERE [main] org.apache.catalina.core.NamingContextListener.addResource Failed to bind object: [javax.naming.NamingException: Name is not valid]
+geoserver-1  | 2026-10-21T13:31:37.762385257Z 21-Oct-2026 13:31:37.761 INFO [main] org.apache.jasper.servlet.TldScanner.scanJars At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+geoserver-1  | 2026-10-21T13:31:38.319309439Z 13:31:38 CONFIG [geoserver.logging] - Logging policy: Log4J2
+geoserver-1  | 2026-10-21T13:31:38.499666361Z 13:31:38 WARN   [geoserver.logging] - Could not find GeoServer logging.xml (or old services.xml) settings for logging
+geoserver-1  | 2026-10-21T13:31:39.841109721Z 13:31:39 CONFIG [org.geoserver] - GeoServer configuration lock is enabled
+geoserver-1  | 2026-10-21T13:31:40.627679135Z 13:31:40 CONFIG [geoserver.config] - Loading catalog /opt/geoserver_data
+geoserver-1  | 2026-10-21T13:31:40.661130914Z 13:31:40 CONFIG [config.datadir] - Catalog and configuration loader uses 16 threads out of 24 available cores.
+geoserver-1  | 2026-10-21T13:31:40.716047700Z 13:31:40 INFO   [geoserver.config] - Read Catalog in 85.43 ms: workspaces: 0, namespaces: 0, styles: 5, stores: 0, resources: 0, layers: 0, layer groups: 0.
+geoserver-1  | 2026-10-21T13:31:40.756615837Z 13:31:40 CONFIG [config.datadir] - Loading GeoServer config...
+geoserver-1  | 2026-10-21T13:31:40.771662093Z 13:31:40 CONFIG [config.datadir] - Loaded service 'WCSInfoImpl-58511780:1a15ea91108:-7ffb', enabled
+geoserver-1  | 2026-10-21T13:31:40.772912664Z 13:31:40 CONFIG [config.datadir] - Loaded service 'WFSInfoImpl-58511780:1a15ea91108:-7ffa', enabled
+geoserver-1  | 2026-10-21T13:31:40.775075116Z 13:31:40 CONFIG [config.datadir] - Loaded service 'WMTSInfoImpl-58511780:1a15ea91108:-7ff9', enabled
+geoserver-1  | 2026-10-21T13:31:40.777022050Z 13:31:40 CONFIG [config.datadir] - Loaded service 'WMSInfoImpl-58511780:1a15ea91108:-7ff8', enabled
+geoserver-1  | 2026-10-21T13:31:40.777707052Z 13:31:40 CONFIG [config.datadir] - Catalog and configuration loader uses 16 threads out of 24 available cores.
+geoserver-1  | 2026-10-21T13:31:40.779490816Z 13:31:40 CONFIG [config.datadir] - Loading workspace services and settings...
+geoserver-1  | 2026-10-21T13:31:40.857249823Z 13:31:40 CONFIG [config.datadir] - GeoServer config (settings and services) loaded in 99.13 ms
+geoserver-1  | 2026-10-21T13:31:40.878394243Z 13:31:40 CONFIG [gwc.config] - Will look for 'geowebcache.xml' in directory '/opt/geoserver_data/gwc'.
+geoserver-1  | 2026-10-21T13:31:40.948417581Z 13:31:40 CONFIG [gwc.config] - Create configuration file 'gwc/geowebcache.xml' from template jar:file:/usr/local/tomcat/webapps/geoserver/WEB-INF/lib/gwc-core-1.27.0.jar!/geowebcache_empty.xml
+geoserver-1  | 2026-10-21T13:31:40.979656498Z 13:31:40 WARN   [config.XMLConfiguration] - GWC configuration validation error: cvc-elt.1.a: Cannot find the declaration of element 'gwcConfiguration'.
+geoserver-1  | 2026-10-21T13:31:40.980036688Z 13:31:40 WARN   [config.XMLConfiguration] - Will try to use configuration anyway. Please check the order of declared elements against the schema.
+geoserver-1  | 2026-10-21T13:31:41.032994595Z 13:31:41 CONFIG [gwc.layer] - Initializing GWC configuration based on GeoServer's Catalog
+geoserver-1  | 2026-10-21T13:31:41.033302702Z 13:31:41 CONFIG [gwc.layer] - GeoServer TileLayer store base directory is: gwc-layers
+geoserver-1  | 2026-10-21T13:31:41.033313223Z 13:31:41 CONFIG [gwc.layer] - Loading tile layers from gwc-layers
+geoserver-1  | 2026-10-21T13:31:41.035061814Z 13:31:41 CONFIG [gwc.layer] - Loaded 0 tile layers in 1.302 ms
+geoserver-1  | 2026-10-21T13:31:41.074376110Z 13:31:41 CONFIG [gwc.config] - Initializing GeoServer specific GWC configuration from gwc-gs.xml
+geoserver-1  | 2026-10-21T13:31:41.148687338Z 13:31:41 INFO   [security.csp] - Creating csp.xml with the default configuration
+geoserver-1  | 2026-10-21T13:31:41.162544649Z 13:31:41 INFO   [security.csp] - Creating csp_default.xml with the default configuration
+geoserver-1  | 2026-10-21T13:31:41.204824652Z 13:31:41 CONFIG [geoserver.security] - AuthenticationCache Initialized with 1000 Max Entries, 300 seconds idle time, 600 seconds time to live and 3 concurrency level
+geoserver-1  | 2026-10-21T13:31:41.205652490Z 13:31:41 CONFIG [geoserver.security] - AuthenticationCache Eviction Task created to run every 600 seconds
+geoserver-1  | 2026-10-21T13:31:42.241025250Z 13:31:42 CONFIG [gwc.config] - Will look for 'geowebcache-diskquota.xml' in directory '/opt/geoserver_data/gwc'.
+geoserver-1  | 2026-10-21T13:31:42.243772768Z 13:31:42 CONFIG [gwc.config] - Will look for 'geowebcache-diskquota-jdbc.xml' in directory '/opt/geoserver_data/gwc'.
+geoserver-1  | 2026-10-21T13:31:43.687895465Z 13:31:43 INFO   [geoserver.security] - Strong cryptography is available
+geoserver-1  | 2026-10-21T13:31:43.883432692Z 13:31:43 CONFIG [geoserver.security] - Start reloading user/groups for service named default
+geoserver-1  | 2026-10-21T13:31:43.887902378Z 13:31:43 CONFIG [geoserver.security] - Reloading user/groups successful for service named default
+geoserver-1  | 2026-10-21T13:31:43.913188193Z 13:31:43 INFO   [geoserver.security] - Start encrypting configuration passwords using pbePasswordEncoder
+geoserver-1  | 2026-10-21T13:31:43.924244472Z 13:31:43 INFO   [geoserver.security] - End encrypting configuration passwords
+geoserver-1  | 2026-10-21T13:31:44.038292624Z 21-Oct-2026 13:31:44.037 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+geoserver-1  | 2026-10-21T13:31:44.049064086Z 21-Oct-2026 13:31:44.048 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [9400] milliseconds
+geoserver-1  | 2026-10-21T13:31:52.656334717Z 13:31:52 INFO   [rest.catalog] - Added workspace p4258d23b0d4ae696710041a2
+db-1         | 2026-10-21T13:31:34.889262439Z waiting for server to start....2026-10-21 13:31:34.889 UTC [54] LOG:  starting PostgreSQL 18.4 (Debian 18.4-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+db-1         | 2026-10-21T13:31:34.892812016Z 2026-10-21 13:31:34.892 UTC [54] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+db-1         | 2026-10-21T13:31:34.905125369Z 2026-10-21 13:31:34.904 UTC [60] LOG:  database system was shut down at 2026-10-21 13:31:34 UTC
+db-1         | 2026-10-21T13:31:34.911297151Z 2026-10-21 13:31:34.911 UTC [54] LOG:  database system is ready to accept connections
+db-1         | 2026-10-21T13:31:34.961428271Z  done
+db-1         | 2026-10-21T13:31:34.961458932Z server started
+db-1         | 2026-10-21T13:31:35.160110371Z CREATE DATABASE
+db-1         | 2026-10-21T13:31:35.160839145Z
+db-1         | 2026-10-21T13:31:35.160990012Z
+db-1         | 2026-10-21T13:31:35.161000823Z /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/010-hmc.sh
+db-1         | 2026-10-21T13:31:35.575113872Z CREATE EXTENSION
+db-1         | 2026-10-21T13:31:35.581374151Z INSERT 0 1
+db-1         | 2026-10-21T13:31:35.583661689Z REVOKE
+db-1         | 2026-10-21T13:31:35.587708017Z CREATE ROLE
+db-1         | 2026-10-21T13:31:35.591587919Z CREATE ROLE
+db-1         | 2026-10-21T13:31:35.595966784Z CREATE ROLE
+db-1         | 2026-10-21T13:31:35.597893937Z CREATE SCHEMA
+db-1         | 2026-10-21T13:31:35.599558164Z CREATE SCHEMA
+db-1         | 2026-10-21T13:31:35.599815178Z SET
+db-1         | 2026-10-21T13:31:35.602531722Z CREATE TABLE
+db-1         | 2026-10-21T13:31:35.605440546Z CREATE TABLE
+db-1         | 2026-10-21T13:31:35.607046481Z GRANT
+db-1         | 2026-10-21T13:31:35.608494986Z GRANT
+db-1         | 2026-10-21T13:31:35.609872385Z GRANT
+db-1         | 2026-10-21T13:31:35.613094336Z CREATE TABLE
+db-1         | 2026-10-21T13:31:35.614437232Z GRANT
+db-1         | 2026-10-21T13:31:35.614663504Z RESET
+db-1         | 2026-10-21T13:31:35.616257370Z
+db-1         | 2026-10-21T13:31:35.616271688Z /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/020-access.sh
+db-1         | 2026-10-21T13:31:35.642125056Z CREATE ROLE
+db-1         | 2026-10-21T13:31:35.646258779Z ALTER ROLE
+db-1         | 2026-10-21T13:31:35.648267816Z CREATE SCHEMA
+db-1         | 2026-10-21T13:31:35.650101260Z
+db-1         | 2026-10-21T13:31:35.650140869Z /usr/local/bin/docker-entrypoint.sh: sourcing /docker-entrypoint-initdb.d/10_postgis.sh
+db-1         | 2026-10-21T13:31:35.698805185Z CREATE DATABASE
+db-1         | 2026-10-21T13:31:35.699532473Z Loading PostGIS extensions into template_postgis
+db-1         | 2026-10-21T13:31:36.065483303Z CREATE EXTENSION
+db-1         | 2026-10-21T13:31:36.084917561Z CREATE EXTENSION
+db-1         | 2026-10-21T13:31:36.087108787Z You are now connected to database "template_postgis" as user "postgres".
+db-1         | 2026-10-21T13:31:36.236239446Z DO
+db-1         | 2026-10-21T13:31:36.237069517Z Loading PostGIS extensions into hmc
+db-1         | 2026-10-21T13:31:36.258673169Z CREATE EXTENSION
+db-1         | 2026-10-21T13:31:36.258693312Z NOTICE:  extension "postgis" already exists, skipping
+db-1         | 2026-10-21T13:31:36.282774117Z CREATE EXTENSION
+db-1         | 2026-10-21T13:31:36.284666001Z You are now connected to database "hmc" as user "postgres".
+db-1         | 2026-10-21T13:31:36.431090655Z DO
+db-1         | 2026-10-21T13:31:36.431855118Z
+db-1         | 2026-10-21T13:31:36.432044437Z /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/native-crs.sql
+db-1         | 2026-10-21T13:31:36.452692733Z INSERT 0 0
+db-1         | 2026-10-21T13:31:36.454085623Z
+db-1         | 2026-10-21T13:31:36.454144901Z
+db-1         | 2026-10-21T13:31:36.455291679Z 2026-10-21 13:31:36.455 UTC [54] LOG:  received fast shutdown request
+db-1         | 2026-10-21T13:31:36.458426091Z waiting for server to shut down....2026-10-21 13:31:36.458 UTC [54] LOG:  aborting any active transactions
+geoserver-1  | 2026-10-21T13:31:52.656426880Z 13:31:52 INFO   [rest.catalog] - POST workspace p4258d23b0d4ae696710041a2
+geoserver-1  | 2026-10-21T13:31:52.705153691Z 13:31:52 INFO   [rest.catalog] - Auto-configuring coverage store: temperature
+geoserver-1  | 2026-10-21T13:31:53.185664364Z 13:31:53 ERROR  [referencing.factory] - Failed to initialize pivot CRSs, please ensure you have a valid EPSG database
+geoserver-1  | 2026-10-21T13:31:53.185711748Z org.geotools.api.referencing.NoSuchAuthorityCodeException: No code "4258" from authority "European Petroleum Survey Group" found for object of type "interface org.geotools.api.referencing.IdentifiedObject".
+geoserver-1  | 2026-10-21T13:31:53.185716548Z 	at org.geotools.referencing.factory.AbstractAuthorityFactory.noSuchAuthorityCode(AbstractAuthorityFactory.java:870)
+geoserver-1  | 2026-10-21T13:31:53.185719674Z 	at org.geotools.referencing.factory.AbstractAuthorityFactory.createObject(AbstractAuthorityFactory.java:158)
+geoserver-1  | 2026-10-21T13:31:53.185722039Z 	at org.geotools.referencing.factory.BufferedAuthorityFactory.createObject(BufferedAuthorityFactory.java:358)
+geoserver-1  | 2026-10-21T13:31:53.185724313Z 	at org.geotools.referencing.operation.AuthorityBackedFactory.getPivotCoordinateReferenceSystems(AuthorityBackedFactory.java:323)
+geoserver-1  | 2026-10-21T13:31:53.185817613Z 	at org.geotools.referencing.operation.AuthorityBackedFactory.tryWellKnownPivots(AuthorityBackedFactory.java:296)
+geoserver-1  | 2026-10-21T13:31:53.185826230Z 	at org.geotools.referencing.operation.DefaultCoordinateOperationFactory.createOperationStep(DefaultCoordinateOperationFactory.java:791)
+geoserver-1  | 2026-10-21T13:31:53.185828334Z 	at org.geotools.referencing.operation.DefaultCoordinateOperationFactory.findOperations(DefaultCoordinateOperationFactory.java:309)
+geoserver-1  | 2026-10-21T13:31:53.185830008Z 	at org.geotools.referencing.operation.DefaultCoordinateOperationFactory.createOperation(DefaultCoordinateOperationFactory.java:202)
+geoserver-1  | 2026-10-21T13:31:53.185847603Z 	at org.geotools.referencing.operation.BufferedCoordinateOperationFactory.createOperation(BufferedCoordinateOperationFactory.java:223)
+geoserver-1  | 2026-10-21T13:31:53.185848635Z 	at org.geotools.referencing.CRS.findMathTransform(CRS.java:1272)
+geoserver-1  | 2026-10-21T13:31:53.185850007Z 	at org.geotools.referencing.CRS.findMathTransform(CRS.java:1171)
+geoserver-1  | 2026-10-21T13:31:53.185850999Z 	at org.geotools.gce.imagemosaic.ImageMosaicConfigHandler.transformResolutionLevels(ImageMosaicConfigHandler.java:1550)
+geoserver-1  | 2026-10-21T13:31:53.185852011Z 	at org.geotools.gce.imagemosaic.ImageMosaicConfigHandler.getResolutionLevels(ImageMosaicConfigHandler.java:1516)
+geoserver-1  | 2026-10-21T13:31:53.185852873Z 	at org.geotools.gce.imagemosaic.ImageMosaicConfigHandler.updateConfiguration(ImageMosaicConfigHandler.java:1367)
+geoserver-1  | 2026-10-21T13:31:53.185859426Z 	at org.geotools.gce.imagemosaic.ImageMosaicFileFeatureConsumer$ImageMosaicFileConsumer.handleElement(ImageMosaicFileFeatureConsumer.java:256)
+geoserver-1  | 2026-10-21T13:31:53.185860368Z 	at org.geotools.gce.imagemosaic.ImageMosaicFileFeatureConsumer$ImageMosaicFileConsumer.handleElement(ImageMosaicFileFeatureConsumer.java:128)
+geoserver-1  | 2026-10-21T13:31:53.185861260Z 	at org.geotools.gce.imagemosaic.ImageMosaicDirectoryWalker$MosaicDirectoryWalker.handleElement(ImageMosaicDirectoryWalker.java:165)
+geoserver-1  | 2026-10-21T13:31:53.185862142Z 	at org.geotools.gce.imagemosaic.ImageMosaicDirectoryWalker$MosaicDirectoryWalker.handleFile(ImageMosaicDirectoryWalker.java:96)
+geoserver-1  | 2026-10-21T13:31:53.185863073Z 	at org.apache.commons.io.DirectoryWalker.walk(DirectoryWalker.java:657)
+geoserver-1  | 2026-10-21T13:31:53.185863935Z 	at org.apache.commons.io.DirectoryWalker.walk(DirectoryWalker.java:625)
+geoserver-1  | 2026-10-21T13:31:53.185864697Z 	at org.geotools.gce.imagemosaic.ImageMosaicDirectoryWalker$MosaicDirectoryWalker.<init>(ImageMosaicDirectoryWalker.java:117)
+geoserver-1  | 2026-10-21T13:31:53.185865709Z 	at org.geotools.gce.imagemosaic.ImageMosaicDirectoryWalker.run(ImageMosaicDirectoryWalker.java:205)
+geoserver-1  | 2026-10-21T13:31:53.185866560Z 	at org.geotools.gce.imagemosaic.Utils.createMosaicInternal(Utils.java:577)
+geoserver-1  | 2026-10-21T13:31:53.185867482Z 	at org.geotools.gce.imagemosaic.Utils.createMosaic(Utils.java:544)
+geoserver-1  | 2026-10-21T13:31:53.185868244Z 	at org.geotools.gce.imagemosaic.Utils.checkSource(Utils.java:1666)
+geoserver-1  | 2026-10-21T13:31:53.185868975Z 	at org.geotools.gce.imagemosaic.ImageMosaicReader.initReaderFromURL(ImageMosaicReader.java:249)
+geoserver-1  | 2026-10-21T13:31:53.185869767Z 	at org.geotools.gce.imagemosaic.ImageMosaicReader.<init>(ImageMosaicReader.java:210)
+geoserver-1  | 2026-10-21T13:31:53.185870699Z 	at org.geotools.gce.imagemosaic.ImageMosaicFormat.getReader(ImageMosaicFormat.java:518)
+geoserver-1  | 2026-10-21T13:31:53.185871500Z 	at org.geotools.gce.imagemosaic.ImageMosaicFormat.getReader(ImageMosaicFormat.java:101)
+geoserver-1  | 2026-10-21T13:31:53.185872753Z 	at org.geoserver.rest.catalog.CoverageStoreFileController.coverageStorePut(CoverageStoreFileController.java:237)
+db-1         | 2026-10-21T13:31:36.459483256Z 2026-10-21 13:31:36.459 UTC [54] LOG:  background worker "logical replication launcher" (PID 63) exited with exit code 1
+db-1         | 2026-10-21T13:31:36.460161642Z 2026-10-21 13:31:36.459 UTC [58] LOG:  shutting down
+db-1         | 2026-10-21T13:31:36.462981889Z 2026-10-21 13:31:36.462 UTC [58] LOG:  checkpoint starting: shutdown immediate
+db-1         | 2026-10-21T13:31:37.428283741Z 2026-10-21 13:31:37.428 UTC [58] LOG:  checkpoint complete: wrote 4494 buffers (27.4%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 2 recycled; write=0.034 s, sync=0.903 s, total=0.969 s; sync files=985, longest=0.010 s, average=0.001 s; distance=35223 kB, estimate=35223 kB; lsn=0/39C54F8, redo lsn=0/39C54F8
+db-1         | 2026-10-21T13:31:37.442814046Z 2026-10-21 13:31:37.442 UTC [54] LOG:  database system is shut down
+db-1         | 2026-10-21T13:31:37.457354954Z  done
+db-1         | 2026-10-21T13:31:37.457398040Z server stopped
+db-1         | 2026-10-21T13:31:37.459366070Z
+db-1         | 2026-10-21T13:31:37.459427411Z PostgreSQL init process complete; ready for start up.
+db-1         | 2026-10-21T13:31:37.459438153Z
+db-1         | 2026-10-21T13:31:37.476686555Z 2026-10-21 13:31:37.476 UTC [1] LOG:  starting PostgreSQL 18.4 (Debian 18.4-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+db-1         | 2026-10-21T13:31:37.476730122Z 2026-10-21 13:31:37.476 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+db-1         | 2026-10-21T13:31:37.476736574Z 2026-10-21 13:31:37.476 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+db-1         | 2026-10-21T13:31:37.481619404Z 2026-10-21 13:31:37.481 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+db-1         | 2026-10-21T13:31:37.488650840Z 2026-10-21 13:31:37.488 UTC [100] LOG:  database system was shut down at 2026-10-21 13:31:37 UTC
+db-1         | 2026-10-21T13:31:37.493621195Z 2026-10-21 13:31:37.493 UTC [1] LOG:  database system is ready to accept connections
+geoserver-1  | 2026-10-21T13:31:53.185873875Z 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+geoserver-1  | 2026-10-21T13:31:53.185877121Z 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+geoserver-1  | 2026-10-21T13:31:53.185878304Z 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+geoserver-1  | 2026-10-21T13:31:53.185879416Z 	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+geoserver-1  | 2026-10-21T13:31:53.185880468Z 	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205)
+geoserver-1  | 2026-10-21T13:31:53.185881971Z 	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150)
+geoserver-1  | 2026-10-21T13:31:53.185883273Z 	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+geoserver-1  | 2026-10-21T13:31:53.185884476Z 	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:903)
+geoserver-1  | 2026-10-21T13:31:53.185885738Z 	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:809)
+geoserver-1  | 2026-10-21T13:31:53.185887071Z 	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+geoserver-1  | 2026-10-21T13:31:53.185888203Z 	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1072)
+geoserver-1  | 2026-10-21T13:31:53.185889456Z 	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+geoserver-1  | 2026-10-21T13:31:53.185890227Z 	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+geoserver-1  | 2026-10-21T13:31:53.185890999Z 	at org.springframework.web.servlet.FrameworkServlet.doPut(FrameworkServlet.java:920)
+geoserver-1  | 2026-10-21T13:31:53.185891780Z 	at javax.servlet.http.HttpServlet.service(HttpServlet.java:558)
+geoserver-1  | 2026-10-21T13:31:53.185892552Z 	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+geoserver-1  | 2026-10-21T13:31:53.185893303Z 	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+geoserver-1  | 2026-10-21T13:31:53.185894055Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:199)
+geoserver-1  | 2026-10-21T13:31:53.185894806Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185895548Z 	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+geoserver-1  | 2026-10-21T13:31:53.185896319Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185897071Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185897842Z 	at org.geoserver.filters.ThreadLocalsCleanupFilter.doFilter(ThreadLocalsCleanupFilter.java:28)
+geoserver-1  | 2026-10-21T13:31:53.185898604Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185899355Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185901570Z 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:70)
+geoserver-1  | 2026-10-21T13:31:53.185902963Z 	at org.geoserver.ows.HTTPHeadersCollector.doFilter(HTTPHeadersCollector.java:48)
+geoserver-1  | 2026-10-21T13:31:53.185903744Z 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:67)
+geoserver-1  | 2026-10-21T13:31:53.185904566Z 	at org.geoserver.filters.HTTPMethodFilter.doFilter(HTTPMethodFilter.java:36)
+geoserver-1  | 2026-10-21T13:31:53.185905347Z 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:67)
+geoserver-1  | 2026-10-21T13:31:53.185906109Z 	at org.geoserver.filters.LoggingFilter.doFilter(LoggingFilter.java:181)
+geoserver-1  | 2026-10-21T13:31:53.185906850Z 	at org.geoserver.filters.SpringDelegatingFilter$Chain.doFilter(SpringDelegatingFilter.java:67)
+geoserver-1  | 2026-10-21T13:31:53.185907612Z 	at org.geoserver.filters.SpringDelegatingFilter.doFilter(SpringDelegatingFilter.java:41)
+geoserver-1  | 2026-10-21T13:31:53.185908383Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185909135Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185909886Z 	at org.geoserver.platform.AdvancedDispatchFilter.doFilter(AdvancedDispatchFilter.java:39)
+geoserver-1  | 2026-10-21T13:31:53.185910638Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185932261Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185933072Z 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:352)
+geoserver-1  | 2026-10-21T13:31:53.185933864Z 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 2026-10-21T13:31:53.185934635Z 	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:100)
+geoserver-1  | 2026-10-21T13:31:53.185935417Z 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 2026-10-21T13:31:53.185936179Z 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 2026-10-21T13:31:53.185936930Z 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 2026-10-21T13:31:53.185937692Z 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 2026-10-21T13:31:53.185938443Z 	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+geoserver-1  | 2026-10-21T13:31:53.185939435Z 	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+geoserver-1  | 2026-10-21T13:31:53.185940227Z 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 2026-10-21T13:31:53.185942130Z 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 2026-10-21T13:31:53.185942922Z 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 2026-10-21T13:31:53.185943713Z 	at org.geoserver.security.filter.GeoServerAnonymousAuthenticationFilter.doFilter(GeoServerAnonymousAuthenticationFilter.java:52)
+geoserver-1  | 2026-10-21T13:31:53.185944605Z 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 2026-10-21T13:31:53.185945377Z 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 2026-10-21T13:31:53.185946158Z 	at org.springframework.security.web.authentication.www.BasicAuthenticationFilter.doFilterInternal(BasicAuthenticationFilter.java:200)
+geoserver-1  | 2026-10-21T13:31:53.185947030Z 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+geoserver-1  | 2026-10-21T13:31:53.185947782Z 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 2026-10-21T13:31:53.185948543Z 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 2026-10-21T13:31:53.185949305Z 	at org.geoserver.security.filter.GeoServerBasicAuthenticationFilter.doFilter(GeoServerBasicAuthenticationFilter.java:80)
+geoserver-1  | 2026-10-21T13:31:53.185950086Z 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 2026-10-21T13:31:53.185950868Z 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:68)
+geoserver-1  | 2026-10-21T13:31:53.185951639Z 	at org.geoserver.security.filter.GeoServerSecurityContextPersistenceFilter$1.doFilterInternal(GeoServerSecurityContextPersistenceFilter.java:66)
+geoserver-1  | 2026-10-21T13:31:53.185952561Z 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+geoserver-1  | 2026-10-21T13:31:53.185953343Z 	at org.geoserver.security.filter.GeoServerCompositeFilter$NestedFilterChain.doFilter(GeoServerCompositeFilter.java:72)
+geoserver-1  | 2026-10-21T13:31:53.185954104Z 	at org.geoserver.security.filter.GeoServerCompositeFilter.doFilter(GeoServerCompositeFilter.java:89)
+geoserver-1  | 2026-10-21T13:31:53.185955156Z 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:361)
+geoserver-1  | 2026-10-21T13:31:53.185955938Z 	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:225)
+geoserver-1  | 2026-10-21T13:31:53.185956729Z 	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:190)
+geoserver-1  | 2026-10-21T13:31:53.185959735Z 	at org.geoserver.security.GeoServerSecurityFilterChainProxy.doFilter(GeoServerSecurityFilterChainProxy.java:139)
+geoserver-1  | 2026-10-21T13:31:53.185960527Z 	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:354)
+geoserver-1  | 2026-10-21T13:31:53.185961379Z 	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:267)
+geoserver-1  | 2026-10-21T13:31:53.185963172Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185963964Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185964725Z 	at org.geoserver.filters.SecurityHeadersFilter.doFilter(SecurityHeadersFilter.java:116)
+geoserver-1  | 2026-10-21T13:31:53.185965477Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185966258Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185967010Z 	at org.geoserver.filters.GZIPFilter.doFilter(GZIPFilter.java:47)
+geoserver-1  | 2026-10-21T13:31:53.185967761Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185968523Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185969294Z 	at org.geoserver.filters.SessionDebugFilter.doFilter(SessionDebugFilter.java:48)
+geoserver-1  | 2026-10-21T13:31:53.185970046Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185970807Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185971559Z 	at org.geoserver.filters.FlushSafeFilter.doFilter(FlushSafeFilter.java:42)
+geoserver-1  | 2026-10-21T13:31:53.185972300Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185973092Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185973823Z 	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+geoserver-1  | 2026-10-21T13:31:53.185975006Z 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+geoserver-1  | 2026-10-21T13:31:53.185975787Z 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185976549Z 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+geoserver-1  | 2026-10-21T13:31:53.185977300Z 	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+geoserver-1  | 2026-10-21T13:31:53.185978062Z 	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+geoserver-1  | 2026-10-21T13:31:53.185978813Z 	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+geoserver-1  | 2026-10-21T13:31:53.185979625Z 	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+geoserver-1  | 2026-10-21T13:31:53.185980366Z 	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+geoserver-1  | 2026-10-21T13:31:53.185981098Z 	at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:660)
+geoserver-1  | 2026-10-21T13:31:53.185981879Z 	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+geoserver-1  | 2026-10-21T13:31:53.185984264Z 	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
+geoserver-1  | 2026-10-21T13:31:53.185985106Z 	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:396)
+geoserver-1  | 2026-10-21T13:31:53.185986088Z 	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+geoserver-1  | 2026-10-21T13:31:53.185986839Z 	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
+geoserver-1  | 2026-10-21T13:31:53.185987581Z 	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1793)
+geoserver-1  | 2026-10-21T13:31:53.185988322Z 	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+geoserver-1  | 2026-10-21T13:31:53.185989074Z 	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
+geoserver-1  | 2026-10-21T13:31:53.185989885Z 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+geoserver-1  | 2026-10-21T13:31:53.185990637Z 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+geoserver-1  | 2026-10-21T13:31:53.185991388Z 	at java.base/java.lang.Thread.run(Thread.java:840)
+geoserver-1  | 2026-10-21T13:31:53.215803668Z 13:31:53 WARN   [geotools.jdbc] - Fetching fields from Database
+geoserver-1  | 2026-10-21T13:31:55.003137691Z 13:31:55 INFO   [rest.catalog] - POST Style raster
+geoserver-1  | 2026-10-21T13:31:55.028032026Z 13:31:55 INFO   [gwc.layer] - Truncating default style for layer p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2, as it changed from raster to p4258d23b0d4ae696710041a2:raster
+geoserver-1  | 2026-10-21T13:31:55.038261692Z 13:31:55 WARN   [gwc.layer] - Can't compute bounds for tile layer p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2 in CRS EPSG:900913. Assuming full GridSet bounds. (org.geotools.api.referencing.NoSuchAuthorityCodeException: No code "EPSG:900913" from authority "European Petroleum Survey Group" found for object of type "interface org.geotools.api.referencing.IdentifiedObject".)
+geoserver-1  | 2026-10-21T13:31:55.047259112Z 13:31:55 INFO   [geoserver.gwc] - Saving GeoSeverTileLayer p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2
+geoserver-1  | 2026-10-21T13:31:55.057641783Z 13:31:55 INFO   [rest.catalog] - PUT layer p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2
+geoserver-1  | 2026-10-21T13:31:55.158031731Z 13:31:55 INFO   [rest.catalog] - PUT coverage temperature,CoverageInfoImpl[g4258d23b0d4ae696710041a2]
+geoserver-1  | 2026-10-21T13:31:55.554571384Z 13:31:55 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:55.554620792Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:31:55.559672161Z 13:31:55 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:55.559717060Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:31:55.559719445Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:31:55.559721869Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:31:55.559723533Z 	Get = false
+geoserver-1  | 2026-10-21T13:31:55.559724695Z 	Namespace = p4258d23b0d4ae696710041a2
+geoserver-1  | 2026-10-21T13:31:55.559725927Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:31:55.559749033Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:31:55.559750276Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:31:55.559751378Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:31:55.559752470Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:31:55.559753753Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:31:56.020766017Z 13:31:56 CONFIG [platform.resource] - Notifying ENTRY_CREATE change on /opt/geoserver_data/gwc-layers. Created: 1, removed: 0, modified: 0
+geoserver-1  | 2026-10-21T13:31:56.082312465Z 13:31:56 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:56.082359679Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:31:56.196017825Z 21-Oct-2026 13:31:56.195 INFO [http-nio-8080-exec-2] java.util.prefs.FileSystemPreferences$1.run Created user preferences directory.
+geoserver-1  | 2026-10-21T13:31:56.253400736Z 13:31:56 WARN   [operation.projection] - Possible use of "Popular Visualisation Pseudo Mercator" projection outside its valid area.
+geoserver-1  | 2026-10-21T13:31:56.253509764Z Longitude 2147483287В°00.0'W is out of range (В±180В°).
+geoserver-1  | 2026-10-21T13:31:56.437465942Z 13:31:56 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:56.437510380Z Request: getMap
+geoserver-1  | 2026-10-21T13:31:56.437512815Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:31:56.437515009Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:31:56.437516522Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:31:56.437517985Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:31:56.437519448Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:31:56.437520680Z 	Clip = null
+geoserver-1  | 2026-10-21T13:31:56.437521843Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:31:56.437523075Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:31:56.437524368Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:31:56.437525550Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:31:56.437526813Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:31:56.437528235Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:31:56.437529618Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:31:56.437530921Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:31:56.437532173Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:31:56.437533366Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:31:56.437534588Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:31:56.437535770Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:31:56.437537093Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:31:56.437538285Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:31:56.437539528Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:31:56.437540710Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:31:56.437560379Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:31:56.437561652Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:31:56.437562834Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:31:56.437563976Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:31:56.437565139Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:31:56.437566311Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:31:56.437567493Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:31:56.437568626Z 	Env = {}
+geoserver-1  | 2026-10-21T13:31:56.437569718Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:31:56.437570850Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:31:56.437571972Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:31:56.437573104Z 	Filter = null
+geoserver-1  | 2026-10-21T13:31:56.437574217Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:31:56.437575309Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:31:56.437576491Z 	Get = true
+geoserver-1  | 2026-10-21T13:31:56.437577603Z 	Height = 64
+geoserver-1  | 2026-10-21T13:31:56.437578676Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:31:56.437579808Z 	Layers = [org.geoserver.wms.MapLayerInfo@a9c4ce9b]
+geoserver-1  | 2026-10-21T13:31:56.437580980Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:31:56.437582102Z 	Palette = null
+geoserver-1  | 2026-10-21T13:31:56.437583455Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2}
+geoserver-1  | 2026-10-21T13:31:56.437585720Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:31:56.437586922Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:31:56.437588014Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:31:56.437589126Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:31:56.437590239Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:31:56.437591361Z 	Sld = null
+geoserver-1  | 2026-10-21T13:31:56.437592443Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:31:56.437593545Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:31:56.437594647Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:31:56.437595780Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:31:56.437596912Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:31:56.437598014Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:31:56.437599116Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:31:56.437600208Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:31:56.437601341Z 	Styles = [StyleImpl[ name=p4258d23b0d4ae696710041a2:raster]]
+geoserver-1  | 2026-10-21T13:31:56.437602513Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:31:56.437603615Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:31:56.437605238Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:31:56.437609637Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:31:56.437610879Z 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:31:56.437612062Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:31:56.437613144Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:31:56.437614346Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:31:56.437615499Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:31:56.437616681Z 	Width = 64
+geoserver-1  | 2026-10-21T13:31:56.894016755Z 13:31:56 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:56.894052145Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:31:56.958618550Z 13:31:56 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:56.958668198Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:31:56.958672296Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:31:56.958674501Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:31:56.958676094Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:31:56.958677106Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:31:56.958677918Z 	Get = false
+geoserver-1  | 2026-10-21T13:31:56.958678619Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:31:56.958679421Z GetMap Request
+geoserver-1  | 2026-10-21T13:31:56.958680132Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:31:56.958681044Z  output format: image/png
+geoserver-1  | 2026-10-21T13:31:56.958681755Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:31:56.958682547Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:31:56.958683409Z  layers: p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2
+geoserver-1  | 2026-10-21T13:31:56.958684180Z  styles: p4258d23b0d4ae696710041a2:raster
+geoserver-1  | 2026-10-21T13:31:56.958684942Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:31:56.958685673Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:31:56.958686405Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@a9c4ce9b]
+geoserver-1  | 2026-10-21T13:31:56.958687386Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T01:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2}
+geoserver-1  | 2026-10-21T13:31:56.958689290Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:31:56.958690082Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:31:56.958691134Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:31:56.958691895Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:31:56.958692627Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:31:57.427003008Z 13:31:57 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:57.427042326Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:31:57.428433859Z 13:31:57 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:57.428445382Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:31:57.428461023Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:31:57.428462636Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:31:57.428463638Z 	Get = false
+geoserver-1  | 2026-10-21T13:31:57.428464330Z 	Namespace = p4258d23b0d4ae696710041a2
+geoserver-1  | 2026-10-21T13:31:57.428465061Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:31:57.428465833Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:31:57.428466704Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:31:57.428467426Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:31:57.428468187Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:31:57.428468909Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:31:57.791357794Z 13:31:57 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:57.791423655Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:31:57.817512615Z 13:31:57 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:57.817549589Z Request: getMap
+geoserver-1  | 2026-10-21T13:31:57.817551072Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:31:57.817552605Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:31:57.817553637Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:31:57.817554639Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:31:57.817555641Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:31:57.817556593Z 	Clip = null
+geoserver-1  | 2026-10-21T13:31:57.817557555Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:31:57.817558787Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:31:57.817559799Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:31:57.817560711Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:31:57.817561633Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:31:57.817562715Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:31:57.817563697Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:31:57.817564709Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:31:57.817565721Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:31:57.817566653Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:31:57.817567585Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:31:57.817568526Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:31:57.817569528Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:31:57.817570450Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:31:57.817571252Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:31:57.817571983Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:31:57.817572735Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:31:57.817586843Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:31:57.817587614Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:31:57.817588336Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:31:57.817589047Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:31:57.817589769Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:31:57.817590490Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:31:57.817591181Z 	Env = {}
+geoserver-1  | 2026-10-21T13:31:57.817591903Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:31:57.817592604Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:31:57.817593286Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:31:57.817593977Z 	Filter = null
+geoserver-1  | 2026-10-21T13:31:57.817594638Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:31:57.817595320Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:31:57.817596001Z 	Get = true
+geoserver-1  | 2026-10-21T13:31:57.817596682Z 	Height = 64
+geoserver-1  | 2026-10-21T13:31:57.817597374Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:31:57.817598065Z 	Layers = [org.geoserver.wms.MapLayerInfo@a9c4ce9b]
+geoserver-1  | 2026-10-21T13:31:57.817598786Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:31:57.817599468Z 	Palette = null
+geoserver-1  | 2026-10-21T13:31:57.817600229Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2}
+geoserver-1  | 2026-10-21T13:31:57.817601171Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:31:57.817601843Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:31:57.817602534Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:31:57.817603516Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:31:57.817604227Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:31:57.817604919Z 	Sld = null
+geoserver-1  | 2026-10-21T13:31:57.817605580Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:31:57.817606261Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:31:57.817606943Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:31:57.817607604Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:31:57.817608295Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:31:57.817609027Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:31:57.817609698Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:31:57.817610369Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:31:57.817611051Z 	Styles = [StyleImpl[ name=p4258d23b0d4ae696710041a2:raster]]
+geoserver-1  | 2026-10-21T13:31:57.817611772Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:31:57.817612444Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:31:57.817613155Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:31:57.817614668Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:31:57.817615450Z 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:31:57.817617644Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:31:57.817618355Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:31:57.817619047Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:31:57.817619748Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:31:57.817620510Z 	Width = 64
+geoserver-1  | 2026-10-21T13:31:58.125484010Z 13:31:58 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:58.125515973Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:31:58.142051545Z 13:31:58 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:31:58.142085462Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:31:58.142086965Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:31:58.142088829Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:31:58.142089651Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:31:58.142090392Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:31:58.142091294Z 	Get = false
+geoserver-1  | 2026-10-21T13:31:58.142092076Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:31:58.142093228Z GetMap Request
+geoserver-1  | 2026-10-21T13:31:58.142093929Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:31:58.142094601Z  output format: image/png
+geoserver-1  | 2026-10-21T13:31:58.142095282Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:31:58.142096003Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:31:58.142096825Z  layers: p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2
+geoserver-1  | 2026-10-21T13:31:58.142097617Z  styles: p4258d23b0d4ae696710041a2:raster
+geoserver-1  | 2026-10-21T13:31:58.142098318Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:31:58.142098999Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:31:58.142099671Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@a9c4ce9b]
+geoserver-1  | 2026-10-21T13:31:58.142100582Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T01:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=p4258d23b0d4ae696710041a2:g4258d23b0d4ae696710041a2}
+geoserver-1  | 2026-10-21T13:31:58.142102206Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:31:58.142102917Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:31:58.142103598Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:31:58.142104330Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:31:58.142105071Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:31:59.779433333Z 13:31:59 INFO   [rest.catalog] - Added workspace pfce3390b6cb47e762423b8ba
+geoserver-1  | 2026-10-21T13:31:59.779484074Z 13:31:59 INFO   [rest.catalog] - POST workspace pfce3390b6cb47e762423b8ba
+geoserver-1  | 2026-10-21T13:31:59.788058483Z 13:31:59 INFO   [rest.catalog] - Auto-configuring coverage store: temperature
+geoserver-1  | 2026-10-21T13:31:59.823867301Z 13:31:59 WARN   [geotools.jdbc] - Fetching fields from Database
+geoserver-1  | 2026-10-21T13:32:00.036806630Z 13:32:00 INFO   [rest.catalog] - POST Style raster
+geoserver-1  | 2026-10-21T13:32:00.054871506Z 13:32:00 INFO   [gwc.layer] - Truncating default style for layer pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba, as it changed from p4258d23b0d4ae696710041a2:raster to pfce3390b6cb47e762423b8ba:raster
+geoserver-1  | 2026-10-21T13:32:00.055752082Z 13:32:00 WARN   [gwc.layer] - Can't compute bounds for tile layer pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba in CRS EPSG:900913. Assuming full GridSet bounds. (org.geotools.api.referencing.NoSuchAuthorityCodeException: No code "EPSG:900913" from authority "European Petroleum Survey Group" found for object of type "interface org.geotools.api.referencing.IdentifiedObject".)
+geoserver-1  | 2026-10-21T13:32:00.057286886Z 13:32:00 INFO   [geoserver.gwc] - Saving GeoSeverTileLayer pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba
+geoserver-1  | 2026-10-21T13:32:00.059156881Z 13:32:00 INFO   [rest.catalog] - PUT layer pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba
+geoserver-1  | 2026-10-21T13:32:00.136339250Z 13:32:00 INFO   [rest.catalog] - PUT coverage temperature,CoverageInfoImpl[gfce3390b6cb47e762423b8ba]
+geoserver-1  | 2026-10-21T13:32:00.493990892Z 13:32:00 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:00.494022194Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:00.494883744Z 13:32:00 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:00.494890678Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:00.494892120Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:00.494893754Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:00.494894645Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:00.494895377Z 	Namespace = pfce3390b6cb47e762423b8ba
+geoserver-1  | 2026-10-21T13:32:00.494896118Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:00.494897000Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:00.494897902Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:00.494898603Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:00.494899295Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:00.494900006Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:00.871498375Z 13:32:00 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:00.871529828Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:00.966563355Z 13:32:00 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:00.966598835Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:00.966600308Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:00.966601851Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:00.966602903Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:00.966603765Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:00.966604476Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:00.966605388Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:00.966608634Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:00.966609376Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:00.966610167Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:00.966623123Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:00.966624015Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:00.966624897Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:00.966625668Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:00.966626530Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:00.966627381Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:00.966628113Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:00.966628844Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:00.966629566Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:00.966630367Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:00.966631099Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:00.966631830Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:00.966632592Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:00.966633293Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:00.966633995Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:00.966651539Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:00.966653734Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:00.966654896Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:00.966655738Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:00.966656569Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:00.966657431Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:00.966658132Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:00.966658834Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:00.966659515Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:00.966660217Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:00.966660898Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:00.966661589Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:00.966662271Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:00.966662982Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:00.966663643Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:00.966664375Z 	Layers = [org.geoserver.wms.MapLayerInfo@75b253f7]
+geoserver-1  | 2026-10-21T13:32:00.966665116Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:00.966665828Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:00.966666529Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T03:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba}
+geoserver-1  | 2026-10-21T13:32:00.966667461Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:00.966668152Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:00.966673683Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:00.966674475Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:00.966675176Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:00.966675858Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:00.966676529Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:00.966677190Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:00.966677992Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:00.966678753Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:00.966679585Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:00.966680296Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:00.966680958Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:00.966681639Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:00.966682330Z 	Styles = [StyleImpl[ name=pfce3390b6cb47e762423b8ba:raster]]
+geoserver-1  | 2026-10-21T13:32:00.966683082Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:00.966683763Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:00.966684485Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:00.966686328Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:00.966687190Z 	Time = [[Thu Oct 15 03:00:00 UTC 2026, Thu Oct 15 03:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:00.966687972Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:00.966688663Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:00.966689354Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:00.966690056Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:00.966690757Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:01.021988965Z 13:32:01 CONFIG [platform.resource] - Notifying ENTRY_MODIFY change on /opt/geoserver_data/gwc-layers. Created: 1, removed: 0, modified: 0
+geoserver-1  | 2026-10-21T13:32:01.272740167Z 13:32:01 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:01.272779294Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:01.286188740Z 13:32:01 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:01.286321487Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:01.286337870Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:01.286340315Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:01.286341507Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:01.286343451Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:01.286344172Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:01.286344834Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:01.286345585Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:01.286346247Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:01.286346898Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:01.286347639Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:01.286348371Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:01.286349222Z  layers: pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba
+geoserver-1  | 2026-10-21T13:32:01.286363621Z  styles: pfce3390b6cb47e762423b8ba:raster
+geoserver-1  | 2026-10-21T13:32:01.286364362Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:01.286365044Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:01.286365725Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@75b253f7]
+geoserver-1  | 2026-10-21T13:32:01.286367749Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T03:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba}
+geoserver-1  | 2026-10-21T13:32:01.286369473Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:01.286370184Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:01.286370865Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:01.286371577Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:01.286372258Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:01.721208997Z 13:32:01 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:01.721246461Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:01.722218277Z 13:32:01 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:01.722275480Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:01.722281713Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:01.722283807Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:01.722284969Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:01.722285771Z 	Namespace = pfce3390b6cb47e762423b8ba
+geoserver-1  | 2026-10-21T13:32:01.722286472Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:01.722287494Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:01.722288236Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:01.722288897Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:01.722289578Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:01.722290300Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:02.024348129Z 13:32:02 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:02.024399150Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:02.044680350Z 13:32:02 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:02.044718576Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:02.044720189Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:02.044721792Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:02.044722935Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:02.044723896Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:02.044724698Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:02.044725470Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:02.044726271Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:02.044726962Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:02.044727904Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:02.044741141Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:02.044741952Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:02.044742804Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:02.044743636Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:02.044744487Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:02.044745259Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:02.044746080Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:02.044746842Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:02.044747563Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:02.044748365Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:02.044749086Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:02.044749838Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:02.044750579Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:02.044751281Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:02.044751982Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:02.044752683Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:02.044753385Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:02.044754116Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:02.044754848Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:02.044755559Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:02.044756281Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:02.044756942Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:02.044757643Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:02.044758315Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:02.044759006Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:02.044759677Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:02.044760369Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:02.044761040Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:02.044761751Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:02.044762423Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:02.044763114Z 	Layers = [org.geoserver.wms.MapLayerInfo@75b253f7]
+geoserver-1  | 2026-10-21T13:32:02.044763836Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:02.044764517Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:02.044768034Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T03:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba}
+geoserver-1  | 2026-10-21T13:32:02.044769817Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:02.044770539Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:02.044772693Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:02.044773425Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:02.044774126Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:02.044774817Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:02.044775659Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:02.044776350Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:02.044777042Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:02.044777703Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:02.044778404Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:02.044779106Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:02.044779787Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:02.044780459Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:02.044781150Z 	Styles = [StyleImpl[ name=pfce3390b6cb47e762423b8ba:raster]]
+geoserver-1  | 2026-10-21T13:32:02.044781891Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:02.044782563Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:02.044783284Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:02.044784847Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:02.044785589Z 	Time = [[Thu Oct 15 03:00:00 UTC 2026, Thu Oct 15 03:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:02.044786330Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:02.044787011Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:02.044787693Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:02.044788394Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:02.044789106Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:02.350414274Z 13:32:02 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:02.350500115Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:02.364365663Z 13:32:02 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:02.364416434Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:02.364420823Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:02.364424660Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:02.364427566Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:02.364430402Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:02.364432706Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:02.364434861Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:02.364436995Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:02.364439149Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:02.364441283Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:02.364443548Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:02.364445812Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:02.364448478Z  layers: pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba
+geoserver-1  | 2026-10-21T13:32:02.364450832Z  styles: pfce3390b6cb47e762423b8ba:raster
+geoserver-1  | 2026-10-21T13:32:02.364453177Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:02.364482285Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:02.364484619Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@75b253f7]
+geoserver-1  | 2026-10-21T13:32:02.364487124Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T03:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=pfce3390b6cb47e762423b8ba:gfce3390b6cb47e762423b8ba}
+geoserver-1  | 2026-10-21T13:32:02.364490090Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:02.364492304Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:02.364494599Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:02.364496873Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:02.364499108Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:10.903514822Z 13:32:10 INFO   [rest.catalog] - Added workspace p714d7727faf4cca45b616f2c
+geoserver-1  | 2026-10-21T13:32:10.903555874Z 13:32:10 INFO   [rest.catalog] - POST workspace p714d7727faf4cca45b616f2c
+geoserver-1  | 2026-10-21T13:32:10.910861298Z 13:32:10 INFO   [rest.catalog] - Auto-configuring coverage store: temperature
+geoserver-1  | 2026-10-21T13:32:10.940787661Z 13:32:10 WARN   [geotools.jdbc] - Fetching fields from Database
+geoserver-1  | 2026-10-21T13:32:11.122737735Z 13:32:11 INFO   [rest.catalog] - POST Style raster
+geoserver-1  | 2026-10-21T13:32:11.134498789Z 13:32:11 INFO   [gwc.layer] - Truncating default style for layer p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c, as it changed from p4258d23b0d4ae696710041a2:raster to p714d7727faf4cca45b616f2c:raster
+geoserver-1  | 2026-10-21T13:32:11.135191257Z 13:32:11 WARN   [gwc.layer] - Can't compute bounds for tile layer p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c in CRS EPSG:900913. Assuming full GridSet bounds. (org.geotools.api.referencing.NoSuchAuthorityCodeException: No code "EPSG:900913" from authority "European Petroleum Survey Group" found for object of type "interface org.geotools.api.referencing.IdentifiedObject".)
+geoserver-1  | 2026-10-21T13:32:11.137388560Z 13:32:11 INFO   [geoserver.gwc] - Saving GeoSeverTileLayer p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c
+geoserver-1  | 2026-10-21T13:32:11.139577318Z 13:32:11 INFO   [rest.catalog] - PUT layer p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c
+geoserver-1  | 2026-10-21T13:32:11.207838742Z 13:32:11 INFO   [rest.catalog] - PUT coverage temperature,CoverageInfoImpl[g714d7727faf4cca45b616f2c]
+geoserver-1  | 2026-10-21T13:32:11.601212777Z 13:32:11 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:11.601264209Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:11.601972871Z 13:32:11 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:11.602001317Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:11.602007229Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:11.602011988Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:11.602016016Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:11.602019493Z 	Namespace = p714d7727faf4cca45b616f2c
+geoserver-1  | 2026-10-21T13:32:11.602023060Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:11.602183328Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:11.602196013Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:11.602199611Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:11.602202156Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:11.602204410Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:11.928690156Z 13:32:11 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:11.928723663Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:11.998472975Z 13:32:11 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:11.998527974Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:11.998532283Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:11.998536111Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:11.998538966Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:11.998541421Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:11.998544247Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:11.998546461Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:11.998548665Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:11.998551000Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:11.998553695Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:11.998555990Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:11.998558415Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:11.998561250Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:11.998564036Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:11.998566631Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:11.998569066Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:11.998571431Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:11.998573735Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:11.998576921Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:11.998579577Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:11.998581951Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:11.998584376Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:11.998586681Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:11.998588905Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:11.998591120Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:11.998593424Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:11.998595679Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:11.998598023Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:11.998600348Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:11.998602683Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:11.998604877Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:11.998635187Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:11.998637592Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:11.998639796Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:11.998642011Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:11.998644145Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:11.998646339Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:11.998648544Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:11.998650698Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:11.998652872Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:11.998655087Z 	Layers = [org.geoserver.wms.MapLayerInfo@4ea63a1d]
+geoserver-1  | 2026-10-21T13:32:11.998657441Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:11.998659666Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:11.998662331Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c}
+geoserver-1  | 2026-10-21T13:32:11.998666549Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:11.998668934Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:11.998671118Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:11.998673343Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:11.998675517Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:11.998677691Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:11.998679816Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:11.998681970Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:11.998684144Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:11.998739754Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:11.998846533Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:11.998877685Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:11.998879298Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:11.998880610Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:11.998881733Z 	Styles = [StyleImpl[ name=p714d7727faf4cca45b616f2c:raster]]
+geoserver-1  | 2026-10-21T13:32:11.998882544Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:11.998883286Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:11.998884288Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:11.998890169Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:11.998891622Z 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:11.998892504Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:11.998893195Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:11.998893877Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:11.998894568Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:11.998895560Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:12.319451461Z 13:32:12 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:12.319498634Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:12.332321829Z 13:32:12 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:12.332366838Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:12.332368712Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:12.332370706Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:12.332372289Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:12.332373241Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:12.332374162Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:12.332374854Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:12.332375625Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:12.332376297Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:12.332376968Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:12.332377669Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:12.332378421Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:12.332379222Z  layers: p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c
+geoserver-1  | 2026-10-21T13:32:12.332379954Z  styles: p714d7727faf4cca45b616f2c:raster
+geoserver-1  | 2026-10-21T13:32:12.332380665Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:12.332381377Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:12.332382058Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@4ea63a1d]
+geoserver-1  | 2026-10-21T13:32:12.332382860Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T01:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c}
+geoserver-1  | 2026-10-21T13:32:12.332383832Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:12.332384573Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:12.332385264Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:12.332385996Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:12.332386687Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:12.781066090Z 13:32:12 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:12.781118504Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:12.782954865Z 13:32:12 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:12.782976247Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:12.782977650Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:12.782979393Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:12.782980486Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:12.782981227Z 	Namespace = p714d7727faf4cca45b616f2c
+geoserver-1  | 2026-10-21T13:32:12.782981918Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:12.782982780Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:12.782983652Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:12.782999734Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:12.783000455Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:12.783001167Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:13.091028980Z 13:32:13 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:13.091060873Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:13.108127812Z 13:32:13 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:13.108169395Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:13.108171800Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:13.108174004Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:13.108175768Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:13.108177341Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:13.108178573Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:13.108179695Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:13.108180988Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:13.108182140Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:13.108183443Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:13.108184605Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:13.108185838Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:13.108187280Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:13.108188543Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:13.108189835Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:13.108191769Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:13.108192992Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:13.108194194Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:13.108195386Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:13.108196699Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:13.108197881Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:13.108199094Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:13.108200266Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:13.108201438Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:13.108202581Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:13.108203723Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:13.108204845Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:13.108206048Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:13.108207220Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:13.108208412Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:13.108209514Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:13.108210627Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:13.108211749Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:13.108231047Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:13.108232240Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:13.108233322Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:13.108234414Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:13.108235506Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:13.108236618Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:13.108237740Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:13.108238863Z 	Layers = [org.geoserver.wms.MapLayerInfo@4ea63a1d]
+geoserver-1  | 2026-10-21T13:32:13.108240065Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:13.108241207Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:13.108242590Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c}
+geoserver-1  | 2026-10-21T13:32:13.108244935Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:13.108246077Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:13.108247179Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:13.108248321Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:13.108249424Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:13.108250526Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:13.108251598Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:13.108252700Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:13.108253822Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:13.108254905Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:13.108256017Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:13.108257159Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:13.108258261Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:13.108259353Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:13.108260456Z 	Styles = [StyleImpl[ name=p714d7727faf4cca45b616f2c:raster]]
+geoserver-1  | 2026-10-21T13:32:13.108261638Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:13.108262720Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:13.108263902Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:13.108266237Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:13.108267600Z 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:13.108268842Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:13.108269954Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:13.108271057Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:13.108272249Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:13.108273391Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:13.416411007Z 13:32:13 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:13.416441969Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:13.429803058Z 13:32:13 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:13.429870382Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:13.429872616Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:13.429874680Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:13.429876183Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:13.429877366Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:13.429878879Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:13.429880803Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:13.429882456Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:13.429884139Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:13.429885722Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:13.429887346Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:13.429888979Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:13.429890873Z  layers: p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c
+geoserver-1  | 2026-10-21T13:32:13.429892596Z  styles: p714d7727faf4cca45b616f2c:raster
+geoserver-1  | 2026-10-21T13:32:13.429894249Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:13.429902977Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:13.429906153Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@4ea63a1d]
+geoserver-1  | 2026-10-21T13:32:13.429908397Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T01:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=p714d7727faf4cca45b616f2c:g714d7727faf4cca45b616f2c}
+geoserver-1  | 2026-10-21T13:32:13.429911594Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:13.429913217Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:13.429914910Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:13.429917125Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:13.429918908Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:15.119604573Z 13:32:15 INFO   [rest.catalog] - Added workspace p84f4c7f73ac531ebd3d963ce
+geoserver-1  | 2026-10-21T13:32:15.119648941Z 13:32:15 INFO   [rest.catalog] - POST workspace p84f4c7f73ac531ebd3d963ce
+geoserver-1  | 2026-10-21T13:32:15.125498114Z 13:32:15 INFO   [rest.catalog] - Auto-configuring coverage store: temperature
+geoserver-1  | 2026-10-21T13:32:15.153591833Z 13:32:15 WARN   [geotools.jdbc] - Fetching fields from Database
+geoserver-1  | 2026-10-21T13:32:15.336809814Z 13:32:15 INFO   [rest.catalog] - POST Style raster
+geoserver-1  | 2026-10-21T13:32:15.347461699Z 13:32:15 INFO   [gwc.layer] - Truncating default style for layer p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce, as it changed from p4258d23b0d4ae696710041a2:raster to p84f4c7f73ac531ebd3d963ce:raster
+geoserver-1  | 2026-10-21T13:32:15.348089849Z 13:32:15 WARN   [gwc.layer] - Can't compute bounds for tile layer p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce in CRS EPSG:900913. Assuming full GridSet bounds. (org.geotools.api.referencing.NoSuchAuthorityCodeException: No code "EPSG:900913" from authority "European Petroleum Survey Group" found for object of type "interface org.geotools.api.referencing.IdentifiedObject".)
+geoserver-1  | 2026-10-21T13:32:15.350075051Z 13:32:15 INFO   [geoserver.gwc] - Saving GeoSeverTileLayer p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce
+geoserver-1  | 2026-10-21T13:32:15.351807215Z 13:32:15 INFO   [rest.catalog] - PUT layer p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce
+geoserver-1  | 2026-10-21T13:32:15.410693921Z 13:32:15 INFO   [rest.catalog] - PUT coverage temperature,CoverageInfoImpl[g84f4c7f73ac531ebd3d963ce]
+geoserver-1  | 2026-10-21T13:32:15.758763713Z 13:32:15 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:15.758797280Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:15.759366800Z 13:32:15 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:15.759374335Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:15.759375868Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:15.759377492Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:15.759378544Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:15.759379285Z 	Namespace = p84f4c7f73ac531ebd3d963ce
+geoserver-1  | 2026-10-21T13:32:15.759380007Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:15.759380968Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:15.759381810Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:15.759382542Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:15.759383574Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:15.759384285Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:16.020524229Z 13:32:16 CONFIG [platform.resource] - Notifying ENTRY_MODIFY change on /opt/geoserver_data/gwc-layers. Created: 2, removed: 0, modified: 0
+geoserver-1  | 2026-10-21T13:32:16.077013522Z 13:32:16 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:16.077046968Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:16.178664418Z 13:32:16 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:16.178709627Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:16.178711792Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:16.178713595Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:16.178714968Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:16.178716551Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:16.178717744Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:16.178718776Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:16.178719908Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:16.178720930Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:16.178722202Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:16.178723305Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:16.178724597Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:16.178725910Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:16.178727182Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:16.178728325Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:16.178747432Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:16.178748655Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:16.178749767Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:16.178750869Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:16.178752022Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:16.178753114Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:16.178754286Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:16.178755378Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:16.178756541Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:16.178757683Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:16.178758795Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:16.178759967Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:16.178761009Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:16.178762082Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:16.178763164Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:16.178764196Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:16.178765188Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:16.178766250Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:16.178767282Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:16.178768304Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:16.178769306Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:16.178770348Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:16.178771330Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:16.178772322Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:16.178773324Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:16.178774326Z 	Layers = [org.geoserver.wms.MapLayerInfo@ec2d846b]
+geoserver-1  | 2026-10-21T13:32:16.178775408Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:16.178776420Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:16.178777512Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T03:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce}
+geoserver-1  | 2026-10-21T13:32:16.178778905Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:16.178779897Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:16.178780889Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:16.178781911Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:16.178782903Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:16.178783905Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:16.178784917Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:16.178785879Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:16.178786891Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:16.178789696Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:16.178790748Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:16.178791791Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:16.178792803Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:16.178793815Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:16.178795027Z 	Styles = [StyleImpl[ name=p84f4c7f73ac531ebd3d963ce:raster]]
+geoserver-1  | 2026-10-21T13:32:16.178796149Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:16.178797171Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:16.178798233Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:16.178800428Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:16.178801520Z 	Time = [[Thu Oct 15 03:00:00 UTC 2026, Thu Oct 15 03:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:16.178802672Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:16.178803654Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:16.178804676Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:16.178805718Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:16.178806770Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:16.500465599Z 13:32:16 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:16.500531219Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:16.512197440Z 13:32:16 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:16.512232921Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:16.512234504Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:16.512236308Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:16.512237760Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:16.512239063Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:16.512239865Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:16.512240796Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:16.512241588Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:16.512242370Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:16.512243141Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:16.512243903Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:16.512244654Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:16.512245516Z  layers: p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce
+geoserver-1  | 2026-10-21T13:32:16.512246327Z  styles: p84f4c7f73ac531ebd3d963ce:raster
+geoserver-1  | 2026-10-21T13:32:16.512247049Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:16.512247810Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:16.512248632Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@ec2d846b]
+geoserver-1  | 2026-10-21T13:32:16.512252059Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T03:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce}
+geoserver-1  | 2026-10-21T13:32:16.512264904Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:16.512265666Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:16.512266357Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:16.512267169Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:16.512268201Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:16.931692953Z 13:32:16 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:16.931745407Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:16.932459015Z 13:32:16 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:16.932478694Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:16.932480167Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:16.932481790Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:16.932483012Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:16.932483934Z 	Namespace = p84f4c7f73ac531ebd3d963ce
+geoserver-1  | 2026-10-21T13:32:16.932484856Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:16.932486058Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:16.932487050Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:16.932487952Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:16.932488824Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:16.932489776Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:17.229287739Z 13:32:17 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:17.229318370Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:17.250567100Z 13:32:17 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:17.250600947Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:17.250602470Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:17.250604103Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:17.250605155Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:17.250605917Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:17.250606628Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:17.250607630Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:17.250608412Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:17.250609263Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:17.250610055Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:17.250610806Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:17.250611548Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:17.250612420Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:17.250613171Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:17.250614023Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:17.250614764Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:17.250629964Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:17.250630736Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:17.250631467Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:17.250632269Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:17.250632980Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:17.250633722Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:17.250634493Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:17.250635195Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:17.250635906Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:17.250636608Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:17.250637319Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:17.250638311Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:17.250639072Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:17.250639794Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:17.250640495Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:17.250641167Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:17.250641868Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:17.250642549Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:17.250643251Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:17.250643912Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:17.250644593Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:17.250645265Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:17.250645976Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:17.250646648Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:17.250647339Z 	Layers = [org.geoserver.wms.MapLayerInfo@ec2d846b]
+geoserver-1  | 2026-10-21T13:32:17.250648050Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:17.250648762Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:17.250649704Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T03:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce}
+geoserver-1  | 2026-10-21T13:32:17.250651387Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:17.250652108Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:17.250652910Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:17.250653782Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:17.250654473Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:17.250655154Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:17.250655916Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:17.250656577Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:17.250657349Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:17.250658030Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:17.250658822Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:17.250661066Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:17.250661778Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:17.250662449Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:17.250663130Z 	Styles = [StyleImpl[ name=p84f4c7f73ac531ebd3d963ce:raster]]
+geoserver-1  | 2026-10-21T13:32:17.250663862Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:17.250664533Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:17.250665264Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:17.250666898Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:17.250667629Z 	Time = [[Thu Oct 15 03:00:00 UTC 2026, Thu Oct 15 03:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:17.250668371Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:17.250669042Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:17.250669733Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:17.250670435Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:17.250671126Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:17.572327437Z 13:32:17 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:17.572373648Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:17.587453728Z 13:32:17 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:17.587499389Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:17.587501854Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:17.587504298Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:17.587506132Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:17.587507385Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:17.587508507Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:17.587509699Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:17.587510771Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:17.587511843Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:17.587512906Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:17.587514048Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:17.587515230Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:17.587516633Z  layers: p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce
+geoserver-1  | 2026-10-21T13:32:17.587517835Z  styles: p84f4c7f73ac531ebd3d963ce:raster
+geoserver-1  | 2026-10-21T13:32:17.587518948Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:17.587520060Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:17.587521192Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@ec2d846b]
+geoserver-1  | 2026-10-21T13:32:17.587524859Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T03:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=p84f4c7f73ac531ebd3d963ce:g84f4c7f73ac531ebd3d963ce}
+geoserver-1  | 2026-10-21T13:32:17.587527464Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:17.587574307Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:17.587577935Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:17.587579207Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:17.587582564Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:34.754163422Z 13:32:34 INFO   [rest.catalog] - Added workspace pde088065e960ca0f3188f80e
+geoserver-1  | 2026-10-21T13:32:34.754216067Z 13:32:34 INFO   [rest.catalog] - POST workspace pde088065e960ca0f3188f80e
+geoserver-1  | 2026-10-21T13:32:34.761196536Z 13:32:34 INFO   [rest.catalog] - Auto-configuring coverage store: temperature
+geoserver-1  | 2026-10-21T13:32:34.793813579Z 13:32:34 WARN   [geotools.jdbc] - Fetching fields from Database
+geoserver-1  | 2026-10-21T13:32:34.962436790Z 13:32:34 INFO   [rest.catalog] - POST Style raster
+geoserver-1  | 2026-10-21T13:32:34.972832546Z 13:32:34 INFO   [gwc.layer] - Truncating default style for layer pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e, as it changed from p4258d23b0d4ae696710041a2:raster to pde088065e960ca0f3188f80e:raster
+geoserver-1  | 2026-10-21T13:32:34.973491555Z 13:32:34 WARN   [gwc.layer] - Can't compute bounds for tile layer pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e in CRS EPSG:900913. Assuming full GridSet bounds. (org.geotools.api.referencing.NoSuchAuthorityCodeException: No code "EPSG:900913" from authority "European Petroleum Survey Group" found for object of type "interface org.geotools.api.referencing.IdentifiedObject".)
+geoserver-1  | 2026-10-21T13:32:34.974179188Z 13:32:34 INFO   [geoserver.gwc] - Saving GeoSeverTileLayer pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e
+geoserver-1  | 2026-10-21T13:32:34.975812690Z 13:32:34 INFO   [rest.catalog] - PUT layer pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e
+geoserver-1  | 2026-10-21T13:32:35.036958374Z 13:32:35 INFO   [rest.catalog] - PUT coverage temperature,CoverageInfoImpl[gde088065e960ca0f3188f80e]
+geoserver-1  | 2026-10-21T13:32:35.405692883Z 13:32:35 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:35.405727903Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:35.406408944Z 13:32:35 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:35.406426168Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:35.406429014Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:35.406431218Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:35.406432731Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:35.406434094Z 	Namespace = pde088065e960ca0f3188f80e
+geoserver-1  | 2026-10-21T13:32:35.406435657Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:35.406437030Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:35.406438272Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:35.406439465Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:35.406440747Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:35.406442050Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:35.746440533Z 13:32:35 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:35.746477637Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:35.814380333Z 13:32:35 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:35.814426023Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:35.814452195Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:35.814454280Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:35.814455602Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:35.814456985Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:35.814458428Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:35.814459690Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:35.814460973Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:35.814462105Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:35.814463408Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:35.814464570Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:35.814465792Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:35.814467245Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:35.814468588Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:35.814469881Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:35.814472005Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:35.814473237Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:35.814474540Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:35.814475742Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:35.814477155Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:35.814478307Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:35.814479540Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:35.814480732Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:35.814481944Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:35.814483097Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:35.814484259Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:35.814485371Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:35.814486534Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:35.814487706Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:35.814488908Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:35.814490010Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:35.814491083Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:35.814492185Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:35.814493287Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:35.814494409Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:35.814495491Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:35.814496604Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:35.814497736Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:35.814498848Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:35.814499930Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:35.814503237Z 	Layers = [org.geoserver.wms.MapLayerInfo@c4dcb137]
+geoserver-1  | 2026-10-21T13:32:35.814504469Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:35.814505591Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:35.814506914Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e}
+geoserver-1  | 2026-10-21T13:32:35.814508477Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:35.814509639Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:35.814510742Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:35.814511834Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:35.814512966Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:35.814514138Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:35.814515230Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:35.814516403Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:35.814517495Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:35.814518597Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:35.814519719Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:35.814520872Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:35.814521954Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:35.814523106Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:35.814524218Z 	Styles = [StyleImpl[ name=pde088065e960ca0f3188f80e:raster]]
+geoserver-1  | 2026-10-21T13:32:35.814525401Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:35.814526503Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:35.814527705Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:35.814529980Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:35.814531192Z 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:35.814532385Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:35.814533477Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:35.814534579Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:35.814535701Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:35.814536833Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:36.021043045Z 13:32:36 CONFIG [platform.resource] - Notifying ENTRY_MODIFY change on /opt/geoserver_data/gwc-layers. Created: 1, removed: 0, modified: 0
+geoserver-1  | 2026-10-21T13:32:36.190177581Z 13:32:36 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:36.190256477Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:36.202524244Z 13:32:36 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:36.202570266Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:36.202572921Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:36.202574975Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:36.202576288Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:36.202598682Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:36.202599875Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:36.202600997Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:36.202602229Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:36.202603311Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:36.202604494Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:36.202605636Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:36.202606898Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:36.202608221Z  layers: pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e
+geoserver-1  | 2026-10-21T13:32:36.202609464Z  styles: pde088065e960ca0f3188f80e:raster
+geoserver-1  | 2026-10-21T13:32:36.202610616Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:36.202611718Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:36.202612830Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@c4dcb137]
+geoserver-1  | 2026-10-21T13:32:36.202614193Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T01:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e}
+geoserver-1  | 2026-10-21T13:32:36.202615906Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:36.202617039Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:36.202618151Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:36.202619313Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:36.202620425Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:36.658408834Z 13:32:36 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:36.658448072Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:36.659243942Z 13:32:36 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:36.659268731Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:36.659271046Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:36.659273230Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:36.659274834Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:36.659276056Z 	Namespace = pde088065e960ca0f3188f80e
+geoserver-1  | 2026-10-21T13:32:36.659278280Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:36.659279593Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:36.659280825Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:36.659282018Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:36.659283180Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:36.659284352Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:36.971733809Z 13:32:36 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:36.971806051Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:36.988022763Z 13:32:36 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:36.988067653Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:36.988090388Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:36.988092602Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:36.988094055Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:36.988143257Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:36.988159790Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:36.988161393Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:36.988162545Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:36.988163287Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:36.988164209Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:36.988164960Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:36.988165832Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:36.988166754Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:36.988167585Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:36.988168457Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:36.988169199Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:36.988169930Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:36.988170681Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:36.988171413Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:36.988172204Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:36.988172926Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:36.988173687Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:36.988174439Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:36.988175160Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:36.988175872Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:36.988176583Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:36.988177305Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:36.988178046Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:36.988179479Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:36.988180250Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:36.988180962Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:36.988181623Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:36.988182345Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:36.988183016Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:36.988183717Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:36.988184399Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:36.988185070Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:36.988185771Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:36.988186443Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:36.988200801Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:36.988201543Z 	Layers = [org.geoserver.wms.MapLayerInfo@c4dcb137]
+geoserver-1  | 2026-10-21T13:32:36.988202274Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:36.988202976Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:36.988204769Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T01:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e}
+geoserver-1  | 2026-10-21T13:32:36.988206633Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:36.988207364Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:36.988208066Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:36.988208747Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:36.988209458Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:36.988210140Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:36.988210841Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:36.988211512Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:36.988212184Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:36.988212885Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:36.988213577Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:36.988214278Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:36.988214949Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:36.988215631Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:36.988216322Z 	Styles = [StyleImpl[ name=pde088065e960ca0f3188f80e:raster]]
+geoserver-1  | 2026-10-21T13:32:36.988217063Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:36.988217745Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:36.988218496Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:36.988224097Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:36.988224849Z 	Time = [[Thu Oct 15 01:00:00 UTC 2026, Thu Oct 15 01:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:36.988225590Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:36.988226292Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:36.988226993Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:36.988227695Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:36.988228396Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:37.279438182Z 13:32:37 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:37.279470997Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:37.290704395Z 13:32:37 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:37.290747440Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:37.290749865Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:37.290803312Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:37.290813452Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:37.290815016Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:37.290816098Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:37.290833242Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:37.290834013Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:37.290834675Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:37.290835346Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:37.290836037Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:37.290836799Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:37.290837620Z  layers: pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e
+geoserver-1  | 2026-10-21T13:32:37.290838392Z  styles: pde088065e960ca0f3188f80e:raster
+geoserver-1  | 2026-10-21T13:32:37.290839454Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:37.290840135Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:37.290840827Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@c4dcb137]
+geoserver-1  | 2026-10-21T13:32:37.290841638Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T01:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=pde088065e960ca0f3188f80e:gde088065e960ca0f3188f80e}
+geoserver-1  | 2026-10-21T13:32:37.290846368Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:37.290847340Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:37.290848041Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:37.290848833Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:37.290849594Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:38.997964848Z 13:32:38 INFO   [rest.catalog] - Added workspace p230f56f443248f60c14d4472
+geoserver-1  | 2026-10-21T13:32:38.998006942Z 13:32:38 INFO   [rest.catalog] - POST workspace p230f56f443248f60c14d4472
+geoserver-1  | 2026-10-21T13:32:39.004755672Z 13:32:39 INFO   [rest.catalog] - Auto-configuring coverage store: temperature
+geoserver-1  | 2026-10-21T13:32:39.035230586Z 13:32:39 WARN   [geotools.jdbc] - Fetching fields from Database
+geoserver-1  | 2026-10-21T13:32:39.202336422Z 13:32:39 INFO   [rest.catalog] - POST Style raster
+geoserver-1  | 2026-10-21T13:32:39.213167684Z 13:32:39 INFO   [gwc.layer] - Truncating default style for layer p230f56f443248f60c14d4472:g230f56f443248f60c14d4472, as it changed from p4258d23b0d4ae696710041a2:raster to p230f56f443248f60c14d4472:raster
+geoserver-1  | 2026-10-21T13:32:39.213872960Z 13:32:39 WARN   [gwc.layer] - Can't compute bounds for tile layer p230f56f443248f60c14d4472:g230f56f443248f60c14d4472 in CRS EPSG:900913. Assuming full GridSet bounds. (org.geotools.api.referencing.NoSuchAuthorityCodeException: No code "EPSG:900913" from authority "European Petroleum Survey Group" found for object of type "interface org.geotools.api.referencing.IdentifiedObject".)
+geoserver-1  | 2026-10-21T13:32:39.214350758Z 13:32:39 INFO   [geoserver.gwc] - Saving GeoSeverTileLayer p230f56f443248f60c14d4472:g230f56f443248f60c14d4472
+geoserver-1  | 2026-10-21T13:32:39.215975327Z 13:32:39 INFO   [rest.catalog] - PUT layer p230f56f443248f60c14d4472:g230f56f443248f60c14d4472
+geoserver-1  | 2026-10-21T13:32:39.271334171Z 13:32:39 INFO   [rest.catalog] - PUT coverage temperature,CoverageInfoImpl[g230f56f443248f60c14d4472]
+geoserver-1  | 2026-10-21T13:32:39.603105154Z 13:32:39 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:39.603151907Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:39.603996713Z 13:32:39 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:39.604024218Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:39.604026643Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:39.604029007Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:39.604030611Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:39.604032134Z 	Namespace = p230f56f443248f60c14d4472
+geoserver-1  | 2026-10-21T13:32:39.604033326Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:39.604034669Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:39.604035911Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:39.604037073Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:39.604038286Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:39.604039508Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:39.906337992Z 13:32:39 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:39.906385606Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:39.958852400Z 13:32:39 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:39.958887701Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:39.958889193Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:39.958890817Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:39.958891638Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:39.958892570Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:39.958893442Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:39.958894143Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:39.958894835Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:39.958895626Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:39.958896428Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:39.958897179Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:39.958897941Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:39.958898863Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:39.958899634Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:39.958900436Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:39.958901217Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:39.958901949Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:39.958902690Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:39.958903432Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:39.958904233Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:39.958905265Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:39.958922309Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:39.958923111Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:39.958923852Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:39.958924564Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:39.958925295Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:39.958926007Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:39.958926728Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:39.958927490Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:39.958928231Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:39.958928922Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:39.958929594Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:39.958930295Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:39.958930976Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:39.958931708Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:39.958934964Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:39.958935816Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:39.958936578Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:39.958937369Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:39.958938060Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:39.958938772Z 	Layers = [org.geoserver.wms.MapLayerInfo@d946e7f5]
+geoserver-1  | 2026-10-21T13:32:39.958939533Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:39.958940225Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:39.958941026Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T02:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=p230f56f443248f60c14d4472:g230f56f443248f60c14d4472}
+geoserver-1  | 2026-10-21T13:32:39.958941938Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:39.958942620Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:39.958943311Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:39.958943992Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:39.958944674Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:39.958945355Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:39.958946036Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:39.958946698Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:39.958947399Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:39.958948080Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:39.958948782Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:39.958949493Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:39.958950165Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:39.958950866Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:39.958951557Z 	Styles = [StyleImpl[ name=p230f56f443248f60c14d4472:raster]]
+geoserver-1  | 2026-10-21T13:32:39.958952299Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:39.958952990Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:39.958955285Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:39.958957459Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:39.958958211Z 	Time = [[Thu Oct 15 02:00:00 UTC 2026, Thu Oct 15 02:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:39.958958972Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:39.958959653Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:39.958960355Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:39.958961066Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:39.958961778Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:40.258210877Z 13:32:40 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:40.258248391Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:40.274621003Z 13:32:40 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:40.274756387Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:40.274765866Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:40.274769082Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:40.274770666Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:40.274771898Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:40.274773191Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:40.274774904Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:40.274776016Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:40.274777108Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:40.274778191Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:40.274821728Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:40.274844353Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:40.274846066Z  layers: p230f56f443248f60c14d4472:g230f56f443248f60c14d4472
+geoserver-1  | 2026-10-21T13:32:40.274847199Z  styles: p230f56f443248f60c14d4472:raster
+geoserver-1  | 2026-10-21T13:32:40.274848221Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:40.274849493Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:40.274850415Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@d946e7f5]
+geoserver-1  | 2026-10-21T13:32:40.274852479Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T02:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=p230f56f443248f60c14d4472:g230f56f443248f60c14d4472, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=p230f56f443248f60c14d4472:g230f56f443248f60c14d4472}
+geoserver-1  | 2026-10-21T13:32:40.274854593Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:40.274855745Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:40.274856757Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:40.274857860Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:40.274858932Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:40.773464321Z 13:32:40 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:40.773508659Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:40.774870135Z 13:32:40 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:40.774898822Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:40.774900225Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:40.774901377Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:40.774902189Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:40.774903021Z 	Namespace = p230f56f443248f60c14d4472
+geoserver-1  | 2026-10-21T13:32:40.774903822Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:40.774904754Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:40.774905495Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:40.774906177Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:40.774906858Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:40.774907580Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:41.022001832Z 13:32:41 CONFIG [platform.resource] - Notifying ENTRY_MODIFY change on /opt/geoserver_data/gwc-layers. Created: 1, removed: 0, modified: 0
+geoserver-1  | 2026-10-21T13:32:41.136095376Z 13:32:41 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:41.136144934Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:41.152332131Z 13:32:41 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:41.152388273Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:41.152392261Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:41.152395798Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:41.152398874Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:41.152402130Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:41.152404535Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:41.152406729Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:41.152408984Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:41.152411208Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:41.152413763Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:41.152416178Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:41.152418573Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:41.152422030Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:41.152424645Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:41.152427270Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:41.152429695Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:41.152432030Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:41.152434455Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:41.152436809Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:41.152439384Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:41.152441739Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:41.152466618Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:41.152469103Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:41.152471338Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:41.152473602Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:41.152475887Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:41.152478151Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:41.152480466Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:41.152482861Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:41.152485195Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:41.152487370Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:41.152489534Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:41.152491728Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:41.152493943Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:41.152496207Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:41.152498381Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:41.152500646Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:41.152502800Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:41.152505075Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:41.152507239Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:41.152509423Z 	Layers = [org.geoserver.wms.MapLayerInfo@d946e7f5]
+geoserver-1  | 2026-10-21T13:32:41.152511728Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:41.152513922Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:41.152516608Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T02:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=p230f56f443248f60c14d4472:g230f56f443248f60c14d4472}
+geoserver-1  | 2026-10-21T13:32:41.152520896Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:41.152523221Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:41.152525365Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:41.152527529Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:41.152529684Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:41.152531848Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:41.152533992Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:41.152536096Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:41.152538321Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:41.152540435Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:41.152542629Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:41.152544864Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:41.152547018Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:41.152549172Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:41.152551357Z 	Styles = [StyleImpl[ name=p230f56f443248f60c14d4472:raster]]
+geoserver-1  | 2026-10-21T13:32:41.152553661Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:41.152555886Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:41.152562409Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:41.152566306Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:41.152568721Z 	Time = [[Thu Oct 15 02:00:00 UTC 2026, Thu Oct 15 02:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:41.152571106Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:41.152573270Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:41.152575505Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:41.152577749Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:41.152580054Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:41.458583898Z 13:32:41 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:41.458616723Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:41.475795832Z 13:32:41 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:41.475844458Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:41.475847054Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:41.475849639Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:41.475851252Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:41.475852504Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:41.475853627Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:41.475854719Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:41.475855821Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:41.475856923Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:41.475857985Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:41.475859218Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:41.475860400Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:41.475861923Z  layers: p230f56f443248f60c14d4472:g230f56f443248f60c14d4472
+geoserver-1  | 2026-10-21T13:32:41.475863135Z  styles: p230f56f443248f60c14d4472:raster
+geoserver-1  | 2026-10-21T13:32:41.475864268Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:41.475865390Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:41.475866522Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@d946e7f5]
+geoserver-1  | 2026-10-21T13:32:41.475867945Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T02:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=p230f56f443248f60c14d4472:g230f56f443248f60c14d4472, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=p230f56f443248f60c14d4472:g230f56f443248f60c14d4472}
+geoserver-1  | 2026-10-21T13:32:41.475870410Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:41.475871572Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:41.475872674Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:41.475873817Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:41.475874929Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:43.194204628Z 13:32:43 INFO   [rest.catalog] - Added workspace p6291310cbec01c990ccfb493
+geoserver-1  | 2026-10-21T13:32:43.194250970Z 13:32:43 INFO   [rest.catalog] - POST workspace p6291310cbec01c990ccfb493
+geoserver-1  | 2026-10-21T13:32:43.200442432Z 13:32:43 INFO   [rest.catalog] - Auto-configuring coverage store: temperature
+geoserver-1  | 2026-10-21T13:32:43.230353889Z 13:32:43 WARN   [geotools.jdbc] - Fetching fields from Database
+geoserver-1  | 2026-10-21T13:32:43.381536163Z 13:32:43 INFO   [rest.catalog] - POST Style raster
+geoserver-1  | 2026-10-21T13:32:43.389942821Z 13:32:43 INFO   [gwc.layer] - Truncating default style for layer p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493, as it changed from p4258d23b0d4ae696710041a2:raster to p6291310cbec01c990ccfb493:raster
+geoserver-1  | 2026-10-21T13:32:43.390386117Z 13:32:43 WARN   [gwc.layer] - Can't compute bounds for tile layer p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493 in CRS EPSG:900913. Assuming full GridSet bounds. (org.geotools.api.referencing.NoSuchAuthorityCodeException: No code "EPSG:900913" from authority "European Petroleum Survey Group" found for object of type "interface org.geotools.api.referencing.IdentifiedObject".)
+geoserver-1  | 2026-10-21T13:32:43.390926805Z 13:32:43 INFO   [geoserver.gwc] - Saving GeoSeverTileLayer p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493
+geoserver-1  | 2026-10-21T13:32:43.392050098Z 13:32:43 INFO   [rest.catalog] - PUT layer p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493
+geoserver-1  | 2026-10-21T13:32:43.458682299Z 13:32:43 INFO   [rest.catalog] - PUT coverage temperature,CoverageInfoImpl[g6291310cbec01c990ccfb493]
+geoserver-1  | 2026-10-21T13:32:43.805827411Z 13:32:43 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:43.805862771Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:43.806602744Z 13:32:43 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:43.806609988Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:43.806611361Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:43.806612844Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:43.806614117Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:43.806615058Z 	Namespace = p6291310cbec01c990ccfb493
+geoserver-1  | 2026-10-21T13:32:43.806615780Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:43.806616692Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:43.806617423Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:43.806618125Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:43.806618816Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:43.806619547Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:44.160356179Z 13:32:44 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:44.160490764Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:44.212949531Z 13:32:44 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:44.213004590Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:44.213009490Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:44.213013387Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:44.213016884Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:44.213020301Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:44.213022876Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:44.213050371Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:44.213052756Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:44.213055040Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:44.213057655Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:44.213059990Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:44.213062625Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:44.213065431Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:44.213067886Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:44.213070431Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:44.213072895Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:44.213075230Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:44.213077565Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:44.213079859Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:44.213082485Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:44.213084799Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:44.213087334Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:44.213089689Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:44.213091903Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:44.213094168Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:44.213096412Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:44.213098617Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:44.213100981Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:44.213103326Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:44.213105641Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:44.213107845Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:44.213109999Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:44.213112354Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:44.213114618Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:44.213116833Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:44.213119107Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:44.213121272Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:44.213123436Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:44.213125620Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:44.213127845Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:44.213130059Z 	Layers = [org.geoserver.wms.MapLayerInfo@790f6df3]
+geoserver-1  | 2026-10-21T13:32:44.213132384Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:44.213135089Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:44.213138005Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T03:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493}
+geoserver-1  | 2026-10-21T13:32:44.213162223Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:44.213164578Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:44.213166712Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:44.213168876Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:44.213171100Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:44.213173435Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:44.213175619Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:44.213177774Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:44.213179988Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:44.213182132Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:44.213184367Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:44.213186591Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:44.213188735Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:44.213190900Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:44.213193164Z 	Styles = [StyleImpl[ name=p6291310cbec01c990ccfb493:raster]]
+geoserver-1  | 2026-10-21T13:32:44.213195549Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:44.213197743Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:44.213200098Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:44.213203705Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:44.213206120Z 	Time = [[Thu Oct 15 03:00:00 UTC 2026, Thu Oct 15 03:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:44.213208545Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:44.213210729Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:44.213212964Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:44.213215268Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:44.213217493Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:44.520098304Z 13:32:44 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:44.520141119Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:44.529770066Z 13:32:44 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:44.529793682Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:44.529796177Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:44.529798572Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:44.529800095Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:44.529801488Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:44.529802600Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:44.529803853Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:44.529804945Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:44.529806047Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:44.529807209Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:44.529808392Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:44.529809925Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:44.529829053Z  layers: p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493
+geoserver-1  | 2026-10-21T13:32:44.529830355Z  styles: p6291310cbec01c990ccfb493:raster
+geoserver-1  | 2026-10-21T13:32:44.529831508Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:44.529832600Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:44.529833742Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@790f6df3]
+geoserver-1  | 2026-10-21T13:32:44.529835255Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T03:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493}
+geoserver-1  | 2026-10-21T13:32:44.529844173Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:44.529845355Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:44.529846507Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:44.529847720Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:44.529848882Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:44.978381238Z 13:32:44 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:44.978416818Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:44.979112767Z 13:32:44 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:44.979120582Z Request: getCapabilities
+geoserver-1  | 2026-10-21T13:32:44.979122136Z 	AcceptLanguages = null
+geoserver-1  | 2026-10-21T13:32:44.979123899Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:44.979124971Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:44.979125843Z 	Namespace = p6291310cbec01c990ccfb493
+geoserver-1  | 2026-10-21T13:32:44.979126755Z 	RawKvp = {REQUEST=GetCapabilities, VERSION=1.3.0, SERVICE=WMS}
+geoserver-1  | 2026-10-21T13:32:44.979130161Z 	Request = GetCapabilities
+geoserver-1  | 2026-10-21T13:32:44.979130933Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:44.979131735Z 	RootLayerEnabled = null
+geoserver-1  | 2026-10-21T13:32:44.979132606Z 	UpdateSequence = null
+geoserver-1  | 2026-10-21T13:32:44.979133638Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:45.309708424Z 13:32:45 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:45.309767180Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:45.325747647Z 13:32:45 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:45.325785933Z Request: getMap
+geoserver-1  | 2026-10-21T13:32:45.325787606Z 	Angle = 0.0
+geoserver-1  | 2026-10-21T13:32:45.325789209Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:45.325790352Z 	Bbox = SRSEnvelope[-1000000.0 : 3000000.0, 5000000.0 : 9000000.0]
+geoserver-1  | 2026-10-21T13:32:45.325791304Z 	BgColor = java.awt.Color[r=255,g=255,b=255]
+geoserver-1  | 2026-10-21T13:32:45.325792326Z 	Buffer = 0
+geoserver-1  | 2026-10-21T13:32:45.325793037Z 	Clip = null
+geoserver-1  | 2026-10-21T13:32:45.325793748Z 	CQLFilter = null
+geoserver-1  | 2026-10-21T13:32:45.325807806Z 	Crs = PROJCS["WGS 84 / Pseudo-Mercator",
+geoserver-1  | 2026-10-21T13:32:45.325808688Z   GEOGCS["WGS 84",
+geoserver-1  | 2026-10-21T13:32:45.325809500Z     DATUM["World Geodetic System 1984",
+geoserver-1  | 2026-10-21T13:32:45.325810311Z       SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+geoserver-1  | 2026-10-21T13:32:45.325811183Z       AUTHORITY["EPSG","6326"]],
+geoserver-1  | 2026-10-21T13:32:45.325812005Z     PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+geoserver-1  | 2026-10-21T13:32:45.325812826Z     UNIT["degree", 0.017453292519943295],
+geoserver-1  | 2026-10-21T13:32:45.325813578Z     AXIS["Geodetic latitude", NORTH],
+geoserver-1  | 2026-10-21T13:32:45.325814329Z     AXIS["Geodetic longitude", EAST],
+geoserver-1  | 2026-10-21T13:32:45.325815071Z     AUTHORITY["EPSG","4326"]],
+geoserver-1  | 2026-10-21T13:32:45.325815822Z   PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]],
+geoserver-1  | 2026-10-21T13:32:45.325816624Z   PARAMETER["semi_minor", 6378137.0],
+geoserver-1  | 2026-10-21T13:32:45.325817335Z   PARAMETER["latitude_of_origin", 0.0],
+geoserver-1  | 2026-10-21T13:32:45.325818107Z   PARAMETER["central_meridian", 0.0],
+geoserver-1  | 2026-10-21T13:32:45.325818838Z   PARAMETER["scale_factor", 1.0],
+geoserver-1  | 2026-10-21T13:32:45.325819550Z   PARAMETER["false_easting", 0.0],
+geoserver-1  | 2026-10-21T13:32:45.325820281Z   PARAMETER["false_northing", 0.0],
+geoserver-1  | 2026-10-21T13:32:45.325820993Z   UNIT["m", 1.0],
+geoserver-1  | 2026-10-21T13:32:45.325821704Z   AXIS["Easting", EAST],
+geoserver-1  | 2026-10-21T13:32:45.325822445Z   AXIS["Northing", NORTH],
+geoserver-1  | 2026-10-21T13:32:45.325823167Z   AUTHORITY["EPSG","3857"]]
+geoserver-1  | 2026-10-21T13:32:45.325824850Z 	Elevation = []
+geoserver-1  | 2026-10-21T13:32:45.325825572Z 	Env = {}
+geoserver-1  | 2026-10-21T13:32:45.325826333Z 	Exceptions = SE_XML
+geoserver-1  | 2026-10-21T13:32:45.325827035Z 	FeatureId = null
+geoserver-1  | 2026-10-21T13:32:45.325827726Z 	FeatureVersion = null
+geoserver-1  | 2026-10-21T13:32:45.325828427Z 	Filter = null
+geoserver-1  | 2026-10-21T13:32:45.325829119Z 	Format = image/png
+geoserver-1  | 2026-10-21T13:32:45.325829790Z 	FormatOptions = {}
+geoserver-1  | 2026-10-21T13:32:45.325830521Z 	Get = true
+geoserver-1  | 2026-10-21T13:32:45.325831213Z 	Height = 64
+geoserver-1  | 2026-10-21T13:32:45.325831894Z 	Interpolations = []
+geoserver-1  | 2026-10-21T13:32:45.325832596Z 	Layers = [org.geoserver.wms.MapLayerInfo@790f6df3]
+geoserver-1  | 2026-10-21T13:32:45.325833327Z 	MaxFeatures = null
+geoserver-1  | 2026-10-21T13:32:45.325834028Z 	Palette = null
+geoserver-1  | 2026-10-21T13:32:45.325834780Z 	RawKvp = {REQUEST=GetMap, CRS=EPSG:3857, FORMAT=image/png, BBOX=-1000000,5000000,3000000,9000000, VERSION=1.3.0, STYLES=, SERVICE=WMS, TIME=2026-10-15T03:00:00Z, WIDTH=64, HEIGHT=64, TRANSPARENT=true, LAYERS=p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493}
+geoserver-1  | 2026-10-21T13:32:45.325835702Z 	RemoteOwsType = null
+geoserver-1  | 2026-10-21T13:32:45.325838337Z 	RemoteOwsURL = null
+geoserver-1  | 2026-10-21T13:32:45.325839078Z 	Request = GetMap
+geoserver-1  | 2026-10-21T13:32:45.325839750Z 	RequestCharset = UTF-8
+geoserver-1  | 2026-10-21T13:32:45.325840451Z 	ScaleMethod = null
+geoserver-1  | 2026-10-21T13:32:45.325841143Z 	Sld = null
+geoserver-1  | 2026-10-21T13:32:45.325841814Z 	SldBody = null
+geoserver-1  | 2026-10-21T13:32:45.325842475Z 	SldVersion = null
+geoserver-1  | 2026-10-21T13:32:45.325843157Z 	SortBy = null
+geoserver-1  | 2026-10-21T13:32:45.325843838Z 	SortByArrays = null
+geoserver-1  | 2026-10-21T13:32:45.325844539Z 	SRS = urn:ogc:def:crs:EPSG::3857
+geoserver-1  | 2026-10-21T13:32:45.325845241Z 	StartIndex = null
+geoserver-1  | 2026-10-21T13:32:45.325845932Z 	StyleBody = null
+geoserver-1  | 2026-10-21T13:32:45.325846603Z 	StyleFormat = sld
+geoserver-1  | 2026-10-21T13:32:45.325847275Z 	Styles = [StyleImpl[ name=p6291310cbec01c990ccfb493:raster]]
+geoserver-1  | 2026-10-21T13:32:45.325848016Z 	StyleUrl = null
+geoserver-1  | 2026-10-21T13:32:45.325848708Z 	StyleVersion = null
+geoserver-1  | 2026-10-21T13:32:45.325849449Z 	Tiled = false
+geoserver-1  | 2026-10-21T13:32:45.325850982Z 	TilesOrigin = null
+geoserver-1  | 2026-10-21T13:32:45.325851744Z 	Time = [[Thu Oct 15 03:00:00 UTC 2026, Thu Oct 15 03:00:00 UTC 2026]]
+geoserver-1  | 2026-10-21T13:32:45.325852505Z 	Transparent = true
+geoserver-1  | 2026-10-21T13:32:45.325853186Z 	ValidateSchema = false
+geoserver-1  | 2026-10-21T13:32:45.325853888Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:45.325854599Z 	ViewParams = null
+geoserver-1  | 2026-10-21T13:32:45.325855301Z 	Width = 64
+geoserver-1  | 2026-10-21T13:32:45.629488987Z 13:32:45 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:45.629552423Z Request: getServiceInfo
+geoserver-1  | 2026-10-21T13:32:45.665873758Z 13:32:45 INFO   [geoserver.wms] -
+geoserver-1  | 2026-10-21T13:32:45.665920891Z Request: getFeatureInfo
+geoserver-1  | 2026-10-21T13:32:45.665923366Z 	BaseUrl = http://geoserver:8080/geoserver/
+geoserver-1  | 2026-10-21T13:32:45.665925691Z 	Exceptions = application/vnd.ogc.se_xml
+geoserver-1  | 2026-10-21T13:32:45.665927625Z 	ExcludeNodataResults = false
+geoserver-1  | 2026-10-21T13:32:45.665928807Z 	FeatureCount = 1
+geoserver-1  | 2026-10-21T13:32:45.665930019Z 	Get = false
+geoserver-1  | 2026-10-21T13:32:45.665931132Z 	GetMapRequest =
+geoserver-1  | 2026-10-21T13:32:45.665932284Z GetMap Request
+geoserver-1  | 2026-10-21T13:32:45.665933356Z  version: 1.3.0
+geoserver-1  | 2026-10-21T13:32:45.665934568Z  output format: image/png
+geoserver-1  | 2026-10-21T13:32:45.665935681Z  width height: 3,3
+geoserver-1  | 2026-10-21T13:32:45.665936963Z  bbox: SRSEnvelope[2226239.815865471 : 2226539.815865471, 6478960.334940843 : 6479260.334940843]
+geoserver-1  | 2026-10-21T13:32:45.665938366Z  layers: p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493
+geoserver-1  | 2026-10-21T13:32:45.665939548Z  styles: p6291310cbec01c990ccfb493:raster
+geoserver-1  | 2026-10-21T13:32:45.665957354Z 	InfoFormat = text/plain
+geoserver-1  | 2026-10-21T13:32:45.665958576Z 	PropertyNames = null
+geoserver-1  | 2026-10-21T13:32:45.665959668Z 	QueryLayers = [org.geoserver.wms.MapLayerInfo@790f6df3]
+geoserver-1  | 2026-10-21T13:32:45.665961141Z 	RawKvp = {CRS=EPSG:3857, FORMAT=image/png, INFO_FORMAT=text/plain, STYLES=, I=1, TIME=2026-10-15T03:00:00Z, WIDTH=3, J=1, HEIGHT=3, LAYERS=p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493, REQUEST=GetFeatureInfo, BBOX=2226239.815865471,6478960.334940843,2226539.815865471,6479260.334940843, VERSION=1.3.0, SERVICE=WMS, QUERY_LAYERS=p6291310cbec01c990ccfb493:g6291310cbec01c990ccfb493}
+geoserver-1  | 2026-10-21T13:32:45.665963486Z 	Request = GetFeatureInfo
+geoserver-1  | 2026-10-21T13:32:45.665964738Z 	RequestCharset = null
+geoserver-1  | 2026-10-21T13:32:45.665965881Z 	Version = 1.3.0
+geoserver-1  | 2026-10-21T13:32:45.665967033Z 	XPixel = 1
+geoserver-1  | 2026-10-21T13:32:45.665968165Z 	YPixel = 1
+geoserver-1  | 2026-10-21T13:32:46.023101111Z 13:32:46 CONFIG [platform.resource] - Notifying ENTRY_MODIFY change on /opt/geoserver_data/gwc-layers. Created: 1, removed: 0, modified: 0
+**********************
+Windows PowerShell transcript end
+End time: 20261021163331
+**********************

@@ -2,6 +2,24 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {publishedGroups} from './selection.ts';
 
+test('a mixed synthetic revision is excluded whole from public discovery and labelled in validation',()=>{
+    const base={model:'ICON-EU',run:'ICON-EU/2026-10-15T00:00:00Z',field:'T_G:surface:0',level:0,units:'K',state:'published'};
+    const items=[
+        {...base,selection:'old1',revision:'old',fixture:'actual',valid_time:'2026-10-15T01:00:00Z'},
+        {...base,selection:'old3',revision:'old',fixture:'actual',valid_time:'2026-10-15T03:00:00Z'},
+        // Actual inherited batch comes first in the catalogue, not the correction.
+        {...base,selection:'new3',revision:'mixed',fixture:'actual',valid_time:'2026-10-15T03:00:00Z'},
+        {...base,selection:'new1',revision:'mixed',fixture:'correction',valid_time:'2026-10-15T01:00:00Z'}
+    ];
+    const publicGroups=publishedGroups(items);
+    assert.equal(publicGroups.length,1);
+    assert.equal(publicGroups[0].selection.revision,'old');
+    assert.deepEqual(publicGroups[0].times.map(item=>item?.selection??null),['old1',null,'old3']);
+    const validationGroups=publishedGroups(items,true);
+    assert.equal(validationGroups[0].selection.fixture,'correction');
+    assert.deepEqual(validationGroups[0].times.map(item=>item?.selection??null),['new1',null,'new3']);
+});
+
 test('newest usable run starts at its first published time and retains revision identity',()=>{
     const base={model:'icon-eu',field:'T_G:surface:0',level:'surface',units:'K',fixture:'actual',state:'published'};
     const groups=publishedGroups([

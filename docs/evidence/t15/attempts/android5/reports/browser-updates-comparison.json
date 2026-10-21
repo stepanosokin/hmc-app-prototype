@@ -1,0 +1,63 @@
+{
+  "status": "passed",
+  "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a",
+  "scope": "Actual hour +3 plus labelled +1 K correction; real gateway EDR and scoped WMS, unchanged historical desktop QGIS baseline",
+  "valid_gpu_samples": 5915,
+  "max_abs_error_K": 0.0017536085692881898,
+  "mask_differences": 0,
+  "point": {
+    "batch": "hour-03.zarr",
+    "cell": {
+      "column": 990,
+      "lat": 55.125,
+      "lon": 38.375,
+      "row": 410
+    },
+    "coordinate_order": [
+      "longitude",
+      "latitude"
+    ],
+    "crs": "urn:hmc:crs:icon-sphere-6371229",
+    "field": "T_G:surface:0",
+    "identity": {
+      "contract": "hmc-temperature-tile/2",
+      "encoding_version": "hmc-temperature-tile/2/f32",
+      "engine": "project-bilinear/1",
+      "field": "T_G:surface:0",
+      "level": 0,
+      "matrix": "WebMercatorQuad",
+      "member": null,
+      "model": "ICON-EU",
+      "native_grid_sha256": "26b6f9c9df3394b1802f5a93606e78f2fc1513c0f8d4d9517608d1d7a86f3503",
+      "publication_job": "2f97e94e-4436-47fb-b52f-2328c55f37be",
+      "resampling": "bilinear",
+      "revision": "e58878030e8f5b4363bd387becbdc5b1f8099e51f4d4246cc49e90c7490a158d",
+      "run": "ICON-EU/2026-10-15T00:00:00Z",
+      "valid_time": "2026-10-15T03:00:00Z"
+    },
+    "method": "native_cell",
+    "query_position": {
+      "crs": "urn:hmc:crs:icon-sphere-6371229",
+      "lat": 55.15459708818092,
+      "lon": 38.346546519886374
+    },
+    "reason": null,
+    "revision": "e58878030e8f5b4363bd387becbdc5b1f8099e51f4d4246cc49e90c7490a158d",
+    "run": "ICON-EU/2026-10-15T00:00:00Z",
+    "selection": "e58878030e8f5b4363bd387becbdc5b1f8099e51f4d4246cc49e90c7490a158d.2210493625555e52f176713c73f9b22b22bb860020c200f33cb896e491e26580",
+    "source": {
+      "message_sha256": "c67eb4b2675a0414947bb31004d32a38eb0408c241789c31287e8034e46d9bb0",
+      "name": "ICON_EU_T_G_2026101500.grib2",
+      "processing_version": "t5.1",
+      "sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a",
+      "synthetic_fixture": "correction"
+    },
+    "spatial_selection": "nearest-native-cell",
+    "temporal_selection": "exact",
+    "units": "K",
+    "valid_time": "2026-10-15T03:00:00Z",
+    "value": 282.14947509765625
+  },
+  "edr_equal": true,
+  "wms_value_K": 282.14947509765625
+}

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Гидрометцентр · карта прогноза</title>
+<link rel="stylesheet" href="/style.css">
+<body>
+<main aria-label="Карта опубликованного прогноза">
+  <div id="map" tabindex="0" aria-label="Карта. Нажмите для выбора точки."></div>
+  <header class="panel brand"><div class="symbol" aria-hidden="true">ГМ</div><div><strong>Гидрометцентр</strong><small>Карта прогноза · <b>опубликованные данные</b></small></div></header>
+  <details id="forecastPanel" class="forecastControls" open><summary class="panel widgetToggle"><span id="forecastSummary">ICON-EU · расчёт UTC</span><small id="compactProjection">Меркатор</small></summary><div class="widgetBody">
+  <section class="panel model" aria-label="Выбор модели данных"><label for="model">Модель</label><select id="model" aria-label="Модель данных" title="Доступна опубликованная ICON-EU"><option value="icon-eu">ICON-EU</option></select></section>
+  <section class="panel selection" aria-label="Выбранный прогноз"><h1>Температура поверхности</h1><div id="reference"></div><div id="valid"></div><small id="selectionIdentity"></small><button id="settings" aria-expanded="false" aria-controls="drawer">Источник и настройки</button></section>
+  <section class="panel projectionControl" aria-label="Проекция карты"><label for="projection">Вид карты</label><select id="projection" aria-label="Вид карты: Меркатор, ортографический глобус, LAEA — Арктика (EPSG:3576)" aria-describedby="projectionStatus"><option value="mercator">Меркатор</option><option value="orthographic">Глобус</option><option value="laea">LAEA — Арктика (EPSG:3576)</option></select><small id="projectionStatus" role="status"></small><button id="useMercator" hidden>Перейти в Меркатор</button></section>
+  </div></details>
+  <aside class="panel layers" aria-label="Слои"><button id="temperature" aria-label="Температура" aria-describedby="temperatureTooltip" aria-pressed="true"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 14.5V5a3 3 0 0 1 6 0v9.5a5 5 0 1 1-6 0Z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="18" r="2" fill="currentColor"/></svg></button><span id="temperatureTooltip" class="layerTooltip" role="tooltip">Температура</span></aside>
+  <details id="navigationPanel" class="navigation" aria-label="Навигация по карте" open><summary class="panel widgetToggle">Карта</summary><div class="widgetBody"><button id="fit">К области данных</button><div><button id="zoomIn" aria-label="Приблизить">+</button><button id="zoomOut" aria-label="Отдалить">−</button><button id="west" aria-label="Сдвинуть карту к западу">←</button><button id="east" aria-label="Сдвинуть карту к востоку">→</button></div></div></details>
+  <div id="notice" class="panel notice" role="status" aria-live="polite"></div>
+  <div id="pointMarker" hidden aria-hidden="true"></div>
+  <button id="showPoint" class="panel pointRecall" aria-controls="drawer" hidden>Выбранная точка</button>
+  <section id="pointCard" class="panel point" hidden aria-label="Значение выбранной точки"><button id="closePoint" aria-label="Закрыть значение точки" title="Закрыть">×</button><div id="pointContent"></div></section>
+  <details id="legendPanel" class="panel legend" aria-label="Шкала температуры" open><summary class="widgetToggle"><span id="legendSummary">Температура · °C</span></summary><div class="widgetBody"><div>Температура <b class="unit">°C</b></div><div class="ramp"></div><div class="ticks"><span>−20</span><span>0</span><span>20</span><span>40</span></div><small>T_G · поверхность · числовые данные</small></div></details>
+  <section id="drawer" class="panel drawer" aria-label="Подробности и настройки" hidden>
+    <nav class="sheetTabs" aria-label="Содержимое панели"><button id="sheetSettings">Настройки</button><button id="sheetPoint" hidden>Точка</button></nav>
+    <button id="collapsePoint" aria-label="Свернуть значение точки" title="Свернуть значение точки" hidden>⌄</button>
+    <button id="closeDrawer" aria-label="Свернуть панель">Свернуть ⌄</button><button id="clearMobilePoint" aria-label="Закрыть значение точки">Удалить выбранную точку ×</button><div id="mobilePoint"></div>
+    <div id="settingsBody">
+      <h2>Источник и публикация</h2><p>Числовое поле ICON-EU T_G: температура поверхности, не воздуха на высоте 2 м. Значение точки — ближайшая нативная ячейка; отображение — билинейная интерполяция.</p>
+      <label><span id="runTimeLabel">Расчёт UTC</span><select id="run"></select></label>
+      <small id="timezoneInfo"></small>
+      <label>Единицы<select id="units"><option value="C">Градусы Цельсия · °C</option><option value="K">Кельвины · K</option></select></label>
+      <label>Палитра<select id="palette"><option value="temperature">Температурная</option><option value="contrast">Контрастная</option></select></label>
+      <details><summary>Происхождение и числовой контракт</summary><p id="metadata"></p></details>
+      <button id="retry">Повторить загрузку</button><button id="refresh">Проверить обновления</button>
+      <small>Подложка: Natural Earth 1:110m, общественное достояние. Береговая линия без государственных границ; подписи городов добавлены для ориентации. Все ресурсы локальные.</small>
+      <small>Лицензии: <a href="/vendor/MapLibre.LICENSE.txt">MapLibre</a> · <a href="/vendor/proj4.LICENSE.md">proj4js</a> · <a href="/vendor/d3-geo.LICENSE.txt">D3 Geo</a> · <a href="/vendor/d3-array.LICENSE.txt">D3 Array</a></small>
+    </div>
+  </section>
+  <section id="updates" class="panel updates" aria-label="Обновления публикации" hidden>
+    <p id="updateStatus" role="status" aria-live="polite"></p>
+    <button id="acceptUpdate" hidden>Обновить текущий расчёт</button>
+    <button id="latestRun" hidden>Перейти к новому расчёту</button>
+    <button id="declineUpdate">Позже</button>
+  </section>
+  <details id="timelinePanel" class="panel timeline" open><summary class="widgetToggle"><span id="compactTime">Срок прогноза UTC</span></summary><div class="widgetBody"><div class="timeHeading"><strong id="timeLabel"></strong><div class="timeMeta"><span id="availability"></span><select id="timezone" aria-label="Часовой пояс отображения"><option value="utc">UTC</option></select></div></div><div class="timeControls"><button id="previous" aria-label="Предыдущий срок">‹</button><label><span id="timeZoneLabel">Срок UTC</span><select id="time"></select></label><button id="next" aria-label="Следующий срок">›</button></div><input id="timeRange" type="range" min="1" max="12" value="1" aria-label="Час прогноза"></div></details>
+  <label class="attribution fontPicker">Шрифт: <select id="font" aria-label="Шрифт страницы"><option value="system">Системный</option><option value="courier">Courier New</option></select></label>
+  <label class="attribution basemapAttribution">Подложка: <select id="basemap" aria-label="Подложка карты"><option value="dark">Natural Earth · тёмная</option><option value="light">Natural Earth · светлая</option></select></label>
+</main>
+<script src="/land.js"></script>
+<script src="/vendor/d3-array.min.js"></script>
+<script src="/vendor/d3-geo.min.js"></script>
+<script src="/vendor/proj4.js"></script>
+
+<script type="module" src="/build/main.js"></script>
+</body>
+</html>

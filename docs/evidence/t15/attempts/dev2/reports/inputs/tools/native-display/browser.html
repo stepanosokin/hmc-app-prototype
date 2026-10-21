@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Числовое отображение — T23a</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font:14px system-ui;background:#102840;color:white}
+#map{position:absolute;inset:0;overflow:hidden;z-index:0;touch-action:none}canvas{display:block}.maplibregl-control-container{display:none}
+#panel{position:absolute;left:8px;right:8px;top:8px;padding:10px;background:#102840ed;max-width:640px}
+button{padding:8px;margin:3px;font:inherit}#status{margin-top:6px}
+#panel,#attribution{z-index:3}
+#attribution{position:absolute;bottom:8px;left:8px;background:#102840ed}
+.label{position:absolute;pointer-events:none;color:white;text-shadow:0 0 3px black,1px 1px 2px black;white-space:nowrap}
+</style>
+<div id="map"></div><div id="panel"><strong>T23a · температура поверхности · эксперимент</strong><br>
+<button id="ortho" disabled>Сферическая ортография</button><button id="laea" disabled>Северная Россия · EPSG:3576</button>
+<div id="status">Загрузка числового поля…</div></div>
+<div id="attribution">Подложка Natural Earth 5.1.2 · общественное достояние</div>
+<script src="/vendor/proj4.js"></script><script src="/land.js"></script>
+<script src="/vendor/d3-array.min.js"></script><script src="/vendor/d3-geo.min.js"></script>
+<script type="module" src="/probe.js"></script></html>
