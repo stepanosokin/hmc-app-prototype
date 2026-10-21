@@ -1,0 +1,18 @@
+diff --git a/docs/evidence/t16/attempts/android-repeat1/reports/inputs/tools/check-weather-viewer.mjs b/tools/check-weather-viewer.mjs
+index 7cbcd49..3a75786 100644
+--- a/docs/evidence/t16/attempts/android-repeat1/reports/inputs/tools/check-weather-viewer.mjs
++++ b/tools/check-weather-viewer.mjs
+@@ -288,7 +288,12 @@ try{
+         report.cleanup={...steps,user_chrome_retained:true};
+     }else{
+         await clean('browser_stopped',async()=>{
+-        if(child?.pid){await delay(500);if(child.exitCode===null)execFileSync('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'pipe'});}
++        if(child?.pid){await delay(500);if(child.exitCode===null){
++            // taskkill can return failure when a child exits during tree traversal.
++            // The independent profile-specific inventory below decides retirement.
++            try{execFileSync('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'pipe'});}
++            catch(error){report.browser_termination_warning=String(error);}
++        }}
+         const remaining=execFileSync('powershell',['-NoProfile','-Command',
+             "@(Get-CimInstance Win32_Process -Filter \"Name='chrome.exe' OR Name='msedge.exe'\" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains($env:T13_PROFILE) }).Count"],
+             {encoding:'utf8',env:{...process.env,T13_PROFILE:profile},windowsHide:true}).trim();

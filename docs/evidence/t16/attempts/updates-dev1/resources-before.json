@@ -1,0 +1,50 @@
+{
+    "project":  "hmc-publication-t13-t16-updates-dev1",
+    "repository":  "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "844fd1da87eaf9f4af9cd5380584216e9864a2b17619dffb691b42de14f99de3",
+                           "name":  "/hmc-publication-t13-t16-updates-dev1-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t16-updates-dev1"
+                       },
+                       {
+                           "id":  "d83d646708f51f047980ec7c42d84d4168bd3a623de308a9b9b5b7d9ea6e71f2",
+                           "name":  "/hmc-publication-t13-t16-updates-dev1-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t16-updates-dev1"
+                       },
+                       {
+                           "id":  "f3a600f3606eb330d92aa808cf8af724f152fe4206fdf7938760cf20f6d4eb0c",
+                           "name":  "/hmc-publication-t13-t16-updates-dev1-viewer-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t16-updates-dev1"
+                       },
+                       {
+                           "id":  "ee23ff5c952b5530a82997ec1ac4d2c5740bad56e357114467e5a26b68758b0b",
+                           "name":  "/hmc-publication-t13-t16-updates-dev1-api-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t16-updates-dev1"
+                       },
+                       {
+                           "id":  "ab7179a821c0f6ced93b9862e2c75ab6b45310e092c6c68ac63108227a41680e",
+                           "name":  "/hmc-publication-t13-t16-updates-dev1-gateway-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t16-updates-dev1"
+                       }
+                   ],
+    "networks":  [
+                     "60349ffaea92",
+                     "d39553363223"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t13-t16-updates-dev1_assets",
+                    "hmc-publication-t13-t16-updates-dev1_geoserver",
+                    "hmc-publication-t13-t16-updates-dev1_postgres"
+                ]
+}

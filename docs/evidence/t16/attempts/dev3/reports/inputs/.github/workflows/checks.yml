@@ -1,0 +1,122 @@
+name: Checks
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  weather-viewer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '26.10.0'
+      - name: Install locked viewer development dependencies
+        run: npm --prefix viewer ci --ignore-scripts --no-audit --no-fund
+      - name: Check viewer types
+        run: npm --prefix viewer run check
+      - name: Check viewer selection and field loading
+        run: npm --prefix viewer test
+      - name: Verify accepted T13 archive
+        run: node docs/evidence/t13/verify.mjs
+
+  windows-process:
+    runs-on: windows-2022
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check publication process exit handling
+        shell: powershell
+        run: ./tools/check-publication-process.ps1
+      - name: Check current documentation links
+        shell: powershell
+        run: ./tools/check-documentation.ps1
+      - name: Check native browser input capture without Compose
+        shell: powershell
+        run: ./tools/check-native-display-inputs.ps1
+      - name: Check mockup scenario selection without browser resources
+        run: node --test tools/test-weather-check-options.mjs
+
+  source-and-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Build locked validation image
+        run: docker build -f Dockerfile.publication -t hmc-publication:checks .
+      - name: Check types
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint mypy hmc-publication:checks
+          --ignore-missing-imports --check-untyped-defs --cache-dir=/tmp/mypy
+          decoder tests trials publication tools
+      - name: Check numeric boundary behavior
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_publication_tiles.py -v
+      - name: Check access gateway boundaries
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_publication_access.py -v
+      - name: Check interpreter startup and shutdown
+        run: >-
+          docker run --rm --network none --tmpfs /evidence:mode=1777
+          --entrypoint python hmc-publication:checks -m publication.runtime
+      - name: Check retention policy boundaries
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_publication_retention.py -v
+      - name: Verify archived evidence bytes
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py
+      - name: Check archive validation failures
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks
+          -m unittest discover -s tools -p 'test_evidence*.py' -v
+      - name: Verify native display proof and regression archives
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py --native-display
+      - name: Verify T23 continuation, diagnosis and implementation archives
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py --t23
+      - name: Verify T24 mockup archive
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py --t24
+      - name: Verify T14 viewer navigation and race archive
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py --t14
+      - name: Verify T15 desktop and physical Android update archive
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py --t15
+      - name: Verify accepted T23 desktop and Android measurement budgets
+        run: |
+          node tools/native-display/budgets.mjs docs/evidence/t23/implementation/attempts/desktop1/reports/browser/browser.json
+          node tools/native-display/budgets.mjs docs/evidence/t23/implementation/attempts/desktop1/reports/browser-edge/browser.json
+          node tools/native-display/budgets.mjs docs/evidence/t23/implementation/attempts/android6/reports/browser/browser.json
+      - name: Check evidence archival and project retirement
+        shell: pwsh
+        run: ./tools/check-publication-retirement.ps1 -Image hmc-publication:checks

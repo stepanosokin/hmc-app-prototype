@@ -1,0 +1,62 @@
+{
+  "scope": "T13 production viewer, real Compose APIs and desktop GPU; mobile viewports are emulation",
+  "executable": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+  "starting_commit": "03b36e5c8d421bbb06da0885039a88751b4bb4f2",
+  "checks": [],
+  "viewports": [],
+  "requests": [
+    {
+      "url": "https://hmc-runtime-check.invalid/page",
+      "headers": [
+        "sec-ch-ua-platform",
+        "Referer",
+        "User-Agent",
+        "sec-ch-ua",
+        "sec-ch-ua-mobile"
+      ]
+    },
+    {
+      "url": "blob:null/36ccca48-aa71-4eec-8332-6f7773e758d0",
+      "headers": [
+        "Accept"
+      ]
+    }
+  ],
+  "errors": [],
+  "cleanup": {
+    "page_released": true,
+    "browser_stopped": true,
+    "profile_removed": true,
+    "browser_processes_remaining": 0
+  },
+  "network": {
+    "policy": "same origin only; CDP Fetch before request, page and descendant workers",
+    "origin": "http://127.0.0.1:8140",
+    "targets": [
+      {
+        "type": "worker",
+        "url": "blob:null/36ccca48-aa71-4eec-8332-6f7773e758d0"
+      }
+    ],
+    "blocked": [
+      {
+        "url": "https://hmc-runtime-check.invalid/page",
+        "resource_type": "XHR",
+        "worker": false
+      }
+    ],
+    "allowed": []
+  },
+  "status": "failed",
+  "failure": "Error: CDP timeout: Runtime.evaluate",
+  "failure_inputs": {
+    "viewport": {
+      "width": 762,
+      "height": 484,
+      "scale": 1,
+      "offsetTop": 0
+    },
+    "visibility": "visible"
+  },
+  "failure_dom": ""
+}

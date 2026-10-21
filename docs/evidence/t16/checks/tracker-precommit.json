@@ -1,0 +1,18 @@
+{
+  "phase": "pre-commit; all criteria validated, push and closure pending",
+  "observed_at": "2026-10-21T19:13:18.213Z",
+  "starting_commit": "03b36e5c8d421bbb06da0885039a88751b4bb4f2",
+  "issue": {
+    "url": "https://github.com/stepanosokin/hmc-app-prototype/issues/28",
+    "title": "Run the complete viewer without public runtime services — M4 gate",
+    "state": "open",
+    "checklist": [
+      "- [x] Serve required basemap, styles, fonts and other runtime assets locally. A simple regional basemap is sufficient; record attribution and verified redistribution rights.",
+      "- [x] Perform a runtime network check and a run with public runtime access unavailable, demonstrating no required public basemap/API/font services.",
+      "- [x] Confirm actual data overlay, legend, point lookup, run/time navigation, explicit updates and responsive Russian/UTC controls continue working.",
+      "- [x] Collect T13-T15 interaction evidence and A11 network evidence for the M4 exit record; setup-time internet remains permitted.",
+      "- [x] Serve required shader sources, tile decoders, workers and any WASM locally with pinned versions/rights. With public runtime access disabled, demonstrate actual numeric tile/GPU overlay, palette changes, navigation, point lookup and capability/fallback behavior; record the supported browser matrix.",
+      "- [x] Under specification 9.2 and T23 / #35's selected path, serve basemap/style/projection libraries/shaders/decoders/workers/WASM locally for Mercator, strict orthographic globe and EPSG:3576. With public runtime access disabled, verify all modes, switching, inverse picking, LAEA restriction and explicit unavailable-mode behavior, with versions/rights and real GPU/Compose evidence; T24 / #36 mockup evidence alone is insufficient."
+    ]
+  }
+}

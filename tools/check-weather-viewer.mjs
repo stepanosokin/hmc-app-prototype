@@ -9,6 +9,8 @@ import {checkUpdates} from './viewer-updates.mjs';
 const directory=resolve(process.env.T13_REPORT_DIRECTORY||'data/reports/t13/browser-'+randomUUID());
 assert.ok(directory.startsWith(resolve('data/reports')+sep));
 const origin=process.env.T13_VIEWER||'http://127.0.0.1:8140';assert.match(origin,/^http:\/\/127\.0\.0\.1:\d+$/);
+const offline=process.env.T16_OFFLINE==='1';
+const {restrictRuntimeNetwork}=await import('./viewer-network.mjs');
 const executable=process.env.T13_BROWSER||'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const disabled=process.env.T13_DISABLE_GPU==='1',focused=process.env.T13_FOCUSED==='1';
 const androidSerial=process.env.T13_ANDROID_SERIAL,android=Boolean(androidSerial),adb=process.env.T13_ADB;
@@ -18,7 +20,7 @@ await mkdir(directory,{recursive:false});
 const profile=join(directory,'profile'),delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const report={scope:'T13 production viewer, real Compose APIs and desktop GPU; mobile viewports are emulation',
     executable,starting_commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),checks:[],viewports:[],requests:[],errors:[],cleanup:{}};
-let child,socket,call,androidForward,androidTarget,androidReverse,uiDump,cleanupMode=false;
+let child,socket,call,androidForward,androidTarget,androidReverse,uiDump,cleanupMode=false,network;
 try{
     let port,pages;
     if(android){
@@ -49,6 +51,7 @@ try{
     await new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});
     let next=0;const pending=new Map();
     socket.onmessage=event=>{const message=JSON.parse(event.data),item=pending.get(message.id);
+        network?.event(message);
         if(item){pending.delete(message.id);clearTimeout(item.timer);message.error?item.reject(Error(JSON.stringify(message.error))):item.resolve(message.result);}
         else if(message.method==='Runtime.exceptionThrown')report.errors.push(message.params.exceptionDetails);
         else if(message.method==='Network.requestWillBeSent')report.requests.push({url:message.params.request.url,headers:Object.keys(message.params.request.headers)});
@@ -100,10 +103,24 @@ try{
     const check=async(label,expression)=>{assert.equal(await evaluate(expression),true,label);report.checks.push(label);};
     const capture=(samples=false)=>evaluate(`window.captureWeatherEvidence(${samples})`);
     await call('Page.enable');await call('Runtime.enable');await call('Network.enable');
+    if(offline){
+        network=await restrictRuntimeNetwork(call,origin,report);await network.start();
+        const probes=await evaluate(`(async()=>{
+            const page=await fetch('https://hmc-runtime-check.invalid/page').then(()=>false,()=>true);
+            const worker=await new Promise((resolve,reject)=>{
+                const url=URL.createObjectURL(new Blob([\`(async()=>{
+                    const direct=await fetch('https://hmc-runtime-check.invalid/worker').then(()=>false,()=>true);
+                    const url=URL.createObjectURL(new Blob(["fetch('https://hmc-runtime-check.invalid/nested-worker').then(()=>postMessage(false),()=>postMessage(true))"],{type:'text/javascript'}));
+                    const nested=new Worker(url);nested.onmessage=e=>{nested.terminate();URL.revokeObjectURL(url);postMessage(direct&&e.data);};
+                })()\`],{type:'text/javascript'}));
+                const worker=new Worker(url);worker.onmessage=e=>{worker.terminate();URL.revokeObjectURL(url);resolve(e.data);};worker.onerror=reject;
+            });return {page,worker};})()`);
+        assert.deepEqual(probes,{page:true,worker:true});report.network.probes=probes;
+    }
     if(android)await call('Page.addScriptToEvaluateOnNewDocument',{source:"window.__t13Inputs=[];for(const type of ['pointerdown','pointerup','click'])document.addEventListener(type,event=>{window.__t13Inputs.push({type,id:event.target.id,tag:event.target.tagName,x:event.clientX,y:event.clientY});if(window.__t13Inputs.length>80)window.__t13Inputs.shift();},true)"});
     report.browser=await call('Browser.getVersion');
     if(android){await call('Page.bringToFront');report.user_agent=await evaluate('navigator.userAgent');report.device_pixel_ratio=await evaluate('devicePixelRatio');}
-    report.configuration={gpu_disabled:disabled,focused};
+    report.configuration={gpu_disabled:disabled,focused,public_runtime_blocked:offline};
     const sizes=android?[await evaluate('[innerWidth,innerHeight,true]')]:focused||disabled?[[1440,900,false]]:[[1440,900,false],[390,844,true],[360,740,true],[640,360,true]];
     for(const [width,height,mobile] of sizes){
         if(!android)await call('Emulation.setDeviceMetricsOverride',{width,height,mobile,deviceScaleFactor:1});
@@ -237,7 +254,8 @@ try{
     if(process.env.T15_UPDATES==='1'&&process.env.T15_UPDATES_ONLY!=='1'&&!disabled)
         await checkUpdates({call,evaluate,wait,select,click,capture,origin,report,directory,android});
     assert.equal(report.errors.length,0,'No uncaught browser errors');
-    assert.ok(report.requests.filter(r=>/^https?:/.test(r.url)).every(r=>r.url.startsWith(origin+'/')),'Runtime is local');
+    assert.ok(report.requests.filter(r=>/^https?:/.test(r.url)&&!(offline&&r.url.startsWith('https://hmc-runtime-check.invalid/'))).every(r=>r.url.startsWith(origin+'/')),'Runtime is local');
+    if(network)await network.finish();
     assert.ok(report.requests.every(r=>!r.headers.some(h=>/authorization|x-api-key/i.test(h))),'No organization secrets');
     report.status='passed';
 }catch(error){report.status='failed';report.failure=String(error);process.exitCode=1;
@@ -270,7 +288,12 @@ try{
         report.cleanup={...steps,user_chrome_retained:true};
     }else{
         await clean('browser_stopped',async()=>{
-        if(child?.pid){await delay(500);if(child.exitCode===null)execFileSync('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'pipe'});}
+        if(child?.pid){await delay(500);if(child.exitCode===null){
+            // taskkill can return failure when a child exits during tree traversal.
+            // The independent profile-specific inventory below decides retirement.
+            try{execFileSync('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'pipe'});}
+            catch(error){report.browser_termination_warning=String(error);}
+        }}
         const remaining=execFileSync('powershell',['-NoProfile','-Command',
             "@(Get-CimInstance Win32_Process -Filter \"Name='chrome.exe' OR Name='msedge.exe'\" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains($env:T13_PROFILE) }).Count"],
             {encoding:'utf8',env:{...process.env,T13_PROFILE:profile},windowsHide:true}).trim();

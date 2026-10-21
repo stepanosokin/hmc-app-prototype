@@ -7,7 +7,8 @@ param(
     [switch]$Navigation,
     [switch]$NavigationOnly,
     [switch]$Updates,
-    [switch]$UpdatesOnly
+    [switch]$UpdatesOnly,
+    [switch]$Offline
 )
 $ErrorActionPreference='Stop'
 if($UpdatesOnly -and -not $Updates){throw 'UpdatesOnly requires Updates'}
@@ -15,6 +16,7 @@ if($Final -and $UpdatesOnly){throw 'Final requires complete matrix'}
 if($NavigationOnly -and -not $Navigation){throw 'NavigationOnly requires Navigation'}
 if($Final -and ($NavigationOnly -or $env:T13_FOCUSED -eq '1')){throw 'Final acceptance requires the complete browser matrix'}
 $originalFocused=$env:T13_FOCUSED
+$originalOffline=$env:T16_OFFLINE
 if($env:T13_ANDROID_SERIAL -and $WithEdge){throw 'Use separate physical Android and desktop attempts'}
 . (Join-Path $PSScriptRoot '../publication/process.ps1')
 Set-Location (Split-Path $PSScriptRoot -Parent)
@@ -44,6 +46,7 @@ function Check{param([string]$Name,[string[]]$Arguments)
     Invoke-CheckedProcess -FilePath docker -ArgumentList ($compose+$Arguments) -ReportDirectory $directory -Name $Name}
 Start-Transcript -Path (Join-Path $directory 'console.log') | Out-Null
 try{
+    if($Offline){$env:T16_OFFLINE='1'}
     Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/weather-viewer-inputs.mjs',$directory,'start') -ReportDirectory $directory -Name inputs-start
     Check services @('up','--detach','db','api','gateway','geoserver','viewer')
     Check assets @('run','--rm','init-assets')
@@ -105,5 +108,6 @@ try{
     Remove-Item Env:T15_UPDATES_ONLY -ErrorAction SilentlyContinue
     Remove-Item Env:T15_PROJECT -ErrorAction SilentlyContinue
     if($null -eq $originalFocused){Remove-Item Env:T13_FOCUSED -ErrorAction SilentlyContinue}else{$env:T13_FOCUSED=$originalFocused}
+    if($null -eq $originalOffline){Remove-Item Env:T16_OFFLINE -ErrorAction SilentlyContinue}else{$env:T16_OFFLINE=$originalOffline}
     & (Join-Path $PSScriptRoot 'retire-publication-project.ps1') -Project $Project -ReportDirectory "data/reports/t13/$Project"
 }

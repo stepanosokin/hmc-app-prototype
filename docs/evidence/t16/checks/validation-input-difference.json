@@ -1,0 +1,18 @@
+{
+  "observed_at": "2026-10-21T19:02:47.803Z",
+  "phase": "desktop final2 frozen; Android accepted prior frozen runner",
+  "files": [
+    {
+      "path": "tools/check-weather-viewer.mjs",
+      "android": {
+        "bytes": 28126,
+        "sha256": "566a2542ba0a77be173e0a4c49e1a4e4252afe7cbdb94697f7ed8501dc454e11"
+      },
+      "desktop": {
+        "bytes": 28400,
+        "sha256": "64ba0fdea02314d5f136b21f6b488513fbb6dcf408d4945e0d248e6da9a3a20f"
+      }
+    }
+  ],
+  "reason": "Only desktop !android cleanup branch changed: taskkill warning followed by mandatory independent zero-process inventory. Android code path and all other 180 frozen inputs unchanged. Both code-review axes approved affected desktop-only rerun; do not claim Android ran new runner bytes."
+}
