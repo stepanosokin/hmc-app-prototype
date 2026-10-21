@@ -6,6 +6,10 @@ allocating Compose; the `weather-viewer` CI job runs these existing commands and
 `node docs/evidence/t13/verify.mjs` against the accepted historical archive.
 Use the verifier's `--current` option only when validating that archive's exact
 runtime revision; future source changes keep their own input inventories.
+For the accepted T14 run/time archive, use `python tools/check_evidence.py --t14`
+in the same locked validation container. Its existing CI evidence-test step
+also exercises synthetic missing-matrix/race/input/cleanup cases; byte hashes
+alone do not establish complete acceptance.
 Run the workflow's full-source mypy command during Development as well: a
 service runner's narrower typecheck can miss diagnostic tools checked by CI.
 

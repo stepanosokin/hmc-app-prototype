@@ -7,7 +7,199 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-from check_evidence import check, check_browser_archive, check_native_display, check_t23_archives
+from check_evidence import check, check_browser_archive, check_native_display, check_t23_archives, check_viewer_navigation
+
+
+class T14Evidence(unittest.TestCase):
+    """Synthetic archives exercise the same public checker as historical CI."""
+
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.archive = self.root / 'docs/evidence/t14'
+        self.reports = self.archive / 'attempts/final1/reports'
+        self.inputs = {}
+        for name in ['viewer/main.ts', 'viewer/selection.ts', 'viewer/field.ts',
+                     'viewer/weather-layer.ts', 'viewer/native-layer.js', 'viewer/geometry.js',
+                     'tools/check-weather-viewer.mjs', 'tools/viewer-navigation.mjs',
+                     'tools/run-weather-viewer.ps1', 'tools/weather-viewer-inputs.mjs',
+                     'docs/prototypes/forecast-interaction.prototype.html']:
+            payload = ('explicit synthetic source: ' + name).encode()
+            path = self.reports / 'inputs' / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(payload)
+            self.inputs[name] = {'bytes': len(payload), 'sha256': hashlib.sha256(payload).hexdigest()}
+        for phase in ('start', 'end'):
+            self.write(self.reports / f'inputs-{phase}.json', self.inputs)
+        empty: dict[str, list[str]] = {'container': [], 'network': [], 'volume': []}
+        self.write(self.archive / 'attempts/final1/retirement.json', {
+            'project': 'synthetic-t14', 'status': 'retired', 'archive_verified': True, 'remaining': empty})
+        self.write(self.archive / 'attempts/final1/artifact-index.json', {'artifacts': []})
+        self.write(self.archive / 'final-resource-inventory.json', {
+            'status': 'passed', 'live_projects_retained': [], 'projects': [{'project': 'synthetic-t14', 'remaining': empty}]})
+        self.write(self.archive / 'checks/preflight.json', {'sample_sha256': '1' * 64})
+        self.processes = [{'check': name, 'native_exit_code': 0} for name in (
+            'browser', 'comparison', 'edge', 'edge-comparison', 'unavailable', 'full-suite', 'inputs-end')]
+        self.save_processes()
+        sizes = [(1440, 900), (390, 844), (360, 740), (640, 360)]
+        cleanup = {'page_released': True, 'browser_stopped': True, 'profile_removed': True, 'browser_processes_remaining': 0}
+        races = [{'stage': stage, 'destination': destination, 'obsolete_completion_rejected': True,
+                  'history': [{'stage': stage, 'event': 'real texture write before pause' if stage == 'upload' else 'held'},
+                              {'stage': stage, 'event': 'released'}]}
+                 for stage in ('fetch', 'decode', 'upload') for destination in ('gap', 'run')]
+        races.append({'stage': 'point', 'different_run_after_release': True,
+                      'history': [{'stage': 'point', 'event': 'held'}, {'stage': 'point', 'event': 'released'}]})
+        for browser, executable, comparison in [('browser', 'chrome.exe', 'native-comparison.json'),
+                                                ('browser-edge', 'msedge.exe', 'native-comparison-edge.json')]:
+            self.write(self.reports / browser / 'browser.json', {
+                'status': 'passed', 'executable': executable, 'errors': [], 'cleanup': cleanup,
+                'configuration': {'gpu_disabled': False, 'focused': False},
+                'viewports': [{'width': w, 'height': h} for w, h in sizes],
+                'prototype_comparison': {'source_sha256': self.inputs['docs/prototypes/forecast-interaction.prototype.html']['sha256'],
+                                         'states': [{'Forecast lead': '+1 hours', 'Run reference': 'synthetic-new', 'Published snapshot': 'r1'},
+                                                    {'Run reference': 'synthetic-new', 'Published snapshot': 'r1', 'Current frame': 'Unavailable'},
+                                                    {'Forecast lead': '+1 hours', 'Run reference': 'synthetic-old'}],
+                                         'matched_rules': ['first available time', 'run change resets time',
+                                                           'time navigation pins reference and revision', 'gap clears overlay and point value']},
+                'navigation': {'races': races},
+            })
+            self.write(self.reports / comparison, {
+                'status': 'passed', 'source_sha256': '1' * 64, 'mask_differences': 0, 'max_abs_error_K': .001,
+                'views': [{'viewport': size, 'mode': mode, 'valid_samples': 1}
+                          for size in sizes for mode in ('mercator', 'hmc:orthographic', 'EPSG:3576')]})
+            self.write(self.reports / (browser + '-canonical.json'), {
+                'status': 'passed', 'source_sha256': '1' * 64,
+                'canonical_picks': [{'viewport': size, 'mode': mode} for size in sizes for mode in ('mercator', 'orthographic', 'laea')]})
+        self.write(self.reports / 'browser-unavailable/browser.json', {
+            'status': 'passed', 'configuration': {'gpu_disabled': True}, 'errors': [], 'cleanup': cleanup})
+        self.save_index()
+
+    def write(self, path: Path, data: Any) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data))
+
+    def save_processes(self) -> None:
+        (self.reports / 'process-results.jsonl').write_text('\n'.join(json.dumps(item) for item in self.processes))
+
+    def save_index(self) -> None:
+        artifacts = []
+        for path in sorted(self.archive.rglob('*')):
+            if path.is_file() and path != self.archive / 'artifact-index.json':
+                payload = path.read_bytes()
+                artifacts.append({'path': path.relative_to(self.root).as_posix(), 'bytes': len(payload),
+                                  'sha256': hashlib.sha256(payload).hexdigest()})
+        self.write(self.archive / 'artifact-index.json', {'artifacts': artifacts})
+
+    def alter(self, relative: str, change: Any) -> None:
+        path = self.reports / relative
+        data = json.loads(path.read_bytes())
+        change(data)
+        self.write(path, data)
+        self.save_index()
+
+    def test_accepts_historical_archive_after_live_source_changes(self) -> None:
+        (self.root / 'viewer').mkdir()
+        (self.root / 'viewer/main.ts').write_bytes(b'later runtime')
+        self.assertGreater(check_viewer_navigation(self.root), 20)
+
+    def test_rejects_corrupt_bytes(self) -> None:
+        (self.reports / 'browser/browser.json').write_bytes(b'corrupt')
+        with self.assertRaisesRegex(ValueError, 'checksum'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_missing_input_after_rehash(self) -> None:
+        (self.reports / 'inputs/viewer/main.ts').unlink()
+        self.save_index()
+        with self.assertRaises(FileNotFoundError):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_changed_end_identity_after_rehash(self) -> None:
+        self.alter('inputs-end.json', lambda data: data.pop('viewer/main.ts'))
+        with self.assertRaisesRegex(ValueError, 'frozen inputs'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_focused_matrix_after_rehash(self) -> None:
+        self.alter('browser/browser.json', lambda data: data['configuration'].update(focused=True))
+        with self.assertRaisesRegex(ValueError, 'full matrix'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_missing_viewport_after_rehash(self) -> None:
+        self.alter('browser-edge/browser.json', lambda data: data['viewports'].pop())
+        with self.assertRaisesRegex(ValueError, 'full matrix'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_missing_upload_race_after_rehash(self) -> None:
+        self.alter('browser/browser.json', lambda data: data['navigation']['races'].pop(5))
+        with self.assertRaisesRegex(ValueError, 'numeric race'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_point_without_release_after_rehash(self) -> None:
+        self.alter('browser/browser.json', lambda data: data['navigation']['races'][-1]['history'].pop())
+        with self.assertRaisesRegex(ValueError, 'point race'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_prototype_link_without_observations_after_rehash(self) -> None:
+        self.alter('browser/browser.json', lambda data: data.pop('prototype_comparison'))
+        with self.assertRaisesRegex(ValueError, 'prototype comparison'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_empty_numeric_report_even_when_marked_passed(self) -> None:
+        self.alter('native-comparison.json', lambda data: data.update(views=[], max_abs_error_K=0))
+        with self.assertRaisesRegex(ValueError, 'numeric matrix'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_nonfinite_numeric_error_after_rehash(self) -> None:
+        self.alter('native-comparison.json', lambda data: data.update(max_abs_error_K=float('nan')))
+        with self.assertRaisesRegex(ValueError, 'numeric matrix'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_browser_profile_left_behind_after_rehash(self) -> None:
+        self.alter('browser/browser.json', lambda data: data['cleanup'].update(profile_removed=False))
+        with self.assertRaisesRegex(ValueError, 'browser cleanup'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_unretired_project_after_rehash(self) -> None:
+        path = self.archive / 'attempts/final1/retirement.json'
+        receipt = json.loads(path.read_bytes())
+        receipt['remaining']['volume'].append('synthetic-leftover')
+        self.write(path, receipt)
+        self.save_index()
+        with self.assertRaisesRegex(ValueError, 'retirement'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_failed_full_suite_after_rehash(self) -> None:
+        self.processes[-2]['native_exit_code'] = 1
+        self.save_processes()
+        self.save_index()
+        with self.assertRaisesRegex(ValueError, 'processes'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_unindexed_artifact(self) -> None:
+        path = self.archive / 'artifact-index.json'
+        index = json.loads(path.read_bytes())
+        index['artifacts'].pop()
+        self.write(path, index)
+        with self.assertRaisesRegex(ValueError, 'coverage'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_path_outside_archive(self) -> None:
+        path = self.archive / 'artifact-index.json'
+        index = json.loads(path.read_bytes())
+        index['artifacts'][0]['path'] = '../outside.json'
+        self.write(path, index)
+        with self.assertRaisesRegex(ValueError, 'artifact path'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_prototype_gap_borrowing_another_revision(self) -> None:
+        self.alter('browser/browser.json', lambda data: data['prototype_comparison']['states'][1].update({'Published snapshot': 'r2'}))
+        with self.assertRaisesRegex(ValueError, 'prototype comparison'):
+            check_viewer_navigation(self.root)
+
+    def test_rejects_unavailable_renderer_without_cleanup(self) -> None:
+        self.alter('browser-unavailable/browser.json', lambda data: data['cleanup'].update(profile_removed=False))
+        with self.assertRaisesRegex(ValueError, 'unavailable GPU'):
+            check_viewer_navigation(self.root)
 
 
 class T24Evidence(unittest.TestCase):

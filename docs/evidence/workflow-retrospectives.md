@@ -93,3 +93,9 @@ T5/browser catalogue fixtures, incomplete copied input snapshots and delayed
 Android compatibility clicks. CI now runs the existing viewer type/unit checks
 and accepted T13 verifier; profile-specific workflow guidance covers the failed
 attempts without changing the viewer or its historical evidence.
+
+The [T14 retrospective](retro-t14.md) records failed assumptions about drawer
+visibility/revision ordering, weak race proof and a temporary archive verifier
+missing from CI. The existing Python checker now covers T14 with synthetic
+negative cases; browser guidance brings the focused scenario and input-freeze
+pointer forward. The accepted T14 archive and viewer remain unchanged.
