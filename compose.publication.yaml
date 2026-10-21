@@ -27,6 +27,17 @@ x-app: &app
     - ./publication:/app/publication:ro
     - ./tests:/app/tests:ro
 services:
+  viewer:
+    <<: *app
+    networks: [publication, edge]
+    environment:
+      TZ: UTC
+    volumes:
+      - ./publication:/app/publication:ro
+      - ./viewer:/viewer:ro
+      - ./data/viewer:/viewer-runtime:ro
+    ports: ["127.0.0.1:${T13_PORT:-8140}:8000"]
+    entrypoint: ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--threads=8", "--timeout=45", "publication.viewer:create_app()"]
   init-assets:
     <<: *app
     user: "0:0"
