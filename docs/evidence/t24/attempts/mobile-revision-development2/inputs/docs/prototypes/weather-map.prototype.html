@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Гидрометцентр · макет карты прогноза</title>
+<link rel="stylesheet" href="weather-map.prototype.css">
+<body>
+<main aria-label="Демонстрационная карта прогноза">
+  <canvas id="map" tabindex="0" aria-label="Карта. Нажмите для выбора точки. Масштаб и сдвиг доступны кнопками."></canvas>
+  <header class="panel brand"><div class="symbol" aria-hidden="true">ГМ</div><div><strong>Гидрометцентр</strong><small>Карта прогноза · <b>демонстрационные данные</b></small></div></header>
+  <details id="forecastPanel" class="forecastControls" open><summary class="panel widgetToggle"><span id="forecastSummary">ICON-EU · Меркатор</span></summary><div class="widgetBody">
+  <section class="panel model" aria-label="Выбор модели данных"><label for="model">Модель</label><select id="model" aria-label="Модель данных" title="В макете доступна только ICON-EU"><option value="icon-eu">ICON-EU</option></select></section>
+  <section class="panel selection" aria-label="Выбранный прогноз"><h1>Температура поверхности</h1><div id="reference"></div><div id="valid"></div><small id="selectionIdentity"></small><button id="settings" aria-expanded="false" aria-controls="drawer">Источник и настройки</button></section>
+  <section class="panel projectionControl" aria-label="Проекция карты"><label for="projection">Вид карты</label><select id="projection" aria-label="Вид карты: Меркатор, ортографический глобус, LAEA — Арктика (EPSG:3576)" aria-describedby="projectionStatus"><option value="mercator">Меркатор</option><option value="orthographic">Глобус</option><option value="laea">LAEA — Арктика (EPSG:3576)</option></select><small id="projectionStatus" role="status"></small><button id="useMercator" hidden>Перейти в Меркатор</button></section>
+  </div></details>
+  <aside class="panel layers" aria-label="Слои"><button id="temperature" aria-label="Температура" aria-describedby="temperatureTooltip" aria-pressed="true"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 14.5V5a3 3 0 0 1 6 0v9.5a5 5 0 1 1-6 0Z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="18" r="2" fill="currentColor"/></svg></button><span id="temperatureTooltip" class="layerTooltip" role="tooltip">Температура</span></aside>
+  <details id="navigationPanel" class="navigation" aria-label="Навигация по карте" open><summary class="panel widgetToggle">Карта</summary><div class="widgetBody"><button id="fit">К области данных</button><div><button id="zoomIn" aria-label="Приблизить">+</button><button id="zoomOut" aria-label="Отдалить">−</button><button id="west" aria-label="Сдвинуть карту к западу">←</button><button id="east" aria-label="Сдвинуть карту к востоку">→</button></div></div></details>
+  <div id="notice" class="panel notice" role="status" aria-live="polite"></div>
+  <div id="pointMarker" hidden aria-hidden="true"></div>
+  <section id="pointCard" class="panel point" hidden aria-label="Значение выбранной точки"><button id="closePoint" aria-label="Закрыть значение точки" title="Закрыть">×</button><div id="pointContent"></div></section>
+  <details id="legendPanel" class="panel legend" aria-label="Шкала температуры" open><summary class="widgetToggle"><span id="legendSummary">Температура · °C</span></summary><div class="widgetBody"><div>Температура <b class="unit">°C</b></div><div class="ramp"></div><div class="ticks"><span>−20</span><span>0</span><span>20</span><span>40</span></div><small>Условное поле · не прогноз</small></div></details>
+  <section id="drawer" class="panel drawer" aria-label="Подробности и настройки" hidden>
+    <button id="closeDrawer" aria-label="Свернуть панель">Свернуть ⌄</button><div id="mobilePoint"></div>
+    <div id="settingsBody">
+      <h2>Источник и публикация</h2><p>Макет для согласования оформления. Температуры, расчёты и публикации вымышлены. Подключения к метеосервисам нет.</p>
+      <label><span id="runTimeLabel">Расчёт UTC</span><select id="run"><option value="0">15 октября 2026, 00:00 · демо</option><option value="1">15 октября 2026, 06:00 · неполный демо</option></select></label>
+      <small id="timezoneInfo"></small>
+      <label>Единицы<select id="units"><option value="C">Градусы Цельсия · °C</option><option value="K">Кельвины · K</option></select></label>
+      <dl id="metadata"></dl>
+      <section class="connectionLinks" aria-label="Ссылки WMS и API">
+        <h2>WMS и API</h2><small id="linkSelection"></small>
+        <a id="wmsLink" target="_blank" rel="noopener noreferrer">WMS · выбранная редакция ↗</a>
+        <a id="apiLink" target="_blank" rel="noopener noreferrer">API · значение точки ↗</a>
+        <small id="linkPoint"></small><p>Демонстрационные ссылки на demo.invalid. Сервисы и идентификаторы вымышлены. WMS описывает расчёт и редакцию, API — точный срок и точку. Время в запросах API всегда UTC. Ключей в ссылках нет.</p>
+      </section>
+      <button id="publish">Имитировать новую редакцию</button><button id="refresh">Принять обновление</button><button id="failure">Имитировать сбой обновления</button><p id="updateStatus"></p>
+      <small>Подложка: Natural Earth 1:110m, общественное достояние. Береговая линия без государственных границ; подписи городов добавлены для ориентации. Все ресурсы локальные.</small>
+    </div>
+  </section>
+  <details id="timelinePanel" class="panel timeline" open><summary class="widgetToggle"><span id="compactTime">Срок прогноза UTC</span></summary><div class="widgetBody"><div class="timeHeading"><strong id="timeLabel"></strong><div class="timeMeta"><span id="availability"></span><select id="timezone" aria-label="Часовой пояс отображения"><option value="utc">UTC</option><option value="local">Местное</option></select></div></div><div class="timeControls"><button id="previous" aria-label="Предыдущий срок">‹</button><label><span id="timeZoneLabel">Срок UTC</span><select id="time"></select></label><button id="next" aria-label="Следующий срок">›</button></div><input id="timeRange" type="range" min="1" max="12" value="1" aria-label="Час прогноза"><div class="hours"><span>+1 ч</span><span>+4 ч</span><span>+8 ч</span><span>+12 ч</span></div></div></details>
+  <label class="attribution fontPicker">Шрифт: <select id="font" aria-label="Шрифт страницы"><option value="system">Системный</option><option value="courier">Courier New</option></select></label>
+  <label class="attribution basemapAttribution">Подложка: <select id="basemap" aria-label="Подложка карты"><option value="dark">Natural Earth · тёмная</option><option value="light">Natural Earth · светлая</option></select></label>
+</main>
+<script src="assets/land.js"></script>
+<script src="assets/vendor/d3-array.min.js"></script>
+<script src="assets/vendor/d3-geo.min.js"></script>
+<script src="assets/vendor/proj4.js"></script>
+<script src="weather-map.projections.js"></script>
+<script src="weather-map.prototype.js"></script>
+</body>
+</html>

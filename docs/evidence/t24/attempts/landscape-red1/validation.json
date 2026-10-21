@@ -1,0 +1,90 @@
+{
+  "scope": "Focused landscape layout regression only; not full T24 acceptance",
+  "starting_commit": "f02d99110c28dc6fdb24c72c255285b508d7b4fa",
+  "checks": [],
+  "screenshots": [],
+  "errors": [],
+  "external_requests": [],
+  "inputs": {
+    "docs/prototypes/weather-map.prototype.html": "17f88db4aae00b3094aed1439e41a5f9f9b3db09c5f2ba19fe86531e04565ac7",
+    "docs/prototypes/weather-map.prototype.css": "e0d384a55d8417300ce8b05850be9eb0cfe1109a0ca455a86aadb689b62e27d0",
+    "docs/prototypes/weather-map.prototype.js": "ce3420baa46fc94082cba88d4a8a8b89ef9243921ddaf1bd5e4a359ea08bb119",
+    "docs/prototypes/weather-map.projections.js": "cd98cd5517e159ac8603c04e4b333ce708c90af0dbfca0f01b79b72f0d09e4aa",
+    "docs/prototypes/assets/land.js": "09dcaef6ba7af5caa974dd1000c109a1ee339857f7b3bf7dcaadeda89cc7d4e7",
+    "docs/prototypes/assets/vendor/d3-array.min.js": "80aa70d0cd17dabddf6d056494ea17926a45a69da8b7850220aace331bad671d",
+    "docs/prototypes/assets/vendor/d3-geo.min.js": "23e574f1e8d4716d622bce45356a379b66a277162b145f5f147e4c8daefb73d2",
+    "docs/prototypes/assets/vendor/proj4.js": "af7df653d91ea591f33d26fb958990bbd3071b2db644a4edaba441cc9861a474",
+    "tools/check-weather-prototype.mjs": "0679f3735f80028081fee7099e650d0a2b2433aa240ab785d9a4c132e7682f8c",
+    "tools/weather-projection-checks.mjs": "60b81b8e25c4898e226af40550d12e7e0aa4b54f2aa9659cb3e2a91e6a31a704",
+    "tools/check-weather-geometry.py": "188bf94ff6770be660c2e829d01cb63ad888dea978780f24be15ec40ce8ce06b"
+  },
+  "cleanup": {
+    "browser_processes_remaining": 0,
+    "profile_removed": true,
+    "compose_projects_created": 0,
+    "servers_created": 0
+  },
+  "owned_profile": "D:\\PROG\\HMC\\hmc-app-prototype\\data\\t22-browser-1a1e080d-d220-47cf-b8ec-684fd5521e61",
+  "browser_executable": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.85",
+    "revision": "@0e66b94549a8bd85f03fbdf189b752d6e7b63c32",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.25"
+  },
+  "landscape_repro": [
+    {
+      "viewport": [
+        1038,
+        465
+      ],
+      "selection": {
+        "x": 16,
+        "y": 124,
+        "width": 248,
+        "height": 142.375,
+        "top": 124,
+        "right": 264,
+        "bottom": 266.375,
+        "left": 16
+      },
+      "navigation": {
+        "x": 16,
+        "y": 235,
+        "width": 143,
+        "height": 70,
+        "top": 235,
+        "right": 159,
+        "bottom": 305,
+        "left": 16
+      }
+    }
+  ],
+  "failure_dom": {
+    "focus": "",
+    "timezone": "utc",
+    "point": "",
+    "reference": "Расчёт: 15.10.2026, 06:00 UTC+00:00",
+    "widgets": [
+      [
+        "forecastPanel",
+        true
+      ],
+      [
+        "navigationPanel",
+        true
+      ],
+      [
+        "legendPanel",
+        true
+      ],
+      [
+        "timelinePanel",
+        true
+      ]
+    ]
+  },
+  "status": "failed",
+  "failure": "AssertionError [ERR_ASSERTION]: landscape-1038x465 forecast and navigation do not overlap\n\nfalse !== true\n\n    at check (file:///D:/PROG/HMC/hmc-app-prototype/tools/check-weather-prototype.mjs:40:420)\n    at async checkLandscape (file:///D:/PROG/HMC/hmc-app-prototype/tools/weather-landscape-checks.mjs:11:5)\n    at async file:///D:/PROG/HMC/hmc-app-prototype/tools/check-weather-prototype.mjs:194:104"
+}

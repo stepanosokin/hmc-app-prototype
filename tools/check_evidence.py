@@ -15,9 +15,9 @@ def verify(path: Path, expected: str, size: int | None = None) -> None:
         raise ValueError(f'evidence length mismatch: {path}')
 
 
-def check_browser_archive(root: Path) -> int:
-    """Check T22's archived bytes and recorded identities, not future live inputs."""
-    prefix = 'docs/evidence/t22/'
+def check_browser_archive(root: Path, ticket: str = 't22') -> int:
+    """Check mockup archive bytes and identities, not future live inputs."""
+    prefix = f'docs/evidence/{ticket}/'
     index = json.loads((root / prefix / 'artifact-index.json').read_bytes())
     if index['schema'] != 1:
         raise ValueError('unsupported browser evidence schema')
@@ -39,11 +39,27 @@ def check_browser_archive(root: Path) -> int:
             if hashlib.sha1(blob).hexdigest() != artifact['git_object']:
                 raise ValueError(f'evidence Git object mismatch: {name}')
             count += 1
-    selected = index['selected_report']
+    selections = (index['selected_reports'] if 'selected_reports' in index else
+                  [{'report': index['selected_report'], 'checks': index['selected_checks']}])
+    if ticket == 't24':
+        if len(selections) != 2 or {item.get('browser') for item in selections} != {'chrome', 'edge'}:
+            raise ValueError('T24 browser matrix is incomplete')
+        actual = {path.relative_to(root).as_posix() for path in (root / prefix).rglob('*')
+                  if path.is_file() and path.name != 'artifact-index.json'}
+        if actual != {name for name in artifacts if name.startswith(prefix)}:
+            raise ValueError('T24 artifact coverage is incomplete')
+    for selection in selections:
+        check_browser_report(root, prefix, selection, artifacts, ticket)
+    return count
+
+
+def check_browser_report(root: Path, prefix: str, selection: dict[str, Any],
+                         artifacts: dict[str, Any], ticket: str) -> None:
+    selected = selection['report']
     if selected not in artifacts or not selected.startswith(prefix):
         raise ValueError('browser selected report is not archived')
     report = json.loads((root / selected).read_bytes())
-    if (report['status'] != 'passed' or len(report['checks']) != index['selected_checks']
+    if (report['status'] != 'passed' or len(report['checks']) != selection['checks']
             or report['errors'] or report['external_requests']):
         raise ValueError('browser selected report is not passing')
     cleanup = report['cleanup']
@@ -53,7 +69,18 @@ def check_browser_archive(root: Path) -> int:
     for name, checksum in report['inputs'].items():
         if name not in artifacts or artifacts[name]['sha256'] != checksum:
             raise ValueError(f'browser input identity mismatch: {name}')
-    return count
+        if ticket == 't24':
+            verify((root / selected).parent / 'inputs' / name, checksum)
+    if ticket == 't24':
+        reference = json.loads(((root / selected).parent / 'geometry-reference.json').read_bytes())
+        executable = report.get('browser_executable', '').lower()
+        expected = 'chrome.exe' if selection['browser'] == 'chrome' else 'msedge.exe'
+        if not executable.endswith(expected):
+            raise ValueError('T24 browser executable identity mismatch')
+        if (reference['status'] != 'passed' or reference['controls'] < 50
+                or reference['max_error_px'] > .05 or reference['forward_tolerance_px'] != .05
+                or reference['inverse_tolerance_deg'] != 1e-5):
+            raise ValueError('T24 geometry reference failed')
 
 
 def check(root: Path) -> int:
@@ -210,9 +237,11 @@ def main() -> None:
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument('--native-display', action='store_true', help='Require the complete T23a numerical/service archive')
     selection.add_argument('--t23', action='store_true', help='Verify T23 continuation, diagnosis and implementation archive bytes')
+    selection.add_argument('--t24', action='store_true', help='Verify T24 Chrome/Edge mockup and independent geometry archive')
     args = parser.parse_args()
     checker = check_t23_archives if args.t23 else check_native_display if args.native_display else check
-    print(f'Verified {checker(args.root)} archived evidence references')
+    count = check_browser_archive(args.root, 't24') if args.t24 else checker(args.root)
+    print(f'Verified {count} archived evidence references')
 
 
 if __name__ == '__main__':

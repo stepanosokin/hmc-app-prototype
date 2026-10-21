@@ -7,7 +7,82 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-from check_evidence import check, check_native_display, check_t23_archives
+from check_evidence import check, check_browser_archive, check_native_display, check_t23_archives
+
+
+class T24Evidence(unittest.TestCase):
+    """The mockup archive boundary rejects incomplete browser/geometry evidence."""
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.archive = self.root / 'docs/evidence/t24'
+        self.archive.mkdir(parents=True)
+        source = b'synthetic historical mockup'
+        (self.root / 'prototype.js').write_bytes(source)
+        self.source = source
+        self.selections = []
+        for browser, executable in (('chrome', 'chrome.exe'), ('edge', 'msedge.exe')):
+            directory = self.archive / browser
+            (directory / 'inputs').mkdir(parents=True)
+            (directory / 'inputs/prototype.js').write_bytes(source)
+            (directory / 'validation.json').write_text(json.dumps({
+                'status': 'passed', 'checks': ['visible interaction'], 'errors': [], 'external_requests': [],
+                'inputs': {'prototype.js': hashlib.sha256(source).hexdigest()},
+                'browser_executable': executable,
+                'cleanup': {'browser_processes_remaining': 0, 'profile_removed': True,
+                            'compose_projects_created': 0, 'servers_created': 0},
+            }))
+            (directory / 'geometry-reference.json').write_text(json.dumps({
+                'status': 'passed', 'controls': 57, 'max_error_px': .001,
+                'forward_tolerance_px': .05, 'inverse_tolerance_deg': 1e-5,
+            }))
+            self.selections.append({'browser': browser, 'report': f'docs/evidence/t24/{browser}/validation.json', 'checks': 1})
+        self.save_index()
+
+    def save_index(self) -> None:
+        artifacts = []
+        for path in [self.root / 'prototype.js', *sorted(self.archive.rglob('*'))]:
+            if not path.is_file() or path.name == 'artifact-index.json':
+                continue
+            payload = path.read_bytes()
+            artifacts.append({'path': path.relative_to(self.root).as_posix(), 'bytes': len(payload),
+                              'sha256': hashlib.sha256(payload).hexdigest(),
+                              'git_object': hashlib.sha1(b'blob '+str(len(payload)).encode()+b'\0'+payload).hexdigest()})
+        (self.archive / 'artifact-index.json').write_text(json.dumps({
+            'schema': 1, 'artifacts': artifacts, 'selected_reports': self.selections,
+        }))
+
+    def test_accepts_frozen_inputs_after_live_workspace_changes(self) -> None:
+        # Preserve the original identity in the index, as the real archive does.
+        (self.root / 'prototype.js').write_bytes(b'later implementation')
+        self.assertEqual(check_browser_archive(self.root, 't24'), 6)
+
+    def test_rejects_missing_browser_even_after_rehash(self) -> None:
+        self.selections.pop()
+        self.save_index()
+        with self.assertRaisesRegex(ValueError, 'matrix'):
+            check_browser_archive(self.root, 't24')
+
+    def test_rejects_frozen_input_drift_even_after_rehash(self) -> None:
+        (self.archive / 'edge/inputs/prototype.js').write_bytes(b'changed')
+        self.save_index()
+        with self.assertRaisesRegex(ValueError, 'checksum'):
+            check_browser_archive(self.root, 't24')
+
+    def test_rejects_failed_geometry_even_after_rehash(self) -> None:
+        path = self.archive / 'edge/geometry-reference.json'
+        reference = json.loads(path.read_bytes())
+        reference['max_error_px'] = .1
+        path.write_text(json.dumps(reference))
+        self.save_index()
+        with self.assertRaisesRegex(ValueError, 'geometry'):
+            check_browser_archive(self.root, 't24')
+
+    def test_rejects_unindexed_artifact(self) -> None:
+        (self.archive / 'unindexed.png').write_bytes(b'forgotten evidence')
+        with self.assertRaisesRegex(ValueError, 'coverage'):
+            check_browser_archive(self.root, 't24')
 
 
 class T23Evidence(unittest.TestCase):

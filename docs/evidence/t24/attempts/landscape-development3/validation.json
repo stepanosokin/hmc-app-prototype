@@ -1,0 +1,96 @@
+{
+  "scope": "Focused landscape layout regression only; not full T24 acceptance",
+  "starting_commit": "f02d99110c28dc6fdb24c72c255285b508d7b4fa",
+  "checks": [
+    "landscape-1038x465 forecast and navigation do not overlap",
+    "landscape-1038x465 controls start collapsed"
+  ],
+  "screenshots": [
+    "landscape-1038x465-initial.png"
+  ],
+  "errors": [],
+  "external_requests": [],
+  "inputs": {
+    "docs/prototypes/weather-map.prototype.html": "17f88db4aae00b3094aed1439e41a5f9f9b3db09c5f2ba19fe86531e04565ac7",
+    "docs/prototypes/weather-map.prototype.css": "97278aaff5bc337b33bacb7eb23f744a7e09bf5e7a58d87b22112b2f431fbeaf",
+    "docs/prototypes/weather-map.prototype.js": "ed0217c085d1957df3ec462a0e784df68f73d03a5d12e38505cf1eec53d08689",
+    "docs/prototypes/weather-map.projections.js": "cd98cd5517e159ac8603c04e4b333ce708c90af0dbfca0f01b79b72f0d09e4aa",
+    "docs/prototypes/assets/land.js": "09dcaef6ba7af5caa974dd1000c109a1ee339857f7b3bf7dcaadeda89cc7d4e7",
+    "docs/prototypes/assets/vendor/d3-array.min.js": "80aa70d0cd17dabddf6d056494ea17926a45a69da8b7850220aace331bad671d",
+    "docs/prototypes/assets/vendor/d3-geo.min.js": "23e574f1e8d4716d622bce45356a379b66a277162b145f5f147e4c8daefb73d2",
+    "docs/prototypes/assets/vendor/proj4.js": "af7df653d91ea591f33d26fb958990bbd3071b2db644a4edaba441cc9861a474",
+    "tools/check-weather-prototype.mjs": "e6e69c677af7485cce1760bd041dd0a7683fe2b86f3339859d1b006a16b80b05",
+    "tools/weather-projection-checks.mjs": "60b81b8e25c4898e226af40550d12e7e0aa4b54f2aa9659cb3e2a91e6a31a704",
+    "tools/weather-landscape-checks.mjs": "eb93d356e78b44cf78c909e230427fa2d9b9c4f7721583b36825eab31f7841a7",
+    "tools/check-weather-geometry.py": "188bf94ff6770be660c2e829d01cb63ad888dea978780f24be15ec40ce8ce06b"
+  },
+  "cleanup": {
+    "browser_processes_remaining": 0,
+    "profile_removed": true,
+    "compose_projects_created": 0,
+    "servers_created": 0
+  },
+  "owned_profile": "D:\\PROG\\HMC\\hmc-app-prototype\\data\\t22-browser-0508117e-b8f3-4433-bae8-f6cc644a8414",
+  "browser_executable": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.85",
+    "revision": "@0e66b94549a8bd85f03fbdf189b752d6e7b63c32",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.25"
+  },
+  "landscape_repro": [
+    {
+      "viewport": [
+        1038,
+        465
+      ],
+      "selection": {
+        "x": 10,
+        "y": 158.390625,
+        "width": 248,
+        "height": 122.359375,
+        "top": 158.390625,
+        "right": 258,
+        "bottom": 280.75,
+        "left": 10
+      },
+      "navigation": {
+        "x": 270,
+        "y": 66,
+        "width": 60.203125,
+        "height": 36,
+        "top": 66,
+        "right": 330.203125,
+        "bottom": 102,
+        "left": 270
+      }
+    }
+  ],
+  "failure_dom": {
+    "focus": "",
+    "timezone": "utc",
+    "point": "",
+    "reference": "Расчёт: 15.10.2026, 06:00 UTC+00:00",
+    "widgets": [
+      [
+        "forecastPanel",
+        false
+      ],
+      [
+        "navigationPanel",
+        false
+      ],
+      [
+        "legendPanel",
+        false
+      ],
+      [
+        "timelinePanel",
+        false
+      ]
+    ]
+  },
+  "status": "failed",
+  "failure": "AssertionError [ERR_ASSERTION]: landscape-1038x465 collapsed panels are inside viewport without intersections\n\nfalse !== true\n\n    at check (file:///D:/PROG/HMC/hmc-app-prototype/tools/check-weather-prototype.mjs:40:420)\n    at async checkLandscape (file:///D:/PROG/HMC/hmc-app-prototype/tools/weather-landscape-checks.mjs:16:5)\n    at async file:///D:/PROG/HMC/hmc-app-prototype/tools/check-weather-prototype.mjs:194:104"
+}

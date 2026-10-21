@@ -52,3 +52,15 @@ docs/evidence/retro-t23a-checks/**/*.log -whitespace
 
 docs/evidence/retro-t23-validation/** -text whitespace=cr-at-eol
 docs/evidence/retro-t23-validation/**/*.log -whitespace
+
+# T24 extends the mockup; preserve the accepted T22 archive independently.
+docs/prototypes/weather-map.projections.js text eol=lf
+docs/prototypes/assets/vendor/** -text
+tools/weather-projection-checks.mjs text eol=lf
+tools/weather-landscape-checks.mjs text eol=lf
+tools/check-weather-geometry.py text eol=lf
+docs/evidence/t24/** -text whitespace=cr-at-eol
+
+# Preserve upstream license and archived helper bytes verbatim.
+docs/prototypes/assets/vendor/*.LICENSE.md -whitespace
+docs/evidence/t24/visual-review/mobile-revision-montage.py -whitespace
