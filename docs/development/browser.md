@@ -35,6 +35,20 @@ visual viewport width/offset before repeated mode changes: offscreen map labels
 can expand a phone viewport and make otherwise correct touch coordinates miss.
 Use `-Updates -UpdatesOnly` for the T15 update/failure scenario before the full
 `-Navigation -Updates` gate; see the [T15 retrospective](../evidence/retro-t15.md).
+If pointerdown/up arrive but the click does not, retain the failed attempt and
+probe the same control on the same device before replaying the full gate.
+A successful replay does not establish the cause or a fix for the missed click.
+
+For runtime network isolation, first exercise page, dedicated-worker and nested
+worker requests with the installed browser/CDP version, before allocating the
+full Compose gate. Worker targets may reject the Fetch domain; the existing
+[page interceptor](../../tools/viewer-network.mjs) checks all three blocked probes
+with cache disabled and service workers bypassed. A rejected fetch alone does
+not prove interception: retain the exact blocked URLs and fail on any attempted
+public application dependency. Use `-Offline` with the full viewer gate.
+For browser retirement, a Windows `taskkill /T` warning can reflect a child-exit
+race. Always run the independent profile-specific process inventory; only a
+successful zero-process inventory establishes retirement.
 
 Before declaring a browser unavailable, check its installed executable/version,
 including both Program Files locations on Windows. For physical-device checks,

@@ -1,4 +1,4 @@
-"""Historical T15 acceptance: archive bytes, desktop/device coverage and transitions."""
+"""Historical viewer acceptance: shared T15/T16 browser and numeric gates."""
 
 import hashlib
 import json
@@ -13,7 +13,7 @@ def read(path: Path) -> Any:
 
 def require(condition: bool, message: str) -> None:
     if not condition:
-        raise ValueError('T15 ' + message)
+        raise ValueError('Viewer evidence ' + message)
 
 
 def relative(name: str) -> PurePosixPath:
@@ -93,8 +93,9 @@ def browser_report(report: dict[str, Any], sizes: set[tuple[int, int]], phone: b
     require(updates['mockup']['sha256'] == inputs['docs/prototypes/weather-map.prototype.html']['sha256'], 'mockup identity mismatch')
 
 
-def check_updates(root: Path) -> int:
-    archive = root / 'docs/evidence/t15'
+def check_updates(root: Path, *, offline: bool = False) -> int:
+    archive = root / ('docs/evidence/t16' if offline else 'docs/evidence/t15')
+    desktop, android = ('desktop-final2', 'android-repeat1') if offline else ('final2', 'android-final2')
     verified: dict[Path, tuple[int, str]] = {}
 
     def checked(path: Path, item: dict[str, Any]) -> None:
@@ -124,16 +125,20 @@ def check_updates(root: Path) -> int:
             checked(attempt / relative(item['name'].replace('\\', '/')), item)
         for input_name, item in read(attempt / 'reports/inputs-start.json').items():
             checked(attempt / 'reports/inputs' / relative(input_name), item)
-    frozen = read(archive / 'attempts/final2/reports/inputs-start.json')
+    if offline:
+        from evidence_t16 import check_offline_archive
+        check_offline_archive(archive)
+    frozen = read(archive / 'attempts' / desktop / 'reports/inputs-start.json')
     required = {'viewer/main.ts', 'viewer/selection.ts', 'viewer/weather-layer.ts', 'tools/viewer-updates.mjs',
                 'tools/viewer-navigation.mjs', 'tools/check-weather-viewer.mjs', 'tools/run-weather-viewer.ps1',
                 'tools/viewer-update-reference.py', 'tools/publish-viewer-update.ps1',
                 'docs/prototypes/weather-map.prototype.html'}
     require(required.issubset(frozen), 'frozen inputs incomplete')
-    source = read(archive / 'attempts/final2/reports/browser-updates-comparison.json')['source_sha256']
-    for attempt_name, phone in [('final2', False), ('android-final2', True)]:
+    source = read(archive / 'attempts' / desktop / 'reports/browser-updates-comparison.json')['source_sha256']
+    for attempt_name, phone in [(desktop, False), (android, True)]:
         reports = archive / 'attempts' / attempt_name / 'reports'
-        require(frozen == read(reports / 'inputs-start.json') == read(reports / 'inputs-end.json'), 'frozen inputs differ')
+        start = read(reports / 'inputs-start.json')
+        require(start == read(reports / 'inputs-end.json') and ((offline and phone) or frozen == start), 'frozen inputs differ')
         processes = [json.loads(line) for line in (reports / 'process-results.jsonl').read_text().splitlines()]
         required_processes = {'browser', 'comparison', 'update-comparison', 'inputs-end'}
         if not phone:
@@ -143,7 +148,13 @@ def check_updates(root: Path) -> int:
         sizes = {(384, 694)} if phone else {(1440, 900), (390, 844), (360, 740), (640, 360)}
         for browser in (['browser'] if phone else ['browser', 'browser-edge']):
             report = read(reports / browser / 'browser.json')
-            browser_report(report, sizes, phone, frozen)
+            if offline:
+                from evidence_t16 import offline_report
+                offline_report(report, phone=phone)
+                # Reuse the existing full GPU/update gate after checking the extra policy.
+                report = {**report, 'configuration': {k: v for k, v in report['configuration'].items()
+                                                      if k != 'public_runtime_blocked'}}
+            browser_report(report, sizes, phone, start)
             expected_executable = 'msedge.exe' if browser == 'browser-edge' else 'chrome.exe'
             require(phone or report['executable'].lower().endswith(expected_executable), 'desktop browser identity mismatch')
             numeric = read(reports / f'{browser}-updates-comparison.json')
@@ -171,6 +182,10 @@ def check_updates(root: Path) -> int:
                     and unavailable['cleanup']['browser_processes_remaining'] == 0
                     and all(unavailable['cleanup'][k] is True for k in ('page_released', 'browser_stopped', 'profile_removed')),
                     'unavailable GPU evidence incomplete')
+    if offline:
+        from evidence_t16 import check_offline_cleanup
+        check_offline_cleanup(archive)
+        return len(names)
     cleanup = read(archive / 'checks/final-cleanup.json')
     require(cleanup['t15_resources_remaining'] == 0 and cleanup['no_live_stack_retained'] is True, 'final resource cleanup incomplete')
     host = read(archive / 'android-tools/cleanup.json')
