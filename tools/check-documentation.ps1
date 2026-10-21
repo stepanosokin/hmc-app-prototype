@@ -2,6 +2,7 @@ param(
     [string[]]$Path = @(
         'README.md',
         'AGENTS.md',
+        'viewer/README.md',
         'docs/development-workflow.md',
         'docs/development/browser.md',
         'docs/development/services.md',
@@ -12,6 +13,7 @@ param(
         'docs/development/tracking.md',
         'docs/development/specification.md',
         'docs/evidence/workflow-retrospectives.md',
+        'docs/evidence/retro-t13.md',
         'docs/prototypes/weather-map.README.md',
         'docs/access.md',
         '.scratch/hmc-meteo/spec.md',

@@ -68,6 +68,13 @@ then compare the path/object map with the artifact index in one process.
 Retain the per-input prospective-filter check before acceptance. Thousands of
 individual `git rev-parse` processes add overhead without stronger verification.
 
+For Node subprocesses reading a repository-wide Git index, set an explicit output
+buffer large enough for the archive (T13 used 64 MiB), or stream the output.
+Compare new/changed inputs and byte-addressed evidence to raw Git blobs; compare
+unchanged baseline files using their existing checkout filters. Preserve the
+exact raw bytes in the validation snapshot. Existing baseline CRLF normalization
+is distinct from an input changing during acceptance.
+
 
 Capture a long Compose run's full console output in its project report directory
 so retirement archives it. Inspect bounded tails and per-phase logs for progress,

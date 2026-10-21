@@ -1,5 +1,19 @@
 # Service checks
 
+For the production T13 viewer, use the [viewer instructions](../../viewer/README.md)
+and `tools/run-weather-viewer.ps1`. Run its Node tests and TypeScript check before
+allocating Compose; the `weather-viewer` CI job runs these existing commands and
+`node docs/evidence/t13/verify.mjs` against the accepted historical archive.
+Use the verifier's `--current` option only when validating that archive's exact
+runtime revision; future source changes keep their own input inventories.
+Run the workflow's full-source mypy command during Development as well: a
+service runner's narrower typecheck can miss diagnostic tools checked by CI.
+
+Keep T5 in a fresh, separate project from the T13 browser fixture. T5 expects
+the initial +1 h catalogue; T13 seeds +1/+3 h to exercise missing +2 h. A runner's
+`-Final` flag does not establish fixture compatibility. Select the combined gate
+by its initial catalogue and mutation history before provisioning services.
+
 For the approved T23a native display profile, use
 `tools/run-native-display.ps1 -Project <fresh-hmc-publication-t23a-name> -WithEdge`.
 It checks actual-source native blocks, independent raw-GRIB/PROJ comparisons,

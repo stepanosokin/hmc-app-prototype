@@ -23,6 +23,13 @@ input driver. Record requested and observed DOM coordinates separately and keep
 the independent geometry/numerical tolerances fixed. Inspect full-page mobile
 screenshots as well as the GPU canvas.
 
+For Android native controls, wait for the observed DOM click or resulting control
+state after touch release. Pointerdown/up alone and a fixed delay do not establish
+that Chrome dispatched its compatibility click. T13's
+[physical runner](../../tools/check-weather-viewer.mjs) records actual targets
+and waits for click before opening the native select dialog; reuse that input
+path before a full device run.
+
 Before declaring a browser unavailable, check its installed executable/version,
 including both Program Files locations on Windows. For physical-device checks,
 confirm reachability from the device before allocating a long acceptance run.
