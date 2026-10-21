@@ -23,6 +23,7 @@ Building a self-hosted weather map and external GIS/API service using organizati
 - [Лимиты организаций, публичного демо и учёт запросов T9](docs/budgets.md)
 - [T4 local publication and numeric-engine evidence](docs/evidence/t4/validation.md)
 - [Исходные GRIB, PostgreSQL, Zarr и COG: сравнение и обоснование](docs/source-storage-comparison.ru.md)
+- [Рабочая GPU-карта: запуск, выбор прогноза и проверки T13](viewer/README.md)
 
 The user accepted both specification copies (revision 0.2) for implementation on 2026-10-19; the wayfinder planning effort is complete. The agreed baseline is a Zarr numerical core, selected COG products, GeoServer for temporal WMS/QGIS and MapLibre for the web map. Revision 0.2 compares OGC API alternatives; the user accepted selecting the numerical adapter through the M1 implementation measurement gate. Martin is deferred until vector layers arrive. GitHub Issues is the canonical tracker; local ticket Markdown files are snapshots.
 

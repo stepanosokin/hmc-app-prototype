@@ -1,0 +1,43 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261021143546
+Username: STAFF\s.osokin
+RunAs User: STAFF\s.osokin
+Configuration Name: 
+Machine: N626798 (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File tools/run-weather-viewer.ps1 -Project hmc-publication-t13-dev4
+Process ID: 11280
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Resolve Git filters: viewer/index.html
++ actual - expected
+
++ '691ff11d22d8c02b2f9cc07fb34692a67387f223'
+- '0468125f9621bf12a0ed5d12cb0c594b521661e3'
+
+    at file:///D:/OSOKIN/PROG/HydroMetCenter/hmc-app-prototype/tools/weather-viewer-inputs.mjs:29:16 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '691ff11d22d8c02b2f9cc07fb34692a67387f223',
+  expected: '0468125f9621bf12a0ed5d12cb0c594b521661e3',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.10.0
+PS>TerminatingError(): "inputs-start failed with native exit 1"
+**********************
+Windows PowerShell transcript end
+End time: 20261021143549
+**********************

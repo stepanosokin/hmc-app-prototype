@@ -1,0 +1,11 @@
+{
+  "name": "hmc-weather-viewer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test --test-isolation=none test-*.mjs"
+  },
+  "devDependencies": {"typescript": "5.9.3"}
+}

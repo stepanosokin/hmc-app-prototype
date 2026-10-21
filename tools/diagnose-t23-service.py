@@ -4,11 +4,13 @@ No credentials or response bodies are emitted. Not an acceptance runner.
 """
 import cProfile
 import concurrent.futures
+import importlib
 import json
 import pstats
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 
 def timed(action):
@@ -22,7 +24,8 @@ def main():
     selection = (sys.argv[2] if len(sys.argv) > 2 else
                  json.loads(Path('/evidence/native-reference.json').read_text())['selection']['selection'])
     prefix = f'/api/v1/selections/{selection}/display/1'
-    output = {'scope': 'diagnosis only; fresh actual source, OS cache not reset', 'mode': mode}
+    output: dict[str, Any] = {'scope': 'diagnosis only; fresh actual source, OS cache not reset', 'mode': mode}
+    stats: Any
     profile = cProfile.Profile()
     if mode == 'http':
         import requests
@@ -50,7 +53,7 @@ def main():
             measurements = []
             with requests.Session() as session:
                 for _ in range(8):
-                    event = dict(request_id=str(uuid.uuid4()), observed_at=datetime.now(timezone.utc).isoformat(),
+                    event: dict[str, Any] = dict(request_id=str(uuid.uuid4()), observed_at=datetime.now(timezone.utc).isoformat(),
                                  bucket='public', organization=None, key_id=None, operation='tile',
                                  product=None, run=None, revision=None, cache='not-accessed')
                     allowed, _ = budgets.begin(event, True)
@@ -72,10 +75,7 @@ def main():
         output['variants'] = variants
         output['scope'] = 'warm fixed native block; same real API accounting; vary HTTP connection reuse only'
     elif mode in ('api', 'gateway'):
-        if mode == 'api':
-            from publication import api
-        else:
-            from publication import gateway as api
+        api = importlib.import_module('publication.' + mode)
         from publication.process_channel import ProcessChannel
         import pg8000.dbapi
         channel_calls = []
@@ -90,7 +90,7 @@ def main():
             value, duration = timed(lambda: original_connect(*args, **kwargs))
             connections.append(duration)
             return value
-        ProcessChannel.run = channel_run
+        setattr(ProcessChannel, 'run', channel_run)
         pg8000.dbapi.connect = connect
         app = api.create_app()
         channel_calls.clear()

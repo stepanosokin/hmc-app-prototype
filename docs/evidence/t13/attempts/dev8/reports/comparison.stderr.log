@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "/workspace/tools/viewer-reference.py", line 54, in <module>
+    main()
+  File "/workspace/tools/viewer-reference.py", line 16, in main
+    runpy.run_path('/workspace/tools/native-display/native_reference.py', run_name='__main__')
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/tools/native-display/native_reference.py", line 127, in <module>
+    main()
+  File "/workspace/tools/native-display/native_reference.py", line 52, in main
+    expected_lon, expected_lat = inverse.transform(sx, sy)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pyproj/transformer.py", line 956, in transform
+    inx, x_data_type = _copytobuffer(xx, inplace=inplace)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pyproj/utils.py", line 142, in _copytobuffer
+    return _copytobuffer_return_scalar(xxx)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pyproj/utils.py", line 86, in _copytobuffer_return_scalar
+    raise TypeError("input must be a scalar") from None
+TypeError: input must be a scalar
+

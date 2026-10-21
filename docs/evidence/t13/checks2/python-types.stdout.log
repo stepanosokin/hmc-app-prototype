@@ -1,0 +1,20 @@
+tools/diagnose-t23-service.py:41: error: Incompatible types in assignment (expression has type "list[dict[str, Any]]", target has type "str")  [assignment]
+tools/diagnose-t23-service.py:42: error: Incompatible types in assignment (expression has type "bool", target has type "str")  [assignment]
+tools/diagnose-t23-service.py:62: error: Dict entry 0 has incompatible type "str": "str | None"; expected "str": "str | bytes"  [dict-item]
+tools/diagnose-t23-service.py:67: error: No overload variant of "update" of "MutableMapping" matches argument types "int", "float", "int", "str"  [call-overload]
+tools/diagnose-t23-service.py:67: note: Possible overload variants:
+tools/diagnose-t23-service.py:67: note:     def update(self, SupportsKeysAndGetItem[str, str | None], /) -> None
+tools/diagnose-t23-service.py:67: note:     def update(self, SupportsKeysAndGetItem[str, str | None], /, **kwargs: str | None) -> None
+tools/diagnose-t23-service.py:67: note:     def update(self, Iterable[tuple[str, str | None]], /) -> None
+tools/diagnose-t23-service.py:67: note:     def update(self, Iterable[tuple[str, str | None]], /, **kwargs: str | None) -> None
+tools/diagnose-t23-service.py:67: note:     def update(self, **kwargs: str | None) -> None
+tools/diagnose-t23-service.py:72: error: Incompatible types in assignment (expression has type "list[dict[str, Sequence[Collection[str]]]]", target has type "str")  [assignment]
+tools/diagnose-t23-service.py:78: error: Name "api" already defined (by an import)  [no-redef]
+tools/diagnose-t23-service.py:93: error: Cannot assign to a method  [method-assign]
+tools/diagnose-t23-service.py:111: error: Incompatible types in assignment (expression has type "list[dict[str, Any]]", target has type "str")  [assignment]
+tools/diagnose-t23-service.py:112: error: Incompatible types in assignment (expression has type "list[Any]", target has type "str")  [assignment]
+tools/diagnose-t23-service.py:114: error: Incompatible types in assignment (expression has type "list[dict[str, Any]]", target has type "str")  [assignment]
+tools/diagnose-t23-service.py:117: error: "Stats" has no attribute "stats"  [attr-defined]
+tools/diagnose-t23-service.py:137: error: Incompatible types in assignment (expression has type "list[dict[str, Any]]", target has type "str")  [assignment]
+tools/diagnose-t23-service.py:140: error: "Stats" has no attribute "stats"  [attr-defined]
+Found 13 errors in 1 file (checked 67 source files)

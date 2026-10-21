@@ -1,0 +1,22 @@
+test_incremental_times_corrections_and_retained_readers (test_publication_revisions.IncrementalPublication.test_incremental_times_corrections_and_retained_readers) ... FAIL
+
+======================================================================
+FAIL: test_incremental_times_corrections_and_retained_readers (test_publication_revisions.IncrementalPublication.test_incremental_times_corrections_and_retained_readers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_revisions.py", line 106, in test_incremental_times_corrections_and_retained_readers
+    self.assertEqual(selected['valid_times'], ['2026-10-15T01:00:00Z'])
+AssertionError: Lists differ: ['2026-10-15T01:00:00Z', '2026-10-15T03:00:00Z'] != ['2026-10-15T01:00:00Z']
+
+First list contains 1 additional elements.
+First extra element 1:
+'2026-10-15T03:00:00Z'
+
+- ['2026-10-15T01:00:00Z', '2026-10-15T03:00:00Z']
++ ['2026-10-15T01:00:00Z']
+
+----------------------------------------------------------------------
+Ran 1 test in 3.116s
+
+FAILED (failures=1)
+

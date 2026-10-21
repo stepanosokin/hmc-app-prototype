@@ -1,0 +1,29 @@
+node:events:505
+    throw er; // Unhandled 'error' event
+    ^
+
+Error: spawn C:/Program Files (x86)/Google/Chrome/Application/chrome.exe ENOENT
+    at ChildProcess._handle.onexit (node:internal/child_process:315:19)
+    at onErrorNT (node:internal/child_process:553:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+Emitted 'error' event on ChildProcess instance at:
+    at ChildProcess._handle.onexit (node:internal/child_process:321:12)
+    at onErrorNT (node:internal/child_process:553:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'spawn C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  path: 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  spawnargs: [
+    '--headless=new',
+    '--no-first-run',
+    '--no-default-browser-check',
+    '--disable-background-networking',
+    '--remote-debugging-address=127.0.0.1',
+    '--remote-debugging-port=0',
+    '--user-data-dir=D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t13\\hmc-publication-t13-dev1\\browser\\profile',
+    'about:blank'
+  ]
+}
+
+Node.js v26.10.0
