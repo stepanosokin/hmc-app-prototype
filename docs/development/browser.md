@@ -38,6 +38,18 @@ host keys need explicit ownership records and final cleanup; retain the user's
 confirmation of unpairing. Match the required platform matrix to the ticket;
 record an explicit user deferral separately from a passing platform result.
 
+For production run/time checks, start with `-Navigation -NavigationOnly` in the
+[viewer runner](../../viewer/README.md) before the complete browser gate.
+The run list includes several publication revisions: find the intended run and
+revision by identity, then observe the resulting controls and drawer visibility.
+A run change can already close the drawer. For controlled races, observe the
+held/released completion and deletion of the exact old texture; an accumulated
+deletion count does not establish that this selection was retired. Capture the
+reviewed prototype's visible transitions and source hash with the existing
+[navigation scenario](../../tools/viewer-navigation.mjs).
+Before this first Development run, apply the [input-freeze procedure](acceptance.md)
+and wait for retirement before editing captured bind-mounted inputs.
+
 Inspect screenshots as well as assertions before requesting visual approval.
 Include the smallest supported viewport, both font choices and every basemap;
 check close controls, footer overlap, label outlines and text contrast. If a

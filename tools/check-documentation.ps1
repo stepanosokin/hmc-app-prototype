@@ -14,6 +14,7 @@ param(
         'docs/development/specification.md',
         'docs/evidence/workflow-retrospectives.md',
         'docs/evidence/retro-t13.md',
+        'docs/evidence/retro-t14.md',
         'docs/prototypes/weather-map.README.md',
         'docs/access.md',
         '.scratch/hmc-meteo/spec.md',
