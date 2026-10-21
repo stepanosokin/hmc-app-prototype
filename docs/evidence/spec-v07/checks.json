@@ -1,0 +1,40 @@
+﻿{
+    "phase":  "pre-commit final documentation acceptance",
+    "starting_commit":  "8f2fb1ccdf9f97c3b6cfdc4b11c1c6bddc93a005",
+    "canonical":  {
+                      "url":  "https://github.com/stepanosokin/hmc-app-prototype/issues/12",
+                      "state":  "open",
+                      "title":  "Implement the meteorology prototype — accepted v0.7 specification",
+                      "updated_at":  "2026-10-21T19:57:33Z",
+                      "connector_readback_verified":  true,
+                      "body_equals_mirror":  true,
+                      "unrelated_body_preserved":  true
+                  },
+    "implementation_criteria":  {
+                                    "unchecked":  6,
+                                    "checked":  0,
+                                    "all_three_copies_verified":  true
+                                },
+    "review":  "Full documentation diff and bilingual semantics reviewed; no runtime changes",
+    "checks":  {
+                   "documentation_default_files":  22,
+                   "documentation_additional_files":  3,
+                   "staged_diff":  "passed: git diff --cached --check; no exclusions"
+               },
+    "test_resources_created":  0,
+    "retained_user_requested_project":  "hmc-publication-t13-demo-20261021-3",
+    "publication_notes":  [
+                              "Connector comments call initially used wrong parameter name; local schema rejection, retried with repo_full_name.",
+                              "Initial body bridge exceeded output budget; parsing failed before any write; used amendment-only bridge.",
+                              "Connector update schema required repository_full_name; validation failed before mutation, corrected.",
+                              "Connector update returned 403; existing scoped tracker helper used with explicit user authorization; connector readback verified."
+                          ],
+    "source_sha256":  {
+                          ".scratch/hmc-meteo/spec.md":  "58c84538d68f714483e6a3e7f14700cb419d5d07f4c3d6e2785907f754956a9f",
+                          ".scratch/hmc-meteo/spec.ru.md":  "8ffd63ea931237d6eb1356ddf43977f9dbcfae08330d15cba6668c424509dcd7",
+                          ".scratch/hmc-meteo/implementation-spec.md":  "2b01b288e311f066c7f38e3ae582a4383e23eda779417ecb41ae7bc73f8abcca",
+                          ".scratch/hmc-meteo/time-navigation-graph-discussion.md":  "f4caa9b78644feca58607d68ede134f5504cbed247de664ecde21ee7cf5f25ca",
+                          "GLOSSARY.md":  "e8370a2ae4ddce4ab2d9cac91de72037b9e90a53d05ea8305b73f125d14e0f19",
+                          "README.md":  "0c38c5907e409dc3dd6d5f36c1f355361b56e0ab27ee313ae46c763a393d45c5"
+                      }
+}

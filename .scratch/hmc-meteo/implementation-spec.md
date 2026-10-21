@@ -1,17 +1,17 @@
 # Hydrometcenter meteorology prototype — implementation specification
 
-Updated 2026-10-20 to bilingual specification v0.6: web-map display projection requirements are added in specification section 9.2 / T23 #35 / T24 #36. The v0.5 user-confirmed Windy visual concept is assigned to T22 / #34 for an interactive desktop/phone mockup, followed by production viewer work in #25/#27. Optional TLS using organization-provided certificates remains assigned to T21 / #33. The accepted v0.3 browser amendment remains: numeric browser tiles and GPU scalar rendering replace primary browser colour-image delivery. Preserve milestone IDs M1–M5 and acceptance IDs A1–A12. Scope agreement does not establish completion of TLS or other implementation gates.
+Updated 2026-10-21 to bilingual specification v0.7: stable time navigation and real forecast point series are added in section 9.3, with new unverified acceptance targets. The v0.6 web-map display projection requirements are added in specification section 9.2 / T23 #35 / T24 #36. The v0.5 user-confirmed Windy visual concept is assigned to T22 / #34 for an interactive desktop/phone mockup, followed by production viewer work in #25/#27. Optional TLS using organization-provided certificates remains assigned to T21 / #33. The accepted v0.3 browser amendment remains: numeric browser tiles and GPU scalar rendering replace primary browser colour-image delivery. Preserve milestone IDs M1–M5 and acceptance IDs A1–A12. Scope agreement does not establish completion of TLS or other implementation gates.
 
 Source of truth:
 
-- [Current specification v0.6 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.md)
-- [Текущая спецификация v0.6 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.ru.md)
+- [Current specification v0.7 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.md)
+- [Текущая спецификация v0.7 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.ru.md)
 - [Accepted specification v0.2 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/.scratch/hmc-meteo/spec.md)
 - [Согласованная спецификация v0.2 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/.scratch/hmc-meteo/spec.ru.md)
 - [Completed wayfinder map](https://github.com/stepanosokin/hmc-app-prototype/issues/1) and [explicit handoff acceptance](https://github.com/stepanosokin/hmc-app-prototype/issues/7#issuecomment-6263046933)
 - [Domain glossary](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/GLOSSARY.md)
 
-The pinned v0.2 links above preserve the historical accepted baseline. The working-tree specification files `.scratch/hmc-meteo/spec.md` and `spec.ru.md` are now v0.6; `docs/adr/0002-numeric-browser-tiles.md` records the accepted amendment. This issue carries the operative amendment below, with the same M1–M5/A1–A12 IDs. The completed wayfinder map remains historical and unchanged. Incompatibility requires recorded evidence and revisiting the affected decision; planning agreement does not prove implementation.
+The pinned v0.2 links above preserve the historical accepted baseline. The working-tree specification files `.scratch/hmc-meteo/spec.md` and `spec.ru.md` are now v0.7; `docs/adr/0002-numeric-browser-tiles.md` records the accepted amendment. This issue carries the operative amendment below, with the same M1–M5/A1–A12 IDs. The completed wayfinder map remains historical and unchanged. Incompatibility requires recorded evidence and revisiting the affected decision; planning agreement does not prove implementation.
 
 ## Problem Statement
 
@@ -217,6 +217,80 @@ The user confirmed Q1–Q9 and shared understanding on 2026-10-20. See [ADR 0003
 
 M1–M5 and A1–A12 retain their IDs. This amendment extends A2/A3 numerical and picking checks, A5/A8 switching/race/resource/UI behavior, A11 local resources and A12 measurements to all modes; A6/A7/A9 apply to any new server derivatives. Agreement and technical/mockup results alone do not complete production acceptance.
 
+### Stable time navigation and forecast point series — v0.7 (specification section 9.3)
+
+The user confirmed Q1–Q9 and shared understanding on 2026-10-21; see the
+[decision record](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/time-navigation-graph-discussion.md). These are new, unverified
+implementation requirements. Preserve M1–M5/A1–A12 and historical completed
+tickets/evidence; this amendment extends A3/A5/A8/A12, without claiming completion.
+
+**Stable map.** Changing valid time through the slider, time controls or graph
+updates only the thematic coverage and related time/value/loading metadata (and
+legend when required). Keep the existing Map, basemap, labels, projection,
+geographic camera/scale, selected point and control-sheet context. Do not recreate
+the map, reload unchanged basemap resources because of the time change, or fit
+coverage again. Point coordinates remain selected; stale point numbers are cleared.
+
+**Discrete frames during dragging.** Show actual published valid times while the
+slider moves, with the latest requested selection taking priority. Intermediate
+positions may be skipped. Keep the previous complete frame until the new one is
+ready, then replace the thematic frame atomically, without an empty/partial flash.
+Show displayed-frame time separately from requested time and its loading state;
+never label the previous frame with the requested time. Reject obsolete responses,
+decoded arrays and uploads. Do not interpolate values or cross-fade frames;
+temporal blending remains deferred. Keep run/revision pinned and the agreed masks,
+display-error budgets and canonical sampling semantics unchanged.
+
+**Missing and failed times.** Selecting a missing time immediately removes the
+thematic frame and point number, retaining map, point coordinates and an explicit
+Russian explanation. A failed load of an available time may retain the preceding
+complete frame only with its actual time and a visible error; it does not complete
+the requested selection. Outside coverage, native nodata, missing time and request
+failure remain distinct. An expired publication prompts explicit reselection;
+caches must not restore an expired frame or silently change run/revision.
+
+**Real graph in the point card.** Show the entire published forecast for the
+selected point and field within one pinned run/revision, using canonical
+exact-time/nearest-native-cell values, UTC and the current units. Highlight the
+selected time; when a previous map frame is retained, identify its different
+displayed time explicitly. Do not derive values from map colours, temporal
+interpolation or synthetic mockup data. Historical observations remain out of
+scope. Missing values and failed requests create breaks in the line with distinct
+states; retain successful parts on partial failure and allow retry of failed
+requests. Never show an earlier point/run/revision's series as the new series.
+Changing only the selected time reuses the unchanged series and moves its
+highlight; changing point, field, run or explicitly accepted revision refreshes
+the series. Preserve availability, expiry, access and bounded request/cache rules;
+no particular endpoint or broader EDR conformance is selected by this requirement.
+
+**Graph interaction and mobile.** Provide UTC/value tooltips through mouse, touch
+and keyboard. Explicit selection on the graph selects the same time in the slider
+and map, including the defined missing-time behavior; hover alone changes no time.
+On phones the graph lives in the shared sheet's “Точка” tab, fits the panel width
+and does not cover the time bar. Preserve point/sheet context during time changes.
+
+**Measured acceptance targets.** Slider feedback is visible within 100 ms. For
+already prepared frames, p95 from the latest time input to complete presentation
+is at most 100 ms. Measure cold requested-frame loading separately, with a target
+of at most 3 s including fetch/decode/upload/presentation. Report cache reset and
+prepared/cold definitions, workload, sample counts, input/presentation timestamps,
+skipped/cancelled requests, host/browser/GPU and errors; do not mix cache profiles
+or hide the terminal requested frame. Bound all managed field arrays, cached
+frames, textures and framebuffers together to 128 MiB; retaining every forecast
+time in GPU memory is not required. Verify Chrome and Edge desktop and physical
+Chrome/Android in Mercator, strict orthographic and EPSG:3576. Emulated phone sizes
+do not replace the physical device; Safari/iOS remains unverified. Targets are
+acceptance obligations, not measured claims about the existing implementation.
+
+New requirements remain unchecked until actual implementation and validation:
+
+- [ ] Time changes preserve map/basemap/camera/point and update only thematic data.
+- [ ] Dragging presents exact discrete frames without blank flashes, interpolation or stale completion.
+- [ ] Loading, missing time, failure, nodata and expiry preserve the specified identities/states.
+- [ ] The real canonical forecast graph covers the pinned series, gaps, partial failure and reuse/invalidation.
+- [ ] Graph selection, tooltips, keyboard/touch and phone layout agree with map/slider state.
+- [ ] Reproducible desktop/physical Android evidence verifies all three projections, timing targets and memory bound.
+
 ## Out of Scope
 
 - Implementing, decoding, benchmarking or deploying the application as part of this specification-publication task. This issue defines the future implementation scope; publication is not evidence of completion.
@@ -231,3 +305,8 @@ M1–M5 and A1–A12 retain their IDs. This amendment extends A2/A3 numerical an
 The completed wayfinder map stays closed. Bilingual v0.5 adds the confirmed Windy concept and T22 / #34 visual mockup before #25/#27. Optional TLS readiness from v0.4 in T21 / #33 and numeric browser tiles/GPU from v0.3 remain required. M1–M5/A1–A12 and existing completion states remain unchanged; T22 / #34 is added as the visual approval prerequisite for #25/#27. Existing numerical/GIS, real-browser and operational implementation gates remain mandatory.
 
 Before operational rollout obtain representative datasets, schema/access details, producer completion conventions, real per-model run cadence/daily volume, target server/storage/network, exact QGIS version, DNS/TLS/secrets and agreed service targets. Keep credentials out of this issue. Host sizing remains deferred until evidence exists; #15's narrow numerical-adapter choice remains bounded to the recorded point/metadata evidence; tile/GPU outcomes are not predetermined.
+
+
+### Approved T23a numeric delivery candidate — 2026-10-20
+
+The owner explicitly approved [`hmc-native-display/1`](https://github.com/stepanosokin/hmc-app-prototype/blob/main/publication/native-display.v1.json) for implementation and comparison in [#37](https://github.com/stepanosokin/hmc-app-prototype/issues/37). Native float32 cells, validity masks and one-cell halos support one GPU bilinear interpolation; bounded server display derivatives are compared against independent raw GRIB at identical geographic points. The [approved design](https://github.com/stepanosokin/hmc-app-prototype/blob/main/docs/design/t23a-native-display-draft.md) fixes version/URL/matrix/CRS, height-zero operation, immutable cache identity and resource limits. Frozen v2 and canonical nearest-native-cell point/EDR remain unchanged. Agreement and this technical experiment do not establish rotating-globe, physical Android/iOS or production viewer acceptance. M1–M5/A1–A12 and other issue states remain unchanged. Both current specification copies record this amendment.
