@@ -3,9 +3,14 @@ param(
     [int]$Port=8141,
     [int]$ViewerPort=8140,
     [switch]$WithEdge,
-    [switch]$Final
+    [switch]$Final,
+    [switch]$Navigation,
+    [switch]$NavigationOnly
 )
 $ErrorActionPreference='Stop'
+if($NavigationOnly -and -not $Navigation){throw 'NavigationOnly requires Navigation'}
+if($Final -and ($NavigationOnly -or $env:T13_FOCUSED -eq '1')){throw 'Final acceptance requires the complete browser matrix'}
+$originalFocused=$env:T13_FOCUSED
 if($env:T13_ANDROID_SERIAL -and $WithEdge){throw 'Use separate physical Android and desktop attempts'}
 . (Join-Path $PSScriptRoot '../publication/process.ps1')
 Set-Location (Split-Path $PSScriptRoot -Parent)
@@ -47,15 +52,26 @@ try{
     Check seed @('run','--rm','worker','submit','--clock',$env:PUBLICATION_CLOCK,'--hours','1,3')
     Check publish @('run','--rm','worker','once')
     Check restart @('restart','api','gateway')
+    if($Navigation){
+        Check overlap-seed @('run','--rm','worker','submit','--clock',$env:PUBLICATION_CLOCK,'--hours','1,3','--fixture','overlap')
+        Check overlap-publish @('run','--rm','worker','once')
+        Check overlap-restart @('restart','api','gateway')
+        $env:T14_NAVIGATION='1'
+        if($NavigationOnly){$env:T14_NAVIGATION_ONLY='1';$env:T13_FOCUSED='1'}
+    }
     $env:T13_VIEWER="http://127.0.0.1:$ViewerPort"
     $env:T13_REPORT_DIRECTORY=Join-Path $directory 'browser'
     Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-weather-viewer.mjs') -ReportDirectory $directory -Name browser
-    Check comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-reference.py','compare')
+    if(-not $NavigationOnly){
+        Check comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-reference.py','compare')
+    }
     if($WithEdge){
         $env:T13_BROWSER='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
         $env:T13_REPORT_DIRECTORY=Join-Path $directory 'browser-edge'
         Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-weather-viewer.mjs') -ReportDirectory $directory -Name edge
-        Check edge-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-reference.py','compare','browser-edge')
+        if(-not $NavigationOnly){
+            Check edge-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-reference.py','compare','browser-edge')
+        }
     }
     if(-not $env:T13_ANDROID_SERIAL){
         $env:T13_DISABLE_GPU='1'
@@ -75,5 +91,8 @@ try{
     Stop-Transcript | Out-Null
     Remove-Item Env:T13_BROWSER -ErrorAction SilentlyContinue
     Remove-Item Env:T13_DISABLE_GPU -ErrorAction SilentlyContinue
+    Remove-Item Env:T14_NAVIGATION -ErrorAction SilentlyContinue
+    Remove-Item Env:T14_NAVIGATION_ONLY -ErrorAction SilentlyContinue
+    if($null -eq $originalFocused){Remove-Item Env:T13_FOCUSED -ErrorAction SilentlyContinue}else{$env:T13_FOCUSED=$originalFocused}
     & (Join-Path $PSScriptRoot 'retire-publication-project.ps1') -Project $Project -ReportDirectory "data/reports/t13/$Project"
 }
