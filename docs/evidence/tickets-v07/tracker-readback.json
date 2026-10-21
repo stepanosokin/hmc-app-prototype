@@ -1,0 +1,118 @@
+{
+  "phase": "post-tracker readback; pre-commit planning verification",
+  "observed_at": "2026-10-21T20:05:58.049Z",
+  "source_specification": {
+    "issue": 12,
+    "version": "0.7",
+    "section": "9.3",
+    "state": "open",
+    "body_and_title_unchanged": true
+  },
+  "user_approved_breakdown": true,
+  "created": [
+    39,
+    40,
+    41
+  ],
+  "issues": [
+    {
+      "number": 39,
+      "id": 5967643255,
+      "title": "T25 — Смена срока без пересоздания карты",
+      "url": "https://github.com/stepanosokin/hmc-app-prototype/issues/39",
+      "state": "open",
+      "parent": 12,
+      "labels": [
+        "ready-for-agent"
+      ],
+      "blocked_by": [],
+      "unchecked": 7,
+      "checked": 0,
+      "body_sha256": "8e2b9060b361afe4c75061b02bbdb50fe67f7c4269072b72d25165c26371cf88"
+    },
+    {
+      "number": 40,
+      "id": 5967645789,
+      "title": "T26 — Плавное перемещение ползунка времени",
+      "url": "https://github.com/stepanosokin/hmc-app-prototype/issues/40",
+      "state": "open",
+      "parent": 12,
+      "labels": [
+        "ready-for-agent"
+      ],
+      "blocked_by": [
+        39
+      ],
+      "unchecked": 8,
+      "checked": 0,
+      "body_sha256": "68d263fc5e1090810a4f2e2bef19a9f5bc6b73b2ac70a81dd60fa4696fa42c0e"
+    },
+    {
+      "number": 41,
+      "id": 5967645954,
+      "title": "T27 — Реальный прогнозный график точки",
+      "url": "https://github.com/stepanosokin/hmc-app-prototype/issues/41",
+      "state": "open",
+      "parent": 12,
+      "labels": [
+        "ready-for-agent"
+      ],
+      "blocked_by": [
+        39
+      ],
+      "unchecked": 9,
+      "checked": 0,
+      "body_sha256": "fe7442bc0174c12aa2ae72c789dd6bb3ac4302a39ea089241bb767df08258328"
+    },
+    {
+      "number": 31,
+      "id": 5921829974,
+      "title": "Measure server, numeric-tile and browser GPU workloads",
+      "url": "https://github.com/stepanosokin/hmc-app-prototype/issues/31",
+      "state": "open",
+      "blocked_by": [
+        28,
+        29,
+        40,
+        41
+      ],
+      "previous_blockers": [
+        28,
+        29
+      ],
+      "new_unchecked_criteria": 4,
+      "unrelated_body_preserved": true,
+      "body_sha256": "363e2ff0661406be8d4b0fb8d8d7e5dddff4563be575256bd7401583827cf926"
+    },
+    {
+      "number": 32,
+      "id": 5921830140,
+      "title": "Verify the operational handoff — M5 gate",
+      "url": "https://github.com/stepanosokin/hmc-app-prototype/issues/32",
+      "state": "open",
+      "blocked_by": [
+        30,
+        31
+      ],
+      "previous_blockers": [
+        30,
+        31
+      ],
+      "new_unchecked_criteria": 3,
+      "unrelated_body_preserved": true,
+      "body_sha256": "f3a8782bd097fc969342a98470386464f70e17476d554bdb9a7c13b8c5414fcd"
+    }
+  ],
+  "parent_previous_children": 24,
+  "parent_current_children": 27,
+  "existing_children_and_states_preserved": true,
+  "planning_complete": true,
+  "implementation_complete": false,
+  "test_resources_created": 0,
+  "retained_user_requested_project": "hmc-publication-t13-demo-20261021-3",
+  "connector_create_result": "403 Resource not accessible by integration; existing repository-scoped helper used",
+  "native_api_references": [
+    "https://docs.github.com/en/rest/issues/sub-issues",
+    "https://docs.github.com/en/rest/issues/issue-dependencies"
+  ]
+}

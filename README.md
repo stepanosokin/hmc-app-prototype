@@ -51,3 +51,7 @@ the point card. The [confirmed decisions](.scratch/hmc-meteo/time-navigation-gra
 include loading/gap/error behavior, graph interaction, timing targets and the
 128 MiB bound. These are new requirements with six unchecked implementation
 criteria; publication does not establish their implementation.
+
+The [v0.7 implementation plan](.scratch/hmc-meteo/implementation-plan-v07.md)
+tracks #39 (stable time changes), then independent #40 (slider) and #41 (point
+graph), followed by the extended measurement and handoff gates #31/#32.
