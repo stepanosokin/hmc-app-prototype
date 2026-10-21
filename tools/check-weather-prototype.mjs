@@ -5,25 +5,32 @@ import {resolve, join, dirname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {randomUUID, createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
+import {parseOptions,shouldCapture,usage} from './weather-check-options.mjs';
 
-const projections=process.argv.includes('--projections');
-const controlsOnly=process.argv.includes('--mobile-controls');
-const landscapeOnly=process.argv.includes('--landscape-only');
-const root=resolve('.'), directory=resolve(process.env.T22_REPORT_DIRECTORY || (projections?'data/reports/t24':'data/reports/t22'));
+const started=performance.now();
+let options;
+try{options=parseOptions(process.argv.slice(2));}catch(error){console.error(error.message+'\n'+usage);process.exit(2);}
+if(options.help){console.log(usage);process.exit(0);}
+if(options.plan){console.log(JSON.stringify(options,null,2));process.exit(0);}
+const {projections,controlsOnly}=options;
+const root=resolve('.'), directory=resolve(process.env.T22_REPORT_DIRECTORY || join('data','reports',projections?'t24':'t22',new Date().toISOString().replace(/[:.]/g,'-')+'-'+randomUUID()));
 const profile=resolve('data', 't22-browser-'+randomUUID());
 const executable=process.env.T22_CHROME || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 await mkdir(directory,{recursive:true});
 const report={scope:'T22 visual mockup; desktop Chrome and emulated mobile viewport, not real mobile hardware',starting_commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),checks:[],screenshots:[],errors:[],external_requests:[],inputs:{},cleanup:{}};
 if(projections)report.scope='T24 projection mockup; desktop browser and emulated mobile viewport, not real hardware or production GPU/API';
-if(controlsOnly)report.scope='Focused mobile controls probe only; not full T24 acceptance';
-if(landscapeOnly)report.scope='Focused landscape layout regression only; not full T24 acceptance';
-for(const path of ['docs/prototypes/weather-map.prototype.html','docs/prototypes/weather-map.prototype.css','docs/prototypes/weather-map.prototype.js','docs/prototypes/weather-map.projections.js','docs/prototypes/assets/land.js',...['d3-array.min.js','d3-geo.min.js','proj4.js'].map(f=>'docs/prototypes/assets/vendor/'+f),'tools/check-weather-prototype.mjs',...(projections?['tools/weather-projection-checks.mjs','tools/weather-landscape-checks.mjs','tools/check-weather-geometry.py']:[])]){
+if(!options.acceptance)report.scope='Focused '+options.scenario+' development check; not full acceptance';
+report.selection=options;
+report.screenshots_skipped=0;
+for(const path of ['docs/prototypes/weather-map.prototype.html','docs/prototypes/weather-map.prototype.css','docs/prototypes/weather-map.prototype.js','docs/prototypes/weather-map.projections.js','docs/prototypes/assets/land.js',...['d3-array.min.js','d3-geo.min.js','proj4.js'].map(f=>'docs/prototypes/assets/vendor/'+f),'tools/check-weather-prototype.mjs','tools/weather-check-options.mjs',...(projections?['tools/weather-projection-checks.mjs','tools/weather-landscape-checks.mjs','tools/check-weather-geometry.py']:[])]){
   const bytes=await readFile(path);report.inputs[path]=createHash('sha256').update(bytes).digest('hex');
   if(projections){const target=join(directory,'inputs',path);await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes);}
 }
 report.owned_profile=profile;
 report.browser_executable=executable;
+const prepared=performance.now();
+let checksStarted,checksFinished;
 const child=spawn(executable,['--headless=new','--no-first-run','--no-default-browser-check','--disable-background-networking','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{windowsHide:true,stdio:'ignore'});
 let socket,call;
 try{
@@ -57,11 +64,11 @@ try{
   };
   const key=async key=>{const code={Home:36,ArrowDown:40,Enter:13,Tab:9,Escape:27}[key];await call('Input.dispatchKeyEvent',{type:key==='Enter'?'keyDown':'rawKeyDown',key,windowsVirtualKeyCode:code,...(key==='Enter'?{code:'Enter',text:'\r',unmodifiedText:'\r'}:{})});await call('Input.dispatchKeyEvent',{type:'keyUp',key,windowsVirtualKeyCode:code});};
   const select=async(selector,index)=>{await click(selector);await key('Escape');await key('Home');for(let i=0;i<index;i++)await key('ArrowDown');await key('Tab');};
-  const screenshot=async(name,clip)=>{await delay(150);const r=await call('Page.captureScreenshot',{format:'png',...(clip?{clip}:{})});await writeFile(join(directory,name+'.png'),Buffer.from(r.data,'base64'));report.screenshots.push(name+'.png');};
+  const screenshot=async(name,clip)=>{if(!shouldCapture(options,name)){report.screenshots_skipped++;return;}await delay(150);const r=await call('Page.captureScreenshot',{format:'png',...(clip?{clip}:{})});await writeFile(join(directory,name+'.png'),Buffer.from(r.data,'base64'));report.screenshots.push(name+'.png');};
   await call('Page.enable');await call('Runtime.enable');await call('Network.enable');
   report.browser=await call('Browser.getVersion');
-  for(const [width,height,mobile] of [[1440,900,false],[390,844,true],[360,740,true]]){
-  if(controlsOnly||landscapeOnly)continue;
+  checksStarted=performance.now();
+  for(const [width,height,mobile] of options.baseViewports){
     const prefix=`${width}x${height}`;
     await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});
     await call('Emulation.setTouchEmulationEnabled',{enabled:mobile});
@@ -190,13 +197,14 @@ try{
     await check(prefix+' no horizontal overflow',"document.documentElement.scrollWidth===innerWidth");
   }
   const prototypeUrl=pathToFileURL(resolve('docs/prototypes/weather-map.prototype.html')).href;
-  if(projections&&!landscapeOnly){const {checkProjections}=await import('./weather-projection-checks.mjs');await checkProjections({call,evaluate,check,click,key,select,screenshot,collapseWidgets,controlsOnly,report,url:prototypeUrl});}
-  if(projections&&!controlsOnly){const {checkLandscape}=await import('./weather-landscape-checks.mjs');await checkLandscape({call,evaluate,check,click,key,select,screenshot,report,url:prototypeUrl});}
+  if(options.projectionViewports.length){const {checkProjections}=await import('./weather-projection-checks.mjs');await checkProjections({call,evaluate,check,click,key,select,screenshot,collapseWidgets,controlsOnly,viewports:options.projectionViewports,report,url:prototypeUrl});}
+  if(options.landscapeViewports.length){const {checkLandscape}=await import('./weather-landscape-checks.mjs');await checkLandscape({call,evaluate,check,click,key,select,screenshot,viewports:options.landscapeViewports,report,url:prototypeUrl});}
   assert.deepEqual(report.errors,[],'No JavaScript runtime errors');assert.deepEqual(report.external_requests,[],'No external page requests');
   report.status='passed';
 }catch(error){report.status='failed';report.failure=String(error.stack||error);process.exitCode=1;
   if(call){try{const r=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,'failure.png'),Buffer.from(r.data,'base64'));}catch{}}
 }finally{
+  checksFinished=performance.now();
   try{
     if(call){try{await call('Browser.close');}catch{ /* Still retire the owned process if CDP is unavailable. */ }}
     socket?.close();
@@ -208,6 +216,8 @@ try{
     await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:200});
     report.cleanup={browser_processes_remaining:0,profile_removed:true,compose_projects_created:0,servers_created:0};
   }catch(error){report.cleanup={error:String(error)};report.status='failed';process.exitCode=1;}
+  const finished=performance.now();
+  report.timing_ms={preparation:prepared-started,browser_start:(checksStarted??checksFinished)-prepared,checks:checksStarted?checksFinished-checksStarted:0,cleanup:finished-checksFinished,total:finished-started};
   await writeFile(join(directory,'validation.json'),JSON.stringify(report,null,2)+'\n');
-  console.log(JSON.stringify({status:report.status,checks:report.checks.length,failure:report.failure,cleanup:report.cleanup}));
+  console.log(JSON.stringify({directory,status:report.status,acceptance:options.acceptance,checks:report.checks.length,screenshots:report.screenshots.length,timing_ms:report.timing_ms,failure:report.failure,cleanup:report.cleanup}));
 }

@@ -1,7 +1,7 @@
 // Regression for wide, short phones; actual visible controls, no app hooks.
-export async function checkLandscape({call,evaluate,check,click,key,select,screenshot,report,url}) {
+export async function checkLandscape({call,evaluate,check,click,key,select,screenshot,viewports,report,url}) {
   const clearLayout="(()=>{const selectors=['.brand','#forecastPanel','.layers','#navigationPanel','#legendPanel','#timelinePanel','.notice','.fontPicker','.basemapAttribution','#drawer','#showPoint'];const rects=selectors.map(s=>{const e=document.querySelector(s),r=e.getBoundingClientRect();return {s,r,visible:e.checkVisibility()&&r.width>0&&r.height>0};}).filter(x=>x.visible);return rects.every(({r})=>r.left>=0&&r.top>=0&&r.right<=innerWidth+.5&&r.bottom<=innerHeight+.5)&&rects.every((a,i)=>rects.slice(i+1).every(b=>a.r.right<=b.r.left+.5||a.r.left>=b.r.right-.5||a.r.bottom<=b.r.top+.5||a.r.top>=b.r.bottom-.5));})()";
-  for(const [width,height] of [[1038,465],[844,390],[740,360],[667,375],[640,360]]){
+  for(const [width,height] of viewports){
     const name=`landscape-${width}x${height}`;
     await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:true,screenOrientation:{type:'landscapePrimary',angle:90}});
     await call('Emulation.setTouchEmulationEnabled',{enabled:true});

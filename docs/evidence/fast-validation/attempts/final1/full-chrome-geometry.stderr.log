@@ -1,0 +1,24 @@
+C:\OSGeo4W\apps\Python312\Lib\site-packages\pyproj\__init__.py:96: UserWarning: Valid PROJ data directory not found. Either set the path using the environmental variable PROJ_DATA (PROJ 9.1+) | PROJ_LIB (PROJ<9.1) or with `pyproj.datadir.set_data_dir`.
+  warnings.warn(str(err))
+Traceback (most recent call last):
+  File "D:\PROG\HMC\hmc-app-prototype\tools\check-weather-geometry.py", line 46, in <module>
+    check(sys.argv[1])
+  File "D:\PROG\HMC\hmc-app-prototype\tools\check-weather-geometry.py", line 19, in check
+    forward = Transformer.from_crs('EPSG:4326', crs, always_xy=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\OSGeo4W\apps\Python312\Lib\site-packages\pyproj\transformer.py", line 627, in from_crs
+    cstrencode(CRS.from_user_input(crs_from).srs),
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\OSGeo4W\apps\Python312\Lib\site-packages\pyproj\crs\crs.py", line 503, in from_user_input
+    return cls(value, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\OSGeo4W\apps\Python312\Lib\site-packages\pyproj\crs\crs.py", line 350, in __init__
+    self._local.crs = _CRS(self.srs)
+                      ^^^^^^^^^^^^^^
+  File "pyproj\\_crs.pyx", line 2356, in pyproj._crs._CRS.__init__
+  File "pyproj\\_context.pyx", line 214, in pyproj._context.pyproj_context_create
+  File "pyproj\\_context.pyx", line 163, in pyproj._context.pyproj_context_initialize
+  File "pyproj\\_context.pyx", line 136, in pyproj._context.set_context_data_dir
+  File "C:\OSGeo4W\apps\Python312\Lib\site-packages\pyproj\datadir.py", line 114, in get_data_dir
+    raise DataDirError(
+pyproj.exceptions.DataDirError: Valid PROJ data directory not found. Either set the path using the environmental variable PROJ_DATA (PROJ 9.1+) | PROJ_LIB (PROJ<9.1) or with `pyproj.datadir.set_data_dir`.

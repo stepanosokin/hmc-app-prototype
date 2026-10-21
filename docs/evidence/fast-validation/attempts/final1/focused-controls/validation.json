@@ -1,0 +1,84 @@
+{
+  "scope": "Focused mobile-controls development check; not full acceptance",
+  "starting_commit": "04695737e4f5619fc8261047b75a867b423b959b",
+  "checks": [
+    "projection-360x740 initial Mercator",
+    "projection-360x740 four control groups initially collapsed",
+    "projection-360x740 forecastPanel expands through touch",
+    "projection-360x740 forecastPanel reachable by Tab",
+    "projection-360x740 forecastPanel collapses through keyboard",
+    "projection-360x740 navigationPanel expands through touch",
+    "projection-360x740 navigationPanel reachable by Tab",
+    "projection-360x740 navigationPanel collapses through keyboard",
+    "projection-360x740 legendPanel expands through touch",
+    "projection-360x740 legendPanel reachable by Tab",
+    "projection-360x740 legendPanel collapses through keyboard",
+    "projection-360x740 timelinePanel expands through touch",
+    "projection-360x740 timelinePanel reachable by Tab",
+    "projection-360x740 timelinePanel collapses through keyboard",
+    "projection-360x740 layer settings use one mobile panel"
+  ],
+  "screenshots": [
+    "projection-360x740-focused-controls.png"
+  ],
+  "errors": [],
+  "external_requests": [],
+  "inputs": {
+    "docs/prototypes/weather-map.prototype.html": "17f88db4aae00b3094aed1439e41a5f9f9b3db09c5f2ba19fe86531e04565ac7",
+    "docs/prototypes/weather-map.prototype.css": "e2839cd17f0e90607eb51015fde0a7e6d1080cccf63bd03bda91b5380fac0969",
+    "docs/prototypes/weather-map.prototype.js": "f1c2a65f9a66c67dd301506a35868422aef9f0e9535013975e572ceca59c593d",
+    "docs/prototypes/weather-map.projections.js": "cd98cd5517e159ac8603c04e4b333ce708c90af0dbfca0f01b79b72f0d09e4aa",
+    "docs/prototypes/assets/land.js": "09dcaef6ba7af5caa974dd1000c109a1ee339857f7b3bf7dcaadeda89cc7d4e7",
+    "docs/prototypes/assets/vendor/d3-array.min.js": "80aa70d0cd17dabddf6d056494ea17926a45a69da8b7850220aace331bad671d",
+    "docs/prototypes/assets/vendor/d3-geo.min.js": "23e574f1e8d4716d622bce45356a379b66a277162b145f5f147e4c8daefb73d2",
+    "docs/prototypes/assets/vendor/proj4.js": "af7df653d91ea591f33d26fb958990bbd3071b2db644a4edaba441cc9861a474",
+    "tools/check-weather-prototype.mjs": "ec9f45f150108917597c4f5bf4fa6abf42744c35253f9f797681fefcf55a1493",
+    "tools/weather-check-options.mjs": "39d5d0c15138c3d99cf0c22405cfc9ced182640258435a95da8b163c27903ee9",
+    "tools/weather-projection-checks.mjs": "d472f46d3485907a3e9c25d926714d556578c2e9da53ef803a1596d7c3f936fc",
+    "tools/weather-landscape-checks.mjs": "8488c2784c5078c3c766a0296126e44d6b2bd0cab3b5afa2fa74df7fc16284a7",
+    "tools/check-weather-geometry.py": "188bf94ff6770be660c2e829d01cb63ad888dea978780f24be15ec40ce8ce06b"
+  },
+  "cleanup": {
+    "browser_processes_remaining": 0,
+    "profile_removed": true,
+    "compose_projects_created": 0,
+    "servers_created": 0
+  },
+  "selection": {
+    "scenario": "mobile-controls",
+    "viewport": "360x740",
+    "screenshots": "focused-controls",
+    "baseViewports": [],
+    "projectionViewports": [
+      [
+        360,
+        740,
+        true
+      ]
+    ],
+    "landscapeViewports": [],
+    "projections": true,
+    "controlsOnly": true,
+    "acceptance": false,
+    "help": false,
+    "plan": false
+  },
+  "screenshots_skipped": 0,
+  "owned_profile": "D:\\PROG\\HMC\\hmc-app-prototype\\data\\t22-browser-b2f58878-0555-4d6d-b622-28e7dbb1f9ab",
+  "browser_executable": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.85",
+    "revision": "@0e66b94549a8bd85f03fbdf189b752d6e7b63c32",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.25"
+  },
+  "status": "passed",
+  "timing_ms": {
+    "preparation": 65.7129,
+    "browser_start": 713.5841,
+    "checks": 1628.7800000000002,
+    "cleanup": 911.3494999999998,
+    "total": 3319.4265
+  }
+}

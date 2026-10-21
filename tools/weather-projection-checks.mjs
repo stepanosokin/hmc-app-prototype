@@ -1,7 +1,7 @@
 // Acceptance at the existing visible-control seam, with actual mouse/touch input.
 import assert from 'node:assert/strict';
 
-export async function checkProjections({call,evaluate,check,click,key,select,screenshot,collapseWidgets,controlsOnly=false,report,url}) {
+export async function checkProjections({call,evaluate,check,click,key,select,screenshot,collapseWidgets,controlsOnly=false,viewports,report,url}) {
   const snapshot=()=>evaluate("JSON.stringify({identity:document.getElementById('selectionIdentity').textContent,time:document.getElementById('time').value,units:document.getElementById('units').value,point:document.querySelector('#pointContent strong')?.textContent,coords:document.querySelector('#pointContent p:not(.pointVisibility)')?.textContent,api:document.getElementById('apiLink').href,wms:document.getElementById('wmsLink').href})");
   async function inputPoint(lon,lat,touch){
     await collapseWidgets();
@@ -15,7 +15,7 @@ export async function checkProjections({call,evaluate,check,click,key,select,scr
     const selected=new URL(observed.api);
     assert.ok(Math.abs(Number(selected.searchParams.get('lon'))-lon)<=.5&&Math.abs(Number(selected.searchParams.get('lat'))-lat)<=.5,'Geographic input within half degree (integer DOM coordinates on small viewport)');
   }
-  for(const [width,height,mobile] of [[1440,900,false],[390,844,true],[360,740,true]]) {
+  for(const [width,height,mobile] of viewports) {
     if(controlsOnly&&!mobile)continue;
     const name=`projection-${width}x${height}`;
     await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});
