@@ -73,6 +73,19 @@ canvas — до 2048×2048. Выход за возможности WebGL 2 да�
 
 ## Проверка
 
+Для M4 / T16 / [№28](https://github.com/stepanosokin/hmc-app-prototype/issues/28)
+добавить `-Offline` к полному `-Navigation -Updates -WithEdge -Final`.
+Проверка блокирует все внешние HTTP(S)-запросы страницы и её dedicated workers
+до отправки, оставляя доступ к локальному origin. Контрольные запросы страницы,
+worker и вложенного worker должны попасть в журнал блокировки; ошибка DNS
+сама по себе не считается доказательством. Кеш браузера отключён, service worker
+обходится. В `browser.json` сохраняются разрешённые/заблокированные URL,
+состояние probes и результаты T13–T15. Это отключение публичной runtime-сети
+для проверяемого приложения; setup-time скачивания и сеть других приложений
+не отключаются. Физический Android проверяется тем же `-Offline` без `-WithEdge`.
+Версии, локальные пути и основания распространения перечислены в
+[реестре ресурсов T16](../docs/evidence/t16/runtime-rights.md).
+
 ```powershell
 npm --prefix viewer test
 npm --prefix viewer run check
