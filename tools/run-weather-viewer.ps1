@@ -5,9 +5,13 @@ param(
     [switch]$WithEdge,
     [switch]$Final,
     [switch]$Navigation,
-    [switch]$NavigationOnly
+    [switch]$NavigationOnly,
+    [switch]$Updates,
+    [switch]$UpdatesOnly
 )
 $ErrorActionPreference='Stop'
+if($UpdatesOnly -and -not $Updates){throw 'UpdatesOnly requires Updates'}
+if($Final -and $UpdatesOnly){throw 'Final requires complete matrix'}
 if($NavigationOnly -and -not $Navigation){throw 'NavigationOnly requires Navigation'}
 if($Final -and ($NavigationOnly -or $env:T13_FOCUSED -eq '1')){throw 'Final acceptance requires the complete browser matrix'}
 $originalFocused=$env:T13_FOCUSED
@@ -60,16 +64,20 @@ try{
         if($NavigationOnly){$env:T14_NAVIGATION_ONLY='1';$env:T13_FOCUSED='1'}
     }
     $env:T13_VIEWER="http://127.0.0.1:$ViewerPort"
+    if($Updates){$env:T15_UPDATES='1';$env:T15_PROJECT=$Project}
+    if($UpdatesOnly){$env:T15_UPDATES_ONLY='1';$env:T13_FOCUSED='1'}
     $env:T13_REPORT_DIRECTORY=Join-Path $directory 'browser'
     Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-weather-viewer.mjs') -ReportDirectory $directory -Name browser
-    if(-not $NavigationOnly){
+    if($Updates){Check update-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-update-reference.py','browser')}
+    if(-not $NavigationOnly -and -not $UpdatesOnly){
         Check comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-reference.py','compare')
     }
     if($WithEdge){
         $env:T13_BROWSER='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
         $env:T13_REPORT_DIRECTORY=Join-Path $directory 'browser-edge'
         Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-weather-viewer.mjs') -ReportDirectory $directory -Name edge
-        if(-not $NavigationOnly){
+        if($Updates){Check edge-update-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-update-reference.py','browser-edge')}
+        if(-not $NavigationOnly -and -not $UpdatesOnly){
             Check edge-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-reference.py','compare','browser-edge')
         }
     }
@@ -93,6 +101,9 @@ try{
     Remove-Item Env:T13_DISABLE_GPU -ErrorAction SilentlyContinue
     Remove-Item Env:T14_NAVIGATION -ErrorAction SilentlyContinue
     Remove-Item Env:T14_NAVIGATION_ONLY -ErrorAction SilentlyContinue
+    Remove-Item Env:T15_UPDATES -ErrorAction SilentlyContinue
+    Remove-Item Env:T15_UPDATES_ONLY -ErrorAction SilentlyContinue
+    Remove-Item Env:T15_PROJECT -ErrorAction SilentlyContinue
     if($null -eq $originalFocused){Remove-Item Env:T13_FOCUSED -ErrorAction SilentlyContinue}else{$env:T13_FOCUSED=$originalFocused}
     & (Join-Path $PSScriptRoot 'retire-publication-project.ps1') -Project $Project -ReportDirectory "data/reports/t13/$Project"
 }

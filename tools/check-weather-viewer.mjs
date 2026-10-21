@@ -5,6 +5,7 @@ import {readFile,writeFile,mkdir,rm} from 'node:fs/promises';
 import {join,resolve,sep} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {checkNavigation} from './viewer-navigation.mjs';
+import {checkUpdates} from './viewer-updates.mjs';
 const directory=resolve(process.env.T13_REPORT_DIRECTORY||'data/reports/t13/browser-'+randomUUID());
 assert.ok(directory.startsWith(resolve('data/reports')+sep));
 const origin=process.env.T13_VIEWER||'http://127.0.0.1:8140';assert.match(origin,/^http:\/\/127\.0\.0\.1:\d+$/);
@@ -62,7 +63,7 @@ try{
         for(const id of ancestors)await click('#'+id+'>summary');
         const rect=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {x:r.x+r.width/2,y:r.y+r.height/2,hit:e.contains(hit),actual:hit?.outerHTML.slice(0,160)};})()`);
         assert.ok(rect.hit,'Control is visible: '+selector+' '+rect.actual);
-        (report.control_inputs??=[]).push({selector,requested:{x:rect.x,y:rect.y}});
+        (report.control_inputs??=[]).push({selector,requested:{x:rect.x,y:rect.y},viewport:android?await evaluate('({width:innerWidth,height:innerHeight,visualWidth:visualViewport.width,scale:visualViewport.scale,offsetTop:visualViewport.offsetTop,offsetLeft:visualViewport.offsetLeft,scrollWidth:document.documentElement.scrollWidth})'):undefined});
         const clickToken=randomUUID();
         if(android)await evaluate(`document.querySelector(${JSON.stringify(selector)}).addEventListener('click',()=>{window.__t13Clicked=${JSON.stringify(clickToken)};},{once:true})`);
         if(android){await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:Math.floor(rect.x)+.5,y:Math.floor(rect.y)+.5,id:1}]});
@@ -77,13 +78,20 @@ try{
         const labels=android?await evaluate(`[...document.querySelector(${JSON.stringify(selector)}).options].map(option=>option.textContent)`):null;
         await click(selector);
         if(android){
-            adbCall('shell','uiautomator','dump',uiDump);
-            const xml=adbCall('shell','cat',uiDump).toString('utf8'),wanted=labels[home?arrows:labels.length-1];
-            const nodes=[...xml.matchAll(/<node\b[^>]*text="([^"]*)"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/g)];
-            const match=nodes.find(node=>node[1].replaceAll('&amp;','&').replaceAll('&quot;','"')===wanted);
+            const wantedIndex=home?arrows:labels.length-1,wanted=labels[wantedIndex];
+            let match;
+            for(let attempt=0;attempt<8&&!match;attempt++){
+                adbCall('shell','uiautomator','dump',uiDump);
+                const xml=adbCall('shell','cat',uiDump).toString('utf8');
+                const nodes=[...xml.matchAll(/<node\b[^>]*text="([^"]*)"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/g)];
+                match=nodes.find(node=>/class="android.widget.(?:CheckedTextView|RadioButton)"/.test(node[0])&&node[1].replaceAll('&amp;','&').replaceAll('&quot;','"')===wanted);
+            }
             assert.ok(match,'Native Android option visible: '+wanted);
+            const choiceToken=randomUUID();
+            await evaluate(`document.querySelector(${JSON.stringify(selector)}).addEventListener('click',()=>window.__t13Choice=${JSON.stringify(choiceToken)},{once:true})`);
             adbCall('shell','input','tap',String(Math.round((Number(match[2])+Number(match[4]))/2)),String(Math.round((Number(match[3])+Number(match[5]))/2)));
-            await delay(150);return;
+            await wait(`window.__t13Choice===${JSON.stringify(choiceToken)}&&document.querySelector(${JSON.stringify(selector)}).selectedIndex===${wantedIndex}`,'native Android choice committed: '+selector);
+            (report.native_selections??=[]).push({selector,wanted_index:wantedIndex,wanted,committed:true});return;
         }
         for(const key of [home?'Home':'End',...Array(arrows).fill('ArrowDown'),'Enter']){
             await call('Input.dispatchKeyEvent',{type:'keyDown',key});await call('Input.dispatchKeyEvent',{type:'keyUp',key});}
@@ -92,6 +100,7 @@ try{
     const check=async(label,expression)=>{assert.equal(await evaluate(expression),true,label);report.checks.push(label);};
     const capture=(samples=false)=>evaluate(`window.captureWeatherEvidence(${samples})`);
     await call('Page.enable');await call('Runtime.enable');await call('Network.enable');
+    if(android)await call('Page.addScriptToEvaluateOnNewDocument',{source:"window.__t13Inputs=[];for(const type of ['pointerdown','pointerup','click'])document.addEventListener(type,event=>{window.__t13Inputs.push({type,id:event.target.id,tag:event.target.tagName,x:event.clientX,y:event.clientY});if(window.__t13Inputs.length>80)window.__t13Inputs.shift();},true)"});
     report.browser=await call('Browser.getVersion');
     if(android){await call('Page.bringToFront');report.user_agent=await evaluate('navigator.userAgent');report.device_pixel_ratio=await evaluate('devicePixelRatio');}
     report.configuration={gpu_disabled:disabled,focused};
@@ -109,9 +118,11 @@ try{
         report.gpu=await evaluate("(()=>{const gl=document.querySelector('.maplibregl-canvas').getContext('webgl2'),debug=gl.getExtension('WEBGL_debug_renderer_info');return {renderer:gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER),version:gl.getParameter(gl.VERSION),highp_precision:gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER,gl.HIGH_FLOAT).precision,max_texture_size:gl.getParameter(gl.MAX_TEXTURE_SIZE),max_array_layers:gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)};})()");
         if(android){
             await wait("document.visibilityState==='visible'",'unlocked visible Galaxy tab');
-            await evaluate("window.__t13Inputs=[];for(const type of ['pointerdown','pointerup','click'])document.addEventListener(type,event=>{window.__t13Inputs.push({type,id:event.target.id,tag:event.target.tagName,x:event.clientX,y:event.clientY});if(window.__t13Inputs.length>80)window.__t13Inputs.shift();},true)");
         }
         const viewport={width,height,mobile_emulation:mobile&&!android,physical_mobile:android,views:[],canonical_picks:[]};report.viewports.push(viewport);
+        if(process.env.T15_UPDATES_ONLY==='1'){
+            await checkUpdates({call,evaluate,wait,select,click,capture,origin,report,directory,android});break;
+        }
         if(process.env.T14_NAVIGATION_ONLY==='1'){
             assert.equal(process.env.T14_NAVIGATION,'1');
             await checkNavigation({call,evaluate,wait,select,click,capture,origin,report});
@@ -223,6 +234,8 @@ try{
             await writeFile(join(directory,'navigation.png'),Buffer.from(shot.data,'base64'));
         }
     }
+    if(process.env.T15_UPDATES==='1'&&process.env.T15_UPDATES_ONLY!=='1'&&!disabled)
+        await checkUpdates({call,evaluate,wait,select,click,capture,origin,report,directory,android});
     assert.equal(report.errors.length,0,'No uncaught browser errors');
     assert.ok(report.requests.filter(r=>/^https?:/.test(r.url)).every(r=>r.url.startsWith(origin+'/')),'Runtime is local');
     assert.ok(report.requests.every(r=>!r.headers.some(h=>/authorization|x-api-key/i.test(h))),'No organization secrets');

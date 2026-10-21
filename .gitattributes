@@ -86,9 +86,15 @@ docs/evidence/t13/**/*.log -whitespace
 
 # T14 selection/race evidence and browser runner preserve validated bytes.
 tools/viewer-navigation.mjs text eol=lf
+tools/viewer-updates.mjs text eol=lf
+tools/publish-viewer-update.ps1 text eol=lf
+tools/viewer-update-reference.py text eol=lf
+tools/run-weather-viewer.ps1 text eol=lf
 docs/evidence/t14/** -text whitespace=cr-at-eol
 docs/evidence/t14/**/*.log -whitespace
 
 # Retrospective check logs keep their observed bytes.
 docs/evidence/retro-t14-checks/** -text whitespace=cr-at-eol
 docs/evidence/retro-t14-checks/**/*.log -whitespace
+docs/evidence/t15/** -text whitespace=cr-at-eol
+docs/evidence/t15/**/*.log -whitespace

@@ -1,5 +1,6 @@
 :root{color-scheme:dark;--page-font:system-ui,"Segoe UI",sans-serif;--panel:rgba(12,32,63,.10);--line:rgba(206,242,255,.25);--muted:#e0e9ed;--accent:#cef2ff;--brand:#1250a5;--sky:#00aced}
 *{box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden}
 body{margin:0;overflow:hidden;background:#293f4c;color:#fff;font:12px/1.4 var(--page-font)}
 button,select,input{font:inherit}
 button,select{color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px}
@@ -9,6 +10,8 @@ button{cursor:pointer}button:hover{border-color:var(--accent)}button:disabled{op
 small{display:block;color:var(--muted);font-size:10px}
 button[aria-pressed=true]{border-color:var(--sky)}
 main,#map{position:absolute;inset:0;width:100%;height:100%}
+main{position:fixed;overflow:hidden}
+#map{overflow:hidden}
 #map{cursor:crosshair;touch-action:none;isolation:isolate;z-index:0}
 .mapLabel{position:absolute;pointer-events:none;font-size:11px;color:#fff;text-shadow:0 1px 3px #102840,1px 0 3px #102840;z-index:2}
 .maplibregl-canvas{position:absolute;left:0;top:0}
@@ -70,6 +73,12 @@ dl{font-size:11px}dt{color:var(--muted);margin-top:6px}dd{margin:2px 0;overflow-
 .pointChart{position:relative}.pointChart svg{cursor:crosshair;touch-action:pan-y}.chartSample{pointer-events:none}.chartCursor{pointer-events:none}.chartCursor line{stroke:#ffffff90;stroke-width:.8;stroke-dasharray:2 3}.chartCursor circle{fill:#fff;stroke:var(--sky);stroke-width:2}.chartTooltip{position:absolute;top:24px;width:155px;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:rgba(12,32,63,.1);backdrop-filter:blur(10px);pointer-events:none;text-shadow:0 1px 3px #07141e;z-index:2}.pointChart .chartTooltip b{display:block;font-size:15px;margin:3px 0}.pointChart .chartTooltip small{font-size:9px}
 .connectionLinks{margin:14px 0;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.connectionLinks a{display:block;padding:8px 9px;margin:7px 0;color:var(--accent);border:1px solid var(--line);border-radius:6px;text-decoration:none;background:var(--panel)}.connectionLinks a:hover{border-color:var(--sky)}.connectionLinks p{font-size:10px}
 #mobilePoint{display:none}[hidden]{display:none!important}
+.updates{right:16px;top:80px;width:310px;padding:9px;z-index:6;overflow:auto;max-height:30dvh}
+.updates p{margin:0 0 6px}.updates button{margin:3px;max-width:100%}
+.sheetTabs{display:flex;gap:6px;margin:0 40px 10px 0;flex-wrap:wrap}
+.drawer .sheetTabs button{width:auto;flex:0 1 auto;padding:4px 8px}
+.drawer{overflow-x:hidden;overflow-wrap:anywhere}.drawer select{min-width:0;max-width:100%}
+.point strong.pointMessage,#mobilePoint strong.pointMessage{font-size:13px}
 @media(max-width:700px), (max-height:600px) and (orientation:landscape){
   .widgetToggle{display:list-item;cursor:pointer;min-height:32px;padding:7px 9px;font-size:11px;list-style-position:inside}
   .widgetToggle small{padding-left:13px;font-size:10px}
@@ -96,6 +105,9 @@ dl{font-size:11px}dt{color:var(--muted);margin-top:6px}dd{margin:2px 0;overflow-
   .notice{bottom:158px;width:calc(100% - 20px);max-width:none;padding:5px 8px;font-size:10px}
   .timeline{left:10px;right:10px;bottom:23px;padding:8px 10px}.timeHeading{flex-direction:column;gap:2px}.timeHeading span{font-size:10px}.timeControls{gap:5px}.timeControls label{font-size:10px;gap:5px;min-width:0}.timeControls select{max-width:160px;min-width:0;padding:5px}.timeControls button{min-height:30px}.attribution{font-size:8px;right:10px;bottom:4px}
   .drawer{left:10px;right:10px;top:auto;bottom:159px;width:auto;height:min(43dvh,360px);max-height:none;padding:8px 11px;z-index:5}.point{display:none}#mobilePoint{display:block;margin-bottom:8px}.drawer h2{font-size:14px}.drawer small{font-size:10px}
+  .updates{left:10px;right:10px;top:112px;width:auto;max-height:25dvh;padding:6px}
+  main:has(#forecastPanel[open]) .updates{visibility:hidden}
+  .sheetTabs{margin-right:40px}
   .fontPicker{left:10px;right:auto}
   .basemapAttribution select{max-width:125px}
   .navigation,.legend{bottom:calc(var(--time-height,34px) + 75px)}

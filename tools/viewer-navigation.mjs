@@ -24,16 +24,32 @@ export const navigationDelays=`(()=>{
     Response.prototype.arrayBuffer=async function(){const bytes=await arrayBuffer.call(this);
         if(this.url.includes('/native/'))await hold('decode',this.url);return bytes;};
     Response.prototype.text=async function(){const bytes=await text.call(this);
+        if(this.url.includes('/api/v1/catalogue'))await hold('catalogue',this.url);
         if(this.url.includes('/point?'))await hold('point',this.url);return bytes;};
-    const raf=window.requestAnimationFrame;
-    window.requestAnimationFrame=callback=>raf(async time=>{
-        if(gate.stage==='upload'&&gate.hit&&!gate.released)await new Promise(resolve=>gate.waiters.push(()=>resolve()));
-        callback(time);
-    });
+    const raf=window.requestAnimationFrame,caf=window.cancelAnimationFrame,cancelled=new Set();
+    window.requestAnimationFrame=callback=>{
+        const id=raf(async time=>{
+            if(gate.stage==='upload'&&gate.hit&&!gate.released)await new Promise(resolve=>gate.waiters.push(()=>resolve()));
+            if(!cancelled.delete(id))callback(time);
+        });return id;
+    };
+    window.cancelAnimationFrame=id=>{cancelled.add(id);caf(id);};
+    const arrays=new Map(),allocate=WebGL2RenderingContext.prototype.texImage3D;
+    WebGL2RenderingContext.prototype.texImage3D=function(...args){
+        const result=allocate.apply(this,args);
+        if(args[0]===this.TEXTURE_2D_ARRAY&&args[2]===this.RG32F){
+            arrays.set(this.getParameter(this.TEXTURE_BINDING_2D_ARRAY),args[3]*args[4]*args[5]*8);
+            gate.arrayBytes=[...arrays.values()].reduce((a,b)=>a+b,0);
+            gate.maxArrayBytes=Math.max(gate.maxArrayBytes??0,gate.arrayBytes);
+            gate.maxArrays=Math.max(gate.maxArrays??0,arrays.size);
+        }return result;
+    };
     const upload=WebGL2RenderingContext.prototype.texSubImage3D;
     WebGL2RenderingContext.prototype.texSubImage3D=function(...args){
+        if(gate.failUpload){gate.failUpload=false;throw Error('Явная тестовая ошибка загрузки GPU');}
         const result=upload.apply(this,args);
         gate.writes++;
+        if(gate.textureDeleted&&this.getParameter(this.TEXTURE_BINDING_2D_ARRAY)===gate.texture)gate.retiredWrites=(gate.retiredWrites??0)+1;
         if(gate.stage==='upload'&&!gate.hit){gate.hit=true;gate.waiters=[];
             gate.texture=this.getParameter(this.TEXTURE_BINDING_2D_ARRAY);gate.textureDeleted=false;
             gate.history.push({stage:'upload',event:'real texture write before pause'});
@@ -42,6 +58,7 @@ export const navigationDelays=`(()=>{
     };
     const deleteTexture=WebGL2RenderingContext.prototype.deleteTexture;
     WebGL2RenderingContext.prototype.deleteTexture=function(texture){gate.deletions++;
+        arrays.delete(texture);gate.arrayBytes=[...arrays.values()].reduce((a,b)=>a+b,0);
         if(texture===gate.texture)gate.textureDeleted=true;return deleteTexture.call(this,texture);};
 })()`;
 
@@ -74,7 +91,7 @@ export async function checkNavigation({call,evaluate,wait,select,click,capture,o
     assert.equal(initial.selected.valid_time,'2026-10-15T01:00:00Z');
     assert.match(await evaluate("document.getElementById('forecastSummary').textContent"),/Тестовый/);
     const newest=initial.selected;
-    const actualRunIndex=await evaluate("[...document.getElementById('run').options].findIndex(option=>JSON.parse(option.value)[1].startsWith('ICON-EU/'))");
+    const actualRunIndex=await evaluate("[...document.getElementById('run').options].findIndex(option=>JSON.parse(option.value)[1].startsWith('ICON-EU/')&&!option.textContent.includes('Тест'))");
     assert.ok(actualRunIndex>0,'Real retained run follows newest fixture revisions');
     const results=[];
     const missing=async()=>{

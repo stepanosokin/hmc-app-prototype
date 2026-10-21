@@ -22,10 +22,21 @@ let selected:Selection|undefined,data:FieldData|undefined,map:any,layer:WeatherL
 let position:Position|undefined,point:PointResult|undefined,pointController=new AbortController();
 let center=[19.5,53],viewVersion=0,selectionVersion=0,mapWork=Promise.resolve();
 let mapMode:Mode='mercator';
+let mapBaseCenter:number[]=[],mapBaseProjection:any;
 let ownedCanvas:HTMLCanvasElement|undefined;
 let screenPick:unknown;
 let unit='C',alternate=false,light=false,pointCollapsed=false,lost=false,rendererError='';
 let metadata:unknown,bootController=new AbortController(),pendingGroups:PublishedGroup[]|undefined;
+const updateLoader=new FieldLoader();
+let updateController=new AbortController(),catalogueController=new AbortController(),updateBusy=false;
+let stagedLayer:WeatherLayer|undefined,stagedMap:any,dismissedPublication='',updateSerial=0;
+function cancelUpdate(){
+    const wasBusy=updateBusy;
+    updateController.abort();updateLoader.cancel();updateBusy=false;
+    if(stagedLayer&&stagedMap?.getLayer(stagedLayer.id))stagedMap.removeLayer(stagedLayer.id);
+    stagedLayer=undefined;stagedMap=undefined;
+    if(wasBusy)updateMessage('Обновление отменено. Текущая выборка сохранена.');
+}
 let firstCompleteMs:number|undefined,lastFrame:number|undefined;const frames:number[]=[];
 const renderTimes:number[]=[];let warmSwitchMs:number|undefined;
 const panels=['forecastPanel','navigationPanel','legendPanel','timelinePanel'].map(id=>$<HTMLDetailsElement>(id));
@@ -47,7 +58,7 @@ function selectionDetails(){
     const valid=new Date(group.start+index*3600000).toISOString();
     text('valid','Прогноз: '+timestamp(valid));text('compactTime',timestamp(valid));text('timeLabel',timestamp(valid));
     text('selectionIdentity','Редакция '+source.revision.slice(0,12));
-    text('forecastSummary',(source.fixture==='overlap'?'Тестовый перекрывающийся расчёт · ':'')+source.model+' · '+timestamp(referenceTime(source.run)));
+    text('forecastSummary',(source.fixture==='overlap'?'Тестовый перекрывающийся расчёт · ':source.fixture==='correction'?'Тестовая коррекция +1 K · ':'')+source.model+' · '+timestamp(referenceTime(source.run)));
     text('availability',selected?'Срок опубликован':'Срок отсутствует');
     const age=Math.max(0,Math.floor((Date.now()-Date.parse(referenceTime(source.run)))/3600000));
     const completeness=source.completeness==='complete'?'полный':source.completeness==='partial'?'неполный':'неизвестна';
@@ -65,8 +76,8 @@ function timeControls(){
 function syncTime(){control('time').value=String(index);$<HTMLInputElement>('timeRange').value=String(index);
     $<HTMLButtonElement>('previous').disabled=index===0;$<HTMLButtonElement>('next').disabled=index===(group?.times.length??1)-1;}
 function setGroup(newGroup:PublishedGroup){group=newGroup;index=0;timeControls();void chooseTime(0);}
-function clearPoint(){pointController.abort();point=undefined;position=undefined;pointCollapsed=false;
-    $('drawer').hidden=true;placePoint();}
+function clearPoint(){cancelUpdate();pointController.abort();point=undefined;position=undefined;pointCollapsed=false;
+    $('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');placePoint();}
 function releaseLayer(){
     const previous=layer;layer=undefined;
     previous?.context?.remove();
@@ -74,8 +85,11 @@ function releaseLayer(){
 }
 async function chooseTime(next:number){
     if(!group)return;index=Math.max(0,Math.min(group.times.length-1,next));syncTime();
+    cancelUpdate();const sheetOpen=!$('drawer').hidden,settingsOpen=sheetOpen&&!$('settingsBody').hidden;
     const version=++selectionVersion;++viewVersion;loader.cancel();clearPoint();
+    if(settingsOpen)openDrawer();
     renderPoint('Выбор прогноза изменён. Выберите точку заново.');
+    if(sheetOpen&&!settingsOpen&&mobile())openDrawer(true);
     selected=group.times[index]??undefined;data=undefined;metadata=undefined;
     releaseLayer();
     selectionDetails();layout();
@@ -123,11 +137,12 @@ async function rebuild(fit=false){
         map.dragRotate.disable();map.touchZoomRotate.disableRotation();
         const canvas=map.getCanvas();
         ownedCanvas=canvas;
-        canvas.addEventListener('webglcontextlost',(event:Event)=>{if(ownedCanvas!==canvas)return;event.preventDefault();lost=true;loader.cancel();
+        canvas.addEventListener('webglcontextlost',(event:Event)=>{if(ownedCanvas!==canvas)return;event.preventDefault();lost=true;cancelUpdate();loader.cancel();
             ++selectionVersion;notice('Графический контекст потерян. Ожидается восстановление.');placePoint();});
         canvas.addEventListener('webglcontextrestored',()=>{if(ownedCanvas!==canvas)return;lost=false;ownedCanvas=undefined;releaseLayer();map.remove();map=undefined;
             if(data)void rebuild(true);else void chooseTime(index);});
         layer=new WeatherLayer(currentData,mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
+        mapBaseCenter=[...layer.baseCenter];mapBaseProjection=layer.baseProjection;
         map.addLayer(layer);layer.setPalette(alternate);
         if(mode!=='mercator')layer.context=new LocalContext(map,coverage(mode==='orthographic'),mode);
         else{map.addSource('coverage',{type:'geojson',data:coverage()});map.addLayer({id:'coverage',source:'coverage',type:'line',paint:{'line-color':'#fff','line-width':1}});}
@@ -196,6 +211,7 @@ function renderPoint(message?:string){
         const coordinate=document.createElement('small');coordinate.textContent=position?degrees(position.lng)+' в. д. · '+degrees(position.lat)+' с. ш.':'';
         const value=document.createElement('strong');value.textContent=message??(point?.value!=null?valueText(point.value):
             point?.reason==='outside_coverage'?'Вне покрытия':point?.reason==='native_nodata'?'Нет данных в нативной ячейке':'Загрузка значения…');
+        value.classList.toggle('pointMessage',Boolean(message));
         const details=document.createElement('details'),summary=document.createElement('summary'),provenance=document.createElement('p');
         summary.textContent='Ячейка и происхождение';provenance.textContent=point?
             'Ближайшая нативная ячейка · точный срок UTC. '+(point.cell?`Строка ${point.cell.row}, столбец ${point.cell.column}; ${degrees(point.cell.lon)}, ${degrees(point.cell.lat)}. `:'')+
@@ -216,24 +232,42 @@ async function pickScreen(event:any){
     const projected=layer.project([candidate.lng,candidate.lat]);
     if(Math.hypot(projected.x-pixel[0],projected.y-pixel[1])>.5)return;
     screenPick={pixel:[pixel[0]*dpr,pixel[1]*dpr],...g,center:[...center],mode:mode==='orthographic'?'hmc:orthographic':mode==='laea'?'EPSG:3576':'mercator'};
-    pointController.abort();pointController=new AbortController();const signal=pointController.signal,current=selected;
+    cancelUpdate();pointController.abort();pointController=new AbortController();const signal=pointController.signal,current=selected;
     position=candidate;point=undefined;pointCollapsed=false;renderPoint();
     if(mobile())openDrawer(true);
+    try{
+        const result=await pointValue(current,candidate,signal);signal.throwIfAborted();if(current!==selected)return;
+        point=result;renderPoint();
+    }catch(error){if(!signal.aborted)renderPoint('Не удалось получить значение. Повторите выбор точки.');}
+}
+async function pointValue(current:Selection,candidate:Position,signal:AbortSignal){
     const query=new URLSearchParams({selection:current.selection,run:current.run,revision:current.revision,
         valid_time:current.valid_time,layer:current.field,lon:String(candidate.lng),lat:String(candidate.lat),
         crs:'http://www.opengis.net/def/crs/OGC/1.3/CRS84'});
-    try{
-        const result=await json<PointResult>('/api/v1/point?'+query,signal);signal.throwIfAborted();
-        if(current!==selected||['selection','run','revision','valid_time','field'].some(key=>result[key as keyof PointResult]!==current[key as keyof Selection])||
-            result.spatial_selection!=='nearest-native-cell'||result.units!=='K')throw Error('Несогласованное значение точки.');
-        point=result;renderPoint();
-    }catch(error){if(!signal.aborted)renderPoint('Не удалось получить значение. Повторите выбор точки.');}
+    const result=await json<PointResult>('/api/v1/point?'+query,signal);signal.throwIfAborted();
+    if(['selection','run','revision','valid_time','field'].some(key=>result[key as keyof PointResult]!==current[key as keyof Selection])||
+        result.spatial_selection!=='nearest-native-cell'||result.units!=='K')throw Error('Несогласованное значение точки.');
+    return result;
+}
+function changeProjection(next:Mode,fit=false){
+    cancelUpdate();pointController.abort();pointController=new AbortController();
+    const signal=pointController.signal,current=selected,candidate=position;
+    mode=next;control('projection').value=mode;void rebuild(fit);
+    if(current&&candidate){
+        point=undefined;renderPoint();
+        void pointValue(current,candidate,signal).then(result=>{
+            if(!signal.aborted&&current===selected&&candidate===position){point=result;renderPoint();}
+        }).catch(()=>{if(!signal.aborted)renderPoint('Не удалось получить значение. Повторите выбор точки.');});
+    }
 }
 function openDrawer(pointMode=false){
     if(mobile())for(const panel of panels)panel.open=false;
     $('drawer').hidden=false;$('drawer').classList.toggle('pointMode',pointMode);
     $('settingsBody').hidden=pointMode;$('mobilePoint').hidden=!pointMode;
-    $('collapsePoint').hidden=!pointMode;
+    text('closeDrawer',pointMode?'⌄':'Свернуть ⌄');
+    $('clearMobilePoint').hidden=!position;
+    $('sheetPoint').hidden=!position;
+    $('settings').setAttribute('aria-expanded','true');layout();
 }
 function palette(){
     for(const e of document.querySelectorAll('.unit'))e.textContent=unit==='C'?'°C':'K';
@@ -258,8 +292,8 @@ function layout(){
     else document.querySelector<HTMLElement>('.projectionControl')!.style.top='';
     map?.resize();placePoint();
 }
-control('projection').onchange=()=>{mode=control('projection').value as Mode;void rebuild();};
-$('useMercator').onclick=()=>{mode='mercator';control('projection').value=mode;void rebuild(true);};
+control('projection').onchange=()=>changeProjection(control('projection').value as Mode);
+$('useMercator').onclick=()=>changeProjection('mercator',true);
 $('fit').onclick=fitCoverage;
 $('zoomIn').onclick=()=>map?.zoomIn();$('zoomOut').onclick=()=>map?.zoomOut();
 for(const [id,delta] of [['west',-20],['east',20]] as const)$(id).onclick=()=>{
@@ -271,8 +305,8 @@ $<HTMLInputElement>('timeRange').oninput=event=>void chooseTime(Number((event.ta
 $('previous').onclick=()=>void chooseTime(index-1);$('next').onclick=()=>void chooseTime(index+1);
 control('run').onchange=()=>{const found=groups.find(item=>item.key===control('run').value);if(found)setGroup(found);};
 $('settings').onclick=()=>openDrawer();$('temperature').onclick=()=>openDrawer();
-$('closeDrawer').onclick=()=>{$('drawer').hidden=true;pointCollapsed=true;placePoint();};
-$('collapsePoint').onclick=$('closeDrawer').onclick;
+$('sheetSettings').onclick=()=>openDrawer();$('sheetPoint').onclick=()=>openDrawer(true);
+$('closeDrawer').onclick=()=>{$('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');pointCollapsed=true;layout();};
 $('showPoint').onclick=()=>{pointCollapsed=false;if(mobile())openDrawer(true);placePoint();};
 $('closePoint').onclick=clearPoint;
 $('clearMobilePoint').onclick=clearPoint;
@@ -281,7 +315,8 @@ control('basemap').onchange=()=>{light=control('basemap').value==='light';update
 control('font').onchange=()=>{document.documentElement.style.setProperty('--page-font',control('font').value==='courier'?'"Courier New",monospace':'system-ui,"Segoe UI",sans-serif');layout();};
 $('retry').onclick=()=>groups.length?void chooseTime(index):void boot();
 for(const panel of panels){panel.open=!mobile();panel.addEventListener('toggle',()=>{
-    if(mobile()&&panel.open){for(const other of panels)if(other!==panel)other.open=false;$('drawer').hidden=true;}
+    if(mobile()&&panel.open){for(const other of panels)if(other!==panel)other.open=false;
+        if(panel.id!=='timelinePanel'){$('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');}}
     layout();});}
 addEventListener('resize',layout);
 // One Map and orthographic camera during drag. MapLibre retains pinch/scroll zoom.
@@ -314,23 +349,94 @@ const endDrag=(event:PointerEvent)=>{
 };
 container.addEventListener('pointerup',endDrag);container.addEventListener('pointercancel',endDrag);
 container.addEventListener('click',event=>{if(suppressClick){event.stopImmediatePropagation();suppressClick=false;}},true);
-async function catalogue(){return publishedGroups((await json<{selections:Selection[]}>('/api/v1/catalogue',bootController.signal)).selections,validationFixtures);}
-function runControls(){control('run').replaceChildren(...groups.map(item=>new Option((item.selection.fixture==='overlap'?'Тестовый расчёт · ':'')+item.selection.model+' · '+timestamp(referenceTime(item.selection.run))+' · '+item.selection.revision.slice(0,8),item.key)));
+async function catalogue(signal=bootController.signal){return publishedGroups((await json<{selections:Selection[]}>('/api/v1/catalogue',signal)).selections,validationFixtures);}
+function runControls(){control('run').replaceChildren(...groups.map(item=>new Option((item.selection.fixture==='overlap'?'Тестовый расчёт · ':item.selection.fixture==='correction'?'Тестовая коррекция +1 K · ':'')+item.selection.model+' · '+timestamp(referenceTime(item.selection.run))+' · '+item.selection.revision.slice(0,8),item.key)));
     if(group)control('run').value=group.key;}
-$('refresh').onclick=async()=>{try{
-    pendingGroups=await catalogue();
-    const changed=pendingGroups.length>0&&JSON.stringify(pendingGroups)!==JSON.stringify(groups);
-    text('updateStatus',changed?'Есть новая публикация. Текущая выборка сохранена до подтверждения.':'Новых публикаций нет.');
-    $('acceptUpdate').hidden=!changed;
-}catch{text('updateStatus','Не удалось проверить обновления. Текущая выборка сохранена.');}};
-$('acceptUpdate').onclick=()=>{if(!pendingGroups?.length)return;groups=pendingGroups;runControls();setGroup(groups[0]);control('run').value=groups[0].key;$('acceptUpdate').hidden=true;};
+function sameRun(item:PublishedGroup){return group&&['model','run','field','level'].every(key=>item.selection[key as keyof Selection]===group!.selection[key as keyof Selection]);}
+function updateActions(){
+    const revision=pendingGroups?.find(sameRun);
+    $('acceptUpdate').hidden=!revision||revision.key===group?.key;
+    $('latestRun').hidden=!pendingGroups?.some(item=>!sameRun(item)&&referenceTime(item.selection.run)>referenceTime(group?.selection.run??''));
+}
+function updateMessage(message:string){text('updateStatus',message);$('updates').hidden=false;}
+async function checkUpdates(manual=false){
+    if(updateBusy)return;
+    catalogueController.abort();catalogueController=new AbortController();const signal=catalogueController.signal;
+    try{
+        const latest=await catalogue(signal);signal.throwIfAborted();
+        const newestRevision=latest.find(sameRun);
+        const changed=Boolean(newestRevision&&newestRevision.key!==group?.key)||latest.some(item=>!sameRun(item)&&referenceTime(item.selection.run)>referenceTime(group?.selection.run??''));
+        pendingGroups=changed?latest:undefined;updateActions();
+        if(changed&&JSON.stringify(latest.map(item=>item.key))!==dismissedPublication)
+            updateMessage('Есть новая публикация. Текущая выборка сохранена до подтверждения.');
+        else if(manual)updateMessage(changed?'Обновление отложено. Выборка сохранена.':'Новых публикаций нет.');
+    }catch(error){if(!signal.aborted){pendingGroups=undefined;updateActions();updateMessage('Не удалось проверить обновления. Текущая выборка сохранена.');}}
+}
+async function acceptPublication(newRun=false){
+    if(updateBusy||!pendingGroups||!group||!map||(selected&&!layer?.ready)||lost||rendererError)return;
+    const catalogueSnapshot=pendingGroups;
+    const target=catalogueSnapshot.find(item=>newRun?!sameRun(item)&&referenceTime(item.selection.run)>referenceTime(group!.selection.run):sameRun(item));
+    if(!target||target.key===group.key)return;
+    const targetIndex=newRun?0:Math.round((group.start+index*3600000-target.start)/3600000);
+    const current=target.times[targetIndex];
+    if(!current){updateMessage('Выбранный срок отсутствует в новой редакции. Текущая выборка сохранена.');return;}
+    cancelUpdate();catalogueController.abort();updateController=new AbortController();updateBusy=true;
+    const transaction=updateController;
+    const signal=AbortSignal.any([transaction.signal,AbortSignal.timeout(30000)]),owner=map;
+    const oldSelection=selected,oldPosition=position;
+    updateMessage('Загрузка обновления… Текущая выборка остаётся доступна.');
+    let candidate:WeatherLayer|undefined;
+    const abortField=()=>updateLoader.cancel();signal.addEventListener('abort',abortField,{once:true});
+    try{
+        const fieldPromise=updateLoader.load(current);
+        const [field,description,nextPoint]=await Promise.all([fieldPromise,json<unknown>(current.collection,signal),
+            !newRun&&oldPosition?pointValue(current,oldPosition,signal):Promise.resolve(undefined)]);
+        signal.throwIfAborted();
+        if(owner!==map||oldSelection!==selected)return;
+        // One visible field plus one bounded staging texture. Never draw partial data.
+        const extra=field.bytes+258*258*8+258*258*18*8;
+        if((layer?.checkBudget()??map.getCanvas().width*map.getCanvas().height*28)+extra>128*1024**2)throw Error('Превышен бюджет обновления GPU.');
+        candidate=new WeatherLayer(field,mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
+        // MapLibre's projected plane is fixed when the Map is created. Globe
+        // rotation changes the shader camera, not this geometry calibration.
+        candidate.baseCenter=[...mapBaseCenter];candidate.baseProjection=mapBaseProjection;
+        candidate.id='native-update-'+(++updateSerial);candidate.staged=true;stagedLayer=candidate;stagedMap=owner;
+        const abort=()=>{if(owner.getLayer(candidate!.id))owner.removeLayer(candidate!.id);};
+        signal.addEventListener('abort',abort,{once:true});
+        try{owner.addLayer(candidate,owner.getLayer('coverage')?'coverage':undefined);await candidate.prepared(signal);}finally{signal.removeEventListener('abort',abort);}
+        signal.throwIfAborted();if(owner!==map||oldSelection!==selected)return;
+        pointController.abort();
+        if(layer){candidate.context=layer.context;layer.context=undefined;}
+        if(mode==='orthographic')candidate.setCenter(center,projection());
+        releaseLayer();layer=candidate;candidate.staged=false;stagedLayer=undefined;stagedMap=undefined;
+        data=field;metadata=description;selected=current;group=target;index=targetIndex;
+        if(mode!=='mercator'&&!candidate.context)candidate.context=new LocalContext(map,coverage(mode==='orthographic'),mode);
+        groups=catalogueSnapshot;pendingGroups=undefined;runControls();timeControls();selectionDetails();
+        point=nextPoint;if(newRun){position=undefined;pointCollapsed=false;}
+        layer.setPalette(alternate);renderPoint();updateActions();
+        updateMessage('Публикация обновлена по вашему запросу.');layout();
+    }catch(error){if(!transaction.signal.aborted)
+        updateMessage('Не удалось принять обновление. Текущая выборка сохранена. Повторите попытку.');
+    }finally{
+        signal.removeEventListener('abort',abortField);
+        if(candidate&&candidate!==layer&&owner.getLayer(candidate.id))owner.removeLayer(candidate.id);
+        // A newer transaction may already own staging resources.
+        if(stagedLayer===candidate){stagedLayer=undefined;stagedMap=undefined;}
+        if(transaction===updateController){updateBusy=false;updateLoader.cancel();}
+    }
+}
+$('refresh').onclick=()=>void checkUpdates(true);
+$('acceptUpdate').onclick=()=>void acceptPublication();
+$('latestRun').onclick=()=>void acceptPublication(true);
+$('declineUpdate').onclick=()=>{cancelUpdate();dismissedPublication=JSON.stringify(pendingGroups?.map(item=>item.key));$('updates').hidden=true;};
+const poll=setInterval(()=>{if(!document.hidden)void checkUpdates();},60000);
 async function boot(){
     bootController.abort();bootController=new AbortController();notice('Загрузка опубликованных прогнозов…');
     try{groups=await catalogue();if(!groups.length){notice('Опубликованные прогнозы недоступны.');return;}
         runControls();setGroup(groups[0]);control('run').value=groups[0].key;
     }catch(error){notice((error as Error).name==='AbortError'?'Загрузка отменена.':'Сервис прогнозов недоступен. Откройте настройки и повторите загрузку.');}
 }
-addEventListener('pagehide',()=>{++viewVersion;++selectionVersion;data=undefined;loader.cancel();pointController.abort();bootController.abort();cancelAnimationFrame(inertia);ownedCanvas=undefined;releaseLayer();map?.remove();});
+addEventListener('pagehide',()=>{clearInterval(poll);cancelUpdate();catalogueController.abort();++viewVersion;++selectionVersion;data=undefined;loader.cancel();pointController.abort();bootController.abort();cancelAnimationFrame(inertia);ownedCanvas=undefined;releaseLayer();map?.remove();});
 // Read-only numerical evidence surface, enabled solely by an explicit validation URL.
 function numericalView(){
     if(!layer?.ready||lost)return undefined;
