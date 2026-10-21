@@ -67,6 +67,10 @@ For a large archive, read committed object identities once with
 then compare the path/object map with the artifact index in one process.
 Retain the per-input prospective-filter check before acceptance. Thousands of
 individual `git rev-parse` processes add overhead without stronger verification.
+For newly added evidence, run the staged diff check before the ticket commit:
+an unstaged check omits new files. Preserve raw historical input snapshots;
+report their existing whitespace separately from changed source/documentation
+checks, with the exact snapshot-only exclusion recorded in validation.
 
 For Node subprocesses reading a repository-wide Git index, set an explicit output
 buffer large enough for the archive (T13 used 64 MiB), or stream the output.

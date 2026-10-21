@@ -99,3 +99,9 @@ visibility/revision ordering, weak race proof and a temporary archive verifier
 missing from CI. The existing Python checker now covers T14 with synthetic
 negative cases; browser guidance brings the focused scenario and input-freeze
 pointer forward. The accepted T14 archive and viewer remain unchanged.
+
+The [T15 retrospective](retro-t15.md) records the temporary update-archive audit,
+Android viewport/native-selection failures, mixed test-revision filtering and
+late staged whitespace findings. CI now verifies the accepted desktop/physical
+Android archive through the existing evidence entry point and synthetic negative
+cases; focused browser and publication guidance cover the remaining lessons.
