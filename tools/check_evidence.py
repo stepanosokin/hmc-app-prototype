@@ -72,6 +72,24 @@ def check_browser_report(root: Path, prefix: str, selection: dict[str, Any],
         if ticket == 't24':
             verify((root / selected).parent / 'inputs' / name, checksum)
     if ticket == 't24':
+        if report.get('scope') != ('T24 projection mockup; desktop browser and emulated mobile viewport, '
+                                   'not real hardware or production GPU/API'):
+            raise ValueError('T24 selected report is not full acceptance')
+        sizes = {(1038, 465), (844, 390), (740, 360), (667, 375), (640, 360)}
+        observed = {tuple(item['viewport']) for item in report.get('landscape_repro', [])}
+        if not sizes.issubset(observed):
+            raise ValueError('T24 landscape matrix is incomplete')
+        required = set()
+        for width, height in sizes:
+            name = f'landscape-{width}x{height}'
+            required.update({name+' controls start collapsed',
+                             name+' collapsed panels are inside viewport without intersections',
+                             name+' rotating to portrait retains forecast and point',
+                             name+' rotating back retains point with clear layout'})
+            required.update(name+' '+panel+' replaces point drawer without losing selection'
+                            for panel in ('forecastPanel', 'navigationPanel', 'legendPanel', 'timelinePanel'))
+        if not required.issubset(report['checks']):
+            raise ValueError('T24 layout interactions are incomplete')
         reference = json.loads(((root / selected).parent / 'geometry-reference.json').read_bytes())
         executable = report.get('browser_executable', '').lower()
         expected = 'chrome.exe' if selection['browser'] == 'chrome' else 'msedge.exe'

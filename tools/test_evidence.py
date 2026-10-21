@@ -22,12 +22,24 @@ class T24Evidence(unittest.TestCase):
         (self.root / 'prototype.js').write_bytes(source)
         self.source = source
         self.selections = []
+        sizes = [(1038, 465), (844, 390), (740, 360), (667, 375), (640, 360)]
+        layout_checks = []
+        for width, height in sizes:
+            name = f'landscape-{width}x{height}'
+            layout_checks += [name+' controls start collapsed',
+                             name+' collapsed panels are inside viewport without intersections',
+                             name+' rotating to portrait retains forecast and point',
+                             name+' rotating back retains point with clear layout']
+            layout_checks += [name+' '+panel+' replaces point drawer without losing selection'
+                              for panel in ('forecastPanel', 'navigationPanel', 'legendPanel', 'timelinePanel')]
         for browser, executable in (('chrome', 'chrome.exe'), ('edge', 'msedge.exe')):
             directory = self.archive / browser
             (directory / 'inputs').mkdir(parents=True)
             (directory / 'inputs/prototype.js').write_bytes(source)
             (directory / 'validation.json').write_text(json.dumps({
-                'status': 'passed', 'checks': ['visible interaction'], 'errors': [], 'external_requests': [],
+                'status': 'passed', 'checks': layout_checks, 'errors': [], 'external_requests': [],
+                'scope': 'T24 projection mockup; desktop browser and emulated mobile viewport, not real hardware or production GPU/API',
+                'landscape_repro': [{'viewport': list(size)} for size in sizes],
                 'inputs': {'prototype.js': hashlib.sha256(source).hexdigest()},
                 'browser_executable': executable,
                 'cleanup': {'browser_processes_remaining': 0, 'profile_removed': True,
@@ -37,7 +49,7 @@ class T24Evidence(unittest.TestCase):
                 'status': 'passed', 'controls': 57, 'max_error_px': .001,
                 'forward_tolerance_px': .05, 'inverse_tolerance_deg': 1e-5,
             }))
-            self.selections.append({'browser': browser, 'report': f'docs/evidence/t24/{browser}/validation.json', 'checks': 1})
+            self.selections.append({'browser': browser, 'report': f'docs/evidence/t24/{browser}/validation.json', 'checks': len(layout_checks)})
         self.save_index()
 
     def save_index(self) -> None:
@@ -82,6 +94,34 @@ class T24Evidence(unittest.TestCase):
     def test_rejects_unindexed_artifact(self) -> None:
         (self.archive / 'unindexed.png').write_bytes(b'forgotten evidence')
         with self.assertRaisesRegex(ValueError, 'coverage'):
+            check_browser_archive(self.root, 't24')
+
+    def test_rejects_focused_success_even_after_rehash(self) -> None:
+        path = self.archive / 'edge/validation.json'
+        report = json.loads(path.read_bytes())
+        report['scope'] = 'Focused landscape layout regression only; not full T24 acceptance'
+        path.write_text(json.dumps(report))
+        self.save_index()
+        with self.assertRaisesRegex(ValueError, 'full acceptance'):
+            check_browser_archive(self.root, 't24')
+
+    def test_rejects_missing_landscape_size_even_after_rehash(self) -> None:
+        path = self.archive / 'edge/validation.json'
+        report = json.loads(path.read_bytes())
+        report['landscape_repro'].pop()
+        path.write_text(json.dumps(report))
+        self.save_index()
+        with self.assertRaisesRegex(ValueError, 'landscape matrix'):
+            check_browser_archive(self.root, 't24')
+
+    def test_rejects_missing_transition_even_with_matching_count_and_hashes(self) -> None:
+        path = self.archive / 'edge/validation.json'
+        report = json.loads(path.read_bytes())
+        report['checks'].pop()
+        path.write_text(json.dumps(report))
+        self.selections[1]['checks'] = len(report['checks'])
+        self.save_index()
+        with self.assertRaisesRegex(ValueError, 'layout interactions'):
             check_browser_archive(self.root, 't24')
 
 
