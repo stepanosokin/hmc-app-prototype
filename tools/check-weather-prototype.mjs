@@ -1,18 +1,29 @@
 // Visible-control checks for the T22 mockup. No API/GPU or real-device claim.
 import {spawn, execFileSync} from 'node:child_process';
 import {readFile, writeFile, mkdir, rm} from 'node:fs/promises';
-import {resolve, join} from 'node:path';
+import {resolve, join, dirname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {randomUUID, createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 
-const root=resolve('.'), directory=resolve(process.env.T22_REPORT_DIRECTORY || 'data/reports/t22');
+const projections=process.argv.includes('--projections');
+const controlsOnly=process.argv.includes('--mobile-controls');
+const landscapeOnly=process.argv.includes('--landscape-only');
+const root=resolve('.'), directory=resolve(process.env.T22_REPORT_DIRECTORY || (projections?'data/reports/t24':'data/reports/t22'));
 const profile=resolve('data', 't22-browser-'+randomUUID());
 const executable=process.env.T22_CHROME || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 await mkdir(directory,{recursive:true});
 const report={scope:'T22 visual mockup; desktop Chrome and emulated mobile viewport, not real mobile hardware',starting_commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),checks:[],screenshots:[],errors:[],external_requests:[],inputs:{},cleanup:{}};
-for(const path of ['docs/prototypes/weather-map.prototype.html','docs/prototypes/weather-map.prototype.css','docs/prototypes/weather-map.prototype.js','docs/prototypes/assets/land.js','tools/check-weather-prototype.mjs']) report.inputs[path]=createHash('sha256').update(await readFile(path)).digest('hex');
+if(projections)report.scope='T24 projection mockup; desktop browser and emulated mobile viewport, not real hardware or production GPU/API';
+if(controlsOnly)report.scope='Focused mobile controls probe only; not full T24 acceptance';
+if(landscapeOnly)report.scope='Focused landscape layout regression only; not full T24 acceptance';
+for(const path of ['docs/prototypes/weather-map.prototype.html','docs/prototypes/weather-map.prototype.css','docs/prototypes/weather-map.prototype.js','docs/prototypes/weather-map.projections.js','docs/prototypes/assets/land.js',...['d3-array.min.js','d3-geo.min.js','proj4.js'].map(f=>'docs/prototypes/assets/vendor/'+f),'tools/check-weather-prototype.mjs',...(projections?['tools/weather-projection-checks.mjs','tools/weather-landscape-checks.mjs','tools/check-weather-geometry.py']:[])]){
+  const bytes=await readFile(path);report.inputs[path]=createHash('sha256').update(bytes).digest('hex');
+  if(projections){const target=join(directory,'inputs',path);await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes);}
+}
+report.owned_profile=profile;
+report.browser_executable=executable;
 const child=spawn(executable,['--headless=new','--no-first-run','--no-default-browser-check','--disable-background-networking','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{windowsHide:true,stdio:'ignore'});
 let socket,call;
 try{
@@ -25,25 +36,43 @@ try{
   let id=0;const pending=new Map();
   socket.onmessage=e=>{const message=JSON.parse(e.data);if(pending.has(message.id)){const p=pending.get(message.id);pending.delete(message.id);clearTimeout(p.timeout);message.error?p.reject(Error(JSON.stringify(message.error))):p.resolve(message.result);}else if(message.method==='Runtime.exceptionThrown')report.errors.push(message.params.exceptionDetails);else if(message.method==='Network.requestWillBeSent'&&/^https?:/.test(message.params.request.url))report.external_requests.push(message.params.request.url);};
   call=(method,params={})=>new Promise((res,rej)=>{const n=++id;const timeout=setTimeout(()=>{pending.delete(n);rej(Error('CDP timeout: '+method));},10000);pending.set(n,{resolve:res,reject:rej,timeout});socket.send(JSON.stringify({id:n,method,params}));});
-  const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
-  const check=async(name,expression)=>{assert.equal(await evaluate(expression),true,name);report.checks.push(name);};
+  const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
+  const check=async(name,expression)=>{const value=await evaluate(expression);if(value!==true)report.failure_dom=await evaluate("({focus:document.activeElement?.id,timezone:document.getElementById('timezone').value,point:document.getElementById('pointContent').textContent,reference:document.getElementById('reference').textContent,widgets:[...document.querySelectorAll('details[id]')].map(e=>[e.id,e.open])})");assert.equal(value,true,name);report.checks.push(name);};
   const click=async(selector,touch=false)=>{
+    if(selector==='#map')await collapseWidgets();
+    if(selector==='#closeDrawer'&&await evaluate("matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches&&document.getElementById('drawer').hidden")){await collapseWidgets();await click('#showPoint',true);}
+    const ancestors=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}),ids=[];for(let p=e.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS'&&!p.open&&e!==p.querySelector(':scope>summary'))ids.unshift(p.id);return ids;})()`);
+    for(const id of ancestors)await click('#'+id+'>summary',touch);
+    if(ancestors.length)await evaluate("new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))");
     const box=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const b=e.getBoundingClientRect();return {x:b.x+b.width/2,y:b.y+b.height/2};})()`);
+    const hit=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}),hit=document.elementFromPoint(${box.x},${box.y});return {visible:!!hit&&(hit===e||e.contains(hit)),actual:hit?.id||hit?.tagName};})()`);
+    if(!hit.visible){report.failed_input={selector,box,hit};throw Error('Input target is covered: '+JSON.stringify(report.failed_input));}
     if(touch){await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[box]});await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
     else{await call('Input.dispatchMouseEvent',{type:'mousePressed',...box,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',...box,button:'left',clickCount:1});}
+    if(selector.endsWith('>summary'))await evaluate("new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))");
   };
-  const key=async key=>{const code={Home:36,ArrowDown:40,Enter:13,Tab:9,Escape:27}[key];await call('Input.dispatchKeyEvent',{type:'rawKeyDown',key,windowsVirtualKeyCode:code});await call('Input.dispatchKeyEvent',{type:'keyUp',key,windowsVirtualKeyCode:code});};
+  const collapseWidgets=async()=>{
+    for(const id of ['forecastPanel','navigationPanel'])if(await evaluate(`matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches&&document.getElementById('${id}').open`))await click('#'+id+'>summary',true);
+    if(await evaluate("matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches&&!document.getElementById('drawer').hidden&&!document.getElementById('collapsePoint').hidden"))await click('#collapsePoint',true);
+  };
+  const key=async key=>{const code={Home:36,ArrowDown:40,Enter:13,Tab:9,Escape:27}[key];await call('Input.dispatchKeyEvent',{type:key==='Enter'?'keyDown':'rawKeyDown',key,windowsVirtualKeyCode:code,...(key==='Enter'?{code:'Enter',text:'\r',unmodifiedText:'\r'}:{})});await call('Input.dispatchKeyEvent',{type:'keyUp',key,windowsVirtualKeyCode:code});};
   const select=async(selector,index)=>{await click(selector);await key('Escape');await key('Home');for(let i=0;i<index;i++)await key('ArrowDown');await key('Tab');};
   const screenshot=async(name,clip)=>{await delay(150);const r=await call('Page.captureScreenshot',{format:'png',...(clip?{clip}:{})});await writeFile(join(directory,name+'.png'),Buffer.from(r.data,'base64'));report.screenshots.push(name+'.png');};
   await call('Page.enable');await call('Runtime.enable');await call('Network.enable');
   report.browser=await call('Browser.getVersion');
   for(const [width,height,mobile] of [[1440,900,false],[390,844,true],[360,740,true]]){
+  if(controlsOnly||landscapeOnly)continue;
     const prefix=`${width}x${height}`;
     await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});
     await call('Emulation.setTouchEmulationEnabled',{enabled:mobile});
     await call('Emulation.setTimezoneOverride',{timezoneId:'Europe/Moscow'});
     await call('Page.navigate',{url:pathToFileURL(resolve('docs/prototypes/weather-map.prototype.html')).href});
     for(let i=0;i<100;i++){if(await evaluate("!!document.getElementById('selectionIdentity')?.textContent"))break;await delay(50);}
+    if(projections)await check(prefix+' accessible projection selector starts in Mercator',"document.getElementById('projection')?.value==='mercator' && document.getElementById('projection').options.length===3");
+    if(mobile){
+      await check(prefix+' mobile widgets start collapsed',"['forecastPanel','navigationPanel','legendPanel','timelinePanel'].every(id=>!document.getElementById(id).open)");
+      await screenshot(prefix+'-mobile-collapsed');
+    }
     await check(prefix+' initial drawer collapsed',"document.getElementById('drawer').hidden && !document.getElementById('selectionIdentity').textContent.includes('undefined')");
     await check(prefix+' local basemap loaded',"window.land.length>0 && document.documentElement.lang==='ru'");
     await check(prefix+' widgets have 90 percent transparent backgrounds',"[...document.querySelectorAll('.panel')].every(e=>getComputedStyle(e).backgroundColor==='rgba(12, 32, 63, 0.1)' && getComputedStyle(e).opacity==='1')");
@@ -83,8 +112,8 @@ try{
     await check(prefix+' point chart distinguishes demo history forecast and now',"(()=>{const f=document.querySelector('#pointContent .pointChart');return !!f?.querySelector('svg[role=img]')&&f.textContent.includes('Прошлое · демо')&&f.textContent.includes('Прогноз · демо')&&f.textContent.includes('сейчас')&&f.textContent.includes('UTC');})()");
     await check(prefix+' chart preserves missing forecast time as gap',"document.querySelector('#pointContent .forecastLine').getAttribute('d').split('M').length===3");
     await check(prefix+' chart selected sample matches displayed point',"document.querySelector('#pointContent .selectedValue title').textContent.includes(document.querySelector('#pointContent strong').textContent)");
-    await check(prefix+' point chart fits visible popup',"(()=>{const mobile=matchMedia('(max-width:700px)').matches,f=document.querySelector(mobile?'#mobilePoint .pointChart':'#pointContent .pointChart').getBoundingClientRect(),p=document.getElementById(mobile?'drawer':'pointCard').getBoundingClientRect();return f.left>=p.left&&f.right<=p.right&&f.bottom<=p.bottom;})()");
-    await check(prefix+' point close is a compact corner square without separate row',"(()=>{const b=document.getElementById(matchMedia('(max-width:700px)').matches?'closeDrawer':'closePoint');const r=b.getBoundingClientRect();return b.textContent==='×'&&r.width===24&&r.height===24&&getComputedStyle(b).position==='absolute'&&b.getAttribute('aria-label')==='Закрыть значение точки';})()");
+    await check(prefix+' point chart fits visible popup',"(()=>{const mobile=matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches,f=document.querySelector(mobile?'#mobilePoint .pointChart':'#pointContent .pointChart').getBoundingClientRect(),p=document.getElementById(mobile?'drawer':'pointCard').getBoundingClientRect();return f.left>=p.left&&f.right<=p.right&&f.bottom<=p.bottom;})()");
+    await check(prefix+' point close is a compact corner square without separate row',"(()=>{const b=document.getElementById(matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches?'closeDrawer':'closePoint');const r=b.getBoundingClientRect();return b.textContent==='×'&&r.width===24&&r.height===24&&getComputedStyle(b).position==='absolute'&&b.getAttribute('aria-label')==='Закрыть значение точки';})()");
     if(mobile)await check(prefix+' point opens half-height shared drawer',"!document.getElementById('drawer').hidden && document.getElementById('settingsBody').hidden && document.getElementById('drawer').getBoundingClientRect().height<=innerHeight/2");
     await screenshot(prefix+'-point');
     const chartRoot=mobile?'#mobilePoint':'#pointContent';
@@ -157,16 +186,19 @@ try{
     await check(prefix+' API link uses selected point and exposes demo provenance',"(()=>{const a=new URL(document.getElementById('apiLink').href),text=document.querySelector('#pointContent p').textContent;return text.includes(Number(a.searchParams.get('lat')).toFixed(2)+'°')&&text.includes(Number(a.searchParams.get('lon')).toFixed(2)+'°')&&document.getElementById('linkPoint').textContent.includes('выбранная точка')&&document.querySelector('.connectionLinks').textContent.includes('идентификаторы вымышлены');})()");
     await evaluate("document.querySelector('.connectionLinks').scrollIntoView({block:'center'})");
     await screenshot(prefix+'-connections');
-    await check(prefix+' timeline remains accessible',"(()=>{const r=document.querySelector('.timeline').getBoundingClientRect(),d=document.getElementById('drawer').getBoundingClientRect();return r.bottom<=innerHeight && (!matchMedia('(max-width:700px)').matches||d.bottom<=r.top);})()");
+    await check(prefix+' timeline remains accessible',"(()=>{const r=document.querySelector('.timeline').getBoundingClientRect(),d=document.getElementById('drawer').getBoundingClientRect();return r.bottom<=innerHeight && (!matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches||d.bottom<=r.top);})()");
     await check(prefix+' no horizontal overflow',"document.documentElement.scrollWidth===innerWidth");
   }
+  const prototypeUrl=pathToFileURL(resolve('docs/prototypes/weather-map.prototype.html')).href;
+  if(projections&&!landscapeOnly){const {checkProjections}=await import('./weather-projection-checks.mjs');await checkProjections({call,evaluate,check,click,key,select,screenshot,collapseWidgets,controlsOnly,report,url:prototypeUrl});}
+  if(projections&&!controlsOnly){const {checkLandscape}=await import('./weather-landscape-checks.mjs');await checkLandscape({call,evaluate,check,click,key,select,screenshot,report,url:prototypeUrl});}
   assert.deepEqual(report.errors,[],'No JavaScript runtime errors');assert.deepEqual(report.external_requests,[],'No external page requests');
   report.status='passed';
 }catch(error){report.status='failed';report.failure=String(error.stack||error);process.exitCode=1;
   if(call){try{const r=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,'failure.png'),Buffer.from(r.data,'base64'));}catch{}}
 }finally{
   try{
-    if(call)await call('Browser.close');
+    if(call){try{await call('Browser.close');}catch{ /* Still retire the owned process if CDP is unavailable. */ }}
     socket?.close();
     for(let i=0;i<50&&child.exitCode===null;i++)await delay(100);
     if(child.exitCode===null)execFileSync('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'pipe'});

@@ -76,6 +76,11 @@ jobs:
           docker run --rm --network none
           --volume "$PWD:/workspace:ro" --workdir /workspace
           --entrypoint python hmc-publication:checks tools/check_evidence.py --t23
+      - name: Verify T24 mockup archive
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py --t24
       - name: Verify accepted T23 desktop and Android measurement budgets
         run: |
           node tools/native-display/budgets.mjs docs/evidence/t23/implementation/attempts/desktop1/reports/browser/browser.json
