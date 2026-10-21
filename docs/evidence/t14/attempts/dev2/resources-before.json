@@ -1,0 +1,50 @@
+{
+    "project":  "hmc-publication-t13-t14-dev2",
+    "repository":  "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "004759523b9c7e96a7eac317d0d976be33be6844d4af37cf267e6536f8448ebb",
+                           "name":  "/hmc-publication-t13-t14-dev2-gateway-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t14-dev2"
+                       },
+                       {
+                           "id":  "abd84ce9613ae59e3980cb76da2ec17c50e0c3552841c703f925da5847831b95",
+                           "name":  "/hmc-publication-t13-t14-dev2-api-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t14-dev2"
+                       },
+                       {
+                           "id":  "a75bc8c033ceba6c5271057813a9769d9d2d18035850e3620899a996447ee9c6",
+                           "name":  "/hmc-publication-t13-t14-dev2-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t14-dev2"
+                       },
+                       {
+                           "id":  "d47e4e33b996a3b17418589b545f11d4f5101de54111455558e152becbc20dae",
+                           "name":  "/hmc-publication-t13-t14-dev2-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t14-dev2"
+                       },
+                       {
+                           "id":  "cfab33be8524403fceca2e4e14c00d36244e726be48e30b8d5a223adbda5bed5",
+                           "name":  "/hmc-publication-t13-t14-dev2-viewer-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t14-dev2"
+                       }
+                   ],
+    "networks":  [
+                     "aa1f133d5d85",
+                     "5aaf8783cf2a"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t13-t14-dev2_assets",
+                    "hmc-publication-t13-t14-dev2_geoserver",
+                    "hmc-publication-t13-t14-dev2_postgres"
+                ]
+}

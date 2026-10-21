@@ -4,6 +4,7 @@ import {spawn,execFileSync} from 'node:child_process';
 import {readFile,writeFile,mkdir,rm} from 'node:fs/promises';
 import {join,resolve,sep} from 'node:path';
 import {randomUUID} from 'node:crypto';
+import {checkNavigation} from './viewer-navigation.mjs';
 const directory=resolve(process.env.T13_REPORT_DIRECTORY||'data/reports/t13/browser-'+randomUUID());
 assert.ok(directory.startsWith(resolve('data/reports')+sep));
 const origin=process.env.T13_VIEWER||'http://127.0.0.1:8140';assert.match(origin,/^http:\/\/127\.0\.0\.1:\d+$/);
@@ -111,6 +112,13 @@ try{
             await evaluate("window.__t13Inputs=[];for(const type of ['pointerdown','pointerup','click'])document.addEventListener(type,event=>{window.__t13Inputs.push({type,id:event.target.id,tag:event.target.tagName,x:event.clientX,y:event.clientY});if(window.__t13Inputs.length>80)window.__t13Inputs.shift();},true)");
         }
         const viewport={width,height,mobile_emulation:mobile&&!android,physical_mobile:android,views:[],canonical_picks:[]};report.viewports.push(viewport);
+        if(process.env.T14_NAVIGATION_ONLY==='1'){
+            assert.equal(process.env.T14_NAVIGATION,'1');
+            await checkNavigation({call,evaluate,wait,select,click,capture,origin,report});
+            const shot=await call('Page.captureScreenshot',{format:'png'});
+            await writeFile(join(directory,'navigation.png'),Buffer.from(shot.data,'base64'));
+            continue;
+        }
         viewport.first_show_ms=(await capture()).first_complete_ms;
         await check('Opening starts in Mercator',"document.getElementById('projection').value==='mercator'");
         await check('Russian surface label and UTC',"document.querySelector('h1').textContent==='Температура поверхности'&&document.getElementById('valid').textContent.includes('UTC')");
@@ -209,6 +217,11 @@ try{
         }
         viewport.transfer_bytes=(await capture()).transfer_bytes;viewport.heap=await call('Runtime.getHeapUsage');
         report.checks.push(`${width}x${height}: three modes, canonical clicks, palette reuse, missing time, continuous rotation`);
+        if(process.env.T14_NAVIGATION==='1'&&width===1440&&!android){
+            await checkNavigation({call,evaluate,wait,select,click,capture,origin,report});
+            const shot=await call('Page.captureScreenshot',{format:'png'});
+            await writeFile(join(directory,'navigation.png'),Buffer.from(shot.data,'base64'));
+        }
     }
     assert.equal(report.errors.length,0,'No uncaught browser errors');
     assert.ok(report.requests.filter(r=>/^https?:/.test(r.url)).every(r=>r.url.startsWith(origin+'/')),'Runtime is local');

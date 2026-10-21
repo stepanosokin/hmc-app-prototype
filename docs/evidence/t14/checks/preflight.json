@@ -1,0 +1,21 @@
+{
+  "phase": "development and pre-acceptance",
+  "starting_commit": "ff297f8ace181daaa874ceb9ddca714e98de0dea",
+  "sample_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a",
+  "python_image": "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+  "mypy_command": "docker run --rm --network none --volume <repository>:/workspace:ro --workdir /workspace --entrypoint mypy hmc-publication:t12 --ignore-missing-imports --check-untyped-defs --cache-dir=/tmp/mypy decoder tests trials publication tools",
+  "mypy_exit_code": 0,
+  "mypy_result": "Success: no issues found in 67 source files",
+  "mypy_cleanup": "Temporary container retired by --rm after successful completion; no persistent volume or service project allocated",
+  "resource_free_checks": [
+    "TypeScript typecheck and build",
+    "Five Node tests",
+    "Browser runner syntax checks",
+    "Final rejects NavigationOnly before resource allocation"
+  ],
+  "resource_free_cleanup": "No test resources created",
+  "unit_development_history": [
+    "Initial node --test invocation hit sandbox spawn EPERM before running tests; use existing --test-isolation=none",
+    "New explicit fixture catalogue test failed with 1 group instead of 2, then passed after implementation"
+  ]
+}

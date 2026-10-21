@@ -12,7 +12,7 @@ async function walk(path){for(const entry of await readdir(path,{withFileTypes:t
     if(entry.isDirectory())await walk(child);else if(/\.(?:py|ps1|json|sql|sh|sld|js|ts|mjs|html|css|lock|txt|md)$/.test(child))files.push(child);
 }}
 for(const path of ['decoder','publication','tests','trials','tools','viewer','data/viewer'])await walk(path);
-files.push('AGENTS.md','.gitattributes','.github/workflows/checks.yml','docs/development-workflow.md','docs/prototypes/assets/land.js');
+files.push('AGENTS.md','.gitattributes','.github/workflows/checks.yml','docs/development-workflow.md','docs/prototypes/assets/land.js','docs/prototypes/forecast-interaction.prototype.html');
 for(const entry of await readdir('.'))if(/^(?:Dockerfile|compose|requirements)/.test(entry))files.push(entry);
 const inputs={};
 for(const path of files.sort()){

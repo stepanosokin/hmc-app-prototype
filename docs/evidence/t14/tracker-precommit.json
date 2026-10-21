@@ -1,0 +1,16 @@
+{
+  "phase": "pre-commit; acceptance/evidence/cleanup complete; commit/push pending",
+  "observed_at": "2026-10-21 12:50:26 UTC",
+  "url": "https://github.com/stepanosokin/hmc-app-prototype/issues/26",
+  "title": "Navigate model runs and valid times",
+  "state": "open",
+  "checked_criteria": [
+    "- [x] Default to the newest usable run and its first available valid time. Changing runs starts at that run's first available time.",
+    "- [x] Keep run and publication revision fixed during time navigation; distinguish reference time from valid time and show gaps honestly.",
+    "- [x] Selecting an unavailable time clears both overlay and point value without selecting a nearby time or another run.",
+    "- [x] Changing run/time clears old point results; delayed responses for prior selections are discarded.",
+    "- [x] Browser tests use clearly marked overlapping-run/missing-time fixtures and real APIs, including controlled response races, and compare visible behavior to the reviewed interaction prototype.",
+    "- [x] Exercise delayed numeric tile fetch, decode and GPU upload races during run/time changes. Clear prior overlay/textures on missing-time selection and reject previous-selection completions; caches include revision/time/encoding identity. Do not interpolate across missing times, runs or revisions."
+  ],
+  "unchecked_criteria": []
+}
