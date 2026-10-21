@@ -1,5 +1,51 @@
 # Макет карты T22 и расширение T24
 
+## Выборочные проверки
+
+Для правки макета используйте существующий runner без Docker, сервера и сборки.
+Новые параметры выбирают сценарий и один из его размеров экрана:
+
+```powershell
+# Показать объём без запуска браузера и создания файлов
+node tools/check-weather-prototype.mjs --scenario=landscape --viewport=640x360 --plan
+
+# Мобильное управление: только минимальный портретный экран и нужный снимок
+node tools/check-weather-prototype.mjs --scenario=mobile-controls --viewport=360x740 --screenshots=focused-controls
+
+# Горизонтальная компоновка: снимки начального вида и точки
+node tools/check-weather-prototype.mjs --scenario=landscape --viewport=640x360 --screenshots=initial,point
+
+# Проекции: существующие сценарии геометрии и взаимодействия на компьютере
+node tools/check-weather-prototype.mjs --scenario=projections --viewport=1440x900 --screenshots=failure
+
+# Итоговая полная матрица T24, включая прежние T22 и пять landscape-размеров
+node tools/check-weather-prototype.mjs --projections
+```
+
+`base` проверяет прежние сценарии T22, `all` равнозначен `--projections`.
+Портретная матрица: 1440×900 (мышь), 390×844 и 360×740 (touch).
+Landscape: 1038×465, 844×390, 740×360, 667×375, 640×360; сценарий также
+поворачивает выбранный экран в портрет и обратно. `mobile-controls` поддерживает
+два портретных touch-размера. Несовместимые параметры завершаются до запуска
+браузера. Старые `--projections --mobile-controls` и
+`--projections --landscape-only` продолжают работать.
+
+`--screenshots` по умолчанию равен `all`; `failure` сохраняет только ошибку,
+остальные значения — фрагменты имён через запятую. Снимок ошибки сохраняется
+независимо от фильтра. Любой фильтр экрана/снимков и отдельный сценарий T24
+явно отмечены как Development (`selection.acceptance: false`); они не заменяют
+полную приёмку. Для итоговой проверки используйте `--projections` без фильтров
+в Chrome и Edge и независимую геометрию, если она входит в задачу.
+
+`T22_CHROME` задаёт установленный Chrome/Edge. Без `T22_REPORT_DIRECTORY`
+runner создаёт уникальный каталог внутри `data/reports/t22` или `t24`.
+Если задаёте каталог явно, используйте новый для каждой попытки.
+В `validation.json` записаны выбранная матрица, пропущенные снимки и
+`timing_ms`: подготовка (Git и входы), запуск браузера, сценарии, очистка,
+общее время. Это время инструмента проверки, а не скорость отрисовки приложения.
+Каждый запуск закрывает свой браузер и удаляет профиль, включая неудачные.
+Проверки параметров без браузера: `node --test tools/test-weather-check-options.mjs`.
+
 ## Выбор проекции — T24 / №36
 
 Текущий файл дополнен для [T24 / №36](https://github.com/stepanosokin/hmc-app-prototype/issues/36).

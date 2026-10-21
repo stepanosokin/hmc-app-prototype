@@ -67,3 +67,10 @@ docs/evidence/t24/visual-review/mobile-revision-montage.py -whitespace
 
 # T24 retrospective transcripts preserve native output bytes.
 docs/evidence/retro-t24-checks/** -text whitespace=cr-at-eol
+
+# Workflow/runner changes and their new evidence preserve validated bytes.
+docs/development/** text eol=lf
+tools/weather-check-options.mjs text eol=lf
+tools/test-weather-check-options.mjs text eol=lf
+docs/evidence/fast-validation/** -text whitespace=cr-at-eol
+docs/evidence/fast-validation/**/*.log -whitespace

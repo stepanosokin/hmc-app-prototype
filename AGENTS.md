@@ -6,23 +6,23 @@ The web app prototype's user-facing interface must be in Russian, including cont
 
 ## Ticket completion
 
-After implementing a ticket, check its acceptance criteria and required validation before reporting completion. Give the final response as a very brief list of 3–5 main results, covering delivered behavior, validation, evidence/cleanup and commit/push status where relevant. Include the issue link, whether its scope is complete, and its verified open or closed state. If any required work or validation remains, state the blocker in that list.
+Before reporting completion, verify all acceptance criteria and required checks. Report in Russian as 3–5 brief results: behavior, validation, evidence/cleanup, commit/push, issue link, complete/incomplete scope and verified open/closed state. State any blocker.
 
-During implementation, update the ticket's acceptance checkboxes as each criterion is verified, using the [issue-tracking workflow](docs/development-workflow.md#issue-tracking). These checklist updates have standing user authorization. Keep incomplete or unvalidated criteria unchecked, and read back the checklist before reporting completion.
+Update acceptance checkboxes as criteria are verified using [issue tracking](docs/development/tracking.md). Checklist updates have standing authorization; leave unvalidated criteria unchecked and read back the checklist before handoff.
 
-Automatically close a ticket once implementation is complete, all acceptance criteria are verified and checked, required validation passes, evidence is archived, cleanup is verified, and completed changes are pushed. Closure under these conditions has standing user authorization; proceed without additional confirmation. Read back the closed state and completed checklist before reporting completion. If it is already closed, report that state. Keep parent issues and unrelated milestones unchanged unless they are also in scope.
+Close the ticket automatically once implementation, all checked criteria, required validation, archived evidence, verified cleanup and push are complete. Closure has standing authorization. Read back closed state and completed checklist; preserve unrelated parent issues/milestones and report already-closed tickets as closed.
 
-Complete implementation, review, required validation, evidence archival and cleanup before creating one commit for the ticket. Include its code, tests, documentation and evidence in that commit, then push once on the current branch. Review uncommitted changes against the starting commit. This repository workflow overrides skill instructions that request earlier or intermediate commits. Verify that the remote branch points to the local HEAD before reporting the push as complete.
+Review uncommitted changes against the starting commit. Complete implementation, review, validation, evidence and cleanup before one ticket commit containing code/tests/docs/evidence, then push once on the current branch. This overrides skills requesting intermediate commits. Verify remote branch equals local HEAD before reporting push complete.
 
 ## Workflow customization
 
 Keep project-specific workflow changes in this repository's agent instructions. Leave original third-party skills, including Matt Pocock's skills, unchanged unless the user explicitly requests edits to those skills.
 
-For browser prototype work, desktop QGIS testing, specification updates, validation, retention or request-budget changes and reviews, Compose runner changes, scientific compatibility changes, or issue-tracker permission failures, read [the development workflow](docs/development-workflow.md).
+For implementation and validation, start with [the change-to-check table](docs/development-workflow.md#choose-validation-by-the-change). Follow its conditional links for browser, service, QGIS, scientific, specification or tracker details. During edits, use affected Development checks; after review fixes, run the required complete acceptance on frozen inputs. Repeat an affected complete gate when its validated inputs change.
 
 ## Test environment cleanup
 
-After every validation attempt, including failures, follow [the cleanup procedure](docs/development-workflow.md#test-environment-cleanup): archive evidence, retire the project, and verify zero test resources remain before reporting completion. Cleanup has standing user authorization. Retain only explicitly user-requested live stacks and name them in the handoff. The procedure defines the protected sources, evidence, unrelated projects, and shared caches.
+After every validation attempt, including failures, archive evidence and verify cleanup of the resources it created. Browser runners retire their own browser/profile; checks allocating Docker resources follow [the cleanup procedure](docs/development/cleanup.md). Resource-free checks record that no test resources were created. Cleanup has standing user authorization. Retain only explicitly user-requested live stacks and name them in the handoff; preserve sources, historical evidence, unrelated projects and shared caches.
 
 ## Agent skills
 
