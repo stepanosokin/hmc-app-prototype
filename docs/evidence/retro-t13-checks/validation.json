@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-21",
+  "starting_commit": "ea95650928e041b79264e183ddbffa33ed9a6835",
+  "scope": "Retro workflow/docs and CI wiring only; accepted T13 archive and runtime unchanged",
+  "node_version": "26.10.0",
+  "dependency_install": "npm ci from the locked viewer package using existing offline cache; scripts/audit/fund disabled",
+  "checks": {
+    "viewer_install": "passed",
+    "viewer_types": "passed",
+    "viewer_tests": "passed: 4/4",
+    "historical_t13_archive": "passed: 1362 artifacts, 172 frozen inputs, 16 retirement receipts",
+    "changed_document_links": "passed: 10 files",
+    "default_document_links": "passed: 19 files",
+    "whitespace": "git diff --check passed"
+  },
+  "review": {
+    "base": "ea95650928e041b79264e183ddbffa33ed9a6835",
+    "method": "Self-review of tracked diff and new retrospective/report files",
+    "open_findings": 0,
+    "historical_archive_and_viewer_runtime_modified": false
+  },
+  "failed_setup_attempts": [
+    "npm.cmd was absent from PATH; resolved npm-cli.js beside process.execPath and used the installed Node executable.",
+    "First parallel type/unit/archive launch lacked per-check report directories. Redirection failed before checks started; directories created explicitly and each check rerun successfully."
+  ],
+  "cleanup": {
+    "test_resources_created": 0,
+    "docker_projects_created": 0,
+    "browser_profiles_created": 0,
+    "servers_or_device_sessions_created": 0,
+    "all_started_check_processes_exited": true,
+    "shared_dependency_cache_retained": true
+  }
+}

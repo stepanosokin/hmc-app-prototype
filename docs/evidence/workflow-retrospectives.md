@@ -87,3 +87,9 @@ The [T24 retrospective](retro-t24.md) records the missing landscape
 matrix, closed-details measurement trap and focused/full report distinction.
 The existing CI archive tests now reject incomplete layout evidence; browser
 sources and accepted T22/T24 archives remain unchanged.
+
+The [T13 retrospective](retro-t13.md) records unwired viewer checks, incompatible
+T5/browser catalogue fixtures, incomplete copied input snapshots and delayed
+Android compatibility clicks. CI now runs the existing viewer type/unit checks
+and accepted T13 verifier; profile-specific workflow guidance covers the failed
+attempts without changing the viewer or its historical evidence.

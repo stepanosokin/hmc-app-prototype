@@ -25,6 +25,14 @@ named/anonymous-volume removal and preservation of unrelated resources.
 CI invokes the same check with `-Image hmc-publication:checks`; it requires no
 private source sample. Reuse this check for cleanup regressions.
 
+Before publishing a frozen-input archive, compare its complete input manifest
+with the copied files, not just the retirement receipt. Retirement selects report
+extensions; T13's initial copies retained 24 of 172 inputs. Copy any missing
+source/runtime bytes from the start snapshot and verify their recorded SHA256
+before removing that snapshot. The existing
+[T13 verifier](../evidence/t13/verify.mjs) checks every frozen input independently
+of the report-only retirement index.
+
 Keep committed historical evidence unchanged. Local report directories and
 source mounts remain available; shared images/build cache are reusable Docker
 cache, outside project retirement. Use exact project labels and repository
