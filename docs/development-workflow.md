@@ -66,6 +66,16 @@ driver: T22's Kelvin failure was rounding, while its later mobile selection
 failure came from a sticky control covering the click target. The existing
 runner scrolls controls to the centre of their panel.
 
+For responsive layout changes, run the focused interaction matrix before the
+full browser gate: portrait and short landscape, both sides of width breakpoints,
+each expanded group, point-to-controls transitions and rotation with selection
+preserved. Use `--projections --landscape-only` for the T24 layout regression;
+a focused report remains development evidence. Closed `details` descendants can
+retain layout rectangles: combine `checkVisibility()` with rectangle intersection
+checks. Compare the actual drawer DOM visibility with the retained selection.
+The T24 archive check in CI requires full acceptance scope, all five landscape
+sizes and the recorded collapse/point/rotation interactions for both browsers.
+
 After visual approval, record it in the concept and keep runtime inputs fixed.
 Documentation-only completion changes need hash verification and documentation
 checks; repeat the browser suite when a recorded runtime input changes. During
@@ -286,6 +296,12 @@ After staging, compare the actual index blobs with the selected input hashes;
 repeat against HEAD after commit. `git add --renormalize -- <exact-path>` applies
 an intentional attribute change to an already staged file. A clean working tree
 alone does not establish byte identity.
+For a large archive, read committed object identities once with
+`git ls-tree -rz HEAD` (or staged identities with `git ls-files --stage -z`),
+then compare the path/object map with the artifact index in one process.
+Retain the per-input prospective-filter check before acceptance. Thousands of
+individual `git rev-parse` processes add overhead without stronger verification.
+
 
 Capture a long Compose run's full console output in its project report directory
 so retirement archives it. Inspect bounded tails and per-phase logs for progress,
@@ -578,3 +594,8 @@ physical touch-coordinate failures, browser discovery, retention admission and
 verbose publication output to the focused checks above. CI now covers the new
 archive indexes and replays the existing measurement-budget validator. Historical
 evidence and the explicit Safari deferral remain unchanged.
+
+The [T24 retrospective](evidence/retro-t24.md) records the missing landscape
+matrix, closed-details measurement trap and focused/full report distinction.
+The existing CI archive tests now reject incomplete layout evidence; browser
+sources and accepted T22/T24 archives remain unchanged.
