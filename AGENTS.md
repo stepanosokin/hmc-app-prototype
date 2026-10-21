@@ -23,3 +23,20 @@ For browser prototype work, desktop QGIS testing, specification updates, validat
 ## Test environment cleanup
 
 After every validation attempt, including failures, follow [the cleanup procedure](docs/development-workflow.md#test-environment-cleanup): archive evidence, retire the project, and verify zero test resources remain before reporting completion. Cleanup has standing user authorization. Retain only explicitly user-requested live stacks and name them in the handoff. The procedure defines the protected sources, evidence, unrelated projects, and shared caches.
+
+## Agent skills
+
+### Issue tracker
+
+Before reading, creating or updating tickets, read
+[the GitHub tracker configuration](docs/agents/issue-tracker.md).
+
+### Triage labels
+
+Before triaging issues, read
+[the label mapping](docs/agents/triage-labels.md).
+
+### Domain docs
+
+Before exploring the codebase, read
+[the single-context domain rules](docs/agents/domain.md).
