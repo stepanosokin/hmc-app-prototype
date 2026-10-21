@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/workspace/tools/check_evidence.py", line 392, in <module>
+    main()
+  File "/workspace/tools/check_evidence.py", line 385, in main
+    count = check_updates(args.root, offline=args.t16)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tools/evidence_t15.py", line 153, in check_updates
+    offline_report(report)
+  File "/workspace/tools/evidence_t16.py", line 42, in offline_report
+    races = report['navigation']['races']
+            ~~~~~~^^^^^^^^^^^^^^
+KeyError: 'navigation'

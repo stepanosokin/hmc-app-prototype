@@ -43,6 +43,14 @@ fresh project. Select evidence only when every required phase used the recorded
 configuration. Do not combine a passing phase from one source revision with a
 passing phase from another to establish a final result.
 
+When reusing an unaffected platform's complete gate after a platform-specific
+runner fix, preserve both frozen snapshots and record every differing path,
+length and hash. Review the actual diff and establish that it is unreachable on
+the reused platform; repeat the affected platform's full gate. The
+[T16 record](../evidence/t16/checks/validation-input-difference.json) covers only
+its desktop cleanup change. It does not authorize other mixed-input acceptance
+or imply that Android executed the newer runner bytes.
+
 Before freezing changed inputs, compare their working-file bytes with Git's
 prospective filtered contents. Include newly added input files. For each path:
 

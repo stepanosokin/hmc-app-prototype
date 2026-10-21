@@ -377,11 +377,12 @@ def main() -> None:
     selection.add_argument('--t24', action='store_true', help='Verify T24 Chrome/Edge mockup and independent geometry archive')
     selection.add_argument('--t14', action='store_true', help='Verify T14 full viewer navigation, races and cleanup archive')
     selection.add_argument('--t15', action='store_true', help='Verify T15 desktop/physical Android updates and cleanup archive')
+    selection.add_argument('--t16', action='store_true', help='Verify T16 offline desktop/physical Android archive')
     args = parser.parse_args()
     checker = check_viewer_navigation if args.t14 else check_t23_archives if args.t23 else check_native_display if args.native_display else check
-    if args.t15:
+    if args.t15 or args.t16:
         from evidence_t15 import check_updates
-        count = check_updates(args.root)
+        count = check_updates(args.root, offline=args.t16)
     else:
         count = check_browser_archive(args.root, 't24') if args.t24 else checker(args.root)
     print(f'Verified {count} archived evidence references')

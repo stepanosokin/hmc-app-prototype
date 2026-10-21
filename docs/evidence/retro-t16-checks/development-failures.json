@@ -1,0 +1,26 @@
+﻿{
+    "attempts":  [
+                     {
+                         "check":  "initial unittest wrapper",
+                         "status":  "wrapper failed",
+                         "observed_error":  "NativeCommandError: unittest writes normal progress to stderr; ErrorActionPreference=Stop interrupted PowerShell capture",
+                         "suite_result_claimed":  false,
+                         "retry":  "development-tests2.log; native exit code 0; 58 tests OK",
+                         "cleanup":  "hmc-retro-t16-dev-tests no longer present; --rm container"
+                     },
+                     {
+                         "check":  "initial input freeze",
+                         "status":  "sandbox process access failed",
+                         "observed_error":  "spawnSync git EPERM",
+                         "retry":  "same read-only Git hash checks with approved escalation; exit 0",
+                         "cleanup":  "no test resources created"
+                     },
+                     {
+                         "cleanup":  "resource-free; no commit or push occurred",
+                         "status":  "wrapper failed before commit",
+                         "retry":  "normalize archive paths to POSIX separators; repeat index/HEAD identity verification",
+                         "observed_error":  "Windows backslashes passed to Git colon-path object syntax",
+                         "check":  "pre-commit staged identity wrapper"
+                     }
+                 ]
+}

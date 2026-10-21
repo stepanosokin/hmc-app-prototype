@@ -105,3 +105,9 @@ Android viewport/native-selection failures, mixed test-revision filtering and
 late staged whitespace findings. CI now verifies the accepted desktop/physical
 Android archive through the existing evidence entry point and synthetic negative
 cases; focused browser and publication guidance cover the remaining lessons.
+
+The [T16 retrospective](retro-t16.md) records the temporary offline-archive audit,
+unsupported worker CDP Fetch, the desktop termination race, platform input reuse,
+first-launch prerequisites and the mockup/runtime chart distinction. CI now
+checks the historical offline gate through the existing evidence entry point;
+the accepted viewer, historical archives and third-party skills remain unchanged.
