@@ -376,9 +376,14 @@ def main() -> None:
     selection.add_argument('--t23', action='store_true', help='Verify T23 continuation, diagnosis and implementation archive bytes')
     selection.add_argument('--t24', action='store_true', help='Verify T24 Chrome/Edge mockup and independent geometry archive')
     selection.add_argument('--t14', action='store_true', help='Verify T14 full viewer navigation, races and cleanup archive')
+    selection.add_argument('--t15', action='store_true', help='Verify T15 desktop/physical Android updates and cleanup archive')
     args = parser.parse_args()
     checker = check_viewer_navigation if args.t14 else check_t23_archives if args.t23 else check_native_display if args.native_display else check
-    count = check_browser_archive(args.root, 't24') if args.t24 else checker(args.root)
+    if args.t15:
+        from evidence_t15 import check_updates
+        count = check_updates(args.root)
+    else:
+        count = check_browser_archive(args.root, 't24') if args.t24 else checker(args.root)
     print(f'Verified {count} archived evidence references')
 
 

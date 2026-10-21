@@ -29,6 +29,12 @@ that Chrome dispatched its compatibility click. T13's
 [physical runner](../../tools/check-weather-viewer.mjs) records actual targets
 and waits for click before opening the native select dialog; reuse that input
 path before a full device run.
+For a native select, match Android `CheckedTextView`/`RadioButton` options,
+then wait for both the completing click and the DOM selected index. Record
+visual viewport width/offset before repeated mode changes: offscreen map labels
+can expand a phone viewport and make otherwise correct touch coordinates miss.
+Use `-Updates -UpdatesOnly` for the T15 update/failure scenario before the full
+`-Navigation -Updates` gate; see the [T15 retrospective](../evidence/retro-t15.md).
 
 Before declaring a browser unavailable, check its installed executable/version,
 including both Program Files locations on Windows. For physical-device checks,

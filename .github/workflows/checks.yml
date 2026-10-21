@@ -86,7 +86,7 @@ jobs:
           docker run --rm --network none
           --volume "$PWD:/workspace:ro" --workdir /workspace
           --entrypoint python hmc-publication:checks
-          -m unittest discover -s tools -p test_evidence.py -v
+          -m unittest discover -s tools -p 'test_evidence*.py' -v
       - name: Verify native display proof and regression archives
         run: >-
           docker run --rm --network none
@@ -107,6 +107,11 @@ jobs:
           docker run --rm --network none
           --volume "$PWD:/workspace:ro" --workdir /workspace
           --entrypoint python hmc-publication:checks tools/check_evidence.py --t14
+      - name: Verify T15 desktop and physical Android update archive
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks tools/check_evidence.py --t15
       - name: Verify accepted T23 desktop and Android measurement budgets
         run: |
           node tools/native-display/budgets.mjs docs/evidence/t23/implementation/attempts/desktop1/reports/browser/browser.json
