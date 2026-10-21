@@ -1,6 +1,6 @@
 # Hydrometcenter meteorology prototype — specification
 
-Version: 0.6 · 2026-10-20 · **Accepted implementation handoff.**
+Version: 0.7 · 2026-10-21 · **Accepted implementation handoff.**
 
 The user accepted revision 0.2, milestones M1–M5 and acceptance criteria A1–A12 on 2026-10-19, then requested this browser-delivery amendment and the corresponding specification/ticket updates. Revision 0.3 preserves those IDs and extends their obligations to numeric display tiles and browser GPU rendering. Acceptance records scope agreement, not completion of the new gates.
 
@@ -25,6 +25,8 @@ defines URL, matrix/CRS, height-zero operation, immutable cache identity and res
 limits. Point/EDR remain canonical nearest-native-cell. This technical experiment
 does not establish rotating-globe or physical Android/iOS acceptance; T23 and the
 production viewer gates retain those obligations. M1–M5/A1–A12 are unchanged.
+
+Revision 0.7 records the user-confirmed stable time navigation and real forecast point series in section 9.3. Q1–Q9 and shared understanding were confirmed on 2026-10-21. Map preservation, exact-frame slider behavior, point graphs and timing targets are new unverified obligations; M1–M5/A1–A12 and historical completion states remain unchanged.
 
 ## 1. Purpose and scope
 
@@ -204,6 +206,80 @@ The user confirmed Q1–Q9 and shared understanding on 2026-10-20. See [ADR 0003
 - Then complete [T24 / #36](https://github.com/stepanosokin/hmc-app-prototype/issues/36), a separately archived extension of the approved T22 mockup, with new visual approval; then implement #25/#27. If T23 establishes necessary server changes, create a linked implementation ticket and complete it before production viewer acceptance. #28 verifies local runtime resources in every mode, #31 measures each mode and switching, and #32 indexes final evidence. Keep #16/#22/#23/#24/#34 closed unless a defect in their accepted scope is independently established.
 
 M1–M5 and A1–A12 retain their IDs. This amendment extends A2/A3 numerical and picking checks, A5/A8 switching/race/resource/UI behavior, A11 local resources and A12 measurements to all modes; A6/A7/A9 apply to any new server derivatives. Agreement and technical/mockup results alone do not complete production acceptance.
+
+### 9.3. Stable time navigation and forecast point series — v0.7
+
+The user confirmed Q1–Q9 and shared understanding on 2026-10-21; see the
+[decision record](time-navigation-graph-discussion.md). These are new, unverified
+implementation requirements. Preserve M1–M5/A1–A12 and historical completed
+tickets/evidence; this amendment extends A3/A5/A8/A12, without claiming completion.
+
+**Stable map.** Changing valid time through the slider, time controls or graph
+updates only the thematic coverage and related time/value/loading metadata (and
+legend when required). Keep the existing Map, basemap, labels, projection,
+geographic camera/scale, selected point and control-sheet context. Do not recreate
+the map, reload unchanged basemap resources because of the time change, or fit
+coverage again. Point coordinates remain selected; stale point numbers are cleared.
+
+**Discrete frames during dragging.** Show actual published valid times while the
+slider moves, with the latest requested selection taking priority. Intermediate
+positions may be skipped. Keep the previous complete frame until the new one is
+ready, then replace the thematic frame atomically, without an empty/partial flash.
+Show displayed-frame time separately from requested time and its loading state;
+never label the previous frame with the requested time. Reject obsolete responses,
+decoded arrays and uploads. Do not interpolate values or cross-fade frames;
+temporal blending remains deferred. Keep run/revision pinned and the agreed masks,
+display-error budgets and canonical sampling semantics unchanged.
+
+**Missing and failed times.** Selecting a missing time immediately removes the
+thematic frame and point number, retaining map, point coordinates and an explicit
+Russian explanation. A failed load of an available time may retain the preceding
+complete frame only with its actual time and a visible error; it does not complete
+the requested selection. Outside coverage, native nodata, missing time and request
+failure remain distinct. An expired publication prompts explicit reselection;
+caches must not restore an expired frame or silently change run/revision.
+
+**Real graph in the point card.** Show the entire published forecast for the
+selected point and field within one pinned run/revision, using canonical
+exact-time/nearest-native-cell values, UTC and the current units. Highlight the
+selected time; when a previous map frame is retained, identify its different
+displayed time explicitly. Do not derive values from map colours, temporal
+interpolation or synthetic mockup data. Historical observations remain out of
+scope. Missing values and failed requests create breaks in the line with distinct
+states; retain successful parts on partial failure and allow retry of failed
+requests. Never show an earlier point/run/revision's series as the new series.
+Changing only the selected time reuses the unchanged series and moves its
+highlight; changing point, field, run or explicitly accepted revision refreshes
+the series. Preserve availability, expiry, access and bounded request/cache rules;
+no particular endpoint or broader EDR conformance is selected by this requirement.
+
+**Graph interaction and mobile.** Provide UTC/value tooltips through mouse, touch
+and keyboard. Explicit selection on the graph selects the same time in the slider
+and map, including the defined missing-time behavior; hover alone changes no time.
+On phones the graph lives in the shared sheet's “Точка” tab, fits the panel width
+and does not cover the time bar. Preserve point/sheet context during time changes.
+
+**Measured acceptance targets.** Slider feedback is visible within 100 ms. For
+already prepared frames, p95 from the latest time input to complete presentation
+is at most 100 ms. Measure cold requested-frame loading separately, with a target
+of at most 3 s including fetch/decode/upload/presentation. Report cache reset and
+prepared/cold definitions, workload, sample counts, input/presentation timestamps,
+skipped/cancelled requests, host/browser/GPU and errors; do not mix cache profiles
+or hide the terminal requested frame. Bound all managed field arrays, cached
+frames, textures and framebuffers together to 128 MiB; retaining every forecast
+time in GPU memory is not required. Verify Chrome and Edge desktop and physical
+Chrome/Android in Mercator, strict orthographic and EPSG:3576. Emulated phone sizes
+do not replace the physical device; Safari/iOS remains unverified. Targets are
+acceptance obligations, not measured claims about the existing implementation.
+
+New requirements remain unchecked until actual implementation and validation:
+
+- [ ] Time changes preserve map/basemap/camera/point and update only thematic data.
+- [ ] Dragging presents exact discrete frames without blank flashes, interpolation or stale completion.
+- [ ] Loading, missing time, failure, nodata and expiry preserve the specified identities/states.
+- [ ] The real canonical forecast graph covers the pinned series, gaps, partial failure and reuse/invalidation.
+- [ ] Graph selection, tooltips, keyboard/touch and phone layout agree with map/slider state.
+- [ ] Reproducible desktop/physical Android evidence verifies all three projections, timing targets and memory bound.
 
 ## 10. Retention and operations
 

@@ -36,6 +36,10 @@ An identified published state of a run's available data. A new revision can add 
 A spatially bounded set of field values and validity information delivered for map display for a specified published selection.
 _Avoid_: Treating display values as canonical native-cell samples or equating a coloured map image with numerical data.
 
+**Forecast point series**:
+A sequence of forecast values for one geographic point and field over the valid times of one model run and publication revision. Missing values remain explicit gaps; this series does not represent historical observations.
+_Avoid_: Mixing model runs or publication revisions, or calling earlier forecast times observations.
+
 ## Product scope
 
 **Web-map display projection**:
