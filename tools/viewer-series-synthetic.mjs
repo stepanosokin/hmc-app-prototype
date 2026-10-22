@@ -35,6 +35,8 @@ const fixtures=`(()=>{
         if(test.mode==='all-error'||test.mode==='gaps'&&time.endsWith('05:00:00Z'))return new Response('{}',{status:503});
         if(test.mode==='expired')return new Response('{}',{status:410});
         const response=await original(input,{...options,signal:undefined});
+        // Preserve gateway errors and Retry-After so the real client can retry.
+        if(!response.ok)return response;
         if(test.mode==='gaps'&&time.endsWith('06:00:00Z')&&!test.held){
             test.held=true;await new Promise(resolve=>test.release=resolve);test.released=true;
         }

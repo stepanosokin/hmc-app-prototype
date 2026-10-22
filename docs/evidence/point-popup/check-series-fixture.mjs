@@ -1,0 +1,12 @@
+import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
+import assert from 'node:assert/strict';
+const source=await readFile('tools/viewer-series-synthetic.mjs','utf8');
+const fixture=source.split('const fixtures=`')[1].split('`;')[0];
+const read=async()=>Response.json({detail:'request limit'},{status:429,headers:{'Retry-After':'1'}});
+const window={fetch:read};
+runInNewContext(fixture,{window,fetch:read,URL,Response,location:{origin:'http://localhost:8140'}});
+const response=await window.fetch('/api/v1/point?valid_time=2026-10-15T03:00:00Z');
+console.log(JSON.stringify({status:response.status,retry_after:response.headers.get('Retry-After')}));
+assert.equal(response.status,429,'Synthetic nodata must preserve real gateway refusal for json() retry');
+assert.equal(response.headers.get('Retry-After'),'1');
