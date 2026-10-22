@@ -111,3 +111,9 @@ unsupported worker CDP Fetch, the desktop termination race, platform input reuse
 first-launch prerequisites and the mockup/runtime chart distinction. CI now
 checks the historical offline gate through the existing evidence entry point;
 the accepted viewer, historical archives and third-party skills remain unchanged.
+
+The [T25 retrospective](retro-t25.md) records late visual review, native range
+input assumptions and repeated complete browser runs. Focused phone screenshots
+now precede the full gate; unaffected suite reuse requires explicit input proof.
+The existing resource-free T25 archive verifier is wired into CI. The accepted
+viewer/archive and the explicitly requested live stack remain unchanged.

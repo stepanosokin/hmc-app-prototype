@@ -1,0 +1,57 @@
+{
+  "phase": "after focused checks; before commit/push",
+  "observed_at": "2026-10-22T12:09:46.145Z",
+  "starting_commit": "74250e963df2c8d6cfaf7984f17642d35d5c15ed",
+  "scope": "retrospective workflow/CI/documentation only",
+  "checks": {
+    "accepted_t25_archive": "passed: 4765 artifacts, 3149 snapshot inputs, 19 retired attempts, 186 final inputs",
+    "documentation": "passed: 23 files, including the new retrospective",
+    "diff_review": "no open findings; accepted viewer and historical T25 archive unchanged"
+  },
+  "inputs": {
+    ".gitattributes": {
+      "bytes": 5150,
+      "sha256": "13ec1946eb04553c19f12747bb0582cb5b2d819c57debc31cc3fa1b07e996761",
+      "git_blob": "b1f27128715ba3e47a67e986ee615cfae75fca7b"
+    },
+    ".github/workflows/checks.yml": {
+      "bytes": 6098,
+      "sha256": "5550e0b37dae9c082ceb3a346eb7c73e9d7983d819664e6830f33a37aefe9939",
+      "git_blob": "efb0e5c3af140d8c0524dbfafd71bc1c37d0a212"
+    },
+    "docs/development/acceptance.md": {
+      "bytes": 7235,
+      "sha256": "28a6aabadc45efdcfc16d9326cb9ce9d6a87a650c569435771a1164d20b9a9b6",
+      "git_blob": "de00cfdcba288809fad5d796a30aa5de1663a5d6"
+    },
+    "docs/development/browser.md": {
+      "bytes": 7493,
+      "sha256": "6d37383027b4fea39fd6f60311d6830ad8a594819a6d333b7518aed3c084054d",
+      "git_blob": "1e3f3dc3943835db7ad0071cb1fb6671a3efe6ca"
+    },
+    "docs/evidence/workflow-retrospectives.md": {
+      "bytes": 7414,
+      "sha256": "6e61f2dd9710e3889576f9be204cc67659ff797174bb0b116bcb0c272f3e8d65",
+      "git_blob": "e104b2e2defcf2626513adc69cf9ef54f3f5e7ad"
+    },
+    "tools/check-documentation.ps1": {
+      "bytes": 2302,
+      "sha256": "e642f9597729a4c888f1ffffbfcb75b93c81c52ebd012f7a023b256b3b0510d2",
+      "git_blob": "3b839d606d60cd51dd5679aad8831c94325f8f09"
+    },
+    "docs/evidence/retro-t25.md": {
+      "bytes": 5666,
+      "sha256": "31bbf5ae77907ef73959c8a423ea6c3f4aeb1d9eca10277138d082d247299f45",
+      "git_blob": "04cf660d4ef9fdd7d1fbf9a0d2d65981c2dab283"
+    }
+  },
+  "cleanup": {
+    "resources_created": false,
+    "containers_created": 0,
+    "browsers_created": 0,
+    "adb_resources_created": 0,
+    "retained_user_requested_stack": "hmc-app-live",
+    "retained_url": "http://localhost:8140",
+    "action": "No live stack mutation"
+  }
+}
