@@ -1,0 +1,225 @@
+﻿{
+    "agreement":  {
+                      "authority":  "Repository owner, explicit \u0027Yes I approve\u0027 reply to the T23a contract proposal",
+                      "date":  "2026-10-20",
+                      "proposal":  "docs/design/t23a-native-display-draft.md"
+                  },
+    "bounds":  "half-open native outer-cell footprint; inside footprint clamp fractional indices to native edge centres",
+    "cog_separate_max_abs_error_K":  0.0001,
+    "columns":  [
+                    0,
+                    5
+                ],
+    "content_type":  "application/vnd.hmc.native-display-f32",
+    "contract":  "hmc-native-display/1",
+    "contract_sha256":  "3c245dada032f3cf4ee0f26e2c371e863ba0094a3c5f8de4e5f2c6af3ef4c1f0",
+    "coordinate_order":  [
+                             "longitude",
+                             "latitude"
+                         ],
+    "crs":  "urn:hmc:crs:icon-sphere-6371229",
+    "crs_definition":  "+proj=longlat +R=6371229 +no_defs",
+    "encoding":  "f32",
+    "encoding_max_abs_error_K":  0.001,
+    "engine":  "native-cells/1",
+    "grid":  {
+                 "alternative_row_scanning":  false,
+                 "cell_centres":  [
+                                      {
+                                          "column":  0,
+                                          "index":  0,
+                                          "lat":  29.5,
+                                          "lon":  -23.5,
+                                          "row":  0,
+                                          "value":  298.22760009765625
+                                      },
+                                      {
+                                          "column":  1376,
+                                          "index":  1376,
+                                          "lat":  29.5,
+                                          "lon":  62.5,
+                                          "row":  0,
+                                          "value":  291.50982666015625
+                                      },
+                                      {
+                                          "column":  0,
+                                          "index":  1377,
+                                          "lat":  29.5625,
+                                          "lon":  -23.5,
+                                          "row":  1,
+                                          "value":  298.24713134765625
+                                      },
+                                      {
+                                          "column":  688,
+                                          "index":  452344,
+                                          "lat":  50.0,
+                                          "lon":  19.5,
+                                          "row":  328,
+                                          "value":  280.77838134765625
+                                      },
+                                      {
+                                          "column":  0,
+                                          "index":  903312,
+                                          "lat":  70.5,
+                                          "lon":  -23.5,
+                                          "row":  656,
+                                          "value":  264.45513916015625
+                                      },
+                                      {
+                                          "column":  1376,
+                                          "index":  904688,
+                                          "lat":  70.5,
+                                          "lon":  62.5,
+                                          "row":  656,
+                                          "value":  279.12310791015625
+                                      }
+                                  ],
+                 "coordinate_check":  "all centres against raw section 3",
+                 "earth_shape_code":  6,
+                 "i_scans_negatively":  false,
+                 "j_points_consecutive":  false,
+                 "j_scans_positively":  true,
+                 "longitude_normalization":  "[-180, 180)",
+                 "outer_cell_edges_wsen":  [
+                                               -23.53125,
+                                               29.46875,
+                                               62.53125,
+                                               70.53125
+                                           ],
+                 "raw_first_lon":  336.5,
+                 "scanning_mode":  64,
+                 "shape_yx":  [
+                                  657,
+                                  1377
+                              ],
+                 "spacing_degrees_xy":  [
+                                            0.0625,
+                                            0.0625
+                                        ],
+                 "template":  0
+             },
+    "halo_cells":  1,
+    "identity":  {
+                     "contract":  "hmc-temperature-tile/2",
+                     "encoding_version":  "hmc-temperature-tile/2/f32",
+                     "engine":  "project-bilinear/1",
+                     "field":  "T_G:surface:0",
+                     "level":  0,
+                     "matrix":  "WebMercatorQuad",
+                     "member":  null,
+                     "model":  "ICON-EU",
+                     "native_grid_sha256":  "26b6f9c9df3394b1802f5a93606e78f2fc1513c0f8d4d9517608d1d7a86f3503",
+                     "publication_job":  "7f59decf-01c3-482c-9583-92a026582c6f",
+                     "resampling":  "bilinear",
+                     "revision":  "86e77276609dfbe63ce107b44671317fe44b2e2b88474b7366ab841f8d47504c",
+                     "run":  "ICON-EU/2026-10-15T00:00:00Z",
+                     "valid_time":  "2026-10-15T03:00:00Z"
+                 },
+    "interpolation":  "one bilinear interpolation from native cells; texelFetch; positive-weight missing contributor invalidates result; no weight renormalization",
+    "layout":  "258*258 little-endian float32, then 258*258 uint8; offset=4*(r*258+c); maskOffset=4*258*258+r*258+c",
+    "limits":  {
+                   "block_bytes":  332820,
+                   "blocks":  18,
+                   "client_concurrency":  2,
+                   "decoded_and_gpu_bytes":  134217728,
+                   "generation_seconds":  10,
+                   "generators_per_process":  1,
+                   "view_bytes":  8388608
+               },
+    "matrix":  "NativeCells256-26b6f9c9df3394b1802f5a93606e78f2fc1513c0f8d4d9517608d1d7a86f3503",
+    "matrix_prefix":  "NativeCells256-",
+    "metadata_url":  "/api/v1/selections/86e77276609dfbe63ce107b44671317fe44b2e2b88474b7366ab841f8d47504c.2210493625555e52f176713c73f9b22b22bb860020c200f33cb896e491e26580/display/1/native.json",
+    "native_2d_to_wgs84":  "intersect native geocentric ray with WGS84 h=0; lon unchanged; phi=atan2(sin(native_phi),(1-e2)*cos(native_phi)); e2=f*(2-f), f=1/298.257223563; poles at +/-90",
+    "orientation":  "rows south to north; columns west to east; row-major",
+    "origin":  "southwest outer cell edge; first centre offset by half the grid spacing",
+    "readiness":  {
+                      "mode":  "lazy with eager deterministic representative probes before metadata is ready",
+                      "representatives":  [
+                                              [
+                                                  0,
+                                                  0
+                                              ],
+                                              [
+                                                  1,
+                                                  0
+                                              ],
+                                              [
+                                                  2,
+                                                  1
+                                              ],
+                                              [
+                                                  5,
+                                                  2
+                                              ]
+                                          ]
+                  },
+    "readiness_state":  "ready",
+    "representative_blocks":  [
+                                  {
+                                      "column":  0,
+                                      "row":  0,
+                                      "sha256":  "13d9247444f17a7a1c5f032f79274185e2d42741855701b3a4d97a0660c3dd5b"
+                                  },
+                                  {
+                                      "column":  1,
+                                      "row":  0,
+                                      "sha256":  "12ecf5714d611c39f223dc1900b68b21c70d5b2f02e70b9adb1ac0e008080cf5"
+                                  },
+                                  {
+                                      "column":  2,
+                                      "row":  1,
+                                      "sha256":  "8f8402a10ddb19b7978cd3592598b9472c9a3931ce6915f6bd22465cd7f3e09d"
+                                  },
+                                  {
+                                      "column":  5,
+                                      "row":  2,
+                                      "sha256":  "dd317e4d211872ddd08fe814855a1ed5b6f4fe296b4405005f5f3c4d0c27b21d"
+                                  }
+                              ],
+    "rows":  [
+                 0,
+                 2
+             ],
+    "selection":  "86e77276609dfbe63ce107b44671317fe44b2e2b88474b7366ab841f8d47504c.2210493625555e52f176713c73f9b22b22bb860020c200f33cb896e491e26580",
+    "selection_identity":  [
+                               "model",
+                               "run",
+                               "revision",
+                               "field",
+                               "level",
+                               "valid_time",
+                               "native_grid_sha256",
+                               "member"
+                           ],
+    "status":  "approved-for-implementation-and-comparison",
+    "stored_size":  [
+                        258,
+                        258
+                    ],
+    "supported_grid":  {
+                           "outer_cell_edges_wsen":  [
+                                                         -23.53125,
+                                                         29.46875,
+                                                         62.53125,
+                                                         70.53125
+                                                     ],
+                           "shape_yx":  [
+                                            657,
+                                            1377
+                                        ],
+                           "spacing_degrees_xy":  [
+                                                      0.0625,
+                                                      0.0625
+                                                  ]
+                       },
+    "tile_size":  [
+                      256,
+                      256
+                  ],
+    "total_max_abs_error_K":  0.01,
+    "units":  "K",
+    "url":  "/api/v1/selections/86e77276609dfbe63ce107b44671317fe44b2e2b88474b7366ab841f8d47504c.2210493625555e52f176713c73f9b22b22bb860020c200f33cb896e491e26580/display/1/native/{column}/{row}.f32",
+    "url_template":  "/api/v1/selections/86e77276609dfbe63ce107b44671317fe44b2e2b88474b7366ab841f8d47504c.2210493625555e52f176713c73f9b22b22bb860020c200f33cb896e491e26580/display/1/native/{column}/{row}.f32",
+    "validity":  "0 missing with value 0; 1 finite valid value; padding outside the native array is missing",
+    "wgs84_to_native":  "WGS84 geodetic lon/lat h=0 -\u003e Cartesian WGS84 -\u003e inverse Cartesian sphere R=6371229; Greenwich, zero datum shift prototype hypothesis"
+}

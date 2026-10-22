@@ -1,0 +1,20 @@
+api-1  | [2026-10-22 14:04:52 +0000] [1] [INFO] Starting gunicorn 23.0.0
+db-1   | 2026-10-22 14:06:50.566 UTC [599] ERROR:  permission denied for schema access at character 20
+api-1  | [2026-10-22 14:04:52 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+db-1   | 2026-10-22 14:06:50.566 UTC [599] STATEMENT:  SELECT limits FROM access.policies WHERE bucket=$1
+db-1   | 2026-10-22 14:06:50.580 UTC [600] ERROR:  permission denied for schema access at character 20
+db-1   | 2026-10-22 14:06:50.580 UTC [600] STATEMENT:  SELECT limits FROM access.policies WHERE bucket=$1
+db-1   | 2026-10-22 14:06:53.672 UTC [610] ERROR:  permission denied for schema access at character 20
+db-1   | 2026-10-22 14:06:53.672 UTC [610] STATEMENT:  SELECT limits FROM access.policies WHERE bucket=$1
+db-1   | 2026-10-22 14:06:53.688 UTC [611] ERROR:  permission denied for schema access at character 20
+db-1   | 2026-10-22 14:06:53.688 UTC [611] STATEMENT:  SELECT limits FROM access.policies WHERE bucket=$1
+db-1   | 2026-10-22 14:07:09.994 UTC [677] ERROR:  permission denied for schema access at character 20
+db-1   | 2026-10-22 14:07:09.994 UTC [677] STATEMENT:  SELECT limits FROM access.policies WHERE bucket=$1
+db-1   | 2026-10-22 14:07:10.009 UTC [678] ERROR:  permission denied for schema access at character 20
+db-1   | 2026-10-22 14:07:10.009 UTC [678] STATEMENT:  SELECT limits FROM access.policies WHERE bucket=$1
+db-1   | 2026-10-22 14:08:28.335 UTC [1014] ERROR:  relation "app.retention_policy" does not exist at character 27
+db-1   | 2026-10-22 14:08:28.335 UTC [1014] STATEMENT:  SELECT configuration FROM app.retention_policy WHERE singleton
+db-1   | 2026-10-22 14:08:34.524 UTC [1039] ERROR:  relation "app.retention_policy" does not exist at character 27
+db-1   | 2026-10-22 14:08:34.524 UTC [1039] STATEMENT:  SELECT configuration FROM app.retention_policy WHERE singleton
+api-1  | [2026-10-22 14:04:52 +0000] [1] [INFO] Using worker: gthread
+api-1  | [2026-10-22 14:04:52 +0000] [7] [INFO] Booting worker with pid: 7
