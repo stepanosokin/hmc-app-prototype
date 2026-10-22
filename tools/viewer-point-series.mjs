@@ -18,13 +18,27 @@ export async function checkPointSeries({call,evaluate,wait,select,click,capture,
         const url=String(input);if(url.includes('/point?')){window.__seriesCalls.push(url);const t=new URL(url,location.origin).searchParams.get('valid_time');
         if(window.__seriesFault===3&&t.endsWith('03:00:00Z'))return new Response('{}',{status:503});}
         return original(input,options);};})()`);
-    await pick(37.6,55.7);await complete();if(!mobile)await click('#showPoint');
+    await pick(37.6,55.7);await complete();
+    const checkGraph=async host=>{
+        const state=await capture(),entries=state.series.entries;
+        const expectedPoints=entries.filter(e=>e.state==='value').length;
+        const expectedSegments=entries.slice(1).filter((e,i)=>e.state==='value'&&entries[i].state==='value').length;
+        const graph=await evaluate(`(()=>{const chart=document.querySelector(${JSON.stringify(host+' .realPointChart')}),svg=chart.querySelector('svg'),r=svg.getBoundingClientRect();return {visible:svg.checkVisibility(),width:r.width,height:r.height,points:svg.querySelectorAll('.seriesValue,.selectedValue').length,segments:svg.querySelectorAll('.forecastLine').length};})()`);
+        assert.ok(graph.visible&&graph.width>0&&graph.height>0,'Point graph has a visible SVG area: '+host);
+        assert.equal(graph.points,expectedPoints,'Every canonical value is drawn: '+host);
+        assert.equal(graph.segments,expectedSegments,'Only adjacent values are joined: '+host);
+        (report.point_graphs??=[]).push({host,expectedPoints,expectedSegments,...graph});
+    };
+    // Check the map popup before opening the separate point drawer on desktop.
+    await checkGraph(mobile?host:'#pointContent');
+    if(!mobile)await click('#showPoint');
     let state=await capture();assert.equal(state.series.entries.filter(e=>e.state==='value').length,23);
     assert.equal(state.series.entries[2].state,'error');assert.equal(state.series.requests,24);
     assert.equal(await evaluate(`${JSON.stringify(host)}&&document.querySelector(${JSON.stringify(host+' .realPointChart p')}).textContent.includes('Частичный')`),true);
     const count=await evaluate('window.__seriesCalls.length');
     await evaluate('window.__seriesFault=0');await click(host+' .realPointChart button:last-child');await complete();
     state=await capture();assert.equal(state.series.requests,25);assert.equal(state.series.entries.filter(e=>e.state==='value').length,24);
+    await checkGraph(host);
     assert.equal(await evaluate('window.__seriesCalls.length'),count+1);
     const identity=state.series.key;
     const reuseCount=await evaluate('window.__seriesCalls.length');
