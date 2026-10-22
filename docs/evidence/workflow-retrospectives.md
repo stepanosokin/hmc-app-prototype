@@ -117,3 +117,8 @@ input assumptions and repeated complete browser runs. Focused phone screenshots
 now precede the full gate; unaffected suite reuse requires explicit input proof.
 The existing resource-free T25 archive verifier is wired into CI. The accepted
 viewer/archive and the explicitly requested live stack remain unchanged.
+
+The [WMS compatibility retrospective](retro-wms-compat.md) records a desktop
+helper that masked ordinary QGIS defaults, an existing verifier outside the local
+wrapper and PowerShell/mypy command-binding mistakes. The Windows scope now
+reuses that verifier; QGIS and service guidance cover the remaining lessons.

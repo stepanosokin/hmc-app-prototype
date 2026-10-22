@@ -29,6 +29,7 @@ try {
         foreach ($script in @('check-publication-process', 'check-documentation', 'check-native-display-inputs')) {
             Invoke-Check powershell @('-NoProfile', '-File', "tools/$script.ps1")
         }
+        Invoke-Check node @('docs/evidence/wms-compat/verify.mjs')
         Invoke-Check node @('--test', 'tools/test-weather-check-options.mjs')
     }
     if ($Scope -in @('All', 'Runtime')) {

@@ -136,6 +136,22 @@ refactors, run its Windows check and a read-only Compose command through it.
 Changes to startup ordering or service/publication behavior require the full T5
 runner.
 
+For a PowerShell script's array parameter, invoke it in the current PowerShell
+with an actual array, for example:
+
+```powershell
+& ./tools/check-documentation.ps1 -Path @('docs/qgis.md', 'docs/development/qgis.md')
+$containerNames = @('hmc-app-live-api-1', 'hmc-app-live-gateway-1')
+$containers = docker inspect $containerNames | ConvertFrom-Json
+```
+
+A comma-separated string passed through native `powershell -File` is one path.
+Assign a JSON array directly as above before checking its Count; in Windows
+PowerShell 5.1, wrapping that pipeline in `@(...)` can retain the parsed array
+as a single nested item. Verify the native exit code and expected ownership/count
+before a service mutation. The [WMS retrospective](../evidence/retro-wms-compat.md)
+records both command-binding failures.
+
 Use that same launcher for a nested PowerShell runner under
 `$ErrorActionPreference = 'Stop'`: redirect the child's streams with
 `Invoke-CheckedProcess`, rather than wrapping `powershell ... *> file`.

@@ -11,6 +11,14 @@ This checks exclusion of unrelated data without repeating the full publication
 matrix at every client probe. Keep the final desktop report bound to the same
 selection and input inventory as the HTTP phases.
 
+For default-client compatibility, exercise a fresh connection with the ordinary
+QGIS DPI mode and no URI size or operation-URL overrides. Use a canvas larger
+than the advertised GetMap limit, then run the actual Identify tool on the same
+layer at two available times without pinning URI time. The desktop helper now
+asserts these conditions. GetFeatureInfo carries a virtual canvas that can be
+larger than GetMap; compare its selected pixel against the native reference in
+both CRSs, including NoData. See the [WMS compatibility acceptance](../evidence/wms-compat/validation.md).
+
 For agent-driven desktop work, prefer the available
 [QGIS MCP connection](../qgis.md#работа-агента-через-qgis-mcp) to the running QGIS
 instance. Check local availability before desktop testing. If the QGIS MCP plugin
@@ -22,7 +30,8 @@ user explicitly chooses it; continue independent work while awaiting a reply.
 
 For QGIS reviews, trace temporal state separately through map rendering and
 identify. The renderer clones its raster pipe; setting its time does not set
-the original provider's identify time. Reuse the pinned
+the original provider's identify time. Keep both direct-provider sampling and
+the same-layer Identify-tool check in the pinned
 [desktop helper](../../publication/qgis_desktop.py) and check differing native
 values at two available times in both supported CRSs. A valid layer or passing
 HTTP test alone does not establish desktop negotiation, time discovery or legend
