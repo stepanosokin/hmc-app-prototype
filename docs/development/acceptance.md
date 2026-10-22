@@ -43,6 +43,14 @@ fresh project. Select evidence only when every required phase used the recorded
 configuration. Do not combine a passing phase from one source revision with a
 passing phase from another to establish a final result.
 
+Reuse an unaffected unit/Python suite after a viewer-only fix when its source,
+fixtures, configuration, dependencies and toolchain are unchanged. Preserve the
+original result (including skips), record matching input lengths/hashes and
+review the intervening diff for dependencies the manifest may omit. Repeat the
+affected browser gate after its inputs change. The [T25 comparison](../evidence/t25/checks/reused-checks.json)
+records this separation; unchanged backend hashes do not establish a new browser
+result or replace a required service scenario.
+
 When reusing an unaffected platform's complete gate after a platform-specific
 runner fix, preserve both frozen snapshots and record every differing path,
 length and hash. Review the actual diff and establish that it is unreachable on

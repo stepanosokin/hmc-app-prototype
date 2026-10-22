@@ -26,6 +26,8 @@ jobs:
         run: node --test tools/test-viewer-network.mjs
       - name: Verify accepted T13 archive
         run: node docs/evidence/t13/verify.mjs
+      - name: Verify accepted T25 archive without runtime resources
+        run: node docs/evidence/t25/verify.mjs
 
   windows-process:
     runs-on: windows-2022

@@ -29,6 +29,10 @@ that Chrome dispatched its compatibility click. T13's
 [physical runner](../../tools/check-weather-viewer.mjs) records actual targets
 and waits for click before opening the native select dialog; reuse that input
 path before a full device run.
+For a native range, observe trusted `input`/`change` and the resulting value;
+Chrome may commit the value without a compatibility click. Exercise the range
+followed by the next button/select on the same device: the current driver uses
+`Input.synthesizeTapGesture` for taps and waits for the observed control result.
 For a native select, match Android `CheckedTextView`/`RadioButton` options,
 then wait for both the completing click and the DOM selected index. Record
 visual viewport width/offset before repeated mode changes: offscreen map labels
@@ -69,6 +73,14 @@ reviewed prototype's visible transitions and source hash with the existing
 [navigation scenario](../../tools/viewer-navigation.mjs).
 Before this first Development run, apply the [input-freeze procedure](acceptance.md)
 and wait for retirement before editing captured bind-mounted inputs.
+
+For time-switch changes, run `-TimeSwitch -TimeSwitchOnly` on each required
+platform first; status-layout fixes can use `-TimeStatusOnly` with those flags.
+Inspect the focused full-page phone screenshots before freezing the full gate.
+Exercise loading/error with a retained point outside the projection, the timeline
+collapsed, and both fonts: a correct DOM message can still be covered by a button.
+The [T25 retrospective](../evidence/retro-t25.md) links the failure and the focused
+rectangle/screenshot checks.
 
 Inspect screenshots as well as assertions before requesting visual approval.
 Include the smallest supported viewport, both font choices and every basemap;
