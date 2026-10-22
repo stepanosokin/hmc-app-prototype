@@ -26,7 +26,7 @@ limits. Point/EDR remain canonical nearest-native-cell. This technical experimen
 does not establish rotating-globe or physical Android/iOS acceptance; T23 and the
 production viewer gates retain those obligations. M1–M5/A1–A12 are unchanged.
 
-Revision 0.7 records the user-confirmed stable time navigation and real forecast point series in section 9.3. Q1–Q9 and shared understanding were confirmed on 2026-10-21. Map preservation, exact-frame slider behavior, point graphs and timing targets are new unverified obligations; M1–M5/A1–A12 and historical completion states remain unchanged.
+Revision 0.7 records the user-confirmed stable time navigation and real forecast point series in section 9.3. Q1–Q9 and shared understanding were confirmed on 2026-10-21. Map preservation, immediate ready-grid replacement and point graphs are new unverified obligations; M1–M5/A1–A12 and historical completion states remain unchanged.
 
 ## 1. Purpose and scope
 
@@ -221,15 +221,15 @@ geographic camera/scale, selected point and control-sheet context. Do not recrea
 the map, reload unchanged basemap resources because of the time change, or fit
 coverage again. Point coordinates remain selected; stale point numbers are cleared.
 
-**Discrete frames during dragging.** Show actual published valid times while the
-slider moves, with the latest requested selection taking priority. Intermediate
-positions may be skipped. Keep the previous complete frame until the new one is
-ready, then replace the thematic frame atomically, without an empty/partial flash.
-Show displayed-frame time separately from requested time and its loading state;
-never label the previous frame with the requested time. Reject obsolete responses,
-decoded arrays and uploads. Do not interpolate values or cross-fade frames;
-temporal blending remains deferred. Keep run/revision pinned and the agreed masks,
-display-error budgets and canonical sampling semantics unchanged.
+**Immediate grid replacement.** Selecting a valid time changes the thematic grid
+without recreating the map. The previous complete frame stays visible until the
+new complete frame is ready and is then replaced immediately and atomically,
+without animation, interpolation, cross-fade or empty/partial flashes. Displayed
+and requested times remain distinct; the latest selection wins and obsolete
+responses, decoded arrays and GPU uploads are rejected. Run/revision, masks,
+display-error budgets and canonical sampling semantics remain unchanged.
+Showing intermediate times during slider dragging is not required. Immediate
+replacement describes a ready frame, not zero network/decode/upload latency.
 
 **Missing and failed times.** Selecting a missing time immediately removes the
 thematic frame and point number, retaining map, point coordinates and an explicit
@@ -259,27 +259,22 @@ and map, including the defined missing-time behavior; hover alone changes no tim
 On phones the graph lives in the shared sheet's “Точка” tab, fits the panel width
 and does not cover the time bar. Preserve point/sheet context during time changes.
 
-**Measured acceptance targets.** Slider feedback is visible within 100 ms. For
-already prepared frames, p95 from the latest time input to complete presentation
-is at most 100 ms. Measure cold requested-frame loading separately, with a target
-of at most 3 s including fetch/decode/upload/presentation. Report cache reset and
-prepared/cold definitions, workload, sample counts, input/presentation timestamps,
-skipped/cancelled requests, host/browser/GPU and errors; do not mix cache profiles
-or hide the terminal requested frame. Bound all managed field arrays, cached
-frames, textures and framebuffers together to 128 MiB; retaining every forecast
-time in GPU memory is not required. Verify Chrome and Edge desktop and physical
-Chrome/Android in Mercator, strict orthographic and EPSG:3576. Emulated phone sizes
-do not replace the physical device; Safari/iOS remains unverified. Targets are
-acceptance obligations, not measured claims about the existing implementation.
+**Validation and bounded resources.** Bound managed field arrays, cached frames,
+textures and framebuffers together to 128 MiB. Verify Chrome and Edge desktop
+and physical Chrome/Android in Mercator, strict orthographic and EPSG:3576;
+emulation does not replace the physical device. Safari/iOS remains unverified.
+T26 / #40 was cancelled by the owner on 2026-10-22: slider feedback within
+100 ms, prepared-frame p95 within 100 ms and cold loading within 3 s are no
+longer acceptance targets. General workload measurements remain in #31.
 
 New requirements remain unchecked until actual implementation and validation:
 
 - [ ] Time changes preserve map/basemap/camera/point and update only thematic data.
-- [ ] Dragging presents exact discrete frames without blank flashes, interpolation or stale completion.
+- [ ] Ready grid frames replace the previous frame immediately, without blank flashes, animation or stale completion.
 - [ ] Loading, missing time, failure, nodata and expiry preserve the specified identities/states.
 - [ ] The real canonical forecast graph covers the pinned series, gaps, partial failure and reuse/invalidation.
 - [ ] Graph selection, tooltips, keyboard/touch and phone layout agree with map/slider state.
-- [ ] Reproducible desktop/physical Android evidence verifies all three projections, timing targets and memory bound.
+- [ ] Reproducible desktop/physical Android evidence verifies all three projections and the memory bound.
 
 ## 10. Retention and operations
 
