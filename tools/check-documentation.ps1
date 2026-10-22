@@ -3,6 +3,7 @@ param(
         'README.md',
         'AGENTS.md',
         'viewer/README.md',
+        '.agents/skills/hmc-demo/SKILL.md',
         'docs/development-workflow.md',
         'docs/development/browser.md',
         'docs/development/services.md',
