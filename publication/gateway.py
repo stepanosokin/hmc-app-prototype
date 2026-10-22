@@ -14,6 +14,7 @@ from flask import Flask, Response, jsonify, request, g
 
 from publication.access import identify
 from publication import budgets
+from publication import wms
 from publication.limited import WorkLimit
 from publication.process_channel import ProcessChannel
 
@@ -168,15 +169,14 @@ def create_app() -> Flask:
                     return failure(400)
             if upstream_path.startswith('gis/'):
                 params = {name.upper(): value for name, value in request.args.items()}
-                if any(name in params and not (re.fullmatch(r'[0-9]{1,4}', params[name]) and 1 <= int(params[name]) <= limits.dimension)
-                       for name in ('WIDTH', 'HEIGHT')):
-                    return failure(400)
+                wms.check_dimensions(params, limits.dimension)
             # Never forward credentials or trust client prefix/identity headers.
             g.event['cache'] = 'unavailable'
             upstream = forward_work({'url': 'http://api:8000/' + upstream_path,
                                    'params': list(request.args.items(multi=True)),
                                    'headers': {'X-Publication-Prefix': '/org' if protected else '',
                                                'X-HMC-Request-ID': g.event['request_id'],
+                                               'X-HMC-WMS-Dimension': str(min(wms.MAX_MAP_SIZE, limits.dimension)),
                                                'X-HMC-Deadline': str(time.time() + limits.seconds - 0.25)},
                                    'seconds': limits.seconds, 'output': limits.output}, limits.seconds)
         except WorkLimit as error:

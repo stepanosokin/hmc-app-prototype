@@ -1,0 +1,161 @@
+# Measurement artifacts are byte-addressed by artifact-index.json.
+# Preserve their exact recorded bytes across Windows/Linux checkouts.
+docs/evidence/t3/** -text whitespace=cr-at-eol
+
+# Shell execution and retained JSON hashes must survive Windows checkouts.
+publication/** text eol=lf
+tools/*.ps1 text eol=lf
+requirements.publication.lock text eol=lf
+docs/evidence/t4/** text eol=lf
+docs/evidence/t5/** -text whitespace=cr-at-eol
+docs/evidence/t6/** -text whitespace=cr-at-eol
+docs/evidence/t7/** -text whitespace=cr-at-eol
+docs/evidence/t8/** -text whitespace=cr-at-eol
+# Raw service/transcript output retains the producer's whitespace verbatim.
+docs/evidence/t8/*.log -whitespace
+
+docs/evidence/t9/** -text whitespace=cr-at-eol
+docs/evidence/t9/*.log -whitespace
+
+docs/evidence/t10/** -text whitespace=cr-at-eol
+docs/evidence/t10/*.log -whitespace
+
+# This checker is byte-addressed in acceptance input inventories.
+tools/check_evidence.py -text whitespace=cr-at-eol
+docs/development-workflow.md text eol=lf
+
+docs/evidence/t11/** -text whitespace=cr-at-eol
+docs/evidence/t11/*.log -whitespace
+
+docs/evidence/t12/** -text whitespace=cr-at-eol
+docs/evidence/t12/*.log -whitespace
+
+# T22 browser evidence binds the exact local mockup bytes.
+docs/prototypes/weather-map.prototype.* text eol=lf
+docs/prototypes/assets/land.js text eol=lf
+tools/check-weather-prototype.mjs text eol=lf
+docs/evidence/t22/** -text whitespace=cr-at-eol
+
+# T23 probe code and byte-addressed successful/rejected development evidence.
+tools/check-display-projections.mjs text eol=lf
+tools/display-projections/** text eol=lf
+docs/evidence/t23/** -text whitespace=cr-at-eol
+docs/evidence/t23/**/*.log -whitespace
+
+tools/native-display/** text eol=lf
+docs/evidence/t23a/** -text whitespace=cr-at-eol
+docs/evidence/t23a/**/*.log -whitespace
+
+# Retrospective validation keeps the original launcher/retirement bytes.
+docs/evidence/retro-t23a-checks/** -text whitespace=cr-at-eol
+docs/evidence/retro-t23a-checks/**/*.log -whitespace
+
+docs/evidence/retro-t23-validation/** -text whitespace=cr-at-eol
+docs/evidence/retro-t23-validation/**/*.log -whitespace
+
+# T24 extends the mockup; preserve the accepted T22 archive independently.
+docs/prototypes/weather-map.projections.js text eol=lf
+docs/prototypes/assets/vendor/** -text
+tools/weather-projection-checks.mjs text eol=lf
+tools/weather-landscape-checks.mjs text eol=lf
+tools/check-weather-geometry.py text eol=lf
+docs/evidence/t24/** -text whitespace=cr-at-eol
+
+# Preserve upstream license and archived helper bytes verbatim.
+docs/prototypes/assets/vendor/*.LICENSE.md -whitespace
+docs/evidence/t24/visual-review/mobile-revision-montage.py -whitespace
+
+# T24 retrospective transcripts preserve native output bytes.
+docs/evidence/retro-t24-checks/** -text whitespace=cr-at-eol
+
+# Workflow/runner changes and their new evidence preserve validated bytes.
+docs/development/** text eol=lf
+tools/weather-check-options.mjs text eol=lf
+tools/test-weather-check-options.mjs text eol=lf
+docs/evidence/fast-validation/** -text whitespace=cr-at-eol
+docs/evidence/fast-validation/**/*.log -whitespace
+
+viewer/** text eol=lf
+compose.publication.yaml text eol=lf
+tools/check-weather-viewer.mjs text eol=lf
+tools/weather-viewer-inputs.mjs text eol=lf
+tools/viewer-reference.py text eol=lf
+tools/diagnose-t23-service.py text eol=lf
+docs/evidence/t13/** -text whitespace=cr-at-eol
+docs/evidence/t13/**/*.log -whitespace
+
+# T14 selection/race evidence and browser runner preserve validated bytes.
+tools/viewer-navigation.mjs text eol=lf
+tools/viewer-updates.mjs text eol=lf
+tools/publish-viewer-update.ps1 text eol=lf
+tools/viewer-update-reference.py text eol=lf
+tools/run-weather-viewer.ps1 text eol=lf
+docs/evidence/t14/** -text whitespace=cr-at-eol
+docs/evidence/t14/**/*.log -whitespace
+
+# Retrospective check logs keep their observed bytes.
+docs/evidence/retro-t14-checks/** -text whitespace=cr-at-eol
+docs/evidence/retro-t14-checks/**/*.log -whitespace
+docs/evidence/t15/** -text whitespace=cr-at-eol
+docs/evidence/t15/**/*.log -whitespace
+tools/evidence_t15.py text eol=lf
+tools/test_evidence_t15.py text eol=lf
+docs/evidence/retro-t15-checks/** -text whitespace=cr-at-eol
+
+tools/viewer-network.mjs text eol=lf
+docs/evidence/t16/** -text whitespace=cr-at-eol
+docs/evidence/t16/**/*.log -whitespace
+docs/evidence/retro-t15-checks/**/*.log -whitespace
+
+tools/evidence_t16.py text eol=lf
+tools/test_evidence_t16.py text eol=lf
+docs/evidence/retro-t16-checks/** -text whitespace=cr-at-eol
+docs/evidence/retro-t16-checks/**/*.log -whitespace
+.github/workflows/checks.yml text eol=lf
+
+# Raw documentation-validation receipts for the v0.7 specification amendment.
+docs/evidence/spec-v07/** -text whitespace=cr-at-eol
+docs/evidence/spec-v07/**/*.log -whitespace
+
+docs/evidence/tickets-v07/** -text whitespace=cr-at-eol
+docs/evidence/tickets-v07/**/*.log -whitespace
+
+tools/viewer-time-switch.mjs text eol=lf
+tools/viewer-time-reference.py text eol=lf
+docs/evidence/t25/** -text whitespace=cr-at-eol
+docs/evidence/t25/**/*.log -whitespace
+
+docs/evidence/retro-t25-checks/** -text whitespace=cr-at-eol
+docs/evidence/retro-t25-checks/**/*.log -whitespace
+
+tools/viewer-point-series.mjs text eol=lf
+tools/viewer-series-reference.py text eol=lf
+docs/evidence/t27/** -text whitespace=cr-at-eol
+docs/evidence/t27/**/*.log -whitespace
+
+tools/viewer-series-synthetic.mjs text eol=lf
+
+# Demo lifecycle transcripts preserve native output and recorded input bytes.
+docs/evidence/hmc-demo/** -text whitespace=cr-at-eol
+docs/evidence/hmc-demo/**/*.log -whitespace
+
+docs/evidence/demo-access-repair/** -text whitespace=cr-at-eol
+docs/evidence/demo-access-repair/**/*.log -whitespace
+
+docs/evidence/demo-purge/** -text whitespace=cr-at-eol
+docs/evidence/demo-purge/**/*.log -whitespace
+
+# Point-popup diagnostic and local acceptance receipts preserve recorded bytes.
+docs/evidence/point-popup/** -text whitespace=cr-at-eol
+docs/evidence/point-popup/**/*.log -whitespace
+
+tools/viewer-settings.mjs text eol=lf
+tests/test_viewer_bridge.py text eol=lf
+docs/evidence/source-settings/** -text whitespace=cr-at-eol
+docs/evidence/source-settings/**/*.log -whitespace
+
+tests/test_wms_options.py text eol=lf
+tests/test_publication_qgis.py text eol=lf
+docs/qgis.md text eol=lf
+docs/evidence/wms-compat/** -text whitespace=cr-at-eol
+docs/evidence/wms-compat/**/*.log -whitespace

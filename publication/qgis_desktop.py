@@ -8,26 +8,27 @@ import xml.etree.ElementTree as ET
 from urllib.request import Request, urlopen
 
 def connect_forecast(base, wms_path, key, valid_time, crs='EPSG:3857'):
-    """Create an unsaved, authenticated QGIS WMS-T layer for one revision."""
+    """Create a WMS-T layer with ordinary QGIS DPI and request-size defaults."""
     from qgis.core import QgsDataSourceUri, QgsHttpHeaders, QgsRasterLayer
 
     url = base.rstrip('/') + wms_path
-    request = Request(url + '?SERVICE=WMS&REQUEST=GetCapabilities', headers={'X-API-Key': key})
+    request = Request(url + '?SERVICE=WMS&REQUEST=GetCapabilities', headers={'X-API-Key': key} if key else {})
     with urlopen(request, timeout=30) as response:
         root = ET.fromstring(response.read())
     times = next(node.text or '' for node in root.findall('.//{*}Dimension') if node.get('name') == 'time')
-    if valid_time not in times.split(','):
+    if valid_time is not None and valid_time not in times.split(','):
         raise ValueError('Выбранное время отсутствует в ревизии.')
     uri = QgsDataSourceUri()
     for name, value in {'url': url, 'layers': 'temperature',
                         'styles': 'raster', 'format': 'image/png', 'crs': crs,
-                        'IgnoreGetMapUrl': '1', 'IgnoreGetFeatureInfoUrl': '1',
-                        'maxWidth': '512', 'maxHeight': '512', 'timeDimensionExtent': times,
-                        'version': '1.3.0', 'dpiMode': '0', 'featureCount': '1',
-                        'type': 'wmst', 'allowTemporalUpdates': 'true',
-                        'time': valid_time + '/' + valid_time}.items():
+                        'timeDimensionExtent': times,
+                        'version': '1.3.0', 'featureCount': '10',
+                        'type': 'wmst', 'allowTemporalUpdates': 'true', 'temporalSource': 'provider'}.items():
         uri.setParam(name, value)
-    uri.setHttpHeaders(QgsHttpHeaders({'X-API-Key': key}))
+    if valid_time is not None:
+        uri.setParam('time', valid_time + '/' + valid_time)
+    if key:
+        uri.setHttpHeaders(QgsHttpHeaders({'X-API-Key': key}))
     return QgsRasterLayer(bytes(uri.encodedUri()).decode(), 'Температура поверхности, K', 'wms')
 
 
@@ -35,7 +36,7 @@ def verify_desktop(config_path):
     from qgis.core import (Qgis,
                            QgsProject, QgsMapSettings, QgsMapRendererSequentialJob,
                            QgsCoordinateReferenceSystem, QgsRectangle, QgsPointXY,
-                           QgsDateTimeRange)
+                           QgsDateTimeRange, QgsDataSourceUri)
     from qgis.PyQt.QtCore import QDateTime, Qt, QSize, QEventLoop, QTimer
     from qgis.PyQt.QtGui import QColor
 
@@ -46,22 +47,26 @@ def verify_desktop(config_path):
     http = json.loads((report / 't11-http.json').read_text())
     selected = http['selection']
 
-    observations = []
+    observations, standard_identify = [], []
     project = QgsProject.instance()
     owned = []
     try:
         for crs in ('EPSG:4326', 'EPSG:3857'):
-            layer = connect_forecast(config['base'], selected['wms'], key, selected['valid_time'], crs)
+            layer = connect_forecast(config['base'], selected['wms'], key, None, crs)
             assert layer.isValid(), 'Не удалось подключить слой WMS; проверьте журнал QGIS без публикации URI с ключом.'
             project.addMapLayer(layer)
             owned.append(layer.id())
+            uri = QgsDataSourceUri()
+            uri.setEncodedUri(layer.source())
+            assert not any(uri.hasParam(name) for name in ('dpiMode', 'maxWidth', 'maxHeight',
+                'IgnoreGetMapUrl', 'IgnoreGetFeatureInfoUrl', 'time'))
             provider = layer.dataProvider()
             assert provider.temporalCapabilities().hasTemporalCapabilities()
             available = provider.temporalCapabilities().allAvailableTemporalRanges()
             assert len(available) == len(http['choices']), len(available)
-            layer.temporalProperties().setIsActive(True)
-            layer.temporalProperties().setMode(Qgis.RasterTemporalMode.TemporalRangeFromDataProvider)
-            provider.temporalCapabilities().setIntervalHandlingMethod(
+            assert layer.temporalProperties().isActive()
+            assert layer.temporalProperties().mode() == Qgis.RasterTemporalMode.TemporalRangeFromDataProvider
+            assert provider.temporalCapabilities().intervalHandlingMethod() == (
                 Qgis.TemporalIntervalMatchMethod.MatchExactUsingStartOfRange)
             for item in http['choices']:
                 instant = QDateTime.fromString(item['valid_time'], Qt.ISODate)
@@ -69,7 +74,9 @@ def verify_desktop(config_path):
                 settings = QgsMapSettings()
                 settings.setLayers([layer])
                 settings.setDestinationCrs(QgsCoordinateReferenceSystem(crs))
-                settings.setOutputSize(QSize(512, 512))
+                # Larger than the advertised image limit; the provider must tile
+                # automatically without maxWidth/maxHeight overrides in its URI.
+                settings.setOutputSize(QSize(1204, 700))
                 settings.setBackgroundColor(QColor(0, 0, 0, 0))
                 settings.setIsTemporal(True)
                 settings.setTemporalRange(temporal_range)
@@ -82,7 +89,7 @@ def verify_desktop(config_path):
                 assert not job.errors(), [error.message for error in job.errors()]
                 image = job.renderedImage()
                 assert not image.isNull()
-                assert any(image.pixelColor(x, y).alpha() for x in range(0, 512, 16) for y in range(0, 512, 16))
+                assert any(image.pixelColor(x, y).alpha() for x in range(0, image.width(), 16) for y in range(0, image.height(), 16))
                 image.save(str(report / f"qgis-{crs.split(':')[1]}-{item['valid_time'][11:13]}.png"))
                 # QGIS renders a cloned pipe. Python does not expose the C++
                 # setRequestedTemporalRange mutator on the original provider.
@@ -113,7 +120,7 @@ def verify_desktop(config_path):
                     else:
                         x, y, delta = gx, gy, .001
                     result = identify_provider.identify(QgsPointXY(x, y), Qgis.RasterIdentifyFormat.Text,
-                                               QgsRectangle(x-delta, y-delta, x+delta, y+delta), 3, 3)
+                                               QgsRectangle(x-delta, y-delta, x+delta, y+delta), 1205, 701)
                     assert result.isValid(), result.error().message()
                     text = '\n'.join(str(v) for v in result.results().values())
                     match = re.search(r'GRAY_INDEX\s*=\s*([^\s]+)', text)
@@ -121,6 +128,15 @@ def verify_desktop(config_path):
                         assert match and abs(float(match[1])-probe['value_K']) <= .0001, text
                     else:
                         assert match is None or match[1].lower() in ('nan', 'null'), text
+                    if probe['native'] == [20., 50.]:
+                        # Use the map tool on this SAME layer after each time
+                        # change, with no URI time pinning or request-size hints.
+                        actual = identify_in_canvas(layer, crs, x, y, delta, temporal_range)
+                        value = re.search(r'GRAY_INDEX\s*=\s*([^\s]+)', actual)
+                        assert value and abs(float(value[1])-probe['value_K']) <= .0001, actual
+                        standard_identify.append({'crs': crs, 'time': item['valid_time'],
+                            'expected_K': probe['value_K'], 'identify': actual,
+                            'canvas': [1204, 700], 'uri_time': False, 'dpi_size_overrides': False})
                     observations.append({'crs': crs, 'time': item['valid_time'], 'native': [lon, lat],
                                          'expected_K': probe['value_K'], 'identify': text})
             loop = QEventLoop()
@@ -149,8 +165,30 @@ def verify_desktop(config_path):
             'qgis_version': Qgis.QGIS_VERSION, 'selected': selected,
             'input_inventory_sha256': hashlib.sha256((report / 'inputs-start.json').read_bytes()).hexdigest(),
             'method': 'QGIS Desktop WMS provider, temporal map renderer, identify and legend fetcher',
-            'observations': observations}, indent=2) + '\n')
+            'observations': observations, 'standard_identify': standard_identify}, indent=2) + '\n')
         print('QGIS Desktop: карта, время, легенда и значения проверены.')
     finally:
         for layer_id in owned:
             project.removeMapLayer(layer_id)
+
+
+def identify_in_canvas(layer, crs, x, y, delta, temporal_range):
+    """Exercise the actual Identify tool without touching the user's canvas."""
+    from qgis.core import QgsCoordinateReferenceSystem, QgsRectangle, QgsIdentifyContext
+    from qgis.gui import QgsMapCanvas, QgsMapToolIdentify
+    canvas = QgsMapCanvas()
+    canvas.resize(1204, 700)
+    canvas.setDestinationCrs(QgsCoordinateReferenceSystem(crs))
+    canvas.setExtent(QgsRectangle(x-delta, y-delta, x+delta, y+delta))
+    canvas.setLayers([layer])
+    context = QgsIdentifyContext()
+    context.setTemporalRange(temporal_range)
+    tool = QgsMapToolIdentify(canvas)
+    try:
+        results = tool.identify(canvas.width()//2, canvas.height()//2, [layer],
+                                QgsMapToolIdentify.TopDownAll, context)
+        return '\n'.join(str(value) for result in results for value in result.mAttributes.values())
+    finally:
+        canvas.setLayers([])
+        tool.deleteLater()
+        canvas.deleteLater()

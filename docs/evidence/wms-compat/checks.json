@@ -1,0 +1,46 @@
+{
+  "resource_free_checks": {
+    "types": {
+      "chunk_id": "f11f72",
+      "wall_time_seconds": 9.7942038,
+      "exit_code": 0,
+      "original_token_count": 11,
+      "output": "Success: no issues found in 77 source files\n"
+    },
+    "documentation": {
+      "chunk_id": "89572d",
+      "wall_time_seconds": 0.2447038,
+      "exit_code": 0,
+      "original_token_count": 10,
+      "output": "Documentation links passed (3 files).\r\n"
+    }
+  },
+  "development_cli_failures": [
+    {
+      "command": "mypy --config-file /app/publication/mypy.ini",
+      "exit_code": 1,
+      "reason": "No such config file; rerun with the repository CI flags succeeded for 77 source files.",
+      "cleanup": "One-shot Docker --rm --network none; no retained resources."
+    },
+    {
+      "command": "powershell -File tools/check-documentation.ps1 -Path docs/qgis.md,docs/evidence/wms-compat/diagnosis.md,docs/evidence/wms-compat/review.md",
+      "exit_code": 1,
+      "reason": "PowerShell native invocation passed the comma-separated paths as one literal path; rerun in the current PowerShell with an actual array passed.",
+      "cleanup": "No test resources were created."
+    }
+  ],
+  "geometry_unit_checks": {
+    "tests": 2,
+    "status": "passed",
+    "command": "docker run --rm --network none ... python -m unittest discover -s tests -p test_wms_options.py -v"
+  },
+  "maptool_development_probe": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\n  \"executed\": true,\n  \"stdout\": \"{'results': [{'': \\\"Results for FeatureType 'http://p742cbf306e795583a6a218cd:g742cbf306e795583a6a218cd':\\\\n--------------------------------------------\\\\nGRAY_INDEX = 280.69244384765625\\\\n--------------------------------------------\\\\n\\\"}], 'expected': 280.69244384765625, 'size': [1204, 700]}\\n\",\n  \"stderr\": \"\",\n  \"elapsed\": 1.64\n}"
+      }
+    ],
+    "isError": false
+  }
+}

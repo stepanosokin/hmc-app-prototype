@@ -24,6 +24,7 @@ from publication import retention
 from publication import budgets
 from publication import numerical
 from publication import native_display
+from publication import wms as wms_options
 from publication.process_channel import ProcessChannel
 from publication.tile_cache import TileCache
 from publication.limited import run as limited_work, WorkLimit, request_deadline
@@ -432,12 +433,15 @@ def create_app() -> Flask:
         params = {key.upper(): value for key, value in request.args.items()}
         if len(params) != len(request.args) or any(len(request.args.getlist(key)) != 1 for key in request.args):
             raise ValueError('repeated WMS parameter')
+        map_limit = min(wms_options.MAX_MAP_SIZE, int(request.headers.get('X-HMC-WMS-Dimension', '512')))
+        params = wms_options.normalize(params, map_limit)
         operation = params.get('REQUEST')
         if operation == 'GetCapabilities':
             # Initial WMS version negotiation (QGIS omits VERSION here).
             params.setdefault('VERSION', '1.3.0')
         chosen = candidates
         if operation in ('GetMap', 'GetFeatureInfo') or operation == 'GetLegendGraphic' and 'TIME' in params:
+            params.setdefault('TIME', min(item['valid_time'] for item in candidates))
             chosen = [item for item in candidates if item['valid_time'] == params.get('TIME')]
         elif operation == 'GetLegendGraphic':
             chosen = candidates[:1]
@@ -460,8 +464,8 @@ def create_app() -> Flask:
             if params.get('FORMAT') != 'image/png' or params.get('STYLES', '') not in ('', 'raster'):
                 raise ValueError('unsupported portrayal')
             for dimension in ('WIDTH', 'HEIGHT'):
-                if not 1 <= int(params.get(dimension, '0')) <= 1024:
-                    raise ValueError('map dimensions outside 1..1024')
+                if not 1 <= int(params.get(dimension, '0')) <= map_limit:
+                    raise ValueError('map dimensions outside advertised bounds')
             params['LAYERS'] = gis['layer']
             if operation == 'GetFeatureInfo':
                 if params.get('QUERY_LAYERS') != 'temperature' or params.get('INFO_FORMAT') != 'text/plain':
@@ -488,6 +492,13 @@ def create_app() -> Flask:
             root = ET.fromstring(payload)
             scoped = links(manifest)['wms'] + '?'
             namespace = '{http://www.opengis.net/wms}'
+            service = root.find(namespace+'Service')
+            if service is not None:
+                for name in ('MaxWidth', 'MaxHeight'):
+                    node = service.find(namespace+name)
+                    if node is None:
+                        node = ET.SubElement(service, namespace+name)
+                    node.text = str(map_limit)
             root.set('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation',
                      'http://www.opengis.net/wms https://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd')
             for parent in root.iter():
@@ -527,6 +538,7 @@ def create_app() -> Flask:
         response.set_etag(hashlib.sha256(json.dumps({'run': run_id, 'revision': revision,
             'field': manifest['identity']['field'], 'level': manifest['identity']['level'],
             'grid': manifest['identity']['native_grid_sha256'], 'member': manifest['identity']['member'],
+            'wms_profile': 'qgis-512-v1', 'map_limit': map_limit,
             'renderer': 'geoserver-2.27.0', 'parameters': params}, sort_keys=True).encode()).hexdigest())
         return response
 
