@@ -17,6 +17,8 @@ powershell -NoProfile -File tools/check-local.ps1 -Scope Runtime
 Install Node.js 26.10.0 and Docker before running. The runner mirrors the three
 jobs in `.github/workflows/checks.yml`, stops on failure and retains a transcript
 under `data/reports/local-checks/`. Archive that transcript with ticket evidence.
+The Windows scope also verifies the accepted WMS compatibility archive locally,
+without Docker, QGIS, a private GRIB or current-input matching.
 Docker build caches and installed dependencies are retained. Runtime containers
 use `--rm`; the retirement check manages its own disposable fixtures and receipts.
 After any failed attempt verify cleanup under the procedure below. Viewer and

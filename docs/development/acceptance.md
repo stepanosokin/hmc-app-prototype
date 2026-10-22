@@ -3,6 +3,10 @@
 Use the existing CI mypy check against the current read-only workspace before
 allocating a Compose project for Python type errors, when a locked validation
 image is already available. Otherwise let the focused runner build it first.
+Resolve the invocation from the existing `typecheck` service in
+[Compose](../../compose.publication.yaml) and the full-source check in
+[the checks workflow](../../.github/workflows/checks.yml); use its flags and
+source directories rather than assuming a project-specific mypy config exists.
 In PowerShell, expand a bind source in double quotes, for example
 `"$((Get-Location).Path):/workspace:ro"`. Read UTF-8 repository text with
 `Get-Content -Encoding UTF8` to preserve Russian diagnostics in tool output.
