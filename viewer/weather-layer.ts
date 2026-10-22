@@ -5,6 +5,7 @@ import {LocalContext} from './local-context.js';
 /** MapLibre custom layer over the accepted one-pass native-cell GPU kernel. */
 export class WeatherLayer extends NativeLayer {
     staged=false;
+    fieldVisible=true;
     failure:unknown;
     alternatePalette=false;
     context: LocalContext | undefined;
@@ -38,7 +39,11 @@ export class WeatherLayer extends NativeLayer {
     // Yield between real decode/upload operations so selection changes can retire
     // this layer before any further texture writes. Never render a partial field.
     uploadBlock(index:number,bytes:ArrayBuffer){this.pendingUploads.push({index,bytes});}
-    render(gl:WebGL2RenderingContext){if(!this.staged)super.render(gl);}
+    render(gl:WebGL2RenderingContext){
+        if(this.staged)return;
+        if(this.fieldVisible)super.render(gl);
+        else this.context?.render(this.geometry(),this.center);
+    }
     async prepared(signal:AbortSignal){
         while(!this.ready){
             signal.throwIfAborted();if(this.failure)throw this.failure;

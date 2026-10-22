@@ -7,6 +7,9 @@ export interface NativeMetadata {
     encoding:string;units:string;stored_size:number[];
 }
 export interface FieldData {metadata: NativeMetadata; blocks: ArrayBuffer[]; bytes: number; load_ms: number}
+export class PublicationExpired extends Error {
+    constructor(){super('Публикация истекла. Проверьте обновления.');}
+}
 export function localURL(url: string): string {
     if(!/^\/(?:api\/v1\/|ogc\/collections\/)/.test(url)||url.includes('..')||url.includes('\\')||url.includes('#'))
         throw Error('Недопустимый адрес опубликованных данных.');
@@ -22,8 +25,8 @@ async function response(url: string, signal: AbortSignal): Promise<Response> {
                 signal.addEventListener('abort',abort,{once:true});
             });continue;
         }
-        if(!result.ok)throw Error(result.status===410?'Публикация истекла. Проверьте обновления.':
-            result.status===404?'Выбранная публикация недоступна.':'Сервис данных недоступен. Повторите загрузку.');
+        if(result.status===410)throw new PublicationExpired();
+        if(!result.ok)throw Error(result.status===404?'Выбранная публикация недоступна.':'Сервис данных недоступен. Повторите загрузку.');
         return result;
     }
     throw Error('Сервис занят. Повторите загрузку.');
@@ -38,7 +41,9 @@ export async function json<T>(url: string,signal: AbortSignal): Promise<T> {
 export class FieldLoader {
     controller=new AbortController();
     generation=0;
-    cancel(){this.controller.abort();this.controller=new AbortController();this.generation++;}
+    private loadingBlocks:ArrayBuffer[]|undefined;
+    cancel(){this.controller.abort();this.controller=new AbortController();this.generation++;
+        if(this.loadingBlocks)this.loadingBlocks.length=0;this.loadingBlocks=undefined;}
     async load(selection: Selection): Promise<FieldData> {
         this.cancel();const generation=this.generation,signal=this.controller.signal,start=performance.now();
         const metadata=await json<NativeMetadata>(selection.native_display,signal);
@@ -50,6 +55,7 @@ export class FieldLoader {
             ['model','run','revision','field','level','valid_time','native_grid_sha256','member'].some(key=>metadata.identity[key]!==selection[key as keyof Selection]))
             throw Error('Несогласованный числовой контракт или выборка.');
         const blocks=new Array<ArrayBuffer>(18);let next=0,bytes=new TextEncoder().encode(JSON.stringify(metadata)).length;
+        this.loadingBlocks=blocks;
         const worker=async()=>{
             while(next<18){
                 const index=next++,url=metadata.url.replace('{column}',String(index%6)).replace('{row}',String(Math.floor(index/6)));
@@ -69,6 +75,7 @@ export class FieldLoader {
         };
         try{await Promise.all([worker(),worker()]);}catch(error){if(generation===this.generation)this.cancel();throw error;}
         signal.throwIfAborted();
+        this.loadingBlocks=undefined;
         return {metadata,blocks,bytes,load_ms:performance.now()-start};
     }
 }

@@ -6,6 +6,7 @@ import {join,resolve,sep} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {checkNavigation} from './viewer-navigation.mjs';
 import {checkUpdates} from './viewer-updates.mjs';
+import {checkTimeSwitch} from './viewer-time-switch.mjs';
 const directory=resolve(process.env.T13_REPORT_DIRECTORY||'data/reports/t13/browser-'+randomUUID());
 assert.ok(directory.startsWith(resolve('data/reports')+sep));
 const origin=process.env.T13_VIEWER||'http://127.0.0.1:8140';assert.match(origin,/^http:\/\/127\.0\.0\.1:\d+$/);
@@ -69,9 +70,7 @@ try{
         (report.control_inputs??=[]).push({selector,requested:{x:rect.x,y:rect.y},viewport:android?await evaluate('({width:innerWidth,height:innerHeight,visualWidth:visualViewport.width,scale:visualViewport.scale,offsetTop:visualViewport.offsetTop,offsetLeft:visualViewport.offsetLeft,scrollWidth:document.documentElement.scrollWidth})'):undefined});
         const clickToken=randomUUID();
         if(android)await evaluate(`document.querySelector(${JSON.stringify(selector)}).addEventListener('click',()=>{window.__t13Clicked=${JSON.stringify(clickToken)};},{once:true})`);
-        if(android){await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:Math.floor(rect.x)+.5,y:Math.floor(rect.y)+.5,id:1}]});
-            await delay(50);
-            await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+        if(android){await call('Input.synthesizeTapGesture',{x:Math.floor(rect.x)+.5,y:Math.floor(rect.y)+.5,duration:50,gestureSourceType:'touch'});
             await wait(`window.__t13Clicked===${JSON.stringify(clickToken)}`,'trusted Android click: '+selector);
         }
         else{await call('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,button:'left',clickCount:1});
@@ -137,6 +136,9 @@ try{
             await wait("document.visibilityState==='visible'",'unlocked visible Galaxy tab');
         }
         const viewport={width,height,mobile_emulation:mobile&&!android,physical_mobile:android,views:[],canonical_picks:[]};report.viewports.push(viewport);
+        if(process.env.T25_TIME_SWITCH_ONLY==='1'){
+            await checkTimeSwitch({call,evaluate,wait,select,click,capture,origin,report,directory,android});break;
+        }
         if(process.env.T15_UPDATES_ONLY==='1'){
             await checkUpdates({call,evaluate,wait,select,click,capture,origin,report,directory,android});break;
         }
@@ -253,6 +255,8 @@ try{
     }
     if(process.env.T15_UPDATES==='1'&&process.env.T15_UPDATES_ONLY!=='1'&&!disabled)
         await checkUpdates({call,evaluate,wait,select,click,capture,origin,report,directory,android});
+    if(process.env.T25_TIME_SWITCH==='1'&&process.env.T25_TIME_SWITCH_ONLY!=='1'&&!disabled)
+        await checkTimeSwitch({call,evaluate,wait,select,click,capture,origin,report,directory,android});
     assert.equal(report.errors.length,0,'No uncaught browser errors');
     assert.ok(report.requests.filter(r=>/^https?:/.test(r.url)&&!(offline&&r.url.startsWith('https://hmc-runtime-check.invalid/'))).every(r=>r.url.startsWith(origin+'/')),'Runtime is local');
     if(network)await network.finish();
