@@ -13,7 +13,7 @@ try {
     foreach ($path in @('tools','publication','data/live/hmc-app')) {
         New-Item -ItemType Directory -Path (Join-Path $toolRepository $path) -Force | Out-Null
     }
-    foreach ($path in @('tools/hmc-demo.ps1','publication/process.ps1','compose.publication.yaml')) {
+    foreach ($path in @('tools/hmc-demo.ps1','tools/hmc-demo-purge.ps1','publication/process.ps1','compose.publication.yaml')) {
         Copy-Item -LiteralPath (Join-Path $repository $path) -Destination (Join-Path $toolRepository $path)
     }
     'fixture-only=true' | Set-Content (Join-Path $toolRepository 'data/live/hmc-app/environment.env')
@@ -47,11 +47,31 @@ public class DemoFixture {
             }
         }
         File.AppendAllText(Path.Combine(root, "calls.log"), String.Join(" ", args) + "\n");
-        string command = args[7];
         string mode = File.ReadAllText(Path.Combine(root, "mode.txt"));
         if (mode == "native-failure") { Console.Error.WriteLine("fixture native error"); return 7; }
-        if (command == "up") File.WriteAllText(Path.Combine(root, "state.txt"), "running");
-        if (command == "stop" && mode != "stop-failure") File.WriteAllText(Path.Combine(root, "state.txt"), "stopped");
+        string state = File.ReadAllText(Path.Combine(root, "state.txt"));
+        string image = "sha256:" + new String('a',64);
+        if (args[0] == "container") {
+            if (args[1] == "ls") {
+                if (Array.Exists(args, x => x.StartsWith("ancestor="))) { if (mode == "shared-image") Console.WriteLine("other"); }
+                else if (state != "absent") Console.WriteLine("demo");
+            }
+            if (args[1] == "inspect") {
+                if (args[3] == "{{.Image}}") Console.WriteLine(image);
+                else if (args[3] == "{{.Config.Image}}") Console.WriteLine("fixture:demo");
+                else Console.WriteLine("{\"com.docker.compose.project\":\"hmc-app-live\",\"com.docker.compose.project.working_dir\":\"" + Path.Combine(root,"repo").Replace("\\","\\\\") + "\"}");
+            }
+            if (args[1] == "rm" && mode != "stop-failure") File.WriteAllText(Path.Combine(root,"state.txt"),"absent");
+            return 0;
+        }
+        if (args[0] == "network") return 0;
+        if (args[0] == "image") {
+            if (args[1] == "ls" && File.Exists(Path.Combine(root,"image.txt"))) Console.WriteLine(image);
+            if (args[1] == "rm") File.Delete(Path.Combine(root,"image.txt"));
+            return 0;
+        }
+        string command = args[7];
+        if (command == "up") { File.WriteAllText(Path.Combine(root, "state.txt"), "running"); File.WriteAllText(Path.Combine(root,"image.txt"),"exists"); }
         if (command == "ps" && File.ReadAllText(Path.Combine(root, "state.txt")) == "running")
             Console.WriteLine("db\napi\ngateway\ngeoserver\nviewer");
         else if (command == "ps") Console.WriteLine();
@@ -63,7 +83,7 @@ public class DemoFixture {
     $env:PATH = $fixture + ';' + $originalPath
     $env:HMC_DEMO_FIXTURE = $fixture
     'normal' | Set-Content -NoNewline (Join-Path $fixture 'mode.txt')
-    'stopped' | Set-Content -NoNewline (Join-Path $fixture 'state.txt')
+    'absent' | Set-Content -NoNewline (Join-Path $fixture 'state.txt')
     '{"selections":[{"id":"fixture"}]}' | Set-Content (Join-Path $fixture 'catalogue.json')
     $listener = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0)
     $listener.Start()
@@ -98,9 +118,16 @@ public class DemoFixture {
     Check-Demo start $true "http://127.0.0.1:$port/"
     Check-Demo status $true 'готов'
     'stop-failure' | Set-Content -NoNewline (Join-Path $fixture 'mode.txt')
-    Check-Demo stop $false 'остались работающие'
+    Check-Demo stop $false 'остались контейнеры'
     'normal' | Set-Content -NoNewline (Join-Path $fixture 'mode.txt')
     Check-Demo stop $true 'тома сохранены'
+    Remove-Item -LiteralPath (Join-Path $toolRepository 'data/live/hmc-app/environment.env')
+    Check-Demo stop $true 'тома сохранены'
+    'fixture-only=true' | Set-Content (Join-Path $toolRepository 'data/live/hmc-app/environment.env')
+    Check-Demo start $true "http://127.0.0.1:$port/"
+    'shared-image' | Set-Content -NoNewline (Join-Path $fixture 'mode.txt')
+    Check-Demo stop $false 'Общие образы сохранены'
+    'normal' | Set-Content -NoNewline (Join-Path $fixture 'mode.txt')
     Check-Demo stop $true 'тома сохранены'
     '{"selections":[]}' | Set-Content (Join-Path $fixture 'catalogue.json')
     Check-Demo start $false 'не готов'
@@ -108,7 +135,7 @@ public class DemoFixture {
     'native-failure' | Set-Content -NoNewline (Join-Path $fixture 'mode.txt')
     Check-Demo start $false 'native exit 7'
     $calls = Get-Content -LiteralPath (Join-Path $fixture 'calls.log')
-    if (@($calls | Where-Object { $_ -notmatch '--project-name hmc-app-live --file ' -or $_ -match '\b(down|rm|prune)\b' }).Count) {
+    if (@($calls | Where-Object { ($_ -match '^compose ' -and $_ -notmatch '--project-name hmc-app-live --file ') -or $_ -match '^(system\b|(container|image|network|volume) prune\b|volume rm\b)' -or $_ -match '^image rm.*--force' }).Count) {
         throw 'Command escaped the demo project or removed data'
     }
     Write-Output 'PASS project isolation and preservation; no Docker resources created'
