@@ -35,6 +35,8 @@ class QgisWms(unittest.TestCase):
         path = selected['wms']
         caps = {'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetCapabilities'}
         root = ET.fromstring(self.get(path, caps).content)
+        self.assertEqual(root.findtext('.//{*}Service/{*}MaxWidth'), '512')
+        self.assertEqual(root.findtext('.//{*}Service/{*}MaxHeight'), '512')
         negotiated = self.get(path, {'SERVICE': 'WMS', 'REQUEST': 'GetCapabilities'})
         self.assertEqual(ET.fromstring(negotiated.content).attrib['version'], '1.3.0')
         self.assertEqual([n.text for n in root.findall('.//{*}Layer/{*}Name')], ['temperature'])
@@ -48,6 +50,7 @@ class QgisWms(unittest.TestCase):
         legend = {'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetLegendGraphic',
                   'LAYER': 'temperature', 'FORMAT': 'image/png', 'STYLE': 'raster'}
         self.assertEqual(Image.open(io.BytesIO(self.get(path, legend).content)).format, 'PNG')
+        self.get(path, {**legend, 'DPI': '96', 'MAP_RESOLUTION': '96', 'FORMAT_OPTIONS': 'dpi:96', 'SCALE': '100000'})
         for extra in ({'LAYER': 'unrelated'}, {'SLD_BODY': '<StyledLayerDescriptor/>'}, {'WIDTH': '99999'}):
             self.get(path, {**legend, **extra}, expected=400)
         self.get(path, {**legend, 'TIME': '1900-01-01T00:00:00Z'}, expected=404)
@@ -70,10 +73,24 @@ class QgisWms(unittest.TestCase):
                     params = {**caps, 'REQUEST': 'GetMap', 'LAYERS': 'temperature', 'STYLES': '',
                               'TIME': item['valid_time'], 'CRS': crs, 'BBOX': ','.join(map(str, bbox)),
                               'WIDTH': '3', 'HEIGHT': '3', 'FORMAT': 'image/png', 'TRANSPARENT': 'true'}
-                    image = Image.open(io.BytesIO(self.get(path, params).content)).convert('RGBA')
+                    map_response = self.get(path, params)
+                    image = Image.open(io.BytesIO(map_response.content)).convert('RGBA')
                     self.assertEqual(bool(image.getchannel('A').getpixel((1, 1))), point['value'] is not None)
-                    identified = self.get(path, {**params, 'REQUEST': 'GetFeatureInfo',
-                        'QUERY_LAYERS': 'temperature', 'INFO_FORMAT': 'text/plain', 'I': '1', 'J': '1'})
+                    dpi = {'DPI': '96', 'MAP_RESOLUTION': '96', 'FORMAT_OPTIONS': 'dpi:96'}
+                    self.assertEqual(self.get(path, {**params, **dpi}).content, map_response.content)
+                    if item['valid_time'] == min(choice['valid_time'] for choice in choices):
+                        default = {k: v for k, v in params.items() if k != 'TIME'}
+                        self.assertEqual(self.get(path, default).content, map_response.content)
+                    identify_params = {**params, 'REQUEST': 'GetFeatureInfo',
+                        'QUERY_LAYERS': 'temperature', 'INFO_FORMAT': 'text/plain', 'I': '1', 'J': '1'}
+                    identified = self.get(path, identify_params)
+                    if item['valid_time'] == min(choice['valid_time'] for choice in choices):
+                        self.assertEqual(self.get(path, {k: v for k, v in identify_params.items() if k != 'TIME'}).text,
+                                         identified.text)
+                    large = self.get(path, {**params, **dpi, 'REQUEST': 'GetFeatureInfo',
+                        'QUERY_LAYERS': 'temperature', 'INFO_FORMAT': 'text/plain',
+                        'WIDTH': '1205', 'HEIGHT': '525', 'I': '602', 'J': '262', 'FEATURE_COUNT': '10'})
+                    self.assertEqual(large.text, identified.text)
                     match = re.search(r'GRAY_INDEX\s*=\s*([^\s]+)', identified.text)
                     if point['value'] is not None:
                         self.assertIsNotNone(match, identified.text)
@@ -84,8 +101,33 @@ class QgisWms(unittest.TestCase):
                     observations.append({'time': item['valid_time'], 'crs': crs, 'native': [lon, lat],
                                          'value_K': point['value'], 'identify': identified.text})
             self.get(path, {**params, 'TIME': '1900-01-01T00:00:00Z'}, expected=404)
+        for extra in ({'WIDTH': '513'}, {'DPI': '1201'}, {'FORMAT_OPTIONS': 'dpi:96;layout:bad'}):
+            self.get(path, {**params, **extra}, expected=400)
+        for extra in ({'WIDTH': '16385'}, {'I': '3'}, {'BBOX': '0,0,nan,1'}):
+            self.get(path, {**identify_params, **extra}, expected=400)
+        # Per-organization limits remain authoritative, including against a
+        # spoofed internal header, and are discoverable by the same client.
+        from publication.domain import database
+        original_caps = self.get(path, caps)
+        try:
+            with database() as cursor:
+                cursor.execute('INSERT INTO access.policies VALUES(%s,%s::jsonb) ON CONFLICT(bucket) '
+                               'DO UPDATE SET limits=excluded.limits', ('org:t11-reader', '{"dimension":32}'))
+            self.headers['X-HMC-WMS-Dimension'] = '512'
+            limited_caps = self.get(path, caps)
+            self.assertEqual(ET.fromstring(limited_caps.content).findtext('.//{*}Service/{*}MaxWidth'), '32')
+            self.assertNotEqual(original_caps.headers['ETag'], limited_caps.headers['ETag'])
+            self.get(path, {**params, 'WIDTH': '33'}, expected=400)
+            self.get(path, {**params, 'WIDTH': '32', 'HEIGHT': '32'})
+            self.get(path, {**identify_params, 'WIDTH': '1205', 'HEIGHT': '701', 'I': '602', 'J': '350'})
+        finally:
+            self.headers.pop('X-HMC-WMS-Dimension', None)
+            with database() as cursor:
+                cursor.execute('DELETE FROM access.policies WHERE bucket=%s', ('org:t11-reader',))
         Path('/evidence/t11-http.json').write_text(json.dumps({'status': 'passed',
-            'selection': selected, 'choices': choices, 'observations': observations}, indent=2) + '\n')
+            'selection': selected, 'choices': choices, 'observations': observations,
+            'compatibility': {'max_map_size': 512, 'dpi': True, 'default_time': True,
+                'large_identify': True, 'invalid_context': True, 'lower_policy_and_spoofed_header': True}}, indent=2) + '\n')
 
     def get(self, path, params=None, expected=200):
         response = requests.get(self.base + path, params=params, headers=self.headers, timeout=90)
