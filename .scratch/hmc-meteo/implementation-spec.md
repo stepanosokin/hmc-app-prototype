@@ -1,6 +1,6 @@
 # Hydrometcenter meteorology prototype — implementation specification
 
-Updated 2026-10-21 to bilingual specification v0.7: stable time navigation and real forecast point series are added in section 9.3, with new unverified acceptance targets. The v0.6 web-map display projection requirements are added in specification section 9.2 / T23 #35 / T24 #36. The v0.5 user-confirmed Windy visual concept is assigned to T22 / #34 for an interactive desktop/phone mockup, followed by production viewer work in #25/#27. Optional TLS using organization-provided certificates remains assigned to T21 / #33. The accepted v0.3 browser amendment remains: numeric browser tiles and GPU scalar rendering replace primary browser colour-image delivery. Preserve milestone IDs M1–M5 and acceptance IDs A1–A12. Scope agreement does not establish completion of TLS or other implementation gates.
+Updated 2026-10-21 to bilingual specification v0.7: stable time navigation and real forecast point series are added in section 9.3, with new unverified implementation requirements; the T26 timing/dragging targets were withdrawn on 2026-10-22. The v0.6 web-map display projection requirements are added in specification section 9.2 / T23 #35 / T24 #36. The v0.5 user-confirmed Windy visual concept is assigned to T22 / #34 for an interactive desktop/phone mockup, followed by production viewer work in #25/#27. Optional TLS using organization-provided certificates remains assigned to T21 / #33. The accepted v0.3 browser amendment remains: numeric browser tiles and GPU scalar rendering replace primary browser colour-image delivery. Preserve milestone IDs M1–M5 and acceptance IDs A1–A12. Scope agreement does not establish completion of TLS or other implementation gates.
 
 Source of truth:
 
@@ -231,15 +231,15 @@ geographic camera/scale, selected point and control-sheet context. Do not recrea
 the map, reload unchanged basemap resources because of the time change, or fit
 coverage again. Point coordinates remain selected; stale point numbers are cleared.
 
-**Discrete frames during dragging.** Show actual published valid times while the
-slider moves, with the latest requested selection taking priority. Intermediate
-positions may be skipped. Keep the previous complete frame until the new one is
-ready, then replace the thematic frame atomically, without an empty/partial flash.
-Show displayed-frame time separately from requested time and its loading state;
-never label the previous frame with the requested time. Reject obsolete responses,
-decoded arrays and uploads. Do not interpolate values or cross-fade frames;
-temporal blending remains deferred. Keep run/revision pinned and the agreed masks,
-display-error budgets and canonical sampling semantics unchanged.
+**Immediate grid replacement.** Selecting a valid time changes the thematic grid
+without recreating the map. The previous complete frame stays visible until the
+new complete frame is ready and is then replaced immediately and atomically,
+without animation, interpolation, cross-fade or empty/partial flashes. Displayed
+and requested times remain distinct; the latest selection wins and obsolete
+responses, decoded arrays and GPU uploads are rejected. Run/revision, masks,
+display-error budgets and canonical sampling semantics remain unchanged.
+Showing intermediate times during slider dragging is not required. Immediate
+replacement describes a ready frame, not zero network/decode/upload latency.
 
 **Missing and failed times.** Selecting a missing time immediately removes the
 thematic frame and point number, retaining map, point coordinates and an explicit
@@ -269,27 +269,22 @@ and map, including the defined missing-time behavior; hover alone changes no tim
 On phones the graph lives in the shared sheet's “Точка” tab, fits the panel width
 and does not cover the time bar. Preserve point/sheet context during time changes.
 
-**Measured acceptance targets.** Slider feedback is visible within 100 ms. For
-already prepared frames, p95 from the latest time input to complete presentation
-is at most 100 ms. Measure cold requested-frame loading separately, with a target
-of at most 3 s including fetch/decode/upload/presentation. Report cache reset and
-prepared/cold definitions, workload, sample counts, input/presentation timestamps,
-skipped/cancelled requests, host/browser/GPU and errors; do not mix cache profiles
-or hide the terminal requested frame. Bound all managed field arrays, cached
-frames, textures and framebuffers together to 128 MiB; retaining every forecast
-time in GPU memory is not required. Verify Chrome and Edge desktop and physical
-Chrome/Android in Mercator, strict orthographic and EPSG:3576. Emulated phone sizes
-do not replace the physical device; Safari/iOS remains unverified. Targets are
-acceptance obligations, not measured claims about the existing implementation.
+**Validation and bounded resources.** Bound managed field arrays, cached frames,
+textures and framebuffers together to 128 MiB. Verify Chrome and Edge desktop
+and physical Chrome/Android in Mercator, strict orthographic and EPSG:3576;
+emulation does not replace the physical device. Safari/iOS remains unverified.
+T26 / #40 was cancelled by the owner on 2026-10-22: slider feedback within
+100 ms, prepared-frame p95 within 100 ms and cold loading within 3 s are no
+longer acceptance targets. General workload measurements remain in #31.
 
 New requirements remain unchecked until actual implementation and validation:
 
 - [ ] Time changes preserve map/basemap/camera/point and update only thematic data.
-- [ ] Dragging presents exact discrete frames without blank flashes, interpolation or stale completion.
+- [ ] Ready grid frames replace the previous frame immediately, without blank flashes, animation or stale completion.
 - [ ] Loading, missing time, failure, nodata and expiry preserve the specified identities/states.
 - [ ] The real canonical forecast graph covers the pinned series, gaps, partial failure and reuse/invalidation.
 - [ ] Graph selection, tooltips, keyboard/touch and phone layout agree with map/slider state.
-- [ ] Reproducible desktop/physical Android evidence verifies all three projections, timing targets and memory bound.
+- [ ] Reproducible desktop/physical Android evidence verifies all three projections and the memory bound.
 
 ## Out of Scope
 
@@ -310,3 +305,8 @@ Before operational rollout obtain representative datasets, schema/access details
 ### Approved T23a numeric delivery candidate — 2026-10-20
 
 The owner explicitly approved [`hmc-native-display/1`](https://github.com/stepanosokin/hmc-app-prototype/blob/main/publication/native-display.v1.json) for implementation and comparison in [#37](https://github.com/stepanosokin/hmc-app-prototype/issues/37). Native float32 cells, validity masks and one-cell halos support one GPU bilinear interpolation; bounded server display derivatives are compared against independent raw GRIB at identical geographic points. The [approved design](https://github.com/stepanosokin/hmc-app-prototype/blob/main/docs/design/t23a-native-display-draft.md) fixes version/URL/matrix/CRS, height-zero operation, immutable cache identity and resource limits. Frozen v2 and canonical nearest-native-cell point/EDR remain unchanged. Agreement and this technical experiment do not establish rotating-globe, physical Android/iOS or production viewer acceptance. M1–M5/A1–A12 and other issue states remain unchanged. Both current specification copies record this amendment.
+
+
+## Scope correction — 2026-10-22
+
+The owner cancelled T26 / #40 (not planned). T25 / #39 retains immediate atomic ready-grid replacement without map recreation or animation, loading/error states and stale-response rejection. Intermediate frames while dragging and the 100 ms / p95 100 ms / cold 3 s targets are withdrawn. The shared 128 MiB budget and T27 / #41 remain. General workload evidence remains in #31 and final handoff in #32. No implementation completion is claimed.

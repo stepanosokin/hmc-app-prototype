@@ -1,0 +1,140 @@
+{
+  "phase": "before commit/push; T26 still open pending publication",
+  "observed_at": "2026-10-22T09:13:07.356Z",
+  "records": [
+    {
+      "number": 12,
+      "state": "open",
+      "labels": [
+        "ready-for-agent"
+      ],
+      "checkboxes": [
+        "- [ ] Time changes preserve map/basemap/camera/point and update only thematic data.",
+        "- [ ] Ready grid frames replace the previous frame immediately, without blank flashes, animation or stale completion.",
+        "- [ ] Loading, missing time, failure, nodata and expiry preserve the specified identities/states.",
+        "- [ ] The real canonical forecast graph covers the pinned series, gaps, partial failure and reuse/invalidation.",
+        "- [ ] Graph selection, tooltips, keyboard/touch and phone layout agree with map/slider state.",
+        "- [ ] Reproducible desktop/physical Android evidence verifies all three projections and the memory bound."
+      ],
+      "dependencies": {
+        "blocked_by": 0,
+        "total_blocked_by": 0,
+        "blocking": 0,
+        "total_blocking": 0
+      }
+    },
+    {
+      "number": 31,
+      "state": "open",
+      "labels": [
+        "ready-for-agent"
+      ],
+      "checkboxes": [
+        "- [ ] Use the correctness-validated sample and representative multi-GB/multivariable/model updates for sizing on the agreed measurement host; obtain required representative inputs before claiming sizing evidence.",
+        "- [ ] Run cold/warm map and click traffic while ingesting, with configurable profiles such as 1/10/50/100 clients, recording workload, hashes, dependencies, hardware/container budgets and test configuration.",
+        "- [ ] Report ingestion time, publication lag, p50/p95/p99 latency, successful throughput, CPU/RAM/I/O, bytes, temporary/final storage, cache rate, errors and backlog.",
+        "- [ ] Compare seven-/30-day storage including original copies, Zarr, selected COGs/overviews, staging, old revisions and cache; clearly state estimates versus directly measured quantities.",
+        "- [ ] Link and preserve T3's equivalent numerical-adapter comparison and selection. Do not silently change the adapter or claim a 100-client SLA from the measurement profiles.",
+        "- [ ] Retain repeatable local Compose load commands and distinguish local integration measurements from agreed-host operational sizing results.",
+        "- [ ] Agree tile-service and desktop/mobile browser targets before claiming performance readiness, separately from #15's approved point/metadata envelope. Record browser/device/GPU capabilities, viewport, zoom, network, tile encoding and server/container budgets; use actual browser measurements rather than HTTP-only simulation for rendering costs.",
+        "- [ ] Measure cold/warm numeric tile requests and a cached-image portrayal baseline: latency percentiles, successful throughput/errors, transferred bytes, tile generation/server CPU/RAM/I/O, browser decode/texture-upload time, frame-time/FPS and browser/GPU memory during pan/zoom/time changes and concurrent ingestion.",
+        "- [ ] Include numeric metadata/tile cache, decoded arrays/textures, bounded prefetch, eviction/context-loss behavior and seven-/30-day retained products in resource reporting. Report directly observed memory versus estimates where browsers lack exact GPU counters. Preserve T3 point/metadata results; they do not establish tile/GPU efficiency.",
+        "- [ ] Extend the declared desktop/mobile workloads to Mercator, strict orthographic globe and EPSG:3576 plus repeated switching, using T23 / #35's evidenced path. Measure cold/warm requests, generation/cache, transferred bytes, decode/upload, frame time/FPS and browser/GPU memory, including disposal of the previous mode's resources and concurrent ingestion.",
+        "- [ ] Agree mode-specific targets before readiness claims and distinguish technical feasibility measurements from final workload evidence. If server derivatives are selected, include their bounded generation, cache identities, readiness and seven-/30-day storage costs; preserve numeric-error budgets and the separate historical point/metadata comparison.",
+        "- [ ] Воспроизводимый workload включает повторную смену срока и график реального канонического ряда, с параллельным ingestion, в Chrome/Edge desktop и физическом Chrome/Android во всех трёх проекциях. Старые браузерные результаты не выдаются за проверку новых функций.",
+        "- [ ] Измерены задержки смены срока с раздельными холодными/прогретыми профилями, конфигурацией и ошибками без отменённых нормативов T26. Проверен общий бюджет управляемых массивов/кеша/текстур/framebuffer ≤128 МиБ.",
+        "- [ ] Измерены стоимость/число/байты/задержки ограниченных запросов прогнозного ряда, частичная ошибка/повтор и переиспользование ряда при смене только срока; новая точка/поле/расчёт/принятая редакция обновляют ряд. Числовая идентичность и состояния пропуска/nodata/ошибки/expiry сохраняются под нагрузкой.",
+        "- [ ] Доказано сохранение карты/подложки/камеры/точки, атомарная смена точных кадров без мигания/интерполяции, отсутствие роста ресурсов и возврата устаревшей/истёкшей выборки. Отчёт различает локальную приёмку новых функций и operational sizing на согласованном хосте, не создавая SLA из плановых целей."
+      ],
+      "dependencies": {
+        "blocked_by": 2,
+        "total_blocked_by": 3,
+        "blocking": 1,
+        "total_blocking": 1
+      }
+    },
+    {
+      "number": 32,
+      "state": "open",
+      "labels": [
+        "ready-for-agent"
+      ],
+      "checkboxes": [
+        "- [ ] Produce a traceable A1-A12 evidence index referencing the individual ticket results, exact versions, inputs, host/configuration and repeatable commands/client steps; retain M1-M5 exit records.",
+        "- [ ] Run the final integrated sample scenario across worker, publication, catalogue, numerical APIs, scoped QGIS WMS and browser through the Compose gateway, including update/failure/expiry and key/limit/accounting behavior.",
+        "- [ ] Include operator startup, key management, diagnostics, retention dry-run, backup/recovery and consumer API/QGIS procedures, plus local-runtime network evidence and measured workload reports.",
+        "- [ ] List unresolved operational inputs honestly: representative data/schema/access, producer conventions, real cadence/volume, server/storage/network, QGIS version, DNS/TLS/secrets and agreed service targets. Keep credentials out of documentation.",
+        "- [ ] Leave failed or unmet criteria explicitly open and revisit the affected decision on proven incompatibility; no mock data, unsupported conformance claims or silent architecture substitutions close a gate.",
+        "- [ ] Preserve accepted v0.3 scope, Zarr/selected-COG/GeoServer/MapLibre choices, selected numerical adapter and Martin/future-module deferrals. Do not edit or close parent #12 or the completed wayfinder map as part of ticket delivery.",
+        "- [ ] Index the v0.3 additions without replacing historical evidence: A2 numeric encoding/resampling/GPU checks, A3 selection/display semantics, A5/A8 tile/GPU races, A6 readiness, A7 protected tiles, A9 cache expiry, A11 local shaders/decoders and A12 server/browser measurements.",
+        "- [ ] Final acceptance must demonstrate actual numeric tiles and GPU scalar rendering, explicit capability/fallback behavior, canonical point/EDR and retained real GeoServer/QGIS WMS through the gateway, with agreed desktop/mobile targets and no unsupported tile/GPU claims from #15.",
+        "- [ ] Preserve v0.3 scope and the accepted Zarr/COG/GeoServer core. Wind particles, temporal blending and bulk analytical raster downloads remain deferred; numeric display tiles are required. Leave implementation issues open when any new required evidence is missing.",
+        "- [ ] Index specification v0.6 / section 9.2, ADR 0003, T23 / #35, T24 / #36 and any required server-extension ticket. Final actual-data/GPU/Compose evidence covers all three modes, strict orthography, EPSG:3576 domain, initial Mercator, state preservation/stale-result rejection, inverse picking, explicit unsupported-mode behavior, local resources and agreed measurements. Keep historical #16/#22/#23/#24/#34 evidence and states intact; do not claim production completion from planning or mockups.",
+        "- [ ] Индекс A3/A5/A8/A12 связывает v0.7 и результаты #39/#41/#31 с точными входами, версиями, сценариями, desktop/physical Android и тремя проекциями. Шесть критериев v0.7 не отмечаются на основании создания тикетов или исторических свидетельств.",
+        "- [ ] Итоговый реальный Compose/GPU/gateway сценарий показывает сохранение карты/подложки/камеры/точки при смене времени, атомарную смену готового грида без анимации и мигания, явные shown/requested times, поведение пропусков/ошибок/expiry, canonical forecast graph, его выбор срока и подсказки/телефон, переиспользование ряда и отклонение устаревших результатов при явных updates.",
+        "- [ ] В handoff включены воспроизводимые измерения нагрузки без отменённых нормативов T26 и проверка бюджета 128 МиБ из #31, числовая идентичность графика/point/EDR/карты, известные ограничения и проверенный cleanup. Незавершённые функции/замеры остаются открытыми; закрытые задачи, родитель #12 и завершённая карта планирования не переоткрываются и не закрываются этим тикетом."
+      ],
+      "dependencies": {
+        "blocked_by": 2,
+        "total_blocked_by": 2,
+        "blocking": 0,
+        "total_blocking": 0
+      }
+    },
+    {
+      "number": 39,
+      "state": "open",
+      "labels": [
+        "ready-for-agent"
+      ],
+      "checkboxes": [
+        "- [ ] Смена срока через существующие видимые элементы управления сохраняет экземпляр карты, подложку, подписи, проекцию, положение/масштаб камеры, точку и состояние панели; не вызывает повторного fit покрытия или повторной загрузки неизменившейся подложки.",
+        "- [ ] Обновляются тематический слой, время, состояние загрузки и числовой ответ точки; единицы, стабильная шкала и легенда согласованы с показанным полем. Расчёт и редакция закреплены.",
+        "- [ ] До готовности нового полного кадра сохраняется прежний с подписью фактического времени; запрошенный срок отдельно помечен как загружающийся. Старое число точки очищено, координата сохранена. Готовый кадр заменяется атомарно без пустой/частичной вспышки.",
+        "- [ ] Последний выбор имеет приоритет; запоздавшие fetch/decode/upload/point результаты прежней выборки не меняют новый экран. Управляемые массивы/текстуры/framebuffer и кеш кадров вместе укладываются в 128 МиБ; отменённые ресурсы освобождаются.",
+        "- [ ] Выбор отсутствующего срока немедленно убирает тематический слой и число, сохраняя карту/точку и русское объяснение. Ошибка загрузки доступного срока удерживает прежний кадр только с его временем и явной ошибкой; запрошенный срок не объявляется показанным. Вне покрытия, native nodata, пропуск, ошибка и истечение публикации различаются; кеш не восстанавливает истёкший выбор.",
+        "- [ ] Функциональный сценарий проверен в Mercator, строгой ортографии и EPSG:3576 через реальный gateway/Compose/GPU на Chrome/Edge desktop и физическом Chrome/Android. Проверены повторные смены срока, точка/панель, состояние камеры, задержанные ответы, пропуски и ошибки; числовой результат сверяется с независимым raw-GRIB/PROJ эталоном с действующими допусками.",
+        "- [ ] Пройдены обязательные проверки затронутых компонентов и применимые регрессии навигации/явных обновлений/локальных runtime-ресурсов. Точные входы, реальные данные, версии, результаты и снимки архивированы; после каждой попытки cleanup проверен."
+      ],
+      "dependencies": {
+        "blocked_by": 0,
+        "total_blocked_by": 0,
+        "blocking": 1,
+        "total_blocking": 1
+      }
+    },
+    {
+      "number": 40,
+      "state": "open",
+      "labels": [],
+      "checkboxes": [
+        "- [ ] Движение ползунка обновляет прогноз уже во время перетаскивания мышью и касанием; управление клавиатурой сохраняется. Приоритет у последнего выбора, промежуточные положения можно пропускать. После остановки последний срок обязательно завершается показом либо явным состоянием отсутствия/ошибки.",
+        "- [ ] Сохраняются карта/подложка/камера/проекция/точка/панель; новый полный кадр атомарно заменяет прежний без пустого/частичного кадра. Реальные точные сроки не интерполируются и не смешиваются переходом прозрачности.",
+        "- [ ] Удерживаемый кадр подписан собственным временем, запрошенный срок — отдельно со статусом загрузки. Старое число точки очищается; поздние ответы и загрузки в GPU не возвращают устаревшие сроки. Пропуск, ошибка, nodata и истечение соблюдают контракт v0.7.",
+        "- [ ] Видимый отклик ползунка не превышает 100 мс. Для уже подготовленных кадров p95 от последнего ввода времени до полного показа не превышает 100 мс. Холодная загрузка запрошенного кадра, включая fetch/decode/upload/показ, измеряется отдельно с целью не более 3 с.",
+        "- [ ] Отчёт фиксирует определения подготовленного/холодного кадра, сброс кешей, сценарий движения и остановки, число повторов, метки ввода/показа, пропущенные/отменённые запросы, ошибки и конфигурацию хоста/браузера/GPU. Профили кеша не смешиваются; последний запрошенный кадр не исключается из измерений.",
+        "- [ ] Суммарный бюджет управляемых массивов поля, кешированных кадров, текстур и framebuffer не превышает 128 МиБ при длительном движении, развороте ползунка, отменах и смене проекции/выбора. Все сроки не требуется удерживать в GPU. Кеш не смешивает расчёты/редакции и не восстанавливает истёкшие данные.",
+        "- [ ] Реальные данные через gateway/Compose/GPU проверены в Chrome/Edge desktop и физическом Chrome/Android во всех трёх проекциях. Проверены быстрое движение вперёд/назад, медленная сеть, пропуски/ошибки и гонки с явным обновлением; сохранены независимые числовые/масочные проверки с действующими допусками.",
+        "- [ ] Обязательные проверки/регрессии пройдены, воспроизводимые измерения и точные входы архивированы, cleanup каждой попытки проверен. Неуспешные цели остаются неотмеченными, а не заменяются mockup/HTTP-only измерениями."
+      ],
+      "dependencies": {
+        "blocked_by": 0,
+        "total_blocked_by": 0,
+        "blocking": 0,
+        "total_blocking": 0
+      }
+    },
+    {
+      "number": 31,
+      "blockers": [
+        28,
+        29,
+        41
+      ]
+    },
+    {
+      "number": 40,
+      "blockers": []
+    }
+  ]
+}
