@@ -29,7 +29,16 @@
       <small id="timezoneInfo"></small>
       <label>Единицы<select id="units"><option value="C">Градусы Цельсия · °C</option><option value="K">Кельвины · K</option></select></label>
       <label>Палитра<select id="palette"><option value="temperature">Температурная</option><option value="contrast">Контрастная</option></select></label>
-      <details><summary>Происхождение и числовой контракт</summary><p id="metadata"></p></details>
+      <section class="connectionLinks" aria-label="Ссылки WMS и API">
+        <h2>WMS и API</h2><small id="linkSelection"></small>
+        <a id="wmsLink" target="_blank" rel="noopener noreferrer">WMS · выбранная редакция ↗</a>
+        <label class="connectionUrl">Адрес WMS<input id="wmsUrl" readonly aria-label="Адрес WMS"></label><button id="wmsCopy" disabled>Скопировать URL WMS</button>
+        <a id="apiLink" target="_blank" rel="noopener noreferrer">API · значение точки ↗</a>
+        <label class="connectionUrl">Адрес API<input id="apiUrl" readonly aria-label="Адрес API"></label><button id="apiCopy" disabled>Скопировать URL API</button>
+        <small id="linkPoint"></small><small id="copyStatus" role="status" aria-live="polite"></small>
+        <p>Публичные демонстрационные ссылки. WMS закреплён за расчётом и редакцией; API — за точным сроком UTC и точкой. Исходные числовые значения — в K.</p>
+      </section>
+      <details><summary>Происхождение и числовой контракт</summary><dl id="metadata"></dl><a id="metadataLink" target="_blank" rel="noopener noreferrer" hidden>Технические метаданные ↗</a></details>
       <button id="retry">Повторить загрузку</button><button id="refresh">Проверить обновления</button>
       <small>Подложка: Natural Earth 1:110m, общественное достояние. Береговая линия без государственных границ; подписи городов добавлены для ориентации. Все ресурсы локальные.</small>
       <small>Лицензии: <a href="/vendor/MapLibre.LICENSE.txt">MapLibre</a> · <a href="/vendor/proj4.LICENSE.md">proj4js</a> · <a href="/vendor/d3-geo.LICENSE.txt">D3 Geo</a> · <a href="/vendor/d3-array.LICENSE.txt">D3 Array</a></small>

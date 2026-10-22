@@ -8,6 +8,7 @@ import {checkNavigation} from './viewer-navigation.mjs';
 import {checkUpdates} from './viewer-updates.mjs';
 import {checkTimeSwitch} from './viewer-time-switch.mjs';
 import {checkPointSeries} from './viewer-point-series.mjs';
+import {checkSourceSettings} from './viewer-settings.mjs';
 const directory=resolve(process.env.T13_REPORT_DIRECTORY||'data/reports/t13/browser-'+randomUUID());
 assert.ok(directory.startsWith(resolve('data/reports')+sep));
 const origin=process.env.T13_VIEWER||'http://127.0.0.1:8140';assert.match(origin,/^http:\/\/127\.0\.0\.1:\d+$/);
@@ -149,6 +150,11 @@ try{
         report.gpu=await evaluate("(()=>{const gl=document.querySelector('.maplibregl-canvas').getContext('webgl2'),debug=gl.getExtension('WEBGL_debug_renderer_info');return {renderer:gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER),version:gl.getParameter(gl.VERSION),highp_precision:gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER,gl.HIGH_FLOAT).precision,max_texture_size:gl.getParameter(gl.MAX_TEXTURE_SIZE),max_array_layers:gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)};})()");
         if(android){
             await wait("document.visibilityState==='visible'",'unlocked visible Galaxy tab');
+        }
+        if(!android){
+            await checkSourceSettings({call,evaluate,wait,click,select,capture,report,directory,width,height,origin});
+            await call('Page.navigate',{url:origin+'/?validation=1'});
+            await wait('window.captureWeatherEvidence?.().ready','reset after source settings');
         }
         const viewport={width,height,mobile_emulation:mobile&&!android,physical_mobile:android,views:[],canonical_picks:[]};report.viewports.push(viewport);
         if(process.env.T27_POINT_SERIES==='1'){

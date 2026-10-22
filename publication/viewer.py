@@ -13,6 +13,7 @@ def create_app() -> Flask:
     routes = (
         re.compile(r'api/v1/(?:catalogue|point)'),
         re.compile(r'ogc/collections/[0-9a-f.]+'),
+        re.compile(r'gis/v1/runs/[A-Za-z0-9_.:/-]+/revisions/[0-9a-f]+/wms'),
         re.compile(r'api/v1/selections/[0-9a-f.]+/display/1/(?:native\.json|native/[0-9]+/[0-9]+\.f32)'),
     )
 
