@@ -13,7 +13,7 @@ $directory = Join-Path $repository 'data/live/hmc-app'
 $environmentFile = Join-Path $directory 'environment.env'
 $requiredServices = @('db','api','gateway','geoserver','viewer')
 
-if (-not (Test-Path -LiteralPath $environmentFile)) {
+if ($Action -ne 'stop' -and -not (Test-Path -LiteralPath $environmentFile)) {
     throw 'Демостенд ещё не настроен: отсутствует data/live/hmc-app/environment.env. Подготовьте проект по viewer/README.md; пароли сохраняйте только локально.'
 }
 if ($Action -eq 'start' -and -not (Test-Path -LiteralPath (Join-Path $directory 'published.json'))) {
@@ -58,10 +58,10 @@ try {
         Invoke-DemoCompose -Arguments (@('up','--detach','--no-build') + $requiredServices) | Out-Null
     }
     if ($Action -eq 'stop') {
-        Invoke-DemoCompose -Arguments @('stop','--timeout','30') | Out-Null
-        if ((Get-RunningServices).Count -gt 0) { throw 'В проекте остались работающие сервисы.' }
-        $state = 'stopped'
-        Write-Output 'Демостенд остановлен. Опубликованные данные и тома сохранены.'
+        . (Join-Path $PSScriptRoot 'hmc-demo-purge.ps1')
+        $purge = Invoke-HmcDemoPurge -Project $project -Repository $repository -Directory $directory -ReportDirectory $report
+        $state = 'purged'
+        Write-Output 'Демостенд удалён: контейнеры и образы очищены. Опубликованные данные и тома сохранены.'
     } else {
         $deadline = [DateTime]::UtcNow.AddSeconds($WaitSeconds)
         $state = 'unavailable'
