@@ -1,0 +1,21 @@
+﻿{
+  "phase": "final acceptance before commit",
+  "observed_at": "2026-10-22T10:48:00Z",
+  "method": "Manual inspection of full-page images using view_image; actual phone screenshots include UI outside the GPU canvas",
+  "status": "passed",
+  "reviewed": [
+    "status-dev2/reports/browser/time-status-error.png",
+    "android-status2/reports/browser/time-status-error.png",
+    "desktop-final4/reports/browser/time-switch-mercator.png",
+    "desktop-final4/reports/browser/time-switch-orthographic.png",
+    "desktop-final4/reports/browser/time-switch-laea.png",
+    "desktop-final4/reports/browser-edge/time-switch-laea.png",
+    "android-final3/reports/browser/time-status-error.png",
+    "android-final3/reports/browser/time-switch-mercator.png",
+    "android-final3/reports/browser/time-switch-orthographic.png",
+    "android-final3/reports/browser/time-switch-laea.png"
+  ],
+  "findings": "Loading/error labels retain the actual shown time; phone error is fully readable beside point recall. Requested/displayed time remains distinct. Maps, labels, legend and point UI render in the accepted projections. No new blocking visual defect.",
+  "automated_geometry": "Actual Android status rectangles are disjoint from recall/navigation/legend/timeline with system font and Courier; archived in browser.json time_status.geometry/font_geometry",
+  "resources_created": false
+}

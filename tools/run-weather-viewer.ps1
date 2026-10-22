@@ -8,9 +8,14 @@ param(
     [switch]$NavigationOnly,
     [switch]$Updates,
     [switch]$UpdatesOnly,
-    [switch]$Offline
+    [switch]$Offline,
+    [switch]$TimeSwitch,
+    [switch]$TimeSwitchOnly,
+    [switch]$TimeStatusOnly
 )
 $ErrorActionPreference='Stop'
+if($TimeSwitchOnly -and (-not $TimeSwitch -or $Final)){throw 'TimeSwitchOnly requires TimeSwitch and Development scope'}
+if($TimeStatusOnly -and -not $TimeSwitchOnly){throw 'TimeStatusOnly requires TimeSwitchOnly'}
 if($UpdatesOnly -and -not $Updates){throw 'UpdatesOnly requires Updates'}
 if($Final -and $UpdatesOnly){throw 'Final requires complete matrix'}
 if($NavigationOnly -and -not $Navigation){throw 'NavigationOnly requires Navigation'}
@@ -67,24 +72,29 @@ try{
         if($NavigationOnly){$env:T14_NAVIGATION_ONLY='1';$env:T13_FOCUSED='1'}
     }
     $env:T13_VIEWER="http://127.0.0.1:$ViewerPort"
+    if($TimeSwitch){$env:T25_TIME_SWITCH='1'}
+    if($TimeSwitchOnly){$env:T25_TIME_SWITCH_ONLY='1';$env:T13_FOCUSED='1'}
+    if($TimeStatusOnly){$env:T25_TIME_STATUS_ONLY='1'}
     if($Updates){$env:T15_UPDATES='1';$env:T15_PROJECT=$Project}
     if($UpdatesOnly){$env:T15_UPDATES_ONLY='1';$env:T13_FOCUSED='1'}
     $env:T13_REPORT_DIRECTORY=Join-Path $directory 'browser'
     Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-weather-viewer.mjs') -ReportDirectory $directory -Name browser
+    if($TimeSwitch -and -not $TimeStatusOnly){Check time-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-time-reference.py','browser')}
     if($Updates){Check update-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-update-reference.py','browser')}
-    if(-not $NavigationOnly -and -not $UpdatesOnly){
+    if(-not $NavigationOnly -and -not $UpdatesOnly -and -not $TimeSwitchOnly){
         Check comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-reference.py','compare')
     }
     if($WithEdge){
         $env:T13_BROWSER='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
         $env:T13_REPORT_DIRECTORY=Join-Path $directory 'browser-edge'
         Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-weather-viewer.mjs') -ReportDirectory $directory -Name edge
+        if($TimeSwitch -and -not $TimeStatusOnly){Check edge-time-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-time-reference.py','browser-edge')}
         if($Updates){Check edge-update-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-update-reference.py','browser-edge')}
-        if(-not $NavigationOnly -and -not $UpdatesOnly){
+        if(-not $NavigationOnly -and -not $UpdatesOnly -and -not $TimeSwitchOnly){
             Check edge-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-reference.py','compare','browser-edge')
         }
     }
-    if(-not $env:T13_ANDROID_SERIAL){
+    if(-not $env:T13_ANDROID_SERIAL -and -not $TimeSwitchOnly){
         $env:T13_DISABLE_GPU='1'
         $env:T13_REPORT_DIRECTORY=Join-Path $directory 'browser-unavailable'
         Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-weather-viewer.mjs') -ReportDirectory $directory -Name unavailable
@@ -107,6 +117,9 @@ try{
     Remove-Item Env:T15_UPDATES -ErrorAction SilentlyContinue
     Remove-Item Env:T15_UPDATES_ONLY -ErrorAction SilentlyContinue
     Remove-Item Env:T15_PROJECT -ErrorAction SilentlyContinue
+    Remove-Item Env:T25_TIME_SWITCH -ErrorAction SilentlyContinue
+    Remove-Item Env:T25_TIME_SWITCH_ONLY -ErrorAction SilentlyContinue
+    Remove-Item Env:T25_TIME_STATUS_ONLY -ErrorAction SilentlyContinue
     if($null -eq $originalFocused){Remove-Item Env:T13_FOCUSED -ErrorAction SilentlyContinue}else{$env:T13_FOCUSED=$originalFocused}
     if($null -eq $originalOffline){Remove-Item Env:T16_OFFLINE -ErrorAction SilentlyContinue}else{$env:T16_OFFLINE=$originalOffline}
     & (Join-Path $PSScriptRoot 'retire-publication-project.ps1') -Project $Project -ReportDirectory "data/reports/t13/$Project"

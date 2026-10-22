@@ -22,6 +22,8 @@ jobs:
         run: npm --prefix viewer run check
       - name: Check viewer selection and field loading
         run: npm --prefix viewer test
+      - name: Check offline interception and cancellation
+        run: node --test tools/test-viewer-network.mjs
       - name: Verify accepted T13 archive
         run: node docs/evidence/t13/verify.mjs
 

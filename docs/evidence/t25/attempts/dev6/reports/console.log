@@ -1,0 +1,61 @@
+﻿**********************
+Начало записи сценария Windows PowerShell
+Время начала: 20261022123629
+Имя пользователя: STAFF\s.osokin
+Запуск от имени пользователя: STAFF\s.osokin
+Имя конфигурации: 
+Компьютер: N626798 (Microsoft Windows NT 10.0.26200.0)
+Ведущее приложение: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File tools/run-weather-viewer.ps1 -Project hmc-publication-t13-t25-dev6 -TimeSwitch -TimeSwitchOnly
+ИД процесса: 27120
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+{"phase":"start","files":185,"status":"passed"}
+ Network hmc-publication-t13-t25-dev6_publication  Creating
+ Network hmc-publication-t13-t25-dev6_publication  Created
+ Network hmc-publication-t13-t25-dev6_edge  Creating
+ Network hmc-publication-t13-t25-dev6_edge  Created
+ Volume hmc-publication-t13-t25-dev6_assets  Creating
+ Volume hmc-publication-t13-t25-dev6_assets  Created
+ Volume hmc-publication-t13-t25-dev6_postgres  Creating
+ Volume hmc-publication-t13-t25-dev6_postgres  Created
+ Volume hmc-publication-t13-t25-dev6_geoserver  Creating
+ Volume hmc-publication-t13-t25-dev6_geoserver  Created
+ Container hmc-publication-t13-t25-dev6-api-1  Creating
+ Container hmc-publication-t13-t25-dev6-geoserver-1  Creating
+ Container hmc-publication-t13-t25-dev6-gateway-1  Creating
+ Container hmc-publication-t13-t25-dev6-viewer-1  Creating
+ Container hmc-publication-t13-t25-dev6-db-1  Creating
+ Container hmc-publication-t13-t25-dev6-api-1  Created
+ Container hmc-publication-t13-t25-dev6-geoserver-1  Created
+ Container hmc-publication-t13-t25-dev6-viewer-1  Created
+ Container hmc-publication-t13-t25-dev6-db-1  Created
+ Container hmc-publication-t13-t25-dev6-gateway-1  Created
+ Container hmc-publication-t13-t25-dev6-gateway-1  Starting
+ Container hmc-publication-t13-t25-dev6-api-1  Starting
+ Container hmc-publication-t13-t25-dev6-geoserver-1  Starting
+ Container hmc-publication-t13-t25-dev6-db-1  Starting
+ Container hmc-publication-t13-t25-dev6-viewer-1  Starting
+ Container hmc-publication-t13-t25-dev6-api-1  Started
+ Container hmc-publication-t13-t25-dev6-db-1  Started
+ Container hmc-publication-t13-t25-dev6-geoserver-1  Started
+ Container hmc-publication-t13-t25-dev6-viewer-1  Started
+ Container hmc-publication-t13-t25-dev6-gateway-1  Started
+e4413669-fb24-442c-b312-eb94c8f71b9e
+ Container hmc-publication-t13-t25-dev6-gateway-1  Restarting
+ Container hmc-publication-t13-t25-dev6-api-1  Restarting
+ Container hmc-publication-t13-t25-dev6-api-1  Started
+ Container hmc-publication-t13-t25-dev6-gateway-1  Started
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t13\\hmc-publication-t13-t25-dev6\\browser","status":"passed","cleanup":{"page_released":true,"browser_stopped":true,"profile_removed":true,"browser_processes_remaining":0}}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "valid_gpu_samples": 7882, "max_abs_error_K": 0.002244635090335123, "mask_differences": 0, "point_tolerance_K": 0.0001, "results": [{"hour": 1, "mode": "mercator", "point_K": 280.6815185546875, "valid_gpu_samples": 2576}, {"hour": 3, "mode": "mercator", "point_K": 280.50103759765625, "valid_gpu_samples": 2576}, {"hour": 1, "mode": "hmc:orthographic", "point_K": 280.7781982421875, "valid_gpu_samples": 875}, {"hour": 3, "mode": "hmc:orthographic", "point_K": 280.65045166015625, "valid_gpu_samples": 875}, {"hour": 1, "mode": "EPSG:3576", "point_K": 281.0467529296875, "valid_gpu_samples": 490}, {"hour": 3, "mode": "EPSG:3576", "point_K": 281.09088134765625, "valid_gpu_samples": 490}]}
+{"phase":"end","files":185,"status":"passed"}
+**********************
+Конец записи протокола Windows PowerShell
+Время окончания: 20261022123845
+**********************

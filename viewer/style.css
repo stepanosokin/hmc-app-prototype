@@ -112,6 +112,10 @@ dl{font-size:11px}dt{color:var(--muted);margin-top:6px}dd{margin:2px 0;overflow-
   .basemapAttribution select{max-width:125px}
   .navigation,.legend{bottom:calc(var(--time-height,34px) + 75px)}
   .notice,.drawer{bottom:calc(var(--time-height,34px) + 31px)}
+  main:has(#showPoint:not([hidden])) .notice{left:var(--notice-left,148px);right:10px;width:auto;transform:none}
+}
+@media(max-width:700px) and (min-height:601px){
+  .navigation,.legend{bottom:calc(var(--time-height,34px) + max(75px,calc(var(--notice-height,0px) + 39px)))}
 }
 @media(max-height:600px) and (orientation:landscape){
   .layers{top:10px}

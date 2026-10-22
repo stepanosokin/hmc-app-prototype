@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hydrometcenter — forecast selection walkthrough</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#172b3a;font:16px/1.5 system-ui,sans-serif}main{max-width:1120px;margin:auto;padding:28px}h1{font-size:28px;margin:8px 0}h2{font-size:19px;margin:0 0 12px}p{margin:8px 0 16px}.tag{font-size:12px;letter-spacing:.08em;font-weight:700;color:#286685}.intro{max-width:850px}.panel{background:white;border:1px solid #d7e0e6;border-radius:10px;padding:20px;margin:16px 0}.layout{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}.layout .panel{margin:0}label{display:block;font-size:14px;margin-bottom:12px}select,input,button{font:inherit}select{display:block;width:100%;padding:8px;margin-top:5px;border:1px solid #b7c9d4;border-radius:5px;background:white}button{border:1px solid #a8becd;border-radius:5px;background:white;color:#174f71;padding:8px 12px;cursor:pointer}button:hover{background:#edf5fa}button:focus-visible,select:focus-visible{outline:3px solid #49a3d6;outline-offset:2px}button:disabled{opacity:.45;cursor:default}.buttons{display:flex;flex-wrap:wrap;gap:8px}.active{background:#174f71!important;color:white!important}.notice{background:#edf5fa;border-left:4px solid #357b9e;padding:12px;min-height:48px}dl{margin:0;display:grid;grid-template-columns:140px 1fr;gap:7px}dt{color:#5e707c}dd{margin:0;overflow-wrap:anywhere}svg{width:100%;height:auto;display:block;background:#f4f7fa;border:1px solid #dbe4ea;cursor:crosshair}.small{font-size:13px;color:#596e7b}.value{font-size:25px;font-weight:650;margin:10px 0}.api{width:100%;font:12px/1.5 ui-monospace,monospace;padding:10px;background:#f3f6f8;border:1px solid #d7e0e6;resize:vertical}#steps{display:grid;gap:8px;margin-top:12px}#steps button{text-align:left}#timeRange{width:100%;accent-color:#246d98}hr{border:0;border-top:1px solid #e1e7eb;margin:18px 0}@media(max-width:760px){main{padding:16px}.layout{grid-template-columns:1fr}dl{grid-template-columns:120px 1fr}}
+</style>
+<main>
+  <div class="tag">THROWAWAY LOGIC PROTOTYPE · ILLUSTRATIVE DATA</div>
+  <h1>One forecast run at a time</h1>
+  <p class="intro">Question: does keeping one run and published snapshot selected make time gaps, newly arriving data and failed updates understandable? Explore the controls or follow a walkthrough. This file uses in-memory examples. It does not decode GRIB, contact an API or display a real weather field.</p>
+  <div id="notice" class="notice" role="status" aria-live="polite"></div>
+  <section class="panel" aria-labelledby="stateTitle">
+    <h2 id="stateTitle">Current selection</h2><dl id="state"></dl>
+  </section>
+  <div class="layout">
+    <section class="panel">
+      <h2>Forecast map</h2>
+      <label>Model and field<select disabled><option>ICON-EU · temperature at the encoded surface</option></select></label>
+      <label>Forecast run<select id="run"></select></label>
+      <label>Forecast valid time (UTC)<select id="time"></select></label>
+      <input id="timeRange" type="range" min="1" max="24" value="1" aria-label="Forecast hour">
+      <p class="small">Unavailable times remain visible and are marked. Selecting a gap clears the layer and point value.</p>
+      <svg id="map" viewBox="0 0 600 250" role="img" aria-label="Coverage schematic. Click inside or outside the blue rectangle to inspect an illustrative point.">
+        <defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="#d3dee5"/></pattern></defs>
+        <rect width="600" height="250" fill="url(#grid)"/>
+        <rect id="overlay" x="100" y="40" width="400" height="170" fill="#97c8e2" opacity=".7"/>
+        <rect x="100" y="40" width="400" height="170" fill="none" stroke="#397b9f" stroke-dasharray="6 4"/>
+        <text x="300" y="25" text-anchor="middle" font-size="13" fill="#425b6b">Coverage schematic — no geographic basemap or weather values</text>
+        <text id="mapLabel" x="300" y="130" text-anchor="middle" font-size="16" fill="#163d53"></text>
+        <circle id="marker" cx="300" cy="125" r="5" fill="#192f40" stroke="white" stroke-width="2" visibility="hidden"/>
+      </svg>
+      <p class="small">The rectangle represents the sample's preliminary extent: longitude −23.5° to 62.5°, latitude 29.5° to 70.5°. Mouse clicks and the buttons below exercise coverage behavior.</p>
+      <div class="buttons"><button data-action="inside">Inspect inside coverage</button><button data-action="outside">Inspect outside coverage</button><button data-action="units">Switch °C / K</button></div>
+      <div id="value" class="value"></div><p id="valueNote" class="small"></p>
+    </section>
+    <section class="panel">
+      <h2>Explore updates</h2>
+      <div class="buttons">
+        <button data-action="arrive">Make a newer partial run arrive</button>
+        <button data-action="latest">Select newest usable run</button>
+        <button data-action="prepare">Prepare its missing forecast time</button>
+        <button data-action="publish">Finish publication of that time</button>
+        <button data-action="refresh">Refresh selected run's availability</button>
+        <button data-action="fail">Simulate a failed update</button>
+        <button data-action="reset">Reset</button>
+      </div>
+      <hr><h2>Use this selection in QGIS or an API</h2>
+      <p class="small">Illustrative URLs only. The proposed connection fixes the selected run and snapshot. External organization requests supply an API key in a header; the public web map does not contain that key.</p>
+      <label>WMS connection<textarea id="wms" class="api" rows="3" readonly></textarea></label>
+      <label>Point API example<textarea id="api" class="api" rows="5" readonly></textarea></label>
+    </section>
+  </div>
+  <section class="panel">
+    <h2>Guided walkthroughs</h2>
+    <div id="tabs" class="buttons" role="tablist" aria-label="Walkthroughs"></div>
+    <p id="scenarioText"></p><div id="steps"></div>
+  </section>
+  <p class="small">Review artifact only. Dates follow the supplied sample; the newer run and every numerical value are invented for this discussion. The production application will validate units and sample values before publication.</p>
+</main>
+<script>
+// Pure, portable selection model. It has no browser or persistence dependencies.
+const ForecastSelection = (() => {
+  const all = Array.from({length:24}, (_, i) => i + 1);
+  const initial = () => ({runs:[{id:'20261015T0000Z',hour:0,revisions:[{id:1,times:[...all]}]}],runId:'20261015T0000Z',revision:1,lead:1,units:'C',point:null,preparing:false,notice:'The sample run is selected. All numerical values in this walkthrough are illustrative.'});
+  const run = s => s.runs.find(r => r.id === s.runId);
+  const snapshot = s => run(s).revisions.find(r => r.id === s.revision);
+  const available = s => snapshot(s).times.includes(s.lead);
+  const validTime = s => new Date(Date.UTC(2026,9,15,run(s).hour+s.lead)).toISOString();
+  const referenceTime = s => new Date(Date.UTC(2026,9,15,run(s).hour)).toISOString();
+  function reduce(previous, action) {
+    if(action.type === 'reset') return initial();
+    const s = JSON.parse(JSON.stringify(previous));
+    if(action.type === 'arrive') {
+      if(s.runs.length===1) s.runs.push({id:'20261015T0100Z',hour:1,revisions:[{id:1,times:[1,2,4]}]});
+      s.notice='A newer partial run is available. Your selection stays on the current run until you choose another.';
+    } else if(action.type==='latest' || action.type==='run') {
+      s.runId=action.type==='run'?action.id:s.runs[s.runs.length-1].id;
+      s.revision=run(s).revisions.at(-1).id;s.lead=snapshot(s).times[0];s.point=null;
+      s.notice='Run selected explicitly. The timeline starts at its first available forecast time; any earlier point value is cleared.';
+    } else if(action.type==='lead') {
+      s.lead=Number(action.lead);s.point=null;
+      s.notice=available(s)?'Forecast time selected. Inspect a point to request its value.':'This time is unavailable in the selected run and snapshot. No layer or point value is shown.';
+    } else if(action.type==='point') {
+      s.point={lat:action.lat,lon:action.lon,inside:action.lat>=29.5&&action.lat<=70.5&&action.lon>=-23.5&&action.lon<=62.5};
+      s.notice=!available(s)?'No value: the selected forecast time is unavailable.':s.point.inside?'Illustrative point result for the selected run and time.':'The point is outside the model extent. No edge-cell value is substituted.';
+    } else if(action.type==='units') {
+      s.units=s.units==='C'?'K':'C';s.notice='Display units changed. The run, time and snapshot remain selected.';
+    } else if(action.type==='prepare') {
+      if(s.runs.length===1) {s.notice='First make the newer partial run arrive.';return s;}
+      s.preparing=true;s.notice='An additional forecast time is being prepared. Existing published data remain usable.';
+    } else if(action.type==='publish') {
+      if(!s.preparing) {s.notice='First prepare the missing time.';return s;}
+      const target=s.runs.at(-1);
+      if(!target.revisions.at(-1).times.includes(3)) target.revisions.push({id:target.revisions.at(-1).id+1,times:[1,2,3,4]});
+      s.preparing=false;s.notice='Additional data are published. Refresh the selected run to use its new availability; the current snapshot has not changed.';
+    } else if(action.type==='refresh') {
+      const next=run(s).revisions.at(-1).id;
+      s.notice=next===s.revision?'No new snapshot is available for the selected run.':'Availability refreshed within the same run. The selected forecast time is preserved; any point value is cleared.';
+      s.revision=next;s.point=null;
+    } else if(action.type==='fail') {
+      s.preparing=false;s.notice='The incoming update failed. The selected published data remain available.';
+    }
+    return s;
+  }
+  return {initial,reduce,run,snapshot,available,validTime,referenceTime};
+})();
+</script>
+<script>
+// Throwaway browser shell; all domain transitions go through the reducer above.
+const model=ForecastSelection;
+let state=model.initial(), scenarioIndex=0, nextStep=0;
+const el=id=>document.getElementById(id);
+const shortTime=t=>t.replace('T',' ').replace(':00.000Z',' UTC');
+const scenarios=[
+  {title:'Read a forecast',text:'Choose a forecast time, inspect a point, and change units. Changing time clears the previous point value.',steps:[['Choose forecast hour +6',{type:'lead',lead:6}],['Inspect a point inside coverage',{type:'point',lat:55.75,lon:37.62}],['Change display units',{type:'units'}],['Choose the next hour',{type:'lead',lead:7}]]},
+  {title:'An incomplete run',text:'A newer run can be usable even with a gap. It never silently replaces the current run or borrows a value from an older run.',steps:[['Make a partial run arrive',{type:'arrive'}],['Select that run explicitly',{type:'latest'}],['Select its missing hour +3',{type:'lead',lead:3}],['Try to inspect a value',{type:'point',lat:55.75,lon:37.62}],['Select the older run explicitly',{type:'run',id:'20261015T0000Z'}]]},
+  {title:'New data and failures',text:'Publication adds availability without changing the current snapshot. Refreshing adopts the new snapshot within the same run.',steps:[['Make a partial run arrive',{type:'arrive'}],['Select the newer run',{type:'latest'}],['Select its missing hour +3',{type:'lead',lead:3}],['Prepare that time',{type:'prepare'}],['Finish its publication',{type:'publish'}],['Refresh selected run availability',{type:'refresh'}],['Inspect the newly available time',{type:'point',lat:55.75,lon:37.62}],['Simulate a later failed update',{type:'fail'}]]},
+  {title:'Outside coverage',text:'A location outside the model domain receives an explicit no-coverage result.',steps:[['Inspect a point inside the model',{type:'point',lat:55.75,lon:37.62}],['Inspect a point outside the model',{type:'point',lat:20,lon:80}]]}
+];
+function dispatch(action){state=model.reduce(state,action);render();}
+function render(){
+  const r=model.run(state), snap=model.snapshot(state), ready=model.available(state), latest=state.runs.at(-1), newerSnapshot=r.revisions.at(-1).id!==state.revision;
+  el('notice').textContent=state.notice;
+  const rows=[['Model / field','ICON-EU / encoded-surface temperature'],['Run reference',shortTime(model.referenceTime(state))],['Valid time',shortTime(model.validTime(state))],['Forecast lead','+'+state.lead+' hours'],['Published snapshot','Revision '+state.revision+(newerSnapshot?' · newer revision available':'')],['Available hours',snap.times.map(t=>'+'+t).join(', ')],['Current frame',ready?'Available':'Unavailable'],['Newer run',latest.id!==state.runId?'Available for explicit selection':'No newer run'],['Incoming update',state.preparing?'In preparation':'None'],['Display units',state.units==='C'?'°C':'K']];
+  el('state').replaceChildren(...rows.flatMap(([name,value])=>{const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=name;dd.textContent=value;return[dt,dd];}));
+  el('run').replaceChildren(...state.runs.map(item=>{const option=document.createElement('option');option.value=item.id;option.textContent=shortTime(new Date(Date.UTC(2026,9,15,item.hour)).toISOString())+(item.hour?' · partial example':' · sample example');option.selected=item.id===state.runId;return option;}));
+  el('time').replaceChildren(...Array.from({length:24},(_,i)=>{const n=i+1,option=document.createElement('option');option.value=n;option.textContent=shortTime(new Date(Date.UTC(2026,9,15,r.hour+n)).toISOString())+' (+'+n+'h)'+(snap.times.includes(n)?'':' — unavailable');option.selected=n===state.lead;return option;}));
+  el('timeRange').value=state.lead;
+  el('overlay').setAttribute('visibility',ready?'visible':'hidden');el('mapLabel').textContent=ready?'Illustrative layer for the selected time':'No published data for this time';
+  const p=state.point, hasValue=p&&p.inside&&ready;
+  el('marker').setAttribute('visibility',p&&p.inside?'visible':'hidden');
+  if(p&&p.inside){el('marker').setAttribute('cx',100+(p.lon+23.5)/86*400);el('marker').setAttribute('cy',40+(70.5-p.lat)/41*170);}
+  const c=p?12+(state.lead-1)*.2-(p.lat-50)*.1:0;
+  el('value').textContent=hasValue?(state.units==='C'?c:c+273.15).toFixed(2)+' '+(state.units==='C'?'°C':'K')+' · illustrative':!ready?'Time unavailable':p?'Outside coverage':'Select a point';
+  el('valueNote').textContent=p?`Location: ${p.lat.toFixed(3)}°, ${p.lon.toFixed(3)}°. ${hasValue?'Synthetic value for this walkthrough, not decoded GRIB.':''}`:'The real application will return the sampled native cell, units and publication identity.';
+  const root='https://demo.invalid',path=`/meteorology/icon-eu/runs/${state.runId}/revisions/${state.revision}`;
+  el('wms').value=root+'/ogc/v1'+path+'/wms';
+  el('api').value='GET '+root+'/api/v1'+path+'/point?field=surface-temperature&valid_time='+encodeURIComponent(model.validTime(state))+'&lon=37.62&lat=55.75\nX-API-Key: <organization-key>\n\nIllustrative API contract; no request is sent.';
+  renderWalkthrough();
+}
+function renderWalkthrough(){
+  el('tabs').replaceChildren(...scenarios.map((scenario,index)=>{const button=document.createElement('button');button.textContent=scenario.title;button.type='button';button.role='tab';button.setAttribute('aria-selected',String(index===scenarioIndex));button.className=index===scenarioIndex?'active':'';button.onclick=()=>{scenarioIndex=index;nextStep=0;state=model.initial();render();};return button;}));
+  const scenario=scenarios[scenarioIndex];el('scenarioText').textContent=scenario.text;
+  el('steps').replaceChildren(...scenario.steps.map(([label,action],index)=>{const button=document.createElement('button');button.textContent=(index<nextStep?'✓ ':`${index+1}. `)+label;button.disabled=index!==nextStep;button.onclick=()=>{nextStep++;dispatch(action);};return button;}));
+}
+document.querySelectorAll('[data-action]').forEach(button=>button.onclick=()=>{const type=button.dataset.action;if(type==='reset')nextStep=0;dispatch(type==='inside'?{type:'point',lat:55.75,lon:37.62}:type==='outside'?{type:'point',lat:20,lon:80}:{type});});
+el('run').onchange=event=>dispatch({type:'run',id:event.target.value});
+el('time').onchange=event=>dispatch({type:'lead',lead:event.target.value});
+el('timeRange').oninput=event=>dispatch({type:'lead',lead:event.target.value});
+el('map').onclick=event=>{const bounds=el('map').getBoundingClientRect(),x=(event.clientX-bounds.left)/bounds.width*600,y=(event.clientY-bounds.top)/bounds.height*250;dispatch({type:'point',lat:70.5-(y-40)/170*41,lon:-23.5+(x-100)/400*86});};
+render();
+</script>
+</html>

@@ -99,7 +99,10 @@ export async function checkNavigation({call,evaluate,wait,select,click,capture,o
         assert.equal(state.ready,false);assert.equal(state.selected,undefined);assert.equal(state.point,undefined);
         assert.equal(await evaluate("document.querySelectorAll('#pointContent strong,#mobilePoint strong').length>0&&[...document.querySelectorAll('#pointContent strong,#mobilePoint strong')].every(e=>!e.textContent.includes('°C')&&!e.textContent.includes(' K'))"),true);
         assert.match(await evaluate("document.getElementById('notice').textContent"),/срок отсутствует/);
-        assert.equal(await evaluate("document.getElementById('reference').textContent.includes('01:00')&&document.getElementById('valid').textContent.includes('02:00')"),true);
+        assert.equal(state.displayed,undefined);assert.equal(state.frame_visible,false);
+        assert.match(await evaluate("document.getElementById('reference').textContent"),/01:00/);
+        assert.match(await evaluate("document.getElementById('valid').textContent"),/Показано: нет поля/);
+        assert.match(await evaluate("document.getElementById('timeLabel').textContent"),/02:00/);
     };
     await select('#time',true,2);
     await wait('window.captureWeatherEvidence().ready','last published time');

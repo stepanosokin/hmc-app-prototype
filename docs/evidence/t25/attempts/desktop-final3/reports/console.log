@@ -1,0 +1,75 @@
+﻿**********************
+Начало записи сценария Windows PowerShell
+Время начала: 20261022131107
+Имя пользователя: STAFF\s.osokin
+Запуск от имени пользователя: STAFF\s.osokin
+Имя конфигурации: 
+Компьютер: N626798 (Microsoft Windows NT 10.0.26200.0)
+Ведущее приложение: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File tools/run-weather-viewer.ps1 -Project hmc-publication-t13-t25-desktop-final3 -TimeSwitch -Navigation -Updates -Offline -WithEdge
+ИД процесса: 34820
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+{"phase":"start","files":185,"status":"passed"}
+ Network hmc-publication-t13-t25-desktop-final3_publication  Creating
+ Network hmc-publication-t13-t25-desktop-final3_publication  Created
+ Network hmc-publication-t13-t25-desktop-final3_edge  Creating
+ Network hmc-publication-t13-t25-desktop-final3_edge  Created
+ Volume hmc-publication-t13-t25-desktop-final3_geoserver  Creating
+ Volume hmc-publication-t13-t25-desktop-final3_geoserver  Created
+ Volume hmc-publication-t13-t25-desktop-final3_assets  Creating
+ Volume hmc-publication-t13-t25-desktop-final3_assets  Created
+ Volume hmc-publication-t13-t25-desktop-final3_postgres  Creating
+ Volume hmc-publication-t13-t25-desktop-final3_postgres  Created
+ Container hmc-publication-t13-t25-desktop-final3-api-1  Creating
+ Container hmc-publication-t13-t25-desktop-final3-geoserver-1  Creating
+ Container hmc-publication-t13-t25-desktop-final3-db-1  Creating
+ Container hmc-publication-t13-t25-desktop-final3-gateway-1  Creating
+ Container hmc-publication-t13-t25-desktop-final3-viewer-1  Creating
+ Container hmc-publication-t13-t25-desktop-final3-geoserver-1  Created
+ Container hmc-publication-t13-t25-desktop-final3-db-1  Created
+ Container hmc-publication-t13-t25-desktop-final3-gateway-1  Created
+ Container hmc-publication-t13-t25-desktop-final3-viewer-1  Created
+ Container hmc-publication-t13-t25-desktop-final3-api-1  Created
+ Container hmc-publication-t13-t25-desktop-final3-viewer-1  Starting
+ Container hmc-publication-t13-t25-desktop-final3-db-1  Starting
+ Container hmc-publication-t13-t25-desktop-final3-geoserver-1  Starting
+ Container hmc-publication-t13-t25-desktop-final3-api-1  Starting
+ Container hmc-publication-t13-t25-desktop-final3-gateway-1  Starting
+ Container hmc-publication-t13-t25-desktop-final3-api-1  Started
+ Container hmc-publication-t13-t25-desktop-final3-db-1  Started
+ Container hmc-publication-t13-t25-desktop-final3-geoserver-1  Started
+ Container hmc-publication-t13-t25-desktop-final3-gateway-1  Started
+ Container hmc-publication-t13-t25-desktop-final3-viewer-1  Started
+f7e0a030-7db7-463e-b34a-b99b066d8f49
+ Container hmc-publication-t13-t25-desktop-final3-gateway-1  Restarting
+ Container hmc-publication-t13-t25-desktop-final3-api-1  Restarting
+ Container hmc-publication-t13-t25-desktop-final3-api-1  Started
+ Container hmc-publication-t13-t25-desktop-final3-gateway-1  Started
+12ec791d-c48c-4b12-8a7f-f39c639f3579
+ Container hmc-publication-t13-t25-desktop-final3-api-1  Restarting
+ Container hmc-publication-t13-t25-desktop-final3-gateway-1  Restarting
+ Container hmc-publication-t13-t25-desktop-final3-api-1  Started
+ Container hmc-publication-t13-t25-desktop-final3-gateway-1  Started
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t13\\hmc-publication-t13-t25-desktop-final3\\browser","status":"passed","cleanup":{"page_released":true,"browser_stopped":true,"profile_removed":true,"browser_processes_remaining":0}}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "valid_gpu_samples": 7882, "max_abs_error_K": 0.002244635090335123, "mask_differences": 0, "point_tolerance_K": 0.0001, "results": [{"hour": 1, "mode": "mercator", "point_K": 280.6815185546875, "valid_gpu_samples": 2576}, {"hour": 3, "mode": "mercator", "point_K": 280.50103759765625, "valid_gpu_samples": 2576}, {"hour": 1, "mode": "hmc:orthographic", "point_K": 280.7781982421875, "valid_gpu_samples": 875}, {"hour": 3, "mode": "hmc:orthographic", "point_K": 280.65045166015625, "valid_gpu_samples": 875}, {"hour": 1, "mode": "EPSG:3576", "point_K": 281.0467529296875, "valid_gpu_samples": 490}, {"hour": 3, "mode": "EPSG:3576", "point_K": 281.09088134765625, "valid_gpu_samples": 490}]}
+{"status": "passed", "valid_gpu_samples": 6387, "max_abs_error_K": 0.0017390252912150572, "mask_differences": 0, "edr_equal": true, "wms_value_K": 281.50103759765625}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "views": [{"viewport": [1440, 900], "mode": "mercator", "scope": "map", "valid_samples": 2576, "max_abs_error_K": 0.0017489057174202571, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 2242, "max_abs_error_K": 0.0012750425709668889, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "EPSG:3576", "scope": "map", "valid_samples": 765, "max_abs_error_K": 0.0014661360063996653, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 1315, "max_abs_error_K": 0.0012410394170956351, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "mercator", "scope": "map", "valid_samples": 594, "max_abs_error_K": 0.0016944500056865763, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 317, "max_abs_error_K": 0.0015780671885750053, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "EPSG:3576", "scope": "map", "valid_samples": 668, "max_abs_error_K": 0.0014915153993229069, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 831, "max_abs_error_K": 0.0014206694638119188, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "mercator", "scope": "map", "valid_samples": 480, "max_abs_error_K": 0.0016961045570269562, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 266, "max_abs_error_K": 0.0012687537169426832, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "EPSG:3576", "scope": "map", "valid_samples": 516, "max_abs_error_K": 0.0011702611744226488, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 668, "max_abs_error_K": 0.0009499890310848969, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "mercator", "scope": "map", "valid_samples": 396, "max_abs_error_K": 0.0005594764913894323, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 359, "max_abs_error_K": 0.0015747931651617364, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "EPSG:3576", "scope": "map", "valid_samples": 124, "max_abs_error_K": 0.0007733615822758111, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 213, "max_abs_error_K": 0.0013296857356976943, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}], "max_abs_error_K": 0.0017489057174202571, "mask_differences": 0, "geometry_max_error_pixels": 4.547473508864641e-13, "dom_layout_max_error_pixels": 0.02069136091638573, "dom_layout_tolerance_pixels": 0.1, "synthetic_projection_error_m": 1.894760661376677, "synthetic_scope": "projection-only pole/dateline/horizon/cut probes, not forecast coverage"}
+{"status": "passed", "canonical_picks": 12}
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t13\\hmc-publication-t13-t25-desktop-final3\\browser-edge","status":"passed","cleanup":{"page_released":true,"browser_stopped":true,"profile_removed":true,"browser_processes_remaining":0}}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "valid_gpu_samples": 7882, "max_abs_error_K": 0.002244635090335123, "mask_differences": 0, "point_tolerance_K": 0.0001, "results": [{"hour": 1, "mode": "mercator", "point_K": 280.6815185546875, "valid_gpu_samples": 2576}, {"hour": 3, "mode": "mercator", "point_K": 280.50103759765625, "valid_gpu_samples": 2576}, {"hour": 1, "mode": "hmc:orthographic", "point_K": 280.7781982421875, "valid_gpu_samples": 875}, {"hour": 3, "mode": "hmc:orthographic", "point_K": 280.65045166015625, "valid_gpu_samples": 875}, {"hour": 1, "mode": "EPSG:3576", "point_K": 281.0467529296875, "valid_gpu_samples": 490}, {"hour": 3, "mode": "EPSG:3576", "point_K": 281.09088134765625, "valid_gpu_samples": 490}]}
+{"status": "passed", "valid_gpu_samples": 6387, "max_abs_error_K": 0.0017390252912150572, "mask_differences": 0, "edr_equal": true, "wms_value_K": 281.50103759765625}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "views": [{"viewport": [1440, 900], "mode": "mercator", "scope": "map", "valid_samples": 2576, "max_abs_error_K": 0.0017489057174202571, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 2242, "max_abs_error_K": 0.0012750425709668889, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "EPSG:3576", "scope": "map", "valid_samples": 765, "max_abs_error_K": 0.0014661360063996653, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 1314, "max_abs_error_K": 0.0012648902694536446, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "mercator", "scope": "map", "valid_samples": 594, "max_abs_error_K": 0.0016944500056865763, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 317, "max_abs_error_K": 0.0015780671885750053, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "EPSG:3576", "scope": "map", "valid_samples": 668, "max_abs_error_K": 0.0014915153993229069, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 831, "max_abs_error_K": 0.0009327882154366307, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "mercator", "scope": "map", "valid_samples": 480, "max_abs_error_K": 0.0016961045570269562, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 266, "max_abs_error_K": 0.0012687537169426832, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "EPSG:3576", "scope": "map", "valid_samples": 516, "max_abs_error_K": 0.0011702611744226488, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 668, "max_abs_error_K": 0.0011501024678182148, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "mercator", "scope": "map", "valid_samples": 396, "max_abs_error_K": 0.0005594764913894323, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 359, "max_abs_error_K": 0.0015747931651617364, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "EPSG:3576", "scope": "map", "valid_samples": 124, "max_abs_error_K": 0.0007733615822758111, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 213, "max_abs_error_K": 0.001426452947953294, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}], "max_abs_error_K": 0.0017489057174202571, "mask_differences": 0, "geometry_max_error_pixels": 4.547473508864641e-13, "dom_layout_max_error_pixels": 0.02069136091638573, "dom_layout_tolerance_pixels": 0.1, "synthetic_projection_error_m": 1.894760661376677, "synthetic_scope": "projection-only pole/dateline/horizon/cut probes, not forecast coverage"}
+{"status": "passed", "canonical_picks": 12}
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t13\\hmc-publication-t13-t25-desktop-final3\\browser-unavailable","status":"passed","cleanup":{"page_released":true,"browser_stopped":true,"profile_removed":true,"browser_processes_remaining":0}}
+{"phase":"end","files":185,"status":"passed"}
+**********************
+Конец записи протокола Windows PowerShell
+Время окончания: 20261022132420
+**********************
