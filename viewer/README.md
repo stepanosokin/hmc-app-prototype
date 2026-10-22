@@ -7,6 +7,26 @@
 
 ## Подготовка
 
+### Повторный запуск локального демостенда
+
+Для уже подготовленного `hmc-app-live` (Docker Desktop запущен, image/assets,
+`data/live/hmc-app/environment.env` и `published.json` сохранены):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/hmc-demo.ps1 -Action start
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/hmc-demo.ps1 -Action status
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/hmc-demo.ps1 -Action stop
+```
+
+Команда запуска выводит ссылку после проверки сервисов, страницы и непустого
+каталога. Порт берётся из фактического Compose binding (обычно
+<http://127.0.0.1:8140/>). `stop` останавливает только этот проект, сохраняя
+контейнеры и тома; следующий `start` использует прежнюю публикацию.
+Каждая операция сохраняет диагностику и `result.json` в
+`data/live/hmc-app/operations/`. `-WhatIf` показывает действие без запуска
+или остановки. Навык [hmc-demo](../.agents/skills/hmc-demo/SKILL.md) выполняет
+эти команды и показывает проверенную ссылку. Первичная подготовка описана ниже.
+
 В корне репозитория:
 
 ```powershell
