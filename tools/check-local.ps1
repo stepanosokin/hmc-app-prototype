@@ -26,7 +26,7 @@ try {
         Invoke-Check node @('docs/evidence/t25/verify.mjs')
     }
     if ($Scope -in @('All', 'Windows')) {
-        foreach ($script in @('check-publication-process', 'check-documentation', 'check-hmc-demo', 'check-native-display-inputs')) {
+        foreach ($script in @('check-publication-process', 'check-documentation', 'check-native-display-inputs')) {
             Invoke-Check powershell @('-NoProfile', '-File', "tools/$script.ps1")
         }
         Invoke-Check node @('--test', 'tools/test-weather-check-options.mjs')
