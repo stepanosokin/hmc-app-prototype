@@ -14,6 +14,15 @@ Close the ticket automatically once implementation, all checked criteria, requir
 
 Review uncommitted changes against the starting commit. Complete implementation, review, validation, evidence and cleanup before one ticket commit containing code/tests/docs/evidence, then push once on the current branch. This overrides skills requesting intermediate commits. Verify remote branch equals local HEAD before reporting push complete.
 
+## Repository search
+
+Use ordinary `rg` searches with [.rgignore](.rgignore), which excludes
+`docs/evidence/`, `data/reports/` and `data/archives/`. Preserve these archives; read them only
+for a specific evidence check. Search an explicitly selected archive with
+`rg --no-ignore -- <pattern> docs/evidence/<archive>/` (or the selected
+`data/reports/<report>/` or `data/archives/<archive>/`); read a known evidence file directly. Keep overrides
+scoped to that archive rather than disabling ignores repository-wide.
+
 ## Workflow customization
 
 Keep project-specific workflow changes in this repository's agent instructions. Leave original third-party skills, including Matt Pocock's skills, unchanged unless the user explicitly requests edits to those skills.
