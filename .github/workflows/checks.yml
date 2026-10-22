@@ -42,9 +42,6 @@ jobs:
       - name: Check current documentation links
         shell: powershell
         run: ./tools/check-documentation.ps1
-      - name: Check demo lifecycle without Docker resources
-        shell: powershell
-        run: ./tools/check-hmc-demo.ps1
       - name: Check native browser input capture without Compose
         shell: powershell
         run: ./tools/check-native-display-inputs.ps1

@@ -7,38 +7,6 @@
 
 ## Подготовка
 
-### Повторный запуск локального демостенда
-
-Для уже подготовленного `hmc-app-live` (Docker Desktop запущен, image/assets,
-`data/live/hmc-app/environment.env` и `published.json` сохранены):
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/hmc-demo.ps1 -Action start
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/hmc-demo.ps1 -Action status
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/hmc-demo.ps1 -Action stop
-```
-
-Команда запуска выводит ссылку после проверки сервисов, страницы и непустого
-каталога. Порт берётся из фактического Compose binding (обычно
-<http://127.0.0.1:8140/>). `stop` принудительно удаляет все контейнеры проекта,
-включая остановленные и оставшиеся от старых запусков, его сети и образы.
-Тома с публикацией сохраняются. Для следующего `start` нужно восстановить
-удалённые образы (сборка custom image описана в [публикации](../docs/publication.md));
-повторно публиковать данные не требуется. Образы, занятые посторонними
-контейнерами, сохраняются с ошибкой неполной очистки. Повторный `stop` продолжит
-удаление по сохранённому `purge-targets.json`, даже если контейнеров уже нет.
-Каждая операция сохраняет диагностику и `result.json` в
-`data/live/hmc-app/operations/`. `-WhatIf` показывает действие без запуска
-или остановки. Навык [hmc-demo](../.agents/skills/hmc-demo/SKILL.md) выполняет
-эти команды и показывает проверенную ссылку. Первичная подготовка описана ниже.
-
-Проверка очистки на отдельном одноразовом Docker-проекте:
-`powershell -NoProfile -File tools/check-hmc-demo-purge.ps1`.
-Она проверяет running/stopped/orphan-контейнеры, два разных образа, отказ
-архивирования, общий образ с посторонним контейнером, сохранение тома и
-повторную очистку по сохранённым image targets. Требуется подготовленный
-`hmc-publication:t12`; его базовый образ проверка сохраняет.
-
 В корне репозитория:
 
 ```powershell
