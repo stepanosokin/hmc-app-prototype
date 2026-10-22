@@ -1,0 +1,69 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261022162138
+Username: STAFF\s.osokin
+RunAs User: STAFF\s.osokin
+Configuration Name: 
+Machine: N626798 (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File tools/run-weather-viewer.ps1 -Project hmc-publication-t13-t27-regression-android-final2 -Navigation -Updates -TimeSwitch -Offline -Port 8153 -ViewerPort 8152
+Process ID: 42808
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+{"phase":"start","files":194,"status":"passed"}
+ Network hmc-publication-t13-t27-regression-android-final2_publication  Creating
+ Network hmc-publication-t13-t27-regression-android-final2_publication  Created
+ Network hmc-publication-t13-t27-regression-android-final2_edge  Creating
+ Network hmc-publication-t13-t27-regression-android-final2_edge  Created
+ Volume hmc-publication-t13-t27-regression-android-final2_postgres  Creating
+ Volume hmc-publication-t13-t27-regression-android-final2_postgres  Created
+ Volume hmc-publication-t13-t27-regression-android-final2_geoserver  Creating
+ Volume hmc-publication-t13-t27-regression-android-final2_geoserver  Created
+ Volume hmc-publication-t13-t27-regression-android-final2_assets  Creating
+ Volume hmc-publication-t13-t27-regression-android-final2_assets  Created
+ Container hmc-publication-t13-t27-regression-android-final2-api-1  Creating
+ Container hmc-publication-t13-t27-regression-android-final2-db-1  Creating
+ Container hmc-publication-t13-t27-regression-android-final2-gateway-1  Creating
+ Container hmc-publication-t13-t27-regression-android-final2-geoserver-1  Creating
+ Container hmc-publication-t13-t27-regression-android-final2-viewer-1  Creating
+ Container hmc-publication-t13-t27-regression-android-final2-gateway-1  Created
+ Container hmc-publication-t13-t27-regression-android-final2-geoserver-1  Created
+ Container hmc-publication-t13-t27-regression-android-final2-api-1  Created
+ Container hmc-publication-t13-t27-regression-android-final2-viewer-1  Created
+ Container hmc-publication-t13-t27-regression-android-final2-db-1  Created
+ Container hmc-publication-t13-t27-regression-android-final2-db-1  Starting
+ Container hmc-publication-t13-t27-regression-android-final2-gateway-1  Starting
+ Container hmc-publication-t13-t27-regression-android-final2-viewer-1  Starting
+ Container hmc-publication-t13-t27-regression-android-final2-geoserver-1  Starting
+ Container hmc-publication-t13-t27-regression-android-final2-api-1  Starting
+ Container hmc-publication-t13-t27-regression-android-final2-api-1  Started
+ Container hmc-publication-t13-t27-regression-android-final2-geoserver-1  Started
+ Container hmc-publication-t13-t27-regression-android-final2-db-1  Started
+ Container hmc-publication-t13-t27-regression-android-final2-gateway-1  Started
+ Container hmc-publication-t13-t27-regression-android-final2-viewer-1  Started
+4d295638-009b-47d0-91f6-cfa2b96409c9
+ Container hmc-publication-t13-t27-regression-android-final2-api-1  Restarting
+ Container hmc-publication-t13-t27-regression-android-final2-gateway-1  Restarting
+ Container hmc-publication-t13-t27-regression-android-final2-api-1  Started
+ Container hmc-publication-t13-t27-regression-android-final2-gateway-1  Started
+6be58e50-4196-492d-8097-17cb10e75e01
+ Container hmc-publication-t13-t27-regression-android-final2-gateway-1  Restarting
+ Container hmc-publication-t13-t27-regression-android-final2-api-1  Restarting
+ Container hmc-publication-t13-t27-regression-android-final2-api-1  Started
+ Container hmc-publication-t13-t27-regression-android-final2-gateway-1  Started
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t13\\hmc-publication-t13-t27-regression-android-final2\\browser","status":"passed","cleanup":{"page_released":true,"test_tab_closed":true,"adb_forward_removed":true,"adb_reverse_removed":true,"ui_dump_removed":true,"user_chrome_retained":true}}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "valid_gpu_samples": 6738, "max_abs_error_K": 0.0016597534929019275, "mask_differences": 0, "point_tolerance_K": 0.0001, "results": [{"hour": 1, "mode": "mercator", "point_K": 281.1873779296875, "valid_gpu_samples": 2184}, {"hour": 3, "mode": "mercator", "point_K": 281.14947509765625, "valid_gpu_samples": 2184}, {"hour": 1, "mode": "hmc:orthographic", "point_K": 281.5174560546875, "valid_gpu_samples": 758}, {"hour": 3, "mode": "hmc:orthographic", "point_K": 281.36041259765625, "valid_gpu_samples": 758}, {"hour": 1, "mode": "EPSG:3576", "point_K": 281.7957763671875, "valid_gpu_samples": 427}, {"hour": 3, "mode": "EPSG:3576", "point_K": 282.17584228515625, "valid_gpu_samples": 427}]}
+{"status": "passed", "valid_gpu_samples": 5915, "max_abs_error_K": 0.0017536085692881898, "mask_differences": 0, "edr_equal": true, "wms_value_K": 282.14947509765625}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "views": [{"viewport": [384, 694], "mode": "mercator", "scope": "map", "valid_samples": 2184, "max_abs_error_K": 0.0016597534940956393, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [384, 694], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 1222, "max_abs_error_K": 0.0012625188435890777, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [384, 694], "mode": "EPSG:3576", "scope": "map", "valid_samples": 1819, "max_abs_error_K": 0.0016574135439100246, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [384, 694], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 2509, "max_abs_error_K": 0.002250580316115247, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [384, 694], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 4302, "max_abs_error_K": 0.002337030714670618, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}], "max_abs_error_K": 0.002337030714670618, "mask_differences": 0, "geometry_max_error_pixels": 1.2085076619694803e-12, "dom_layout_max_error_pixels": 0.014418429405365831, "dom_layout_tolerance_pixels": 0.1, "synthetic_projection_error_m": 1.8947319725368137, "synthetic_scope": "projection-only pole/dateline/horizon/cut probes, not forecast coverage"}
+{"status": "passed", "canonical_picks": 3}
+{"phase":"end","files":194,"status":"passed"}
+**********************
+Windows PowerShell transcript end
+End time: 20261022163320
+**********************

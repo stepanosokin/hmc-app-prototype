@@ -7,6 +7,7 @@ import {randomUUID} from 'node:crypto';
 import {checkNavigation} from './viewer-navigation.mjs';
 import {checkUpdates} from './viewer-updates.mjs';
 import {checkTimeSwitch} from './viewer-time-switch.mjs';
+import {checkPointSeries} from './viewer-point-series.mjs';
 const directory=resolve(process.env.T13_REPORT_DIRECTORY||'data/reports/t13/browser-'+randomUUID());
 assert.ok(directory.startsWith(resolve('data/reports')+sep));
 const origin=process.env.T13_VIEWER||'http://127.0.0.1:8140';assert.match(origin,/^http:\/\/127\.0\.0\.1:\d+$/);
@@ -20,7 +21,7 @@ const adbCall=(...args)=>execFileSync(adb,['-P','5041','-s',androidSerial,...arg
 await mkdir(directory,{recursive:false});
 const profile=join(directory,'profile'),delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const report={scope:'T13 production viewer, real Compose APIs and desktop GPU; mobile viewports are emulation',
-    executable,starting_commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),checks:[],viewports:[],requests:[],errors:[],cleanup:{}};
+    executable,starting_commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),checks:[],viewports:[],requests:[],responses:[],errors:[],cleanup:{}};
 let child,socket,call,androidForward,androidTarget,androidReverse,uiDump,cleanupMode=false,network;
 try{
     let port,pages;
@@ -55,7 +56,8 @@ try{
         network?.event(message);
         if(item){pending.delete(message.id);clearTimeout(item.timer);message.error?item.reject(Error(JSON.stringify(message.error))):item.resolve(message.result);}
         else if(message.method==='Runtime.exceptionThrown')report.errors.push(message.params.exceptionDetails);
-        else if(message.method==='Network.requestWillBeSent')report.requests.push({url:message.params.request.url,headers:Object.keys(message.params.request.headers)});
+        else if(message.method==='Network.requestWillBeSent')report.requests.push({url:message.params.request.url,headers:Object.keys(message.params.request.headers),request_id:message.params.requestId,time_ms:message.params.timestamp*1000});
+        else if(message.method==='Network.responseReceived')report.responses.push({url:message.params.response.url,status:message.params.response.status,request_id:message.params.requestId,time_ms:message.params.timestamp*1000});
     };
     call=(method,params={})=>new Promise((resolve,reject)=>{const id=++next,timer=setTimeout(()=>{pending.delete(id);reject(Error('CDP timeout: '+method));},cleanupMode?5000:android?120000:30000);
         pending.set(id,{resolve,reject,timer});socket.send(JSON.stringify({id,method,params}));});
@@ -119,10 +121,23 @@ try{
     if(android)await call('Page.addScriptToEvaluateOnNewDocument',{source:"window.__t13Inputs=[];for(const type of ['pointerdown','pointerup','click'])document.addEventListener(type,event=>{window.__t13Inputs.push({type,id:event.target.id,tag:event.target.tagName,x:event.clientX,y:event.clientY});if(window.__t13Inputs.length>80)window.__t13Inputs.shift();},true)"});
     report.browser=await call('Browser.getVersion');
     if(android){await call('Page.bringToFront');report.user_agent=await evaluate('navigator.userAgent');report.device_pixel_ratio=await evaluate('devicePixelRatio');}
-    report.configuration={gpu_disabled:disabled,focused,public_runtime_blocked:offline};
+    report.configuration={gpu_disabled:disabled,focused,public_runtime_blocked:offline,initial_load_repeats:Number(process.env.T27_INITIAL_REPEATS||0)};
     const sizes=android?[await evaluate('[innerWidth,innerHeight,true]')]:focused||disabled?[[1440,900,false]]:[[1440,900,false],[390,844,true],[360,740,true],[640,360,true]];
     for(const [width,height,mobile] of sizes){
         if(!android)await call('Emulation.setDeviceMetricsOverride',{width,height,mobile,deviceScaleFactor:1});
+        if(report.configuration.initial_load_repeats){
+            assert.ok(focused,'Initial-load probes require Development scope');
+            report.scope='Development initial GPU field diagnostics; not point-series acceptance';report.initial_loads=[];
+            for(let round=0;round<report.configuration.initial_load_repeats;round++){
+                const responseStart=report.responses.length;
+                await call('Page.navigate',{url:origin+'/?validation=1'});
+                await wait("window.captureWeatherEvidence?.()&&['ready','error','expired'].includes(window.captureWeatherEvidence().time_state)",'initial field settles');
+                const state=await capture(),responses=report.responses.slice(responseStart);report.initial_loads.push({round,state,responses});
+                const shot=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,`initial-load-${round}.png`),Buffer.from(shot.data,'base64'));
+            }
+            assert.ok(report.initial_loads.every(item=>item.state.ready),'Every initial-load probe must succeed');
+            report.checks.push('Initial GPU field probe');continue;
+        }
         await call('Page.navigate',{url:origin+'/?validation=1'});
         if(disabled){
             await wait("document.getElementById('projectionStatus').textContent.includes('Режим недоступен')",'GPU unavailable reason');
@@ -136,6 +151,9 @@ try{
             await wait("document.visibilityState==='visible'",'unlocked visible Galaxy tab');
         }
         const viewport={width,height,mobile_emulation:mobile&&!android,physical_mobile:android,views:[],canonical_picks:[]};report.viewports.push(viewport);
+        if(process.env.T27_POINT_SERIES==='1'){
+            await checkPointSeries({call,evaluate,wait,select,click,capture,origin,report,directory,android,width,height});continue;
+        }
         if(process.env.T25_TIME_SWITCH_ONLY==='1'){
             await checkTimeSwitch({call,evaluate,wait,select,click,capture,origin,report,directory,android});break;
         }
@@ -264,6 +282,7 @@ try{
     report.status='passed';
 }catch(error){report.status='failed';report.failure=String(error);process.exitCode=1;
     if(call)try{report.failure_inputs=(await call('Runtime.evaluate',{expression:'({events:window.__t13Inputs,viewport:{width:innerWidth,height:innerHeight,scale:visualViewport.scale,offsetTop:visualViewport.offsetTop},visibility:document.visibilityState})',returnByValue:true})).result.value;
+        report.failure_state=(await call('Runtime.evaluate',{expression:'window.captureWeatherEvidence?.()',returnByValue:true})).result.value;
         report.failure_dom=(await call('Runtime.evaluate',{expression:'document.body.innerText',returnByValue:true})).result.value;
         const shot=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,'failure.png'),Buffer.from(shot.data,'base64'));}catch{}
 }finally{

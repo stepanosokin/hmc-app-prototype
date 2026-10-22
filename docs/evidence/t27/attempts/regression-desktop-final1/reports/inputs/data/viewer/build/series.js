@@ -1,0 +1,125 @@
+import { json, PublicationExpired } from "./field.js";
+// Includes bounded scalar/provenance storage and parsing scratch for one response.
+export const SERIES_BUDGET = 16 * 1024 ** 2;
+export async function pointValue(current, position, signal) {
+    const query = new URLSearchParams({ selection: current.selection, run: current.run, revision: current.revision,
+        valid_time: current.valid_time, layer: current.field, lon: String(position.lng), lat: String(position.lat),
+        crs: 'http://www.opengis.net/def/crs/OGC/1.3/CRS84' });
+    const result = await json('/api/v1/point?' + query, signal);
+    signal.throwIfAborted();
+    if (JSON.stringify(result).length > 8192 || !result.identity ||
+        ['model', 'run', 'revision', 'field', 'level', 'native_grid_sha256', 'member', 'valid_time'].some(key => result.identity[key] !== current[key]) ||
+        ['selection', 'run', 'revision', 'valid_time', 'field'].some(key => result[key] !== current[key]) ||
+        result.spatial_selection !== 'nearest-native-cell' || result.temporal_selection !== 'exact' || result.units !== 'K' ||
+        !(result.value === null && ['outside_coverage', 'native_nodata'].includes(result.reason ?? '') ||
+            typeof result.value === 'number' && Number.isFinite(result.value) && result.reason === null))
+        throw Error('Несогласованное значение точки.');
+    return result;
+}
+/** One pinned series, one request at a time. No cross-point or historical cache. */
+export class PointSeries {
+    entries = [];
+    key = '';
+    expired = false;
+    busy = false;
+    requests = 0;
+    elapsedMs = 0;
+    controller = new AbortController();
+    position;
+    work = Promise.resolve();
+    read;
+    changed;
+    constructor(read = pointValue, changed = () => { }) { this.read = read; this.changed = changed; }
+    clear() {
+        this.controller.abort();
+        this.controller = new AbortController();
+        this.entries = [];
+        this.key = '';
+        this.position = undefined;
+        this.busy = false;
+        this.expired = false;
+        this.requests = 0;
+        this.elapsedMs = 0;
+    }
+    load(group, position, initial) {
+        const key = JSON.stringify([position.lng, position.lat, ...group.times.map(s => s && [
+                s.selection, s.model, s.run, s.revision, s.field, s.level, s.native_grid_sha256, s.member, s.valid_time
+            ])]);
+        if (key === this.key)
+            return this.work;
+        this.clear();
+        this.key = key;
+        this.position = { ...position };
+        this.entries = group.times.map((selection, i) => ({ selection, time: new Date(group.start + i * 3600000).toISOString(), state: selection ? 'loading' : 'missing' }));
+        // Catalogue spans are already bounded to 31 days; retain at most 745 scalar entries.
+        if (this.entries.length > 745)
+            throw Error('Слишком длинный прогнозный ряд.');
+        const seeded = initial && this.entries.find(entry => entry.selection?.selection === initial.selection);
+        if (seeded) {
+            seeded.result = initial;
+            seeded.state = initial.value === null ? initial.reason : 'value';
+        }
+        this.work = this.fetchEntries();
+        return this.work;
+    }
+    retry() {
+        if (this.busy || this.expired)
+            return this.work;
+        for (const entry of this.entries)
+            if (entry.state === 'error')
+                entry.state = 'loading';
+        this.work = this.fetchEntries();
+        return this.work;
+    }
+    expire() {
+        this.controller.abort();
+        this.expired = true;
+        this.busy = false;
+        for (const entry of this.entries) {
+            entry.result = undefined;
+            if (entry.selection)
+                entry.state = 'error';
+        }
+        this.changed();
+    }
+    async fetchEntries() {
+        const owner = this.controller, signal = owner.signal, position = this.position, start = performance.now();
+        this.busy = true;
+        this.changed();
+        try {
+            for (const entry of this.entries) {
+                signal.throwIfAborted();
+                if (entry.state !== 'loading' || !entry.selection)
+                    continue;
+                try {
+                    this.requests++;
+                    const result = await this.read(entry.selection, position, signal);
+                    signal.throwIfAborted();
+                    entry.result = result;
+                    entry.state = result.value === null ? result.reason : 'value';
+                }
+                catch (error) {
+                    if (signal.aborted)
+                        return;
+                    if (error instanceof PublicationExpired) {
+                        this.expire();
+                        return;
+                    }
+                    entry.state = 'error';
+                }
+                this.changed();
+            }
+        }
+        catch (error) {
+            if (!signal.aborted)
+                throw error;
+        }
+        finally {
+            if (owner === this.controller) {
+                this.busy = false;
+                this.elapsedMs += performance.now() - start;
+                this.changed();
+            }
+        }
+    }
+}

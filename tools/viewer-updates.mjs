@@ -98,11 +98,16 @@ export async function checkUpdates({call,evaluate,wait,select,click,capture,orig
     await select('#projection',true,0);await ready();await click('#fit');
     await evaluate("Object.assign(window.__navigationGate,{stage:'point',hit:false,released:false,resume:null})");
     await pick(false);await wait('window.__navigationGate.hit','old mode point held');
+    const heldSeries=(await capture()).series.key;
+    const heldRequests=report.requests.filter(item=>item.url.includes('/point?')).length;
     await select('#projection',true,1);await ready();
+    assert.equal((await capture()).series.key,heldSeries,'Projection retains the same pending series');
+    assert.equal(report.requests.filter(item=>item.url.includes('/point?')).length,heldRequests,'Projection does not replace pending point requests');
+    await evaluate('window.__navigationGate.resume();window.__navigationGate.stage=null');
     await wait('window.captureWeatherEvidence().point!=null','new mode point');
     const newPoint=(await capture()).point;
-    await evaluate('window.__navigationGate.resume();window.__navigationGate.stage=null');
-    assert.deepEqual((await capture()).point,newPoint);results.races.push({stage:'point',cancel:'projection',pinned:true});
+    assert.equal(newPoint.selection,(await capture()).selected.selection);
+    results.races.push({stage:'point',transition:'projection',pending_series_reused:true,pinned:true});
     oldPoint=newPoint;oldPosition=(await capture()).position;
     await click('#west');const geometryBefore=(await capture(true)).view;
     await evaluate("Object.assign(window.__navigationGate,{stage:'upload',hit:false,released:false,resume:null,textureDeleted:false,retiredWrites:0})");
@@ -120,6 +125,12 @@ export async function checkUpdates({call,evaluate,wait,select,click,capture,orig
     assert.ok(Math.abs(after.point.value-oldPoint.value-1)<1e-6,'Labelled correction is exactly +1 K');
     assert.deepEqual(after.position,oldPosition);
     results.atomic={point:after.point,position:after.position,view:after.view,cache_identity:after.view.cache_identity,geometry_preserved:true,managed_bytes:after.managed_bytes};
+    await wait('!window.captureWeatherEvidence().series.busy','accepted revision series complete');
+    const series=(await capture()).series;
+    assert.notEqual(series.key,before.series.key);
+    assert.ok(series.entries.every(entry=>!entry.selection||entry.selection.revision===after.selected.revision));
+    assert.ok(series.entries.every(entry=>!entry.result||entry.result.revision===after.selected.revision));
+    results.series_revision={key:series.key,entries:series.entries,requests:series.requests};
     await shot('accepted-globe');
     await chooseRun(baselineKey);await select('#time',true,1);
     assert.equal((await capture()).selected,undefined);
@@ -140,10 +151,14 @@ export async function checkUpdates({call,evaluate,wait,select,click,capture,orig
     }
     results.resources=await evaluate('({max_arrays:window.__navigationGate.maxArrays,max_array_bytes:window.__navigationGate.maxArrayBytes,current_array_bytes:window.__navigationGate.arrayBytes})');
     assert.ok(results.resources.max_arrays<=2,'At most visible plus staging numeric textures');
+    await pick();
+    assert.ok(await evaluate("document.querySelectorAll('.realPointChart').length>0"),'The old run has a real chart immediately before replacement');
     await click('#settings');await click('#refresh');await click('#latestRun');
     await wait('window.captureWeatherEvidence().ready&&window.captureWeatherEvidence().selected.fixture==="overlap"','explicit new run');
     assert.equal((await capture()).selected.valid_time,'2026-10-15T01:00:00Z');
     assert.equal((await capture()).point,undefined);results.new_run=(await capture()).selected;
+    assert.equal(await evaluate("document.querySelectorAll('.realPointChart').length"),0,'A new run without a selected point cannot expose the old chart');
+    assert.equal(await evaluate("document.getElementById('sheetPoint').hidden&&document.getElementById('clearMobilePoint').hidden"),true,'Point controls are hidden until another point is chosen');
     const sizes=android?[await evaluate('[innerWidth,innerHeight]')]:[[390,844],[360,740],[640,360],[700,740],[701,740]];
     for(const [width,height] of sizes){
         if(!android)await call('Emulation.setDeviceMetricsOverride',{width,height,mobile:true,deviceScaleFactor:1});

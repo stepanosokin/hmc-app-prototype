@@ -11,9 +11,12 @@ param(
     [switch]$Offline,
     [switch]$TimeSwitch,
     [switch]$TimeSwitchOnly,
+    [switch]$PointSeries,
+    [ValidateRange(0,10)][int]$InitialLoadRepeats=0,
     [switch]$TimeStatusOnly
 )
 $ErrorActionPreference='Stop'
+if($InitialLoadRepeats -and ($Final -or -not $PointSeries)){throw 'InitialLoadRepeats requires PointSeries and Development scope'}
 if($TimeSwitchOnly -and (-not $TimeSwitch -or $Final)){throw 'TimeSwitchOnly requires TimeSwitch and Development scope'}
 if($TimeStatusOnly -and -not $TimeSwitchOnly){throw 'TimeStatusOnly requires TimeSwitchOnly'}
 if($UpdatesOnly -and -not $Updates){throw 'UpdatesOnly requires Updates'}
@@ -51,6 +54,7 @@ function Check{param([string]$Name,[string[]]$Arguments)
     Invoke-CheckedProcess -FilePath docker -ArgumentList ($compose+$Arguments) -ReportDirectory $directory -Name $Name}
 Start-Transcript -Path (Join-Path $directory 'console.log') | Out-Null
 try{
+    if($InitialLoadRepeats){$env:T27_INITIAL_REPEATS=[string]$InitialLoadRepeats;$env:T13_FOCUSED='1'}
     if($Offline){$env:T16_OFFLINE='1'}
     Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/weather-viewer-inputs.mjs',$directory,'start') -ReportDirectory $directory -Name inputs-start
     Check services @('up','--detach','db','api','gateway','geoserver','viewer')
@@ -61,7 +65,8 @@ try{
     if($Final){
         Check types @('run','--rm','typecheck')
     }
-    Check seed @('run','--rm','worker','submit','--clock',$env:PUBLICATION_CLOCK,'--hours','1,3')
+    $seedHours=if($PointSeries){(1..24)-join ','}else{'1,3'}
+    Check seed @('run','--rm','worker','submit','--clock',$env:PUBLICATION_CLOCK,'--hours',$seedHours)
     Check publish @('run','--rm','worker','once')
     Check restart @('restart','api','gateway')
     if($Navigation){
@@ -72,6 +77,7 @@ try{
         if($NavigationOnly){$env:T14_NAVIGATION_ONLY='1';$env:T13_FOCUSED='1'}
     }
     $env:T13_VIEWER="http://127.0.0.1:$ViewerPort"
+    if($PointSeries){$env:T27_POINT_SERIES='1'}
     if($TimeSwitch){$env:T25_TIME_SWITCH='1'}
     if($TimeSwitchOnly){$env:T25_TIME_SWITCH_ONLY='1';$env:T13_FOCUSED='1'}
     if($TimeStatusOnly){$env:T25_TIME_STATUS_ONLY='1'}
@@ -79,18 +85,20 @@ try{
     if($UpdatesOnly){$env:T15_UPDATES_ONLY='1';$env:T13_FOCUSED='1'}
     $env:T13_REPORT_DIRECTORY=Join-Path $directory 'browser'
     Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-weather-viewer.mjs') -ReportDirectory $directory -Name browser
+    if($PointSeries -and -not $InitialLoadRepeats){Check series-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-series-reference.py','browser')}
     if($TimeSwitch -and -not $TimeStatusOnly){Check time-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-time-reference.py','browser')}
     if($Updates){Check update-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-update-reference.py','browser')}
-    if(-not $NavigationOnly -and -not $UpdatesOnly -and -not $TimeSwitchOnly){
+    if(-not $PointSeries -and -not $NavigationOnly -and -not $UpdatesOnly -and -not $TimeSwitchOnly){
         Check comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-reference.py','compare')
     }
     if($WithEdge){
         $env:T13_BROWSER='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
         $env:T13_REPORT_DIRECTORY=Join-Path $directory 'browser-edge'
         Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-weather-viewer.mjs') -ReportDirectory $directory -Name edge
+        if($PointSeries -and -not $InitialLoadRepeats){Check edge-series-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-series-reference.py','browser-edge')}
         if($TimeSwitch -and -not $TimeStatusOnly){Check edge-time-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-time-reference.py','browser-edge')}
         if($Updates){Check edge-update-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-update-reference.py','browser-edge')}
-        if(-not $NavigationOnly -and -not $UpdatesOnly -and -not $TimeSwitchOnly){
+        if(-not $PointSeries -and -not $NavigationOnly -and -not $UpdatesOnly -and -not $TimeSwitchOnly){
             Check edge-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-reference.py','compare','browser-edge')
         }
     }
@@ -119,6 +127,8 @@ try{
     Remove-Item Env:T15_PROJECT -ErrorAction SilentlyContinue
     Remove-Item Env:T25_TIME_SWITCH -ErrorAction SilentlyContinue
     Remove-Item Env:T25_TIME_SWITCH_ONLY -ErrorAction SilentlyContinue
+    Remove-Item Env:T27_POINT_SERIES -ErrorAction SilentlyContinue
+    Remove-Item Env:T27_INITIAL_REPEATS -ErrorAction SilentlyContinue
     Remove-Item Env:T25_TIME_STATUS_ONLY -ErrorAction SilentlyContinue
     if($null -eq $originalFocused){Remove-Item Env:T13_FOCUSED -ErrorAction SilentlyContinue}else{$env:T13_FOCUSED=$originalFocused}
     if($null -eq $originalOffline){Remove-Item Env:T16_OFFLINE -ErrorAction SilentlyContinue}else{$env:T16_OFFLINE=$originalOffline}

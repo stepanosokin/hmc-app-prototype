@@ -15,7 +15,7 @@ export function publishedGroups(selections: Selection[],validationFixtures=false
         if(!validationFixtures&&syntheticRevisions.has(item.revision))continue;
         if(item.state!=='published'||item.field!=='T_G:surface:0'||item.units!=='K'||
             item.fixture&&item.fixture!=='actual'&&!(validationFixtures&&['overlap','correction'].includes(item.fixture)))continue;
-        const key=JSON.stringify([item.model,item.run,item.revision,item.field,item.level]);
+        const key=JSON.stringify([item.model,item.run,item.revision,item.field,item.level,item.native_grid_sha256,item.member]);
         if(!groups.has(key))groups.set(key,{key,selection:item,times:[],start:0});
         // A revision can inherit real batches while other times are corrected.
         // Label the entire validation revision, regardless of catalogue ordering.

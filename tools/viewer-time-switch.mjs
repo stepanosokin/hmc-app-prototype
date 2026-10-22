@@ -117,13 +117,12 @@ export async function checkTimeSwitch({call,evaluate,wait,select,click,capture,o
             await evaluate('window.__navigationGate.stage=null');
             await select('#time',true,0);await ready();
         }
-        await evaluate("Object.assign(window.__navigationGate,{stage:'point',hit:false,released:false,resume:null})");
-        await select('#time',true,2);await ready();await wait('window.__navigationGate.hit','held time point');
-        await select('#time',true,0);await ready();await wait('window.captureWeatherEvidence().point!=null','last time point');
-        await evaluate('window.__navigationGate.resume()');
-        await evaluate('new Promise(resolve=>setTimeout(resolve,100))');
+        await wait('!window.captureWeatherEvidence().series.busy','pinned point series complete');
+        const requestsBefore=report.requests.filter(item=>item.url.includes('/point?')).length;
+        await select('#time',true,2);await ready();
+        await select('#time',true,0);await ready();
         assert.equal((await capture()).point.selection,before.selected.selection);
-        await evaluate('window.__navigationGate.stage=null');
+        assert.equal(report.requests.filter(item=>item.url.includes('/point?')).length,requestsBefore,'Cached series replaces time-only point requests');
         await select('#time',true,1);
         const gap=await capture();assert.equal(gap.ready,false);assert.equal(gap.point,undefined);assert.deepEqual(gap.position,before.position);
         assert.equal(gap.displayed,undefined);

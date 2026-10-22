@@ -1,0 +1,97 @@
+{
+  "contract": "hmc-temperature-tile/2",
+  "status": "frozen-for-comparison",
+  "agreement": {
+    "date": "2026-10-19",
+    "authority": "Repository owner, explicit reply in the #16 implementation conversation",
+    "resampling": "bilinear",
+    "encoding_max_abs_error_K": 0.001,
+    "total_max_abs_error_K": 0.01,
+    "reference": "independent bilinear calculation from decoded source values at the same display coordinates",
+    "cog_separate_max_abs_error_K": 0.0001,
+    "crs_approval": "Explicit repository-owner reply approving registered native CRS and zero-shift geocentric prototype transform in the #16 implementation conversation, 2026-10-19"
+  },
+  "metadata_content_type": "application/json",
+  "url_template": "/api/v1/selections/{selection}/tiles/2/{z}/{x}/{y}.{encoding}",
+  "selection_identity": [
+    "model",
+    "run",
+    "revision",
+    "field",
+    "level",
+    "valid_time",
+    "native_grid_sha256",
+    "member"
+  ],
+  "matrix": "WebMercatorQuad",
+  "crs": "EPSG:3857",
+  "zoom": [
+    0,
+    6
+  ],
+  "tile_size": [
+    256,
+    256
+  ],
+  "halo_pixels": 1,
+  "stored_size": [
+    258,
+    258
+  ],
+  "origin": "northwest",
+  "orientation": "rows north to south, columns west to east",
+  "sampling": "pixel centres, including one extra pixel centre outside each tile edge",
+  "units": "K",
+  "encodings": {
+    "f32": {
+      "content_type": "application/vnd.hmc.temperature-f32",
+      "layout": "258*258 little-endian float32 values in row-major order, then 258*258 uint8 validity bytes",
+      "validity": "0 missing, 1 valid; missing values encoded as zero",
+      "compression": "none"
+    },
+    "png": {
+      "content_type": "image/png",
+      "layout": "RGBA8; unsigned q=(R*65536+G*256+B); value_K=q*0.001; alpha=255 valid, 0 missing",
+      "rounding": "nearest integer, ties to even",
+      "range_K": [
+        0,
+        16777.215
+      ],
+      "compression": "lossless PNG/DEFLATE; browser must disable colour conversion and premultiplication"
+    }
+  },
+  "bilinear": {
+    "source": "full-resolution native cells, never COG overviews",
+    "mask": "missing if any contributing cell is missing; no weight renormalization",
+    "coverage": "outside half-open native outer-cell footprint is missing; inside footprint clamp fractional cell indices to edge centres",
+    "halo": "evaluate in global pixel coordinates; neighboring tiles' halo/interior overlaps must agree",
+    "projection": "Inverse EPSG:3857 to WGS84 geodetic lon/lat at height 0, WGS84 geocentric Cartesian, then inverse Cartesian on native sphere R=6371229 m; zero datum shift, Greenwich. Same explicit assumed datum operation as GeoServer EPSG:100001.",
+    "datum_limit": "Owner approved prototype zero-shift geocentric hypothesis on 2026-10-19 after retained angular-placement failure; producer confirmation and desktop QGIS compatibility remain external gates."
+  },
+  "readiness": {
+    "mode": "lazy with eager representative probes",
+    "representatives": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        3,
+        4,
+        2
+      ],
+      [
+        3,
+        5,
+        2
+      ],
+      [
+        6,
+        35,
+        21
+      ]
+    ],
+    "requirements": "durable metadata and selected engine/version; deterministic generation and byte hashes on representatives; remaining tiles bounded to zoom 0..6; no global prebuild"
+  }
+}

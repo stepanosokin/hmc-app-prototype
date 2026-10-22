@@ -1,0 +1,50 @@
+{
+    "project":  "hmc-publication-t13-t27-regression-dev2",
+    "repository":  "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "c3cf1af742f64e11fc8f300bc79e262c4555894ad486af99ce70f257fb44bf54",
+                           "name":  "/hmc-publication-t13-t27-regression-dev2-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t27-regression-dev2"
+                       },
+                       {
+                           "id":  "2bc2a2644bd08e17eddb7bc5cb8a3dfd82d60303efa2e8d38b937e7f20451859",
+                           "name":  "/hmc-publication-t13-t27-regression-dev2-gateway-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t27-regression-dev2"
+                       },
+                       {
+                           "id":  "5e454f14a720c83e12c101ab029a6f8dcd44d35e4a003a7b91cf933838e73042",
+                           "name":  "/hmc-publication-t13-t27-regression-dev2-api-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t27-regression-dev2"
+                       },
+                       {
+                           "id":  "9dfa87c1cbdd486b3404d051072461568c83d16fc617b27e060a61e947a2f010",
+                           "name":  "/hmc-publication-t13-t27-regression-dev2-viewer-1",
+                           "image":  "sha256:285ca3775071b9a897351c6b35f7f3e37937a701dd242813ff2e95d7a5836c49",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t27-regression-dev2"
+                       },
+                       {
+                           "id":  "efa65fe541d623669a6d3da86a88a9068a6c2ac07d409dcc10bcaf3a0e2de8f6",
+                           "name":  "/hmc-publication-t13-t27-regression-dev2-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t13-t27-regression-dev2"
+                       }
+                   ],
+    "networks":  [
+                     "465b5259810d",
+                     "66f1b01d6274"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t13-t27-regression-dev2_assets",
+                    "hmc-publication-t13-t27-regression-dev2_geoserver",
+                    "hmc-publication-t13-t27-regression-dev2_postgres"
+                ]
+}

@@ -1,0 +1,39 @@
+{
+  "observed_at": "2026-10-22T12:53:40.377Z",
+  "test_resources_created": 0,
+  "checks": {
+    "viewer_unit": 12,
+    "network_unit": 6,
+    "typescript": "passed",
+    "build": "passed",
+    "mypy_source_files": 74,
+    "mypy_native_exit_code": 0,
+    "documentation": "3 files passed",
+    "historical_t13": "passed",
+    "historical_t25": "passed"
+  },
+  "failed_attempts": [
+    {
+      "command": "node --test viewer/test-series.mjs",
+      "failure": "EPERM spawning Node test isolation; switched to repository isolation=none",
+      "resources_created": 0
+    },
+    {
+      "command": "node --test --test-isolation=none viewer/test-series.mjs",
+      "failure": "Expected red: series module absent",
+      "log": "t27-red.log",
+      "resources_created": 0
+    },
+    {
+      "command": "node --test --test-isolation=none viewer/test-series.mjs",
+      "failure": "TypeScript parameter property unsupported in strip mode; replaced with explicit fields",
+      "resources_created": 0
+    },
+    {
+      "command": "Invoke-CheckedProcess local validation setup",
+      "failure": "Missing report directory; no child launched, wrapper continuation was not evidence of success; created directory and reran with ErrorActionPreference=Stop",
+      "resources_created": 0
+    }
+  ],
+  "cleanup": "No browser, profile, listening port or Compose project allocated by Node/TypeScript/documentation checks. mypy used --rm --network none; its container exited. Build output retained as runtime cache."
+}
