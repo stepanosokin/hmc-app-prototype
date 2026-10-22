@@ -1,0 +1,35 @@
+{
+  "phase": "pre-commit",
+  "observed_at": "2026-10-22T16:07:23.314Z",
+  "issue": {
+    "url": "https://github.com/stepanosokin/hmc-app-prototype/issues/46",
+    "title": "Вернуть WMS/API ссылки и читаемое происхождение в настройки карты",
+    "issue_number": 46,
+    "body": "## Согласовано\n\nИсправить «Источник и настройки» по спецификации и согласованному прототипу: публичные WMS/API ссылки с копированием URL; WMS закрепляет расчёт/редакцию, point API — срок UTC и точку (при отсутствии точки явно обозначен пример центра покрытия). «Происхождение» — компактные русские поля, полный документ по отдельной ссылке. Пользователь подтвердил Q1/Q2. Связано с #12; статусы прежних задач не менять.\n\n## Критерии приёмки\n\n- [x] Рабочие публичные WMS/API ссылки и копирование URL доступны в панели; отсутствует гигантский JSON, сведения об источнике читаемы, полный документ доступен отдельно.\n- [x] URL сохраняют выбранные расчёт/редакцию/срок/точку; смена выбора, отсутствие точки/срока, loading/error/expiry не выдают устаревшие метаданные или чужой контекст.\n- [x] Публичный WMS доступен по отображаемому адресу; ограничения bridge и отсутствие передачи ключей сохраняются. Проверки на локальном Docker/Chrome/Edge и мобильных размерах пройдены; свидетельства и cleanup архивированы. GitHub Actions не используются.\n- [ ] Изменения просмотрены, один коммит и один push выполнены в текущую ветку, remote HEAD проверен; checklist и закрытие задачи прочитаны обратно.\n\n## Реализация и Development — 22.10.2026\n\nПубличные WMS/API URL, readonly поля и копирование добавлены; метаданные выводятся русскими полями и отдельной ссылкой полного документа. Scoped публичный WMS path проходит через bounded viewer bridge без передачи browser credentials. TypeScript/build, 12 viewer tests, 2 bridge checks и mypy 75 файлов прошли локально. Два Development проекта очищены. Полный Chrome/Edge review-matrix прошёл; после правки подписи удерживаемой редакции с тем же UTC выполняется повтор только затронутой browser приёмки.\n\nНа живом localhost:8140 перезапущен только viewer. Исходный repro теперь passed: WMS=200 (XML capabilities), API=200 с численным значением, текст происхождения 320 символов вместо 8711. SHA256 полного каталога до/после совпал; 24 срока и все прежние публикации сохранены. Проверены missing/loading/error/expiry, смена run/revision/time/point и clipboard. Тестовый browser/profile удалён. Итоговый archive/cleanup/push ещё подготавливаются; №46 остаётся open.\n\n## Итоговая приёмка и cleanup — 22.10.2026\n\nВыбранный gate `hmc-publication-t13-settings46accept` passed на Chrome/Edge: по четыре viewport, оба шрифта/подложки, GetCapabilities/GetMap/point/metadata=200, реальный clipboard, пропуск/точка/редакция и held same-time revision/loading/503/410. Существующие GPU/PROJ/mask проверки и 12 canonical picks на браузер passed без ослабления допусков. Полный повтор потребовался только после review подписи удерживаемой редакции; предыдущие попытки сохранены отдельно, фазы не смешаны. GitHub Actions не использовались.\n\nЛокальный архив `docs/evidence/source-settings/validation.md`: сверены 796 source/runtime input copies четырёх попыток, 199 текущих frozen inputs и 10 passing browser reports. Все 4 тестовых проекта retired, независимые inventory пусты; standalone check containers отсутствуют. Профили/браузеры диагностических попыток также очищены. Живой `hmc-app-live` сохранён с пятью сервисами, каталог по SHA256 не изменился, 24 срока сохранены. Текущих блокеров нет. Остался единый коммит/push и remote HEAD readback.\n",
+    "state": "open",
+    "user": {
+      "login": "stepanosokin",
+      "name": "stepanosokin",
+      "email": null,
+      "avatar_url": "https://avatars.githubusercontent.com/u/55891071?v=4",
+      "id": 55891071
+    },
+    "assignees": null,
+    "labels": [
+      {
+        "name": "ready-for-agent",
+        "color": "0E8A16",
+        "description": "Implementation specification ready for an agent; stated implementation gates still apply."
+      }
+    ],
+    "milestone": null,
+    "state_reason": null,
+    "comments": 0,
+    "created_at": "2026-10-22T15:40:48Z",
+    "updated_at": "2026-10-22T16:07:22Z",
+    "closed_at": null,
+    "display_url": "https://github.com/stepanosokin/hmc-app-prototype/issues/46",
+    "display_title": "Вернуть WMS/API ссылки и читаемое происхождение в настройки карты"
+  },
+  "commit_push": "pending after this snapshot"
+}

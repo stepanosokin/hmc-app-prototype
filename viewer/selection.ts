@@ -2,7 +2,7 @@ export interface Selection {
     selection: string; model: string; run: string; revision: string; field: string;
     level: string; valid_time: string; units: string; state: string; fixture?: string;
     completeness?: string; native_display: string; collection: string; point: string;
-    native_grid_sha256: string; member: string | null;
+    native_grid_sha256: string; member: string | null; wms: string;
 }
 export interface PublishedGroup {key: string; selection: Selection; times: (Selection|null)[]; start: number}
 export const referenceTime=(run: string)=>run.slice(run.lastIndexOf('/')+1);

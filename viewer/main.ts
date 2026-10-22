@@ -6,6 +6,7 @@ import {nativeToWgs} from './native-layer.js';
 import {LocalContext} from './local-context.js';
 import {PointSeries,pointValue,SERIES_BUDGET,type PointResult,type Position} from './series.js';
 import {PointChart} from './point-chart.js';
+import {SourceSettings,type SourceDescription} from './source-settings.js';
 
 type Mode='mercator'|'orthographic'|'laea';
 const $=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
@@ -14,6 +15,7 @@ const text=(id:string,value:string)=>{$(id).textContent=value;};
 const mobile=()=>matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches;
 const loader=new FieldLoader();
 const charts=new Map<string,PointChart>();
+const sourceSettings=new SourceSettings();
 const series=new PointSeries(pointValue,seriesChanged);
 function seriesChanged(){
     if(series.expired&&timeState!=='expired'){
@@ -38,7 +40,7 @@ let mapBaseCenter:number[]=[],mapBaseProjection:any;
 let ownedCanvas:HTMLCanvasElement|undefined;
 let screenPick:unknown;
 let unit='C',alternate=false,light=false,pointCollapsed=false,lost=false,rendererError='';
-let metadata:unknown,bootController=new AbortController(),pendingGroups:PublishedGroup[]|undefined;
+let metadata:SourceDescription|undefined,bootController=new AbortController(),pendingGroups:PublishedGroup[]|undefined;
 const updateLoader=new FieldLoader();
 let updateController=new AbortController(),catalogueController=new AbortController(),updateBusy=false;
 let dismissedPublication='',updateSerial=0,timeStagingBytes=0,updateStagingBytes=0;
@@ -84,12 +86,8 @@ function selectionDetails(){
     text('forecastSummary','Выбор: '+(source.fixture==='overlap'?'Тестовый перекрывающийся расчёт · ':source.fixture==='correction'?'Тестовая коррекция +1 K · ':'')+source.model+' · '+timestamp(referenceTime(source.run)));
     text('availability',timeState==='loading'?'Загрузка выбранного срока':timeState==='error'?'Ошибка загрузки срока':timeState==='expired'?'Публикация истекла':selected?'Срок опубликован':'Срок отсутствует');
     text('retry',timeState==='expired'?'Перевыбрать публикацию':'Повторить загрузку');
-    const age=Math.max(0,Math.floor((Date.now()-Date.parse(referenceTime(source.run)))/3600000));
-    const completeness=source.completeness==='complete'?'полный':source.completeness==='partial'?'неполный':'неизвестна';
-    text('metadata','Возраст расчёта: '+age+' ч. Полнота: '+completeness+'. '+
-        'Опубликовано сроков: '+group.times.filter(Boolean).length+'. '+
-        'Источник: DWD ICON-EU, T_G, поверхность. Показанная выборка: '+(displayed?.selection??'отсутствует')+'. '+
-        (metadata?'Происхождение: '+JSON.stringify(metadata):''));
+    sourceSettings.update(group,index,selected,position,metadata,timeState,displayed,
+        timeState==='ready'?data?.metadata.grid.outer_cell_edges_wsen:undefined,timestamp);
     layout();
 }
 function timeControls(){
@@ -102,7 +100,7 @@ function syncTime(){control('time').value=String(index);$<HTMLInputElement>('tim
     $<HTMLButtonElement>('previous').disabled=index===0;$<HTMLButtonElement>('next').disabled=index===(group?.times.length??1)-1;}
 function setGroup(newGroup:PublishedGroup){clearPoint();group=newGroup;index=0;timeState='missing';timeControls();void chooseTime(0);}
 function clearPoint(){reselectController.abort();series.clear();cancelUpdate();pointController.abort();point=undefined;position=undefined;pointCollapsed=false;
-    $('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');placePoint();}
+    $('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');placePoint();if(group)selectionDetails();}
 function releaseLayer(){
     const previous=layer;layer=undefined;
     previous?.context?.remove();
@@ -158,7 +156,7 @@ async function chooseTime(next:number){
     let candidate:WeatherLayer|undefined,owner:any;
     try{
         timeStagingBytes=reserveFrame();
-        const [field,description]=await Promise.all([loader.load(current),json<unknown>(current.collection,loader.controller.signal)]);
+        const [field,description]=await Promise.all([loader.load(current),json<SourceDescription>(current.collection,loader.controller.signal)]);
         signal.throwIfAborted();if(version!==selectionVersion)return;
         if(!map){
             data=field;metadata=description;await rebuild(true);
@@ -293,6 +291,8 @@ function placePoint(){
 }
 function renderPoint(message=pointMessage){
     pointMessage=message;
+    if(group)sourceSettings.update(group,index,selected,position,metadata,timeState,displayed,
+        timeState==='ready'?data?.metadata.grid.outer_cell_edges_wsen:undefined,timestamp);
     $('sheetPoint').hidden=!position;$('clearMobilePoint').hidden=!position;
     if(!position)for(const chart of charts.values())chart.element.remove();
     for(const id of ['pointContent','mobilePoint']){
@@ -497,7 +497,7 @@ async function acceptPublication(newRun=false){
     try{
         updateStagingBytes=reserveFrame();
         const fieldPromise=updateLoader.load(current);
-        const [field,description,nextPoint]=await Promise.all([fieldPromise,json<unknown>(current.collection,signal),
+        const [field,description,nextPoint]=await Promise.all([fieldPromise,json<SourceDescription>(current.collection,signal),
             !newRun&&oldPosition?pointValue(current,oldPosition,signal):Promise.resolve(undefined)]);
         signal.throwIfAborted();
         if(owner!==map||oldSelection!==selected)return;
