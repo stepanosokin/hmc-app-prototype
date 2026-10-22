@@ -2,6 +2,27 @@
 
 ## Choose validation by the change
 
+Run checks locally by default; GitHub Actions is an optional manual fallback,
+not a required step for ticket completion. Use Windows PowerShell and Docker
+Desktop with Linux containers:
+
+```powershell
+powershell -NoProfile -File tools/check-local.ps1
+# Focused feedback:
+powershell -NoProfile -File tools/check-local.ps1 -Scope Viewer
+powershell -NoProfile -File tools/check-local.ps1 -Scope Windows
+powershell -NoProfile -File tools/check-local.ps1 -Scope Runtime
+```
+
+Install Node.js 26.10.0 and Docker before running. The runner mirrors the three
+jobs in `.github/workflows/checks.yml`, stops on failure and retains a transcript
+under `data/reports/local-checks/`. Archive that transcript with ticket evidence.
+Docker build caches and installed dependencies are retained. Runtime containers
+use `--rm`; the retirement check manages its own disposable fixtures and receipts.
+After any failed attempt verify cleanup under the procedure below. Viewer and
+Windows scopes allocate no Docker resources. These checks do not replace the
+change-specific actual-sample, browser, QGIS or physical-device gates below.
+
 Start with the affected row. Development checks give feedback while editing;
 final acceptance establishes ticket completion after review fixes. Combine rows
 when a change crosses boundaries. Ticket-specific acceptance criteria still apply.
