@@ -98,6 +98,10 @@ def processing_budget():
 
 def submit(clock: str, request: dict, source_name: str, delivery_sha256: str | None,
            stability_seconds: float) -> str:
+    from decoder.grib_crs import configuration
+    request = dict(request)
+    if 'crs_configuration' not in request:
+        request['crs_configuration'] = configuration()
     with processing_budget():
         return capture(clock, request, source_name, delivery_sha256, stability_seconds)
 
@@ -226,12 +230,13 @@ def source(job: dict) -> Path:
     try:
         count = 0
         for count, frame in enumerate(bounded_frames(staged), 1):
-            if count > 24:
+            generic = job.get('request',{}).get('source_profile')=='surface-temperature-grib2'
+            if count > (4096 if generic else 24):
                 raise DeliveryInvalid('too many source messages')
-            metadata = field_metadata(frame, count)
+            metadata = field_metadata(frame,count,job.get('request', {}).get('crs_configuration'),sample_inventory=not generic)
             decoded_arrays(frame, metadata['grid']['shape_yx'])
             checkpoint(job, 'decoding')
-        if count != 24 or job['checksum'] != SAMPLE_SHA256:
+        if (not job.get('request',{}).get('source_profile') and (count != 24 or job['checksum'] != SAMPLE_SHA256)) or count<1:
             raise DeliveryInvalid('incomplete or unsupported sample delivery')
     except (ValidationError, RuntimeError, ValueError) as error:
         raise DeliveryInvalid('partial, truncated or unsupported GRIB delivery') from error

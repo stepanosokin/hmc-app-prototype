@@ -167,3 +167,22 @@ docs/evidence/retro-wms-compat-checks/**/*.log -whitespace
 docs/evidence/source-crs/** -text whitespace=cr-at-eol
 docs/evidence/source-crs/**/*.log -whitespace
 docs/evidence/source-crs/rejected-frozen/** -whitespace
+
+# GRIB CRS inputs and retained numerical/browser evidence are byte-addressed.
+decoder/grib_crs.py text eol=lf
+decoder/gis_crs.py text eol=lf
+decoder/inspect_forecast.py text eol=lf
+decoder/sampling.py text eol=lf
+decoder/storage.py text eol=lf
+tests/test_grib_crs.py text eol=lf
+tests/test_publication_grib_crs.py text eol=lf
+config/** text eol=lf
+Dockerfile.publication text eol=lf
+.dockerignore text eol=lf
+.gitattributes text eol=lf
+tools/grib-crs/** text eol=lf
+tools/check-grib-crs-browser.mjs text eol=lf
+viewer/source-crs.js text eol=lf
+docs/evidence/grib-crs-metadata/** -text whitespace=cr-at-eol
+docs/evidence/grib-crs-metadata/**/*.log -whitespace
+docs/evidence/grib-crs-metadata/**/inputs/** -whitespace

@@ -1,6 +1,7 @@
 param(
     [ValidatePattern('^[a-z0-9][a-z0-9-]+$')][string]$Project = 'hmc-publication-t6-check',
     [int]$Port = 8098,
+    [string]$Image = 'hmc-publication:t6',
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
@@ -21,7 +22,7 @@ foreach ($t6Key in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAI
 }
 $t6Lines | Set-Content -Encoding ascii -LiteralPath $t6Environment
 $env:T4_PORT = [string]$Port
-$env:PUBLICATION_IMAGE = 'hmc-publication:t6'
+$env:PUBLICATION_IMAGE = $Image
 $env:PUBLICATION_EVIDENCE_DIR = './data/reports/t6/' + $Project
 $env:T6_TEST_FAULTS = '1'
 $t6Fixtures = Join-Path $t6Directory 'fixtures'
@@ -74,6 +75,6 @@ Invoke-T6Check -Name archived-evidence -Arguments @('run','--rm','--volume',"$((
 $t6Base = (& git rev-parse HEAD).Trim()
 Invoke-T6Check -Name inputs -Arguments @('run','--rm','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python',
     'check','-m','publication.verify_recovery','--inputs','/workspace','--base-commit',$t6Base)
-& docker image inspect hmc-publication:t6 --format '{{.Id}}' | Set-Content -Encoding ascii (Join-Path $t6Directory 'image-id.txt')
+& docker image inspect $Image --format '{{.Id}}' | Set-Content -Encoding ascii (Join-Path $t6Directory 'image-id.txt')
 if ($LASTEXITCODE -ne 0) { throw 'Could not record image identity' }
 Write-Output "T6 checks passed. Evidence: $t6Directory"

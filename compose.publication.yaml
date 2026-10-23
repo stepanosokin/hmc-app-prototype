@@ -26,6 +26,7 @@ x-app: &app
     - ${PUBLICATION_EVIDENCE_DIR:-./data/reports/t4}:/evidence
     - ./publication:/app/publication:ro
     - ./tests:/app/tests:ro
+    - ./config:/app/config:ro
 services:
   viewer:
     <<: *app

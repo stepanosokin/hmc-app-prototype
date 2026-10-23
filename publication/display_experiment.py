@@ -28,6 +28,10 @@ def render(root: Path, item: dict, mode: str) -> bytes:
         eligible &= latitude >= 45
     lon, lat, _ = TO_NATIVE.transform(np.where(eligible, longitude, 0),
                                     np.where(eligible, latitude, 0), np.zeros(x.shape))
+    if item['metadata'].get('source_crs'):
+        from decoder.grib_crs import transform
+        lon, lat = transform(item['metadata']['source_crs'], np.where(eligible, longitude, 0),
+                             np.where(eligible, latitude, 0))
     group = zarr.open_group(str(asset_path(root, item['zarr'])), mode='r', zarr_format=2)
     grid = item['metadata']['grid']
     values, valid = bilinear(read_values(group, 'temperature'), read_values(group, 'missing').astype(bool),

@@ -60,9 +60,11 @@ class ManifestSampler:
                     if item['field'] == field and item['metadata']['valid_time'] == valid_time]
         if len(selected) != 1:
             raise KeyError('unavailable field/time')
-        require(math.isfinite(lon) and math.isfinite(lat) and -90 <= lat <= 90, 'invalid position')
-        lon = (lon + 180) % 360 - 180
         item = selected[0]
+        angular = item['metadata'].get('source_crs', {}).get('template', 0) in (0, 1)
+        require(math.isfinite(lon) and math.isfinite(lat) and (not angular or -90 <= lat <= 90), 'invalid position')
+        if angular:
+            lon = (lon + 180) % 360 - 180
         grid = item['metadata']['grid']
         west, south, east, north = grid['outer_cell_edges_wsen']
         result: dict[str, Any] = {'run': run, 'revision': revision, 'field': field, 'valid_time': valid_time,

@@ -16,9 +16,19 @@ CONTRACT = json.loads(CONTRACT_PATH.read_text())
 MAP_TO_NATIVE = Transformer.from_pipeline('+proj=pipeline +step +inv +proj=webmerc +ellps=WGS84 '
     '+step +proj=cart +ellps=WGS84 +step +inv +proj=cart +R=6371229')
 SIZE = 258
+CONTRACT_V3_PATH = Path(__file__).with_name('contract.v3.json')
+CONTRACT_V3 = json.loads(CONTRACT_V3_PATH.read_text())
 
 
-def coordinates(z: int, x: int, y: int) -> tuple[np.ndarray, np.ndarray]:
+def contract_for(spec: dict | None) -> dict:
+    if spec:
+        from publication.native_display import profile
+        if profile(spec)[2] == 2:
+            return CONTRACT_V3
+    return CONTRACT
+
+
+def coordinates(z: int, x: int, y: int, source_crs: dict | None = None) -> tuple[np.ndarray, np.ndarray]:
     if not (0 <= z <= 6 and 0 <= x < 2**z and 0 <= y < 2**z):
         raise ValueError('tile outside matrix bounds')
     # Integer global pixels make shared halo coordinates exactly identical.
@@ -26,7 +36,13 @@ def coordinates(z: int, x: int, y: int) -> tuple[np.ndarray, np.ndarray]:
     py = (y * 256 + np.arange(-1, 257) + 0.5) / (256 * 2**z)
     extent = np.pi * 6378137
     map_x, map_y = np.meshgrid((px*2-1)*extent, (1-py*2)*extent)
-    lon, lat, _ = MAP_TO_NATIVE.transform(map_x, map_y, np.zeros(map_x.shape))
+    if source_crs:
+        from decoder.grib_crs import transform
+        geographic = Transformer.from_crs('EPSG:3857', 'EPSG:4326', always_xy=True)
+        longitude, latitude = geographic.transform(map_x, map_y)
+        lon, lat = transform(source_crs, longitude, latitude)
+    else:
+        lon, lat, _ = MAP_TO_NATIVE.transform(map_x, map_y, np.zeros(map_x.shape))
     return lon, lat
 
 
@@ -55,7 +71,7 @@ def render(root: Path, item: dict, z: int, x: int, y: int) -> tuple[np.ndarray, 
     group = zarr.open_group(str(asset_path(root, item['zarr'])), mode='r', zarr_format=2)
     grid = item['metadata']['grid']
     return bilinear(read_values(group, 'temperature'), read_values(group, 'missing').astype(bool),
-                    *coordinates(z, x, y), grid['outer_cell_edges_wsen'], grid['spacing_degrees_xy'])
+                    *coordinates(z, x, y, item['metadata'].get('source_crs')), grid['outer_cell_edges_wsen'], grid['spacing_degrees_xy'])
 
 
 def encode(values: np.ndarray, valid: np.ndarray, encoding: str) -> bytes:

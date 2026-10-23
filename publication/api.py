@@ -36,6 +36,7 @@ ET.register_namespace('xlink', 'http://www.w3.org/1999/xlink')
 
 def links(manifest: dict) -> dict:
     selection, identity = manifest['selection'], manifest['identity']
+    version = native_display.profile(manifest['source'].get('source_crs'))[2]
     prefix = request.headers.get('X-Publication-Prefix', '')
     return {'selection': selection, **identity, 'units': 'K', 'state': 'published',
             'module': 'meteorology',
@@ -47,7 +48,7 @@ def links(manifest: dict) -> dict:
             'batch': manifest.get('batch_selection', selection),
             'point': prefix + '/api/v1/point',
             'tiles': prefix + f'/api/v1/selections/{selection}/tiles.json',
-            'native_display': prefix + f'/api/v1/selections/{selection}/display/1/native.json',
+            'native_display': prefix + f'/api/v1/selections/{selection}/display/{version}/native.json',
             'wms': prefix + '/gis/v1/runs/' + quote(identity['run'], safe='') + '/revisions/' + identity['revision'] + '/wms'}
 
 
@@ -236,11 +237,16 @@ def create_app() -> Flask:
         return jsonify(conformsTo=[], profile='hmc-edr-position/1',
                        description='Ограниченный профиль Position. Полное соответствие OGC не заявлено.')
 
-    def collection_description(selection):
+    def collection_description(selection, listing=False):
         manifest = resolve(selection)
         g.identity = manifest['identity']
         prefix = request.headers.get('X-Publication-Prefix', '')
         result = numerical.describe(manifest, prefix)
+        # A retained run can expose hundreds of collections. The immutable
+        # definition is available through each collection's existing self link.
+        if listing:
+            result.pop('source_crs', None)
+            result['source'] = {key: value for key, value in result['source'].items() if key != 'source_crs'}
         result['numeric_tiles'] = tile_description(manifest)
         result['links'].extend([{'rel': 'related', 'href': links(manifest)['wms'], 'type': 'application/xml'},
                                 {'rel': 'related', 'href': prefix + '/api/v1/point', 'type': 'application/json'}])
@@ -249,7 +255,7 @@ def create_app() -> Flask:
     @app.get('/ogc/collections')
     def collections():
         arguments(set())
-        return jsonify(collections=[collection_description(item['selection']) for item in published_selections()], links=[])
+        return jsonify(collections=[collection_description(item['selection'], listing=True) for item in published_selections()], links=[])
 
     @app.get('/ogc/collections/<selection>')
     def collection(selection):
@@ -266,7 +272,7 @@ def create_app() -> Flask:
         match = re.fullmatch(r'POINT\(\s*([^\s()]+)\s+([^\s()]+)\s*\)', args['coords'])
         if not match:
             raise ValueError('Требуется одна двумерная точка POINT(lon lat).')
-        crs = args.get('crs', numerical.NATIVE_CRS)
+        crs = args.get('crs')
         manifest, point = numerical.sample(selection, args['run'], args['revision'], 'T_G:surface:0',
                                            args['datetime'], match.group(1), match.group(2), crs)
         g.identity = manifest['identity']
@@ -302,7 +308,7 @@ def create_app() -> Flask:
     def point():
         args = arguments({'selection', 'run', 'revision', 'valid_time', 'layer', 'lon', 'lat'}, {'crs'})
         manifest, result = numerical.sample(args['selection'], args['run'], args['revision'], args['layer'],
-            args['valid_time'], args['lon'], args['lat'], args.get('crs', numerical.NATIVE_CRS))
+            args['valid_time'], args['lon'], args['lat'], args.get('crs'))
         g.identity = manifest['identity']
         return jsonify(result)
 
@@ -314,7 +320,7 @@ def create_app() -> Flask:
         metadata = json.loads(payload)
         metadata.update(selection=selection, identity=manifest['identity'],
             representative_tiles=manifest['tile_checks'],
-            url=request.headers.get('X-Publication-Prefix', '') + CONTRACT['url_template'].replace('{selection}', selection).replace('{encoding}', manifest['encoding']),
+            url=request.headers.get('X-Publication-Prefix', '') + metadata['url_template'].replace('{selection}', selection).replace('{encoding}', manifest['encoding']),
             availability={'state': 'published', 'valid_times': [manifest['identity']['valid_time']]},
             errors={'invalid': 400, 'unavailable': 404, 'expired': 410, 'busy': 429, 'transient': 503},
             expiry='Проверяется до чтения кеша; истёкшая публикация возвращает 410.')
@@ -331,9 +337,13 @@ def create_app() -> Flask:
         return response
 
     @app.get('/api/v1/selections/<selection>/tiles/2/<int:z>/<int:x>/<int:y>.f32')
+    @app.get('/api/v1/selections/<selection>/tiles/3/<int:z>/<int:x>/<int:y>.f32')
     def tile(selection, z, x, y):
         arguments(set())
         manifest = resolve(selection)
+        version = manifest['identity']['contract'].rsplit('/',1)[-1]
+        if f'/tiles/{version}/' not in request.path:
+            raise KeyError('tile version does not match selection')
         g.identity = manifest['identity']
         numerical = sampler(manifest)
         item = next(item for item in numerical.manifest['fields'] if item['metadata']['valid_time'] == manifest['identity']['valid_time'])
@@ -363,10 +373,13 @@ def create_app() -> Flask:
                 raise
         manifest = json.loads(bounded('native-resolve', {'selection': selection}))
         g.identity = manifest['identity']
-        if coordinates is not None:
-            native_display.validate_address(*coordinates)
         source = json.loads(bounded('native-source', {'manifest': manifest}))
         root, item = source['root'], source['item']
+        version = native_display.profile(item['metadata'].get('source_crs'))[2]
+        if '/experiment/' not in request.path and f'/display/{version}/' not in request.path:
+            raise KeyError('native display version does not match selection')
+        if coordinates is not None:
+            native_display.validate_address(coordinates[0], coordinates[1], item['metadata']['grid']['shape_yx'])
         operation = 'native-experiment' if experiment else 'native-metadata' if coordinates is None else 'native-block'
         frame = None
         if experiment:
@@ -394,10 +407,12 @@ def create_app() -> Flask:
         return response
 
     @app.get('/api/v1/selections/<selection>/display/1/native.json')
+    @app.get('/api/v1/selections/<selection>/display/2/native.json')
     def native_metadata(selection):
         return native_response(selection)
 
     @app.get('/api/v1/selections/<selection>/display/1/native/<int:column>/<int:row>.f32')
+    @app.get('/api/v1/selections/<selection>/display/2/native/<int:column>/<int:row>.f32')
     def native_block(selection, column, row):
         return native_response(selection, (column, row))
 

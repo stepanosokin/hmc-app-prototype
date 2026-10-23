@@ -29,6 +29,10 @@ _Avoid_: Assuming every temperature field represents air temperature at two metr
 A named map representation of a meteorological quantity whose available runs, times and levels can be selected.
 _Avoid_: Treating a styled map image as the underlying numerical field.
 
+**Source-grid CRS**:
+The coordinate reference system that gives geographic meaning to a field's native grid, including the shape of the Earth and any rotation of the grid axes.
+_Avoid_: Equating native-grid coordinates with WGS84 coordinates or the web-map display projection.
+
 **Publication revision**:
 An identified published state of a run's available data. A new revision can add forecast times or correct earlier data without creating a new model run.
 

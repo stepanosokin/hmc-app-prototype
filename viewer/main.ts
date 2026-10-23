@@ -3,6 +3,7 @@ import {FieldLoader,json,PublicationExpired,type FieldData} from './field.js';
 import {create,clippedLine} from './geometry.js';
 import {WeatherLayer} from './weather-layer.js';
 import {nativeToWgs} from './native-layer.js';
+import {nativePosition} from './source-crs.js';
 import {LocalContext} from './local-context.js';
 import {PointSeries,pointValue,SERIES_BUDGET,type PointResult,type Position} from './series.js';
 import {PointChart} from './point-chart.js';
@@ -189,10 +190,11 @@ async function chooseTime(next:number){
 }
 function coverage(raw=false){
     const [west,south,east,north]=data!.metadata.grid.outer_cell_edges_wsen,ring:number[][]=[];
-    for(let i=0;i<=160;i++)ring.push([west+(east-west)*i/160,nativeToWgs(south)]);
-    for(let i=0;i<=100;i++)ring.push([east,nativeToWgs(south+(north-south)*i/100)]);
-    for(let i=0;i<=160;i++)ring.push([east-(east-west)*i/160,nativeToWgs(north)]);
-    for(let i=0;i<=100;i++)ring.push([west,nativeToWgs(north-(north-south)*i/100)]);
+    const geographic=(xy:number[])=>nativePosition(data!.metadata.source_crs,xy,true);
+    for(let i=0;i<=160;i++)ring.push(geographic([west+(east-west)*i/160,south]));
+    for(let i=0;i<=100;i++)ring.push(geographic([east,south+(north-south)*i/100]));
+    for(let i=0;i<=160;i++)ring.push(geographic([east-(east-west)*i/160,north]));
+    for(let i=0;i<=100;i++)ring.push(geographic([west,north-(north-south)*i/100]));
     return !raw&&mode!=='mercator'?clippedLine(ring,mode==='laea'?[90,90]:center,mode==='laea'?45:89.99999):
         {type:'Feature',properties:{},geometry:{type:'LineString',coordinates:ring}};
 }
@@ -259,10 +261,9 @@ async function rebuild(fit=false){
 function fitCoverage(){
     if(!map||!data||!layer||lost||rendererError)return;
     const [w,s,e,n]=data.metadata.grid.outer_cell_edges_wsen;
-    if(mode==='orthographic')rotate([(w+e)/2,(nativeToWgs(s)+nativeToWgs(n))/2]);
-    const south=mode==='laea'?Math.max(45,nativeToWgs(s)):nativeToWgs(s);
-    const points:number[][]=[];
-    for(let i=0;i<=60;i++)for(const lat of [south,nativeToWgs(n)])points.push([w+(e-w)*i/60,lat]);
+    if(mode==='orthographic')rotate(nativePosition(data.metadata.source_crs,[(w+e)/2,(s+n)/2],true));
+    const points:number[][]=(coverage(true).geometry.coordinates as number[][]).filter(p=>p.every(Number.isFinite)&&(mode!=='laea'||p[1]>=45));
+    if(!points.length){notice('Покрытие находится вне области этого вида карты.');return;}
     // Fit in the registered projected plane; orthographic camera remains fixed.
     const projected=points.map(p=>projection().forward(p));
     const xmin=Math.min(...projected.map(p=>p[0])),xmax=Math.max(...projected.map(p=>p[0]));

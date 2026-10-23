@@ -22,8 +22,8 @@ ROUTES = (
     re.compile(r'api/v1/(?:catalogue|point|modules|models|runs|revisions|openapi\.json)'),
     re.compile(r'ogc(?:/(?:conformance|collections(?:/[0-9a-f.]+(?:/position)?)?))?'),
     re.compile(r'api/v1/jobs/[0-9a-f-]{36}'),
-    re.compile(r'api/v1/selections/[0-9a-f.]+/(?:tiles\.json|tiles/2/[0-9]+/[0-9]+/[0-9]+\.f32)'),
-    re.compile(r'api/v1/selections/[0-9a-f.]+/display/1/(?:native\.json|native/[0-9]+/[0-9]+\.f32)'),
+    re.compile(r'api/v1/selections/[0-9a-f.]+/(?:tiles\.json|tiles/[23]/[0-9]+/[0-9]+/[0-9]+\.f32)'),
+    re.compile(r'api/v1/selections/[0-9a-f.]+/display/[12]/(?:native\.json|native/[0-9]+/[0-9]+\.f32)'),
     re.compile(r'api/v1/selections/[0-9a-f.]+/display/1/experiment/(?:ortho|laea)\.f32'),
     re.compile(r'gis/v1/runs/[A-Za-z0-9_.:/-]+/revisions/[0-9a-f]+/wms'),
 )
@@ -163,7 +163,7 @@ def create_app() -> Flask:
                     return failure(429)
             else:
                 limits = budgets.Limits()
-            if '/tiles/2/' in upstream_path:
+            if '/tiles/2/' in upstream_path or '/tiles/3/' in upstream_path:
                 z, x, y = (int(part.removesuffix('.f32')) for part in upstream_path.rsplit('/', 3)[-3:])
                 if not (0 <= z <= limits.zoom and 0 <= x < 2**z and 0 <= y < 2**z):
                     return failure(400)

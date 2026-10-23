@@ -1,4 +1,5 @@
 // One native bilinear interpolation; no intermediate Mercator raster.
+import {sourceShader} from './source-crs.js';
 export const nativeToWgs=lat=>Math.atan2(Math.sin(lat*Math.PI/180),(1-.0066943799901413165)*Math.cos(lat*Math.PI/180))*180/Math.PI;
 const vertex = `#version 300 es
 void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.-1.,0,1);}`;
@@ -14,6 +15,10 @@ uniform vec2 orthoCenter;
 uniform bool numeric;
 uniform bool alternatePalette;
 uniform bool geometryOnly;
+uniform vec4 nativeBounds;
+uniform vec2 nativeSpacing;
+uniform ivec2 nativeShape;
+uniform int nativeColumns;
 out vec4 color;
 const float pi=3.141592653589793;
 // Range-reduced odd Taylor polynomial avoids implementation-specific atan2
@@ -30,6 +35,7 @@ float preciseAtan2(float y,float x){
     float a=preciseAtan(y/x);return x<0.?a+(y>=0.?pi:-pi):a;
 }
 float preciseAsin(float x){return preciseAtan2(x,sqrt(max(0.,(1.-x)*(1.+x))));}
+/*SOURCE_CRS*/
 vec2 position(vec2 p){
     if(mode==2)return vec2(p.x/6378137.,2.*preciseAtan(exp(p.y/6378137.))-pi/2.)*180./pi;
     if(mode==0){
@@ -62,20 +68,20 @@ void main(){
     bool visible=abs(geo.y)<=90.;
     geo.x=mod(geo.x+180.,360.)-180.;
     if(geometryOnly){color=vec4(geo,visible&&!(mode==1&&geo.y<45.)?1.:0.,1.);return;}
-    float phi=geo.y*pi/180.;
-    float native=preciseAtan2((1.-0.0066943799901413165)*sin(phi),cos(phi))*180./pi;
-    if(geo.x< -23.53125||geo.x>=62.53125||native<29.46875||native>=70.53125
+    vec2 native=sourcePosition(geo);
+    if(any(isnan(native))||any(isinf(native))){color=vec4(0.);return;}
+    if(native.x<nativeBounds.x||native.x>=nativeBounds.z||native.y<nativeBounds.y||native.y>=nativeBounds.w
         ||(mode==1&&geo.y<45.)){color=vec4(0.);return;}
-    vec2 f=clamp(vec2((geo.x+23.5)*16.,(native-29.5)*16.),vec2(0.),vec2(1376.,656.));
+    vec2 f=clamp((native-(nativeBounds.xy+nativeSpacing*.5))/nativeSpacing,vec2(0.),vec2(nativeShape-1));
     ivec2 i=ivec2(floor(f)),block=i/256,local=i-block*256+1;
-    vec2 w=fract(f);int layer=block.y*6+block.x;
+    vec2 w=fract(f);int layer=block.y*nativeColumns+block.x;
     vec2 aa=texelFetch(field,ivec3(local,layer),0).rg;
     vec2 ab=texelFetch(field,ivec3(local+ivec2(1,0),layer),0).rg;
     vec2 ba=texelFetch(field,ivec3(local+ivec2(0,1),layer),0).rg;
     vec2 bb=texelFetch(field,ivec3(local+ivec2(1,1),layer),0).rg;
     // Clamp global edge indices instead of sampling missing padding beyond them.
-    if(i.x==1376){ab=aa;bb=ba;}
-    if(i.y==656){ba=aa;bb=ab;}
+    if(i.x==nativeShape.x-1){ab=aa;bb=ba;}
+    if(i.y==nativeShape.y-1){ba=aa;bb=ab;}
     vec4 weights=vec4((1.-w.x)*(1.-w.y),w.x*(1.-w.y),(1.-w.x)*w.y,w.x*w.y);
     if((weights.x>0.&&aa.y==0.)||(weights.y>0.&&ab.y==0.)
        ||(weights.z>0.&&ba.y==0.)||(weights.w>0.&&bb.y==0.)){color=vec4(0.);return;}
@@ -96,6 +102,7 @@ function shader(gl, type, text) {
 export class NativeLayer {
     id='native-temperature';type='custom';renderingMode='2d';
     constructor(blocks, mode, projection, metadata, center=[20,50]) {
+        this.metadata=metadata;this.blockCount=blocks.length;
         this.center=[...center];this.baseCenter=[...center];this.baseProjection=projection;
         this.blocks=blocks;this.mode=mode;this.projection=projection;
         this.cacheIdentity={contract:metadata.contract,contract_sha256:metadata.contract_sha256,matrix:metadata.matrix,
@@ -108,7 +115,7 @@ export class NativeLayer {
         this.map=map;this.gl=gl;
         this.checkBudget();
         this.program=gl.createProgram();
-        const shaders=[shader(gl,gl.VERTEX_SHADER,vertex),shader(gl,gl.FRAGMENT_SHADER,fragment)];
+        const shaders=[shader(gl,gl.VERTEX_SHADER,vertex),shader(gl,gl.FRAGMENT_SHADER,fragment.replace('/*SOURCE_CRS*/',sourceShader(this.metadata.source_crs)))];
         for(const s of shaders)gl.attachShader(this.program,s);
         gl.linkProgram(this.program);for(const s of shaders)gl.deleteShader(s);
         if(!gl.getProgramParameter(this.program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(this.program));
@@ -116,7 +123,7 @@ export class NativeLayer {
         gl.bindTexture(gl.TEXTURE_2D_ARRAY,this.texture);
         gl.texParameteri(gl.TEXTURE_2D_ARRAY,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D_ARRAY,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
-        gl.texImage3D(gl.TEXTURE_2D_ARRAY,0,gl.RG32F,258,258,18,0,gl.RG,gl.FLOAT,null);
+        gl.texImage3D(gl.TEXTURE_2D_ARRAY,0,gl.RG32F,258,258,this.blockCount,0,gl.RG,gl.FLOAT,null);
         this.blocks.forEach((bytes,index)=>this.uploadBlock(index,bytes));
     }
     uploadBlock(index,bytes) {
@@ -130,7 +137,7 @@ export class NativeLayer {
         
         (this.uploadTimings??=[]).push({index,decode_ms:decoded-start,upload_submit_ms:performance.now()-decoded});
         this.blocks[index]=bytes;
-        this.ready=this.blocks.filter(Boolean).length===18;
+        this.ready=this.blocks.filter(Boolean).length===this.blockCount;
         if(this.ready)this.map.triggerRepaint();
     }
     geometry() {
@@ -153,8 +160,8 @@ export class NativeLayer {
     checkBudget() {
         const gl=this.gl,width=this.map.getCanvas().width,height=this.map.getCanvas().height;
         const maximum=gl.getParameter(gl.MAX_TEXTURE_SIZE);
-        const bytes=5990760+258*258*8+258*258*18*8+width*height*(this.context?28:24);
-        if(width>maximum||height>maximum||258>maximum||gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)<18
+        const bytes=332820*this.blockCount+258*258*8+258*258*this.blockCount*8+width*height*(this.context?28:24);
+        if(width>maximum||height>maximum||258>maximum||gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)<this.blockCount
             ||bytes>128*1024**2)throw Error('Размер вида превышает бюджет числовых ресурсов.');
         return bytes;
     }
@@ -162,6 +169,10 @@ export class NativeLayer {
         gl.useProgram(this.program);gl.bindVertexArray(this.vao);
         gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D_ARRAY,this.texture);
         const location=name=>gl.getUniformLocation(this.program,name);
+        gl.uniform4fv(location('nativeBounds'),this.metadata.grid.outer_cell_edges_wsen);
+        gl.uniform2fv(location('nativeSpacing'),this.metadata.grid.spacing_degrees_xy);
+        gl.uniform2iv(location('nativeShape'),[this.metadata.grid.shape_yx[1],this.metadata.grid.shape_yx[0]]);
+        gl.uniform1i(location('nativeColumns'),this.metadata.columns[1]+1);
         gl.uniform2fv(location('orthoCenter'),this.center);
         gl.uniform1i(location('alternatePalette'),this.alternatePalette?1:0);gl.uniform1i(location('field'),0);gl.uniform2fv(location('origin'),view.origin);
         gl.uniform1f(location('scale'),view.scale);gl.uniform1f(location('height'),view.height);
@@ -189,7 +200,7 @@ export class NativeLayer {
                 samples.push([x,y,pixel[0],pixel[1],pixel[2],pixel[3]]);
             }
             return {mode:this.mode,center:this.center,...view,samples,upload_timings:this.uploadTimings,
-                cache_identity:this.cacheIdentity,gpu_bytes:258*258*18*8+width*height*16};
+                cache_identity:this.cacheIdentity,gpu_bytes:258*258*this.blockCount*8+width*height*16};
         } finally {
             gl.bindFramebuffer(gl.FRAMEBUFFER,before);gl.deleteFramebuffer(fb);gl.deleteTexture(texture);
             gl.viewport(...viewport);

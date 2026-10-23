@@ -27,6 +27,10 @@ def transition(job: str, state: str, **extra) -> None:
 
 
 def submit(clock: str, request: dict | None = None) -> str:
+    from decoder.grib_crs import configuration
+    config = configuration()
+    if request is not None:
+        request = {**request, 'crs_configuration': config}
     if not clock.endswith('Z'):
         raise ValueError('explicit UTC demo clock required')
     datetime.fromisoformat(clock.replace('Z', '+00:00'))
@@ -82,6 +86,8 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
     """Gate one immutable compatible batch through numeric and real GIS readiness."""
     identifier = str(job['id'])
     item = numerical.manifest['fields'][0]
+    from publication.tiles import contract_for
+    tile_contract = contract_for(item['metadata'].get('source_crs'))
     failure = os.environ.get('T4_TEST_FAILURE')
     if os.environ.get('T5_FAIL_HOUR') not in (None, str(item['metadata']['message'])):
         failure = None
@@ -89,8 +95,8 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
     selection_body.update(revision=numerical.revision, field=item['field'], level=0,
                           valid_time=item['metadata']['valid_time'],
                           native_grid_sha256=item['metadata']['native_grid_sha256'],
-                          publication_job=identifier, contract=CONTRACT['contract'])
-    selection_body.update(matrix=CONTRACT['matrix'], resampling='bilinear', encoding_version=CONTRACT['contract'] + '/f32',
+                          publication_job=identifier, contract=tile_contract['contract'])
+    selection_body.update(matrix=tile_contract['matrix'], resampling='bilinear', encoding_version=tile_contract['contract'] + '/f32',
                           engine='project-bilinear/1')
     selection = hashlib.sha256(canonical(selection_body)).hexdigest()
     # The engine is selected only by a retained successful comparison report.
@@ -103,13 +109,14 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
         if file_hash(Path('/evidence') / name) != checksum:
             raise ValueError('comparison evidence changed after selection')
     write_once(attempt / 'engine-selection.json', decision)
-    tile_metadata = {**CONTRACT, 'selected_encoding': decision['encoding'], 'engine': decision['engine'],
+    tile_metadata = {**tile_contract, 'selected_encoding': decision['encoding'], 'engine': decision['engine'],
                      'selection': selection, 'identity': selection_body,
-                     'url': CONTRACT['url_template'].replace('{selection}', selection).replace('{encoding}', decision['encoding'])}
+                     'source_crs': item['metadata'].get('source_crs'),
+                     'url': tile_contract['url_template'].replace('{selection}', selection).replace('{encoding}', decision['encoding'])}
     write_once(attempt / 'tiles.json', tile_metadata)
     recovery.stage(job, 'tiles')
     tile_checks = []
-    for z, x, y in CONTRACT['readiness']['representatives']:
+    for z, x, y in tile_contract['readiness']['representatives']:
         values, valid = render(numerical.root, item, z, x, y)
         payload = encode(values, valid, 'f32')
         if encode(*render(numerical.root, item, z, x, y), 'f32') != payload:
@@ -134,7 +141,15 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
     stamp = datetime.fromisoformat(item['metadata']['valid_time'].replace('Z', '+00:00')).strftime('%Y%m%dT%H%M%S')
     cog_path = mosaic / f'temperature_{stamp}.tif'
     # Same filesystem/immutable inode: do not copy the batch COG into each GIS index.
-    os.link(numerical.root / item['cog'], cog_path)
+    from decoder.grib_crs import public_id
+    spec = item['metadata'].get('source_crs')
+    derivative = None
+    if spec and tile_contract['contract'] != CONTRACT['contract']:
+        from decoder.gis_crs import derivative as make_derivative
+        derivative = make_derivative(numerical.root,item,cog_path)
+    else:
+        os.link(numerical.root / item['cog'], cog_path)
+    gis_crs = 'EPSG:4326' if derivative else 'EPSG:100001'
     recovery.checkpoint(job, 'derivatives')
     workspace = 'p' + hashlib.sha256(attempt.relative_to(ROOT).as_posix().encode()).hexdigest()[:24]
     index_name = 'g' + workspace[1:]
@@ -142,17 +157,38 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
         'SPI=org.geotools.data.postgis.PostgisNGDataStoreFactory', 'host=db', 'port=5432',
         'database=hmc', 'schema=' + ('nonexistent' if failure == 'index' else 'mosaic'), 'user=hmc_mosaic',
         'passwd=' + os.environ['MOSAIC_PASSWORD'], 'Loose bbox=true', 'preparedStatements=true']))
-    (mosaic / 'indexer.properties').write_text('TimeAttribute=time\nMosaicCRS=EPSG:100001\nName=' + index_name + '\nTypeName=' + index_name + '\nSchema=*the_geom:Polygon,location:String,time:java.util.Date\nPropertyCollectors=TimestampFileNameExtractorSPI[timeregex](time)\n')
+    (mosaic / 'indexer.properties').write_text('TimeAttribute=time\nMosaicCRS='+gis_crs+'\nName=' + index_name + '\nTypeName=' + index_name + '\nSchema=*the_geom:Polygon,location:String,time:java.util.Date\nPropertyCollectors=TimestampFileNameExtractorSPI[timeregex](time)\n')
     (mosaic / 'timeregex.properties').write_text('regex=[0-9]{8}T[0-9]{6}\nformat=yyyyMMdd\'T\'HHmmss\n')
     # An interrupted index may already exist. Every attempt owns its workspace;
     # only the manifest-selected one becomes reachable through the gateway.
     write_once(attempt / 'workspace.json', {'workspace': workspace})
     recovery.stage(job, 'indexing')
-    gis = geoserver.prepare(workspace, str(mosaic), item['metadata']['valid_time'])
+    gis = geoserver.prepare(workspace, str(mosaic), item['metadata']['valid_time'], srs=gis_crs)
+    if derivative:
+        gis['derivative'] = derivative
     recovery.checkpoint(job, 'indexing')
+    representative = next(cell for cell in item['metadata']['grid']['cell_centres'] if cell['value'] is not None)
     point = numerical.sample(run=numerical.manifest['run'], revision=numerical.revision,
-                             field=item['field'], valid_time=item['metadata']['valid_time'], lon=20.,lat=50.)
+                             field=item['field'], valid_time=item['metadata']['valid_time'],
+                             lon=representative['lon'],lat=representative['lat'])
     gis['probe'] = {'lon':point['cell']['lon'],'lat':point['cell']['lat'],'value':point['value']}
+    if spec:
+        gis['source_crs'] = spec
+    if derivative:
+        # The GIS contract is a resampled derivative. Verify GeoServer against
+        # its own full-resolution COG cell, retaining the native point separately.
+        import rasterio
+        from decoder.grib_crs import transform
+        with rasterio.open(cog_path) as raster:
+            import numpy as np
+            valid_cells = np.argwhere(raster.read_masks(1)>0)
+            if not len(valid_cells):
+                raise ValueError('Производный ГИС-растр не содержит данных')
+            row,col = valid_cells[len(valid_cells)//2]
+            longitude,latitude = raster.xy(int(row),int(col))
+            nx,ny = transform(spec,longitude,latitude)
+            gis['native_probe'] = gis['probe']
+            gis['probe'] = {'lon':float(nx),'lat':float(ny),'value':float(raster.read(1)[row,col])}
     transition(identifier, 'derivatives_ready', representative_tiles=tile_checks)
     recovery.checkpoint(job, 'readiness')
     gis_checks = geoserver.verify(gis)
@@ -169,7 +205,7 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
             'tile_metadata': (attempt / 'tiles.json').relative_to(ROOT).as_posix(),
             'tile_engine': decision['engine'], 'encoding': decision['encoding'],
             'gis': gis, 'gis_checks': gis_checks, 'tile_checks': tile_checks,
-            'source': numerical.manifest['source'], 'assets': inventory}
+            'source': {**numerical.manifest['source'], **({'source_crs':spec} if spec else {})}, 'assets': inventory}
     body['fixture'] = numerical.manifest.get('fixture', 'actual')
     manifest_path = attempt / 'publication.json'
     recovery.stage(job, 'metadata')
@@ -199,15 +235,16 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
     return body, relative, checksum
 
 
-def once() -> bool:
+def once(identifier: str | None = None) -> bool:
     with database() as lock:
         lock.execute('SELECT pg_try_advisory_lock(16001) AS acquired')
         if not lock.fetchone()['acquired']:
             return False
         with database() as cursor:
-            cursor.execute("SELECT * FROM app.jobs WHERE state NOT IN ('published','failed') "
-                           "OR (retryable AND state='failed' AND retry_at <= clock_timestamp()) "
-                           'ORDER BY submitted_at,id LIMIT 1')
+            query = ("SELECT * FROM app.jobs WHERE (state NOT IN ('published','failed') "
+                     "OR (retryable AND state='failed' AND retry_at <= clock_timestamp())) ")
+            cursor.execute(query + ('AND id=%s ' if identifier else '') + 'ORDER BY submitted_at,id LIMIT 1',
+                           (identifier,) if identifier else ())
             job = cursor.fetchone()
         if job is None:
             return False
@@ -251,6 +288,7 @@ def main() -> None:
     parser.add_argument('--legacy-one-time', action='store_true', help='Reproduce archived T4 one-time workflow')
     parser.add_argument('--migrate', action='store_true', help='Apply additive T5 schema before consuming existing volumes')
     parser.add_argument('--recoverable', action='store_true', help='Use T6 durable source capture and bounded retries')
+    parser.add_argument('--rebuild', action='store_true', help='Reprocess every requested field without reusing old batches')
     parser.add_argument('--source-name', default='ICON_EU_T_G_2026101500.grib2')
     parser.add_argument('--delivery-sha256', help='Checksum from producer completion manifest/atomic delivery signal')
     parser.add_argument('--stability-seconds', type=float, default=2)
@@ -272,7 +310,9 @@ def main() -> None:
             if not args.clock.endswith('Z'):
                 parser.error('explicit UTC demo clock required')
             datetime.fromisoformat(args.clock.replace('Z', '+00:00'))
-            print(recovery.submit(args.clock, {'hours': sorted(hours), 'fixture': args.fixture, 'recoverable': True},
+            from decoder.grib_crs import configuration
+            print(recovery.submit(args.clock, {'hours': sorted(hours), 'fixture': args.fixture, 'recoverable': True,
+                                              'rebuild': args.rebuild, 'crs_configuration': configuration()},
                                   args.source_name, args.delivery_sha256, args.stability_seconds))
         else:
             print(submit(args.clock, None if args.legacy_one_time else {'hours': hours, 'fixture': args.fixture}))
@@ -288,7 +328,7 @@ def main() -> None:
             print(json.dumps(recovery.collect(apply=args.apply)))
     elif args.command == 'once':
         recovery.migrate()
-        once()
+        once(str(args.job) if args.job else None)
     else:
         recovery.migrate()
         while True:

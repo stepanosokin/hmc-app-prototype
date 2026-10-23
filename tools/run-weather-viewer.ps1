@@ -2,6 +2,7 @@ param(
     [ValidatePattern('^hmc-publication-t13-[a-z0-9-]+$')][string]$Project='hmc-publication-t13-dev1',
     [int]$Port=8141,
     [int]$ViewerPort=8140,
+    [string]$Image='hmc-publication:t12',
     [switch]$WithEdge,
     [switch]$Final,
     [switch]$Navigation,
@@ -47,7 +48,7 @@ $lines=@('GEOSERVER_ADMIN_USER=t13operator')
 foreach($name in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAIC_PASSWORD','GEOSERVER_ADMIN_PASSWORD','GATEWAY_PASSWORD')){$lines+=$name+'='+[guid]::NewGuid().ToString('N')}
 $lines | Set-Content -Encoding ascii $environmentFile
 $env:T4_PORT=[string]$Port;$env:T13_PORT=[string]$ViewerPort
-$env:PUBLICATION_IMAGE='hmc-publication:t12';$env:PUBLICATION_EVIDENCE_DIR='./data/reports/t13/'+$Project
+$env:PUBLICATION_IMAGE=$Image;$env:PUBLICATION_EVIDENCE_DIR='./data/reports/t13/'+$Project
 $env:PUBLICATION_CLOCK='2026-10-19T05:00:00Z'
 $compose=@('compose','--env-file',$environmentFile,'--project-name',$Project,'--file','compose.publication.yaml')
 function Check{param([string]$Name,[string[]]$Arguments)

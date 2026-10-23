@@ -9,12 +9,17 @@ from pyproj import Transformer
 from decoder.inspect_forecast import ValidationError
 from decoder.sampling import asset_path
 from publication.domain import resolve, sampler, PublicationUnavailable
+from decoder.grib_crs import transform, public_id
 
 NATIVE_CRS = 'urn:hmc:crs:icon-sphere-6371229'
 CRS84 = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
 # Same owner-approved zero-shift geocentric hypothesis as tile contract v2.
 TO_NATIVE = Transformer.from_pipeline('+proj=pipeline +step +proj=cart +ellps=WGS84 '
                                       '+step +inv +proj=cart +R=6371229')
+
+
+class CoordinateError(ValueError):
+    """Invalid client input, never turn it into a storage-unavailable response."""
 
 
 def position(lon: str, lat: str, valid_time: str, crs: str) -> tuple[float, float]:
@@ -33,8 +38,10 @@ def position(lon: str, lat: str, valid_time: str, crs: str) -> tuple[float, floa
 
 
 def sample(selection: str, run: str, revision: str, field: str, valid_time: str,
-           lon: str, lat: str, crs: str = NATIVE_CRS) -> tuple[dict, dict]:
-    x, y = position(lon, lat, valid_time, crs)
+           lon: str, lat: str, crs: str | None = None) -> tuple[dict, dict]:
+    if not re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z',valid_time):
+        raise ValueError('Требуется точное время UTC: YYYY-MM-DDTHH:MM:SSZ.')
+    datetime.fromisoformat(valid_time.replace('Z','+00:00'))
     manifest = resolve(selection)
     identity = manifest['identity']
     if any(identity[key] != value for key, value in
@@ -44,6 +51,34 @@ def sample(selection: str, run: str, revision: str, field: str, valid_time: str,
     try:
         item = next(item for item in numerical.manifest['fields']
                     if item['field'] == field and item['metadata']['valid_time'] == valid_time)
+        spec = item['metadata'].get('source_crs')
+        native_id = public_id(spec) if spec else NATIVE_CRS
+        crs = native_id if crs is None else crs
+        if spec:
+            # Resolve the selection before interpreting native coordinates.
+            if crs not in (native_id, spec['id'], CRS84):
+                raise CoordinateError('CRS не соответствует выбранной публикации')
+            try:
+                datetime.fromisoformat(valid_time.replace('Z', '+00:00'))
+                x, y = float(lon), float(lat)
+            except ValueError as error:
+                raise CoordinateError('Недопустимые координаты или срок') from error
+            if not math.isfinite(x) or not math.isfinite(y):
+                raise CoordinateError('Недопустимые координаты')
+            if spec['template'] in (0,1) and crs != CRS84 and not -90 <= y <= 90:
+                raise CoordinateError('Недопустимая широта исходной сетки')
+            if crs == CRS84:
+                if not -90 <= y <= 90:
+                    raise CoordinateError('Недопустимая широта')
+                x, y = transform(spec, x, y)
+                x, y = float(x), float(y)
+                if not math.isfinite(x) or not math.isfinite(y):
+                    raise CoordinateError('Координаты не определены в выбранной проекции')
+        else:
+            try:
+                x, y = position(lon, lat, valid_time, crs)
+            except ValueError as error:
+                raise CoordinateError(str(error)) from error
         # Consolidated Zarr metadata can survive a missing array directory and
         # turn absent chunks into fill values. Do not mistake that for data.
         for name, expected in numerical.manifest['assets'].items():
@@ -52,11 +87,13 @@ def sample(selection: str, run: str, revision: str, field: str, valid_time: str,
                     raise OSError('published array length changed')
         result = numerical.sample(run=run, revision=numerical.revision, field=field,
                                   valid_time=valid_time, lon=x, lat=y)
+    except CoordinateError:
+        raise
     except (ValidationError, OSError, KeyError, ValueError, RuntimeError, StopIteration) as error:
         raise PublicationUnavailable('numerical read unavailable') from error
     result.update(selection=manifest['selection'], revision=revision, identity=identity,
-                  crs=NATIVE_CRS, coordinate_order=['longitude', 'latitude'],
-                  query_position={'lon': x, 'lat': y, 'crs': NATIVE_CRS},
+                  crs=native_id, coordinate_order=['longitude', 'latitude'] if not spec or spec['template'] in (0, 1) else ['x', 'y'],
+                  query_position={'lon': x, 'lat': y, 'crs': native_id},
                   spatial_selection='nearest-native-cell', temporal_selection='exact')
     return manifest, result
 
@@ -68,8 +105,7 @@ def coverage(point: dict) -> dict:
         'type': 'Domain', 'domainType': 'PointSeries',
         'axes': {'x': {'values': [x]}, 'y': {'values': [y]}, 't': {'values': [point['valid_time']]}},
         'referencing': [
-            {'coordinates': ['x', 'y'], 'system': {'type': 'GeographicCRS', 'id': NATIVE_CRS,
-              'definition': '+proj=longlat +R=6371229 +no_defs'}},
+            {'coordinates': ['x', 'y'], 'system': {'type': 'GeographicCRS' if point['coordinate_order'][0]=='longitude' else 'ProjectedCRS', 'id': point['crs']}},
             {'coordinates': ['t'], 'system': {'type': 'TemporalRS', 'calendar': 'Gregorian'}}]},
         'parameters': {'T_G': {'type': 'Parameter', 'unit': {'symbol': 'K'},
             'observedProperty': {'id': 'urn:hmc:field:T_G:surface:0',
@@ -84,12 +120,15 @@ def describe(manifest: dict, prefix: str) -> dict:
     item = next(item for item in numerical.manifest['fields']
                 if item['field'] == identity['field'] and item['metadata']['valid_time'] == identity['valid_time'])
     grid = item['metadata']['grid']
+    spec = item['metadata'].get('source_crs')
+    native_id = public_id(spec) if spec else NATIVE_CRS
     base = prefix + '/ogc/collections/' + manifest['selection']
     tile_url = prefix + '/api/v1/selections/' + manifest['selection'] + '/tiles.json'
     return {'id': manifest['selection'], 'title': 'Температура поверхности', 'module': 'meteorology',
-        'identity': identity, 'storageCrs': NATIVE_CRS, 'crs': [NATIVE_CRS, CRS84],
-        'coordinate_order': ['longitude', 'latitude'], 'response_crs': NATIVE_CRS,
-        'extent': {'spatial': {'bbox': [grid['outer_cell_edges_wsen']], 'crs': NATIVE_CRS},
+        'identity': identity, 'storageCrs': native_id, 'crs': [native_id, CRS84],
+        'source_crs': spec,
+        'coordinate_order': ['longitude', 'latitude'] if not spec or spec['template'] in (0, 1) else ['x', 'y'], 'response_crs': native_id,
+        'extent': {'spatial': {'bbox': [grid['outer_cell_edges_wsen']], 'crs': native_id},
                    'temporal': {'interval': [[identity['valid_time'], identity['valid_time']]]}},
         'dimensions': {key: [identity[key]] for key in ('model', 'run', 'revision', 'field', 'level', 'member', 'valid_time', 'native_grid_sha256')},
         'grid': grid, 'units': item['metadata']['identity']['units'],
@@ -102,4 +141,4 @@ def describe(manifest: dict, prefix: str) -> dict:
         'data_queries': {'position': {'link': {'rel': 'data', 'href': base + '/position',
             'type': 'application/vnd.cov+json', 'variables': {'query_type': 'position',
                 'output_formats': ['CoverageJSON'], 'default_output_format': 'CoverageJSON',
-                'crs_details': [{'crs': NATIVE_CRS}, {'crs': CRS84}]}}}}}
+                'crs_details': [{'crs': native_id}, {'crs': CRS84}]}}}}}

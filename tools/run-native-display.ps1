@@ -44,7 +44,7 @@ function Check {
 }
 function InputSnapshot {
     param([switch]$PathsOnly)
-    $files = @(Get-ChildItem decoder,publication,tests,trials,tools -File -Recurse |
+    $files = @(Get-ChildItem decoder,publication,tests,trials,tools,config -File -Recurse |
         Where-Object { $_.Extension -in @('.py','.ps1','.json','.sql','.sh','.sld','.js','.mjs','.html') })
     $files += @(Get-ChildItem -File | Where-Object { $_.Name.StartsWith('Dockerfile') -or $_.Name.StartsWith('compose') -or $_.Name.StartsWith('requirements') })
     $files += @(Get-Item AGENTS.md,docs/development-workflow.md,.gitattributes,.github/workflows/checks.yml,docs/prototypes/assets/land.js)
@@ -53,12 +53,16 @@ function InputSnapshot {
             $_.FullName.Substring((Get-Location).Path.Length + 1).Replace('\','/')
         })
     }
+    $changedInputs = @(& git ls-files --modified --others --exclude-standard)
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot enumerate changed inputs' }
     return @($files | Sort-Object FullName | ForEach-Object {
         $relative = $_.FullName.Substring((Get-Location).Path.Length + 1).Replace('\','/')
         $working = & git hash-object --no-filters -- $relative
         if ($LASTEXITCODE -ne 0) { throw 'Cannot hash working input' }
-        $stored = & git hash-object "--path=$relative" -- $relative
-        if ($LASTEXITCODE -ne 0 -or $working -ne $stored) { throw "Resolve Git filters before probe: $relative" }
+        if ($relative -in $changedInputs) {
+            $stored = & git hash-object "--path=$relative" -- $relative
+            if ($LASTEXITCODE -ne 0 -or $working -ne $stored) { throw "Resolve Git filters before probe: $relative" }
+        }
         [ordered]@{path=$relative;sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLowerInvariant()}
     })
 }
