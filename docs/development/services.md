@@ -98,6 +98,9 @@ reproduce that prerequisite in a focused run before the final gate. A short seed
 alone does not establish parity with the post-T5 state. Use the
 [T12 development failures](../evidence/t12/development.md) to distinguish observer
 timing and cache prerequisites from service failures.
+When expanding collection metadata, measure the serialized listing at post-T5
+history size against the gateway response budget, including nested copies in
+`source`. Verify that the individual collection still exposes the full metadata.
 Keep its two-tile cache budget and API fault flags unchanged across phases.
 Prepare verifies the archived M1 comparison and explicit adapter selection;
 Complete binds desktop, HTTP and restart evidence to the same frozen inputs.
@@ -162,6 +165,11 @@ stderr and nonzero exits; this is a launcher selection issue, not a missing chec
 After changing API or gateway code, restart each affected long-lived service
 before HTTP validation. A source bind mount changes files but does not reload
 Gunicorn workers; #17's ETag check initially exercised an old gateway process.
+
+When a user live stack shares runner images, pass a distinct `-Image` to the
+integrated, recovery and viewer runners. Record the live image and mounts before
+testing. For rollback snapshots, archive only the required runtime paths from
+Git; a whole-repository archive also copies historical evidence.
 
 ## Review of recovery, retention and budgets
 

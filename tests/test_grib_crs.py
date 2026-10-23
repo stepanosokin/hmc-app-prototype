@@ -183,9 +183,16 @@ class GribCRS(unittest.TestCase):
 
     def test_real_grib_messages_storage_and_native_cells_all_templates(self):
         from decoder.inspect_forecast import sections
-        from decoder.storage import bounded_frames,field_metadata,decoded_arrays,write_field,check_field
+        from decoder.storage import field_metadata,decoded_arrays,write_field,check_field
         from publication.native_display import metadata as display_metadata,render
-        original=next(bounded_frames(Path('/input/ICON_EU_T_G_2026101500.grib2')))
+        handle=ec.codes_grib_new_from_samples('regular_ll_sfc_grib2')
+        try:
+            ec.codes_set(handle,'parameterCategory',0)
+            ec.codes_set(handle,'parameterNumber',0)
+            ec.codes_set(handle,'scaleFactorOfFirstFixedSurface',0)
+            ec.codes_set(handle,'scaledValueOfFirstFixedSurface',0)
+            original=ec.codes_get_message(handle)
+        finally:ec.codes_release(handle)
         parts=sections(original)
         for template in (0,1,10,20,30,31):
             with self.subTest(template=template),tempfile.TemporaryDirectory() as directory:
@@ -197,7 +204,7 @@ class GribCRS(unittest.TestCase):
                     ec.codes_set_values(handle,np.arange(12,dtype=float)+280)
                     binary=ec.codes_get_message(handle)
                 finally:ec.codes_release(handle)
-                parsed=field_metadata(binary,1)
+                parsed=field_metadata(binary,1,sample_inventory=False)
                 self.assertEqual(parsed['source_crs']['template'],template)
                 values,missing=decoded_arrays(binary,[3,4])
                 np.testing.assert_array_equal(values,np.arange(12).reshape(3,4)+280)

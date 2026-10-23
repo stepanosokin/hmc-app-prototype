@@ -64,6 +64,12 @@ jobs:
           --entrypoint mypy hmc-publication:checks
           --ignore-missing-imports --check-untyped-defs --cache-dir=/tmp/mypy
           decoder tests trials publication tools
+      - name: Check GRIB CRS metadata and defaults without private samples
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks
+          -B -m unittest discover -s tests -p test_grib_crs.py -v
       - name: Check numeric boundary behavior
         run: >-
           docker run --rm --network none --entrypoint python hmc-publication:checks

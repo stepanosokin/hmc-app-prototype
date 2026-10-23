@@ -19,6 +19,7 @@ param(
         'docs/evidence/retro-t16.md',
         'docs/evidence/retro-t25.md',
         'docs/evidence/retro-wms-compat.md',
+        'docs/evidence/retro-grib-crs.md',
         'docs/prototypes/weather-map.README.md',
         'docs/access.md',
         '.scratch/hmc-meteo/spec.md',
