@@ -1,0 +1,100 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 646B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.publication
+#2 transferring dockerfile: 843B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+#3 DONE 0.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 337B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 28.31kB 0.0s done
+#5 DONE 0.0s
+
+#6 [ 1/10] FROM docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+#6 resolve docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c 0.0s done
+#6 DONE 0.0s
+
+#7 [ 6/10] COPY decoder/ decoder/
+#7 CACHED
+
+#8 [ 3/10] RUN apt-get update && apt-get install -y --no-install-recommends libexpat1=2.5.0-1+deb12u4 && rm -rf /var/lib/apt/lists/*
+#8 CACHED
+
+#9 [ 2/10] WORKDIR /app
+#9 CACHED
+
+#10 [ 4/10] COPY requirements.lock requirements.adapters.lock requirements.publication.lock ./
+#10 CACHED
+
+#11 [ 5/10] RUN pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.lock -r requirements.adapters.lock -r requirements.publication.lock && pip check
+#11 CACHED
+
+#12 [ 7/10] COPY trials/ trials/
+#12 CACHED
+
+#13 [ 8/10] COPY publication/ publication/
+#13 DONE 0.0s
+
+#14 [ 9/10] COPY tests/ tests/
+#14 DONE 0.1s
+
+#15 [10/10] COPY docs/evidence/t1/a1.json /app/baseline-a1.json
+#15 DONE 0.0s
+
+#16 exporting to image
+#16 exporting layers
+#16 exporting layers 0.2s done
+#16 exporting manifest sha256:904ef84b598ee503ac08e246b7500a79a6d278db0e94b346ae80ea35407e27de 0.0s done
+#16 exporting config sha256:8314d01a5a612894a9bd2a8218c6721e663dc80c175dec7a2847ee1f95e0688b 0.0s done
+#16 exporting attestation manifest sha256:20ec7e7ad4dd76849692a695b42241e05dc403521570ffecb8dc7e57771368eb 0.0s done
+#16 exporting manifest list sha256:ff9b385d1b89552108fc05cf473974c6fdbb9cb8d27c86798096784993ce7f6b 0.0s done
+#16 naming to docker.io/library/hmc-publication:t6
+#16 naming to docker.io/library/hmc-publication:t6 done
+#16 unpacking to docker.io/library/hmc-publication:t6 0.1s done
+#16 DONE 0.4s
+
+#17 resolving provenance for metadata file
+#17 DONE 0.0s
+{"status": "passed", "postgresql_driver": "pg8000/1.31.5", "probes": [{"python": "from publication.tiles import coordinates; coordinates(3,4,2); from publication.domain import database", "exit_code": 0, "stderr": ""}, {"python": "from publication.domain import database; from publication.tiles import coordinates; coordinates(3,4,2)", "exit_code": 0, "stderr": ""}, {"python": "from publication.api import create_app; create_app()", "exit_code": 0, "stderr": ""}]}
+ Network hmc-publication-crs48-t6final_publication  Creating
+ Network hmc-publication-crs48-t6final_publication  Created
+ Volume hmc-publication-crs48-t6final_assets  Creating
+ Volume hmc-publication-crs48-t6final_assets  Created
+Success: no issues found in 66 source files
+test_a_recoverable_delivery_is_idempotent (test_publication_recovery.Recovery.test_a_recoverable_delivery_is_idempotent) ... ok
+test_b_bad_deliveries_are_quarantined_with_original_bytes (test_publication_recovery.Recovery.test_b_bad_deliveries_are_quarantined_with_original_bytes) ... ok
+test_c_capture_crash_is_durable_and_submission_resumes (test_publication_recovery.Recovery.test_c_capture_crash_is_durable_and_submission_resumes) ... ok
+test_d_derivative_failures_retry_with_bounded_attempts (test_publication_recovery.Recovery.test_d_derivative_failures_retry_with_bounded_attempts) ... ok
+test_e_partial_job_collects_only_abandoned_hours (test_publication_recovery.Recovery.test_e_partial_job_collects_only_abandoned_hours) ... ok
+test_worker_crashes_preserve_readers_and_retry_without_duplicates (test_publication_recovery.Recovery.test_worker_crashes_preserve_readers_and_retry_without_duplicates) ... ok
+test_z_lazy_tile_failures_retry_same_selection (test_publication_recovery.Recovery.test_z_lazy_tile_failures_retry_same_selection) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 337.675s
+
+OK
+fba7364f-1476-4d7e-8f69-727d11a6a401
+Retained point, numeric tile, WMS and managed-source publication passed after real service restart
+e96e85e2-bcaf-43d9-90ed-d950afe1e864
+{"job": "e96e85e2-bcaf-43d9-90ed-d950afe1e864", "state": "failed", "error": "build() got an unexpected keyword argument 'legacy_source_crs'"}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/app/publication/worker.py", line 320, in <module>
+    main()
+  File "/app/publication/worker.py", line 308, in main
+    once()
+  File "/app/publication/worker.py", line 243, in once
+    process(job)
+  File "/app/publication/worker.py", line 77, in process
+    report = build(staged, attempt / 'numerical', job['submitted_at'].isoformat().replace('+00:00', 'Z'), legacy_source_crs=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: build() got an unexpected keyword argument 'legacy_source_crs'
+

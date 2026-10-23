@@ -1,0 +1,61 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.publication
+#1 transferring dockerfile: 843B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+#2 DONE 0.1s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 337B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 60.17kB 0.0s done
+#4 DONE 0.0s
+
+#5 [ 1/10] FROM docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+#5 resolve docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c 0.0s done
+#5 DONE 0.0s
+
+#6 [ 2/10] WORKDIR /app
+#6 CACHED
+
+#7 [ 3/10] RUN apt-get update && apt-get install -y --no-install-recommends libexpat1=2.5.0-1+deb12u4 && rm -rf /var/lib/apt/lists/*
+#7 CACHED
+
+#8 [ 4/10] COPY requirements.lock requirements.adapters.lock requirements.publication.lock ./
+#8 CACHED
+
+#9 [ 5/10] RUN pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.lock -r requirements.adapters.lock -r requirements.publication.lock && pip check
+#9 CACHED
+
+#10 [ 6/10] COPY decoder/ decoder/
+#10 DONE 0.0s
+
+#11 [ 7/10] COPY trials/ trials/
+#11 DONE 0.1s
+
+#12 [ 8/10] COPY publication/ publication/
+#12 DONE 0.0s
+
+#13 [ 9/10] COPY tests/ tests/
+#13 DONE 0.0s
+
+#14 [10/10] COPY docs/evidence/t1/a1.json /app/baseline-a1.json
+#14 DONE 0.0s
+
+#15 exporting to image
+#15 exporting layers
+#15 exporting layers 0.3s done
+#15 exporting manifest sha256:ce515126149fd5198a31f85ff9cbb8132bf3318d0e1aaaa43dd0d953046cd16e 0.0s done
+#15 exporting config sha256:d0c4c3966818c484284c94dfa46aced0b53612c7a0850dd5fcab986e951b3d0c 0.0s done
+#15 exporting attestation manifest sha256:522349ade21e7befa75c79000ef5dbcb34da31011d751d1fd24518a92791d8a3 0.0s done
+#15 exporting manifest list sha256:18b7de84d101d4a1fd29a784c66b598f545660776ba47e33f06dc01bd848ab12 0.0s done
+#15 naming to docker.io/library/hmc-publication:crs48
+#15 naming to docker.io/library/hmc-publication:crs48 done
+#15 unpacking to docker.io/library/hmc-publication:crs48 0.1s done
+#15 DONE 0.5s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/ed3mu3n41wwjqlhyg97ysxf1w

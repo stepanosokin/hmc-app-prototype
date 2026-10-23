@@ -1,0 +1,24 @@
+node:internal/child_process:1175
+    result.error = new ErrnoException(result.error, 'spawnSync ' + options.file);
+                   ^
+
+<ref *1> Error: spawnSync git EPERM
+    at Object.spawnSync (node:internal/child_process:1175:20)
+    at spawnSync (node:child_process:929:24)
+    at execFileSync (node:child_process:972:15)
+    at file:///D:/OSOKIN/PROG/HydroMetCenter/hmc-app-prototype/tools/check-weather-viewer.mjs:25:32 {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'spawnSync git',
+  path: 'git',
+  spawnargs: [ 'rev-parse', 'HEAD' ],
+  error: [Circular *1],
+  status: null,
+  signal: null,
+  output: null,
+  pid: 0,
+  stdout: undefined,
+  stderr: undefined
+}
+
+Node.js v26.10.0

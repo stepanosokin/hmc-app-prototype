@@ -1,0 +1,144 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 646B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.publication
+#2 transferring dockerfile: 843B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+#3 DONE 0.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 337B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 9.78kB done
+#5 DONE 0.0s
+
+#6 [ 1/10] FROM docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+#6 resolve docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c 0.0s done
+#6 DONE 0.0s
+
+#7 [ 4/10] COPY requirements.lock requirements.adapters.lock requirements.publication.lock ./
+#7 CACHED
+
+#8 [ 6/10] COPY decoder/ decoder/
+#8 CACHED
+
+#9 [ 2/10] WORKDIR /app
+#9 CACHED
+
+#10 [ 5/10] RUN pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.lock -r requirements.adapters.lock -r requirements.publication.lock && pip check
+#10 CACHED
+
+#11 [ 3/10] RUN apt-get update && apt-get install -y --no-install-recommends libexpat1=2.5.0-1+deb12u4 && rm -rf /var/lib/apt/lists/*
+#11 CACHED
+
+#12 [ 7/10] COPY trials/ trials/
+#12 CACHED
+
+#13 [ 8/10] COPY publication/ publication/
+#13 DONE 0.0s
+
+#14 [ 9/10] COPY tests/ tests/
+#14 DONE 0.1s
+
+#15 [10/10] COPY docs/evidence/t1/a1.json /app/baseline-a1.json
+#15 DONE 0.0s
+
+#16 exporting to image
+#16 exporting layers
+#16 exporting layers 0.2s done
+#16 exporting manifest sha256:6a2b8b89b510c4e794063200abf7e19366847cf13439ae0b12decc458f354614 0.0s done
+#16 exporting config sha256:31266905b91726ed8cf2b3c469ebe8006f21fea86d1be22b49f9d199c9015ddf 0.0s done
+#16 exporting attestation manifest sha256:c9446a2701c5b95a1e5ecb6418671065af2f14f533b50c24b17501272e7a40c0 0.0s done
+#16 exporting manifest list sha256:1cd6555b5a4b50647393a5d4ec5c754c3dd19f98e161e4998946596f4b492f06 0.0s done
+#16 naming to docker.io/library/hmc-publication:t8
+#16 naming to docker.io/library/hmc-publication:t8 done
+#16 unpacking to docker.io/library/hmc-publication:t8 0.1s done
+#16 DONE 0.4s
+
+#17 resolving provenance for metadata file
+#17 DONE 0.0s
+ hmc-publication:t8  Built
+Success: no issues found in 66 source files
+ Network hmc-publication-t8-crs48final_publication  Creating
+ Network hmc-publication-t8-crs48final_publication  Created
+ Volume hmc-publication-t8-crs48final_assets  Creating
+ Volume hmc-publication-t8-crs48final_assets  Created
+test_backend_admin_assets_and_near_match_routes_are_not_forwarded (test_publication_access.GatewayBoundary.test_backend_admin_assets_and_near_match_routes_are_not_forwarded) ... {"request_id": "9e711ff0-d801-4dc1-b7c8-c5329ecba573", "observed_at": "2026-10-23T07:52:11.092162+00:00", "organization": null, "key_id": null, "bucket": "public", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 1.0125759999937145, "bytes": 0, "durable_store": "unavailable"}
+{"request_id": "09e444cb-3bcd-4b9d-adb5-a7a0b0fc2774", "observed_at": "2026-10-23T07:52:11.093617+00:00", "organization": null, "key_id": null, "bucket": "public", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 0.6123530001787003, "bytes": 0, "durable_store": "unavailable"}
+{"request_id": "b38e8d82-2f8f-494a-9259-cd111a0ff75d", "observed_at": "2026-10-23T07:52:11.094490+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 0.8069840000644035, "bytes": 0, "durable_store": "unavailable"}
+{"request_id": "44508ac9-267d-45c8-95e3-6145ba511453", "observed_at": "2026-10-23T07:52:11.095933+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 0.7121580001694383, "bytes": 0, "durable_store": "unavailable"}
+{"request_id": "09a60395-e427-4c1e-affd-c8226b1698f7", "observed_at": "2026-10-23T07:52:11.097055+00:00", "organization": null, "key_id": null, "bucket": "public", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 0.6171959998937382, "bytes": 0, "durable_store": "unavailable"}
+{"request_id": "1d5bdfb2-eb4c-429d-8e8e-a6c9180979cc", "observed_at": "2026-10-23T07:52:11.098010+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "unknown", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 404, "duration_ms": 0.5159950001143443, "bytes": 0, "durable_store": "unavailable"}
+ok
+test_missing_key_is_challenged_before_any_backend_request (test_publication_access.GatewayBoundary.test_missing_key_is_challenged_before_any_backend_request) ... {"request_id": "da3b85db-af62-40aa-b2bf-8130dbd7ae8b", "observed_at": "2026-10-23T07:52:11.691073+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "catalogue", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 401, "duration_ms": 1.3960419996692508, "bytes": 255, "durable_store": "unavailable"}
+ok
+test_url_secrets_and_ambiguous_headers_are_rejected_without_echo (test_publication_access.GatewayBoundary.test_url_secrets_and_ambiguous_headers_are_rejected_without_echo) ... {"request_id": "9202877a-826d-4a22-a798-7ab60ff14bc5", "observed_at": "2026-10-23T07:52:12.264921+00:00", "organization": null, "key_id": null, "bucket": "public", "operation": "catalogue", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 400, "duration_ms": 0.9551230000397481, "bytes": 221, "durable_store": "unavailable"}
+{"request_id": "9408f96b-b5e9-43ba-95d7-d2428c91c72a", "observed_at": "2026-10-23T07:52:12.266488+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "catalogue", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 400, "duration_ms": 0.6233530002646148, "bytes": 221, "durable_store": "unavailable"}
+{"request_id": "26bb8943-ef3d-4020-9489-dd9721fc7fb5", "observed_at": "2026-10-23T07:52:12.267361+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "catalogue", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 401, "duration_ms": 0.5808749997413543, "bytes": 255, "durable_store": "unavailable"}
+{"request_id": "6c351f02-1063-467f-9a61-257b91bc7df2", "observed_at": "2026-10-23T07:52:12.268182+00:00", "organization": null, "key_id": null, "bucket": "unidentified", "operation": "catalogue", "product": null, "run": null, "revision": null, "cache": "not-accessed", "status": 401, "duration_ms": 0.5342109998309752, "bytes": 255, "durable_store": "unavailable"}
+ok
+test_operator_and_gateway_policies (test_publication_access.OrganizationAccess.test_operator_and_gateway_policies) ... skipped 'requires isolated T8 real Compose services'
+test_restart_and_secret_free_evidence (test_publication_access.OrganizationAccess.test_restart_and_secret_free_evidence) ... skipped 'requires isolated T8 real Compose services'
+
+----------------------------------------------------------------------
+Ran 5 tests in 1.770s
+
+OK (skipped=2)
+{"status": "passed", "postgresql_driver": "pg8000/1.31.5", "probes": [{"python": "from publication.tiles import coordinates; coordinates(3,4,2); from publication.domain import database", "exit_code": 0, "stderr": ""}, {"python": "from publication.domain import database; from publication.tiles import coordinates; coordinates(3,4,2)", "exit_code": 0, "stderr": ""}, {"python": "from publication.api import create_app; create_app()", "exit_code": 0, "stderr": ""}]}
+{"status": "ready"}
+40a669e3-dd7f-42a2-a1fc-dfdeaa327966
+test_post_publication_gis_exception_is_a_sanitized_service_failure (test_publication_http.PublishedSelection.test_post_publication_gis_exception_is_a_sanitized_service_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.731s
+
+OK
+test_incremental_times_corrections_and_retained_readers (test_publication_revisions.IncrementalPublication.test_incremental_times_corrections_and_retained_readers) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 197.140s
+
+OK
+7f33d1a4-a907-46d7-9d63-072c777c3a2c
+test_operator_and_gateway_policies (test_publication_access.OrganizationAccess.test_operator_and_gateway_policies) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 12.724s
+
+OK
+ALTER ROLE
+CREATE SCHEMA
+NOTICE:  schema "access" already exists, skipping
+{"status": "ready"}
+{"status": "passed", "edge_backend_connections": "denied", "gateway": 401}
+{"status": "passed", "unique_batches": 28, "revision_count": 28, "retained_point_K": 298.2274169921875}
+test_actual_sample_decodes_all_hours_and_native_cell_positions (test_decoder.DecoderContract.test_actual_sample_decodes_all_hours_and_native_cell_positions) ... ok
+test_empty_non_grib_and_missing_hours_fail (test_decoder.DecoderContract.test_empty_non_grib_and_missing_hours_fail) ... ok
+test_failure_atomically_replaces_previous_success_report (test_decoder.DecoderContract.test_failure_atomically_replaces_previous_success_report) ... ok
+test_header_mutations_never_pass_as_sample (test_decoder.DecoderContract.test_header_mutations_never_pass_as_sample) ... ok
+test_truncated_input_fails_without_values (test_decoder.DecoderContract.test_truncated_input_fails_without_values) ... ok
+test_unsupported_packing_has_diagnostic_without_values (test_decoder.DecoderContract.test_unsupported_packing_has_diagnostic_without_values) ... ok
+test_all_blocks_equal_independent_grib_and_share_halos (test_native_display.NativeDisplay.test_all_blocks_equal_independent_grib_and_share_halos) ... skipped 'requires isolated native display gateway'
+test_gateway_native_access_and_validation (test_native_display.NativeDisplay.test_gateway_native_access_and_validation) ... skipped 'requires isolated native display gateway'
+test_native_metadata_and_first_cell_preserve_selection (test_native_display.NativeDisplay.test_native_metadata_and_first_cell_preserve_selection) ... skipped 'requires isolated native display gateway'
+test_warm_storage_loss_expiry_and_deadline (test_native_display.NativeDisplay.test_warm_storage_loss_expiry_and_deadline) ... skipped 'requires isolated native display gateway'
+test_backend_admin_assets_and_near_match_routes_are_not_forwarded (test_publication_access.GatewayBoundary.test_backend_admin_assets_and_near_match_routes_are_not_forwarded) ... ok
+test_missing_key_is_challenged_before_any_backend_request (test_publication_access.GatewayBoundary.test_missing_key_is_challenged_before_any_backend_request) ... ok
+test_url_secrets_and_ambiguous_headers_are_rejected_without_echo (test_publication_access.GatewayBoundary.test_url_secrets_and_ambiguous_headers_are_rejected_without_echo) ... ok
+test_operator_and_gateway_policies (test_publication_access.OrganizationAccess.test_operator_and_gateway_policies) ... skipped 'requires isolated T8 real Compose services'
+test_restart_and_secret_free_evidence (test_publication_access.OrganizationAccess.test_restart_and_secret_free_evidence) ... skipped 'requires isolated T8 real Compose services'
+test_legacy_usage_upgrade_preserves_live_public_reader_and_accounting (test_publication_budgets.UsageBudgets.test_legacy_usage_upgrade_preserves_live_public_reader_and_accounting) ... skipped 'requires isolated T9 actual-sample services'
+test_rate_before_warm_cache_and_organization_identity (test_publication_budgets.UsageBudgets.test_rate_before_warm_cache_and_organization_identity) ... skipped 'requires isolated T9 actual-sample services'
+test_resources_demo_cache_rejections_and_retention (test_publication_budgets.UsageBudgets.test_resources_demo_cache_rejections_and_retention) ... skipped 'requires isolated T9 actual-sample services'
+test_catalogue_point_numeric_tile_and_scoped_wms_agree (test_publication_http.PublishedSelection.test_catalogue_point_numeric_tile_and_scoped_wms_agree) ... ok
+test_failed_readiness_and_real_indexing_preserve_published_selection (test_publication_http.PublishedSelection.test_failed_readiness_and_real_indexing_preserve_published_selection) ... skipped 'failure runner supplies durable job IDs'
+test_post_publication_gis_exception_is_a_sanitized_service_failure (test_publication_http.PublishedSelection.test_post_publication_gis_exception_is_a_sanitized_service_failure) ... ok
+test_staging_backend_admin_and_unpublished_selection_are_hidden (test_publication_http.PublishedSelection.test_staging_backend_admin_and_unpublished_selection_are_hidden) ... ok
+test_protected_consistency_policy_and_expiry (test_publication_integrated.ProtectedPublication.test_protected_consistency_policy_and_expiry) ... skipped 'requires isolated T12 Compose services'
+test_catalogue_hierarchy_openapi_and_protected_profile (test_publication_numerical.NumericalContract.test_catalogue_hierarchy_openapi_and_protected_profile) ... 
+Retired hmc-publication-t8-crs48final (containers, networks, volumes). Verified archive: D:\OSOKIN\PROG\HydroMetCenter\hmc-app-prototype\data\archives\publication\hmc-publication-t8-crs48final\0f9303e9756a461a8e32add1f1f2b781

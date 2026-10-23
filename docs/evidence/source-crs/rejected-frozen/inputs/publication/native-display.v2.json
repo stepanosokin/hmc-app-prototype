@@ -1,0 +1,10 @@
+{
+  "contract": "hmc-native-display/2",
+  "extends_layout": "hmc-native-display/1",
+  "agreement": "Owner approved source CRS override and zero geocentric shift hypothesis, 2026-10-23",
+  "crs_binding": "Per-publication source_crs contains immutable resolved PROJ/WKT and SHA256; its identity participates in native_grid_sha256",
+  "wgs84_to_native": "WGS84 geodetic h=0 to source ellipsoid geocentric latitude, then forward source rotation; source angular coordinates in degrees",
+  "native_2d_to_wgs84": "Inverse source rotation, then intersect geocentric ray with WGS84 h=0; zero shift hypothesis, no producer control point",
+  "metadata_url": "/api/v1/selections/{selection}/display/2/native.json",
+  "url_template": "/api/v1/selections/{selection}/display/2/native/{column}/{row}.f32"
+}

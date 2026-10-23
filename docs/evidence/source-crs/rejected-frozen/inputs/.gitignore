@@ -1,0 +1,24 @@
+data/*
+!data/*/
+!data/**/.gitkeep
+
+# Isolated browser profiles used by the T4 compatibility harness
+.scratch/t4-chrome*/
+.scratch/t7/
+
+# Local issue-tracker requests and API response snapshots
+.scratch/hmc-meteo/*.json
+!.scratch/hmc-meteo/github-issues.json
+!data/.gitkeep
+# Ignore files inside preserved data directories
+data/**/*
+!data/**/
+!data/**/.gitkeep
+/.scratch/hmc-meteo/hmc-publication-t11-*/
+/.scratch/hmc-meteo/t11-launch/
+/.scratch/hmc-meteo/hmc-publication-t12-*/
+/.scratch/hmc-meteo/t12/
+
+/viewer/node_modules/
+!data/grib/proj.txt
+/data/reports/source-crs/

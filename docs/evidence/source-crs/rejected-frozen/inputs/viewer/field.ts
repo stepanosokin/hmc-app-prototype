@@ -1,0 +1,87 @@
+import type {Selection} from './selection.js';
+export interface NativeMetadata {
+    contract: string; contract_sha256: string; selection: string; identity: Record<string,unknown>;
+    selection_identity: string[]; matrix: string; crs: string; engine: string;
+    grid: {shape_yx: number[]; spacing_degrees_xy: number[]; outer_cell_edges_wsen: number[]};
+    url: string; columns: number[]; rows: number[];
+    encoding:string;units:string;stored_size:number[];
+    source_crs?:{id:string;rotation:{kind:string;o_lon_p:number;o_lat_p:number;lon_0:number};semi_major_m:number;semi_minor_m:number};
+}
+export interface FieldData {metadata: NativeMetadata; blocks: ArrayBuffer[]; bytes: number; load_ms: number}
+export class PublicationExpired extends Error {
+    constructor(){super('Публикация истекла. Проверьте обновления.');}
+}
+export function localURL(url: string): string {
+    if(!/^\/(?:api\/v1\/|ogc\/collections\/)/.test(url)||url.includes('..')||url.includes('\\')||url.includes('#'))
+        throw Error('Недопустимый адрес опубликованных данных.');
+    return url;
+}
+async function response(url: string, signal: AbortSignal): Promise<Response> {
+    for(let attempt=0;attempt<3;attempt++){
+        const result=await fetch(localURL(url),{signal:AbortSignal.any([signal,AbortSignal.timeout(15000)]),cache:'no-store'});
+        if(result.status===429&&attempt<2){
+            await new Promise<void>((resolve,reject)=>{
+                const abort=()=>{clearTimeout(timer);reject(signal.reason);};
+                const timer=setTimeout(()=>{signal.removeEventListener('abort',abort);resolve();},1000);
+                signal.addEventListener('abort',abort,{once:true});
+            });continue;
+        }
+        if(result.status===410)throw new PublicationExpired();
+        if(!result.ok)throw Error(result.status===404?'Выбранная публикация недоступна.':'Сервис данных недоступен. Повторите загрузку.');
+        return result;
+    }
+    throw Error('Сервис занят. Повторите загрузку.');
+}
+export async function json<T>(url: string,signal: AbortSignal): Promise<T> {
+    const result=await response(url,signal);
+    const text=await result.text();
+    if(text.length>1024*1024)throw Error('Слишком большой ответ сервиса.');
+    signal.throwIfAborted();return JSON.parse(text) as T;
+}
+/** Owns one selection, at most two outstanding fetches and eighteen native blocks. */
+export class FieldLoader {
+    controller=new AbortController();
+    generation=0;
+    private loadingBlocks:ArrayBuffer[]|undefined;
+    cancel(){this.controller.abort();this.controller=new AbortController();this.generation++;
+        if(this.loadingBlocks)this.loadingBlocks.length=0;this.loadingBlocks=undefined;}
+    async load(selection: Selection): Promise<FieldData> {
+        this.cancel();const generation=this.generation,signal=this.controller.signal,start=performance.now();
+        const metadata=await json<NativeMetadata>(selection.native_display,signal);
+        const legacy=metadata.contract==='hmc-native-display/1'&&metadata.contract_sha256==='3c245dada032f3cf4ee0f26e2c371e863ba0094a3c5f8de4e5f2c6af3ef4c1f0'&&metadata.crs==='urn:hmc:crs:icon-sphere-6371229';
+        const source=metadata.source_crs,rotation=source?.rotation;
+        const corrected=metadata.contract==='hmc-native-display/2'&&metadata.contract_sha256==='abd365ad2f9fe1c2d14dd7b5cfde31f1766c1ba3c02a3dc19e196754441cdc61'&&
+            metadata.crs===source?.id&&rotation?.kind==='ob_tran'&&source.semi_major_m===source.semi_minor_m&&
+            [rotation.o_lon_p,rotation.o_lat_p,rotation.lon_0].every(Number.isFinite)&&Math.abs(rotation.o_lat_p)<=90;
+        if((!legacy&&!corrected)||metadata.selection!==selection.selection||
+            metadata.grid.shape_yx.join(',')!=='657,1377'||metadata.columns.join(',')!=='0,5'||metadata.rows.join(',')!=='0,2'||
+            metadata.grid.spacing_degrees_xy?.join(',')!=='0.0625,0.0625'||
+            metadata.grid.outer_cell_edges_wsen?.join(',')!=='-23.53125,29.46875,62.53125,70.53125'||
+            metadata.encoding!=='f32'||metadata.units!=='K'||metadata.stored_size?.join(',')!=='258,258'||
+            ['model','run','revision','field','level','valid_time','native_grid_sha256','member'].some(key=>metadata.identity[key]!==selection[key as keyof Selection]))
+            throw Error('Несогласованный числовой контракт или выборка.');
+        const blocks=new Array<ArrayBuffer>(18);let next=0,bytes=new TextEncoder().encode(JSON.stringify(metadata)).length;
+        this.loadingBlocks=blocks;
+        const worker=async()=>{
+            while(next<18){
+                const index=next++,url=metadata.url.replace('{column}',String(index%6)).replace('{row}',String(Math.floor(index/6)));
+                const payload=await (await response(url,signal)).arrayBuffer();
+                signal.throwIfAborted();
+                if(generation!==this.generation)throw new DOMException('Устаревшая выборка','AbortError');
+                if(payload.byteLength!==332820)throw Error('Повреждённый числовой блок.');
+                const values=new DataView(payload),mask=new Uint8Array(payload,258*258*4);
+                for(let i=0;i<mask.length;i++){
+                    const value=values.getFloat32(i*4,true);
+                    if(!Number.isFinite(value)||mask[i]>1||mask[i]===0&&value!==0)
+                        throw Error('Повреждены значения или маска числового блока.');
+                }
+                bytes+=payload.byteLength;if(bytes>8*1024**2)throw Error('Превышен объём числовых данных на вид.');
+                blocks[index]=payload;
+            }
+        };
+        try{await Promise.all([worker(),worker()]);}catch(error){if(generation===this.generation)this.cancel();throw error;}
+        signal.throwIfAborted();
+        this.loadingBlocks=undefined;
+        return {metadata,blocks,bytes,load_ms:performance.now()-start};
+    }
+}

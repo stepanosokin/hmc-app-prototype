@@ -1,0 +1,103 @@
+{
+  "status": "passed",
+  "source_crs": {
+    "schema": "hmc-source-crs/1",
+    "id": "urn:hmc:crs:7be033222b21e33a7c8693a9e216f06e802974bc90f1da92d39fc70a513319f8",
+    "source": "proj.txt",
+    "fallback_reason": null,
+    "file_sha256": "79b212111a9601ad849a76f7812351d2c6cad74acaa618b6b36931368a13b184",
+    "source_text": "+proj=ob_tran +o_proj=longlat +o_lon_p=0 +o_lat_p=25 +lon_0=90 +to_meter=0.01745329",
+    "resolved_proj": "+proj=ob_tran +o_proj=longlat +o_lon_p=0 +o_lat_p=25 +lon_0=90 +to_meter=0.01745329 +R=6371229",
+    "wkt": "GEOGCRS[\"unnamed\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8901]]],DERIVINGCONVERSION[\"unknown\",METHOD[\"PROJ ob_tran o_proj=longlat\"],PARAMETER[\"o_lon_p\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"o_lat_p\",25,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"lon_0\",90,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CS[ellipsoidal,2],AXIS[\"longitude\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],AXIS[\"latitude\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]]",
+    "sha256": "7be033222b21e33a7c8693a9e216f06e802974bc90f1da92d39fc70a513319f8",
+    "semi_major_m": 6371229.0,
+    "semi_minor_m": 6371229.0,
+    "datum_operation": "WGS84 h=0 -> WGS84 Cartesian -> source ellipsoid Cartesian inverse; zero geocentric shift prototype hypothesis, not producer-confirmed",
+    "producer_control_point": false,
+    "rotation": {
+      "kind": "ob_tran",
+      "o_lon_p": 0.0,
+      "o_lat_p": 25.0,
+      "lon_0": 90.0
+    }
+  },
+  "numeric_tile_reference_max_error_K": 2.1600499167107046e-12,
+  "checks": {
+    "message": 1,
+    "valid_time": "2026-10-15T01:00:00Z",
+    "native_crs_wkt": "GEOGCRS[\"unnamed\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8901]]],DERIVINGCONVERSION[\"unknown\",METHOD[\"PROJ ob_tran o_proj=longlat\"],PARAMETER[\"o_lon_p\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"o_lat_p\",25,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"lon_0\",90,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CS[ellipsoidal,2],AXIS[\"longitude\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],AXIS[\"latitude\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]]",
+    "gis_derivative": {
+      "crs": "+proj=longlat +R=6371229 +no_defs",
+      "srid": 100001,
+      "resampling": "nearest-native-cell",
+      "role": "reprojected-gis-portrayal-not-canonical-native-grid",
+      "bounds": [
+        -180.0,
+        32.5,
+        180.0,
+        85.5625
+      ],
+      "resolution_degrees": 0.03125,
+      "shape_yx": [
+        1698,
+        11520
+      ]
+    },
+    "finite_cells": 904689,
+    "missing_cells": 0,
+    "cog_max_abs_error": 0.0,
+    "zarr_max_abs_error": 0.0,
+    "checks": "all native Zarr/Xarray values/masks; all GIS derivative pixels against independent spherical rotation",
+    "representative_cells": [
+      {
+        "index": 0,
+        "row": 0,
+        "column": 0,
+        "lon": -23.5,
+        "lat": 29.5,
+        "value": 298.2274169921875
+      },
+      {
+        "index": 1376,
+        "row": 0,
+        "column": 1376,
+        "lon": 62.5,
+        "lat": 29.5,
+        "value": 289.7391357421875
+      },
+      {
+        "index": 1377,
+        "row": 1,
+        "column": 0,
+        "lon": -23.5,
+        "lat": 29.5625,
+        "value": 298.2479248046875
+      },
+      {
+        "index": 452344,
+        "row": 328,
+        "column": 688,
+        "lon": 19.5,
+        "lat": 50.0,
+        "value": 280.7977294921875
+      },
+      {
+        "index": 903312,
+        "row": 656,
+        "column": 0,
+        "lon": -23.5,
+        "lat": 70.5,
+        "value": 264.1590576171875
+      },
+      {
+        "index": 904688,
+        "row": 656,
+        "column": 1376,
+        "lon": 62.5,
+        "lat": 70.5,
+        "value": 279.1229248046875
+      }
+    ]
+  },
+  "cog_bytes": 6654221
+}

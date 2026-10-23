@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/workspace/tools/source-crs/check_numeric.py", line 24, in <module>
+    main()
+  File "/workspace/tools/source-crs/check_numeric.py", line 18, in main
+    result = check_field(root,item,values,missing)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/storage.py", line 157, in check_field
+    error = check(asset_path(root,item['cog']),item,baseline,missing)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/gis_derivative.py", line 98, in check
+    raise ValueError('GIS derivative georeferencing changed')
+ValueError: GIS derivative georeferencing changed
