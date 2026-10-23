@@ -1,0 +1,54 @@
+test_configuration_is_frozen_in_resolved_crs (test_grib_crs.GribCRS.test_configuration_is_frozen_in_resolved_crs) ... ok
+test_missing_required_projection_and_corrupt_config_fail (test_grib_crs.GribCRS.test_missing_required_projection_and_corrupt_config_fail) ... ok
+test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) ... 
+  test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) (template=10) ... FAIL
+  test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) (template=20) ... FAIL
+  test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) (template=30) ... FAIL
+  test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) (template=31) ... FAIL
+test_rotation_against_independent_cartesian_basis (test_grib_crs.GribCRS.test_rotation_against_independent_cartesian_basis) ... FAIL
+test_standard_earth_codes_override_defaults (test_grib_crs.GribCRS.test_standard_earth_codes_override_defaults) ... ok
+
+======================================================================
+FAIL: test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) (template=10)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 103, in test_projection_units_and_geographic_control_point
+    self.assertAlmostEqual(float(lat),expected_lat,places=8)
+AssertionError: 40.1895522625546 != 40.189610473709315 within 8 places (5.8211154716047986e-05 difference)
+
+======================================================================
+FAIL: test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) (template=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 103, in test_projection_units_and_geographic_control_point
+    self.assertAlmostEqual(float(lat),expected_lat,places=8)
+AssertionError: 40.1895522625546 != 40.189610473709315 within 8 places (5.8211154716047986e-05 difference)
+
+======================================================================
+FAIL: test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) (template=30)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 103, in test_projection_units_and_geographic_control_point
+    self.assertAlmostEqual(float(lat),expected_lat,places=8)
+AssertionError: 40.18955226255461 != 40.189610473709315 within 8 places (5.821115470183713e-05 difference)
+
+======================================================================
+FAIL: test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) (template=31)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 103, in test_projection_units_and_geographic_control_point
+    self.assertAlmostEqual(float(lat),expected_lat,places=8)
+AssertionError: 40.1895522625546 != 40.189610473709315 within 8 places (5.8211154716047986e-05 difference)
+
+======================================================================
+FAIL: test_rotation_against_independent_cartesian_basis (test_grib_crs.GribCRS.test_rotation_against_independent_cartesian_basis)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 116, in test_rotation_against_independent_cartesian_basis
+    self.assertAlmostEqual(float(lat),expected_lat,places=8)
+AssertionError: 25.147795414698045 != 25.14772386297542 within 8 places (7.155172262685028e-05 difference)
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.052s
+
+FAILED (failures=5)

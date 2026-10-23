@@ -1,8 +1,10 @@
 import {referenceTime,type Selection,type PublishedGroup} from './selection.js';
 import {nativeToWgs} from './native-layer.js';
+import {nativePosition} from './source-crs.js';
 import type {Position} from './series.js';
 
 export interface SourceDescription {
+    source_crs?: unknown;
     identity?:{revision:string;valid_time:string};
     source?:{name?:string};
 }
@@ -43,7 +45,7 @@ export class SourceSettings {
         let wms='',api='';
         if(state!=='expired'&&source.wms){const url=new URL(source.wms,location.origin);url.search=new URLSearchParams({SERVICE:'WMS',VERSION:'1.3.0',REQUEST:'GetCapabilities'}).toString();wms=url.href;}
         // Default sample uses the published native coverage, converted to geographic coordinates.
-        const sample=bounds?[(bounds[0]+bounds[2])/2,nativeToWgs((bounds[1]+bounds[3])/2)]:undefined;
+        const sample=bounds?nativePosition(matching?.source_crs,[(bounds[0]+bounds[2])/2,(bounds[1]+bounds[3])/2],true):undefined;
         const point=position??(sample?{lng:sample[0],lat:sample[1]}:undefined);
         if(current&&point&&state!=='expired'){
             const url=new URL(current.point,location.origin);

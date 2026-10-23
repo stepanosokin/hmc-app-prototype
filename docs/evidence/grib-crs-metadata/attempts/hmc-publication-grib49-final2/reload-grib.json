@@ -1,0 +1,38 @@
+{
+  "scope": "direct GRIB2 children only; no subdirectories or proj.txt",
+  "configuration": {
+    "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+    "values": {
+      "schema": "hmc-grib-crs-defaults/1",
+      "earth_radius_m": 6371229.0,
+      "prime_meridian_degrees": 0.0,
+      "geocentric_translation_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "coordinate_height_m": 0.0
+    }
+  },
+  "files": [
+    {
+      "source": "00-unsupported.grb",
+      "state": "failed",
+      "error_type": "ValueError",
+      "error": "Не поддерживается шаблон сетки GRIB2 3.99"
+    },
+    {
+      "source": "ICON_EU_T_G_2026101500.grib2",
+      "job": "fbff2790-3e9f-4bc4-b870-740f43aeb97c",
+      "sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a",
+      "source_crs_ids": [
+        "urn:hmc:crs:f71c40a1794a5bdb32ba1200d1a62cb7429c22ab95de665f4e4ab52684d277b9"
+      ],
+      "state": "published",
+      "selection": "3ea50429cfaaefd3893adb5e22cdfe8b22131bf6844962839becc82d3805db13.694cb897005000963441d9378528a45851e87034cdcb08d4ed5cd5e7502790aa",
+      "error": null,
+      "revision": "3ea50429cfaaefd3893adb5e22cdfe8b22131bf6844962839becc82d3805db13"
+    }
+  ],
+  "state": "failed"
+}

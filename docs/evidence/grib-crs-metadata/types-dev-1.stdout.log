@@ -1,0 +1,11 @@
+decoder/inspect_forecast.py:103: error: Name "resolve" already defined (possibly by an import)  [no-redef]
+publication/grib_batch.py:43: error: "Collection[Any]" has no attribute "append"  [attr-defined]
+publication/grib_batch.py:54: error: No overload variant of "update" of "MutableMapping" matches argument types "str", "str", "list[Any]"  [call-overload]
+publication/grib_batch.py:54: note: Possible overload variants:
+publication/grib_batch.py:54: note:     def update(self, SupportsKeysAndGetItem[str, str], /) -> None
+publication/grib_batch.py:54: note:     def update(self, SupportsKeysAndGetItem[str, str], /, **kwargs: str) -> None
+publication/grib_batch.py:54: note:     def update(self, Iterable[tuple[str, str]], /) -> None
+publication/grib_batch.py:54: note:     def update(self, Iterable[tuple[str, str]], /, **kwargs: str) -> None
+publication/grib_batch.py:54: note:     def update(self, **kwargs: str) -> None
+publication/api.py:373: error: Too many arguments for "validate_address"  [call-arg]
+Found 4 errors in 3 files (checked 66 source files)

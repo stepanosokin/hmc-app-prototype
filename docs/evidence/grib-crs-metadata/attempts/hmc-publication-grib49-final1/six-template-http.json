@@ -1,0 +1,885 @@
+{
+  "status": "passed",
+  "cases": [
+    {
+      "template": 0,
+      "selection": "f092d3fb1950c827b4dc7115488094a0cac642603334069f03fa8f34e5a5a195.21d2b24d3303864bb05d04a7498428794dd1a2f0576a0c506c85985a327834c3",
+      "point": {
+        "batch": "hour-01.zarr",
+        "cell": {
+          "column": 1,
+          "lat": 0.0,
+          "lon": -1.0,
+          "row": 1
+        },
+        "coordinate_order": [
+          "longitude",
+          "latitude"
+        ],
+        "crs": "urn:hmc:crs:icon-sphere-6371229",
+        "field": "T_G:surface:0",
+        "identity": {
+          "contract": "hmc-temperature-tile/3",
+          "encoding_version": "hmc-temperature-tile/3/f32",
+          "engine": "project-bilinear/1",
+          "field": "T_G:surface:0",
+          "level": 0,
+          "matrix": "WebMercatorQuad",
+          "member": null,
+          "model": "GRIB-78-2",
+          "native_grid_sha256": "fc096a6e8e459ae64a7cb8a496669d10420e6bc744016887500d7795a68f19c6",
+          "publication_job": "10e56564-ec79-4050-8f5d-c5e9bd4df6a8",
+          "resampling": "bilinear",
+          "revision": "f092d3fb1950c827b4dc7115488094a0cac642603334069f03fa8f34e5a5a195",
+          "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+          "valid_time": "2026-10-16T01:00:00Z"
+        },
+        "method": "native_cell",
+        "query_position": {
+          "crs": "urn:hmc:crs:icon-sphere-6371229",
+          "lat": 0.0,
+          "lon": -0.9999999999999998
+        },
+        "reason": null,
+        "revision": "f092d3fb1950c827b4dc7115488094a0cac642603334069f03fa8f34e5a5a195",
+        "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+        "selection": "f092d3fb1950c827b4dc7115488094a0cac642603334069f03fa8f34e5a5a195.21d2b24d3303864bb05d04a7498428794dd1a2f0576a0c506c85985a327834c3",
+        "source": {
+          "message_sha256": "81ef443161e4501a2f88980f1627f504c82bab443aa474c6d603408445e4ee0c",
+          "name": "synthetic-template-0.grb",
+          "processing_version": "t5.1",
+          "sha256": "81ef443161e4501a2f88980f1627f504c82bab443aa474c6d603408445e4ee0c",
+          "source_crs": {
+            "configuration": {
+              "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+              "values": {
+                "coordinate_height_m": 0.0,
+                "earth_radius_m": 6371229.0,
+                "geocentric_translation_m": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "prime_meridian_degrees": 0.0,
+                "schema": "hmc-grib-crs-defaults/1"
+              }
+            },
+            "datum_mode": "explicit-geocentric",
+            "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+            "defaults_used": [
+              "coordinate_height_m",
+              "geocentric_translation_m",
+              "prime_meridian_degrees"
+            ],
+            "earth_shape_code": 6,
+            "grid": {
+              "outer_edges_wsen": [
+                -2.5,
+                -1.5,
+                1.5,
+                1.5
+              ],
+              "scanning_mode": 64,
+              "shape_yx": [
+                3,
+                4
+              ],
+              "spacing_xy": [
+                1.0,
+                1.0
+              ],
+              "units": "degrees"
+            },
+            "id": "urn:hmc:crs:bfcfc3bab25959495d5239aaf825c4c6578ccf80446b314a7af075c488b29a25",
+            "prime_meridian_degrees": 0.0,
+            "proj": "+proj=longlat +a=6371229 +b=6371229 +pm=0",
+            "rotation": null,
+            "schema": "hmc-grib-crs/1",
+            "semi_major_m": 6371229.0,
+            "semi_minor_m": 6371229.0,
+            "sha256": "bfcfc3bab25959495d5239aaf825c4c6578ccf80446b314a7af075c488b29a25",
+            "template": 0,
+            "wkt": "GEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],CS[ellipsoidal,2],AXIS[\"longitude\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],AXIS[\"latitude\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]]"
+          },
+          "synthetic_fixture": "synthetic-crs"
+        },
+        "spatial_selection": "nearest-native-cell",
+        "temporal_selection": "exact",
+        "units": "K",
+        "valid_time": "2026-10-16T01:00:00Z",
+        "value": 285.0
+      },
+      "gis_checks": {
+        "capability_layers": [
+          "ga85182b6fe3744e473cb739c"
+        ],
+        "capability_times": [
+          "2026-10-16T01:00:00.000Z"
+        ],
+        "granule_counts_positive_negative": [
+          1,
+          0
+        ],
+        "identified_value_K": 286.0,
+        "map_bytes": 1186
+      },
+      "gis_derivative": {
+        "bounds": [
+          -2.5000000000000004,
+          -1.5101045797993653,
+          1.5000000000000002,
+          1.5101045797993653
+        ],
+        "crs": "EPSG:4326",
+        "derived": true,
+        "resampling": "nearest-native-cell",
+        "shape_yx": [
+          3,
+          4
+        ],
+        "source_crs": "urn:hmc:crs:bfcfc3bab25959495d5239aaf825c4c6578ccf80446b314a7af075c488b29a25"
+      },
+      "gis_probe": {
+        "position": [
+          0.0,
+          0.0
+        ],
+        "value": 286.0
+      }
+    },
+    {
+      "template": 1,
+      "selection": "9a6a0a154a94be4235c0b26b9f0f6622d3866c20a787a1858b36c222b6dcc2eb.eea06744ef3296b7dad607435d8fcaaed1118db150e7a435c64d341fe07f69b7",
+      "point": {
+        "batch": "hour-01.zarr",
+        "cell": {
+          "column": 1,
+          "lat": 0.0,
+          "lon": -1.0,
+          "row": 1
+        },
+        "coordinate_order": [
+          "longitude",
+          "latitude"
+        ],
+        "crs": "urn:hmc:crs:b4e6a9269ac05945b31ac434f39d5e3b20efa9e1b4c70c07a336cd0663281214",
+        "field": "T_G:surface:0",
+        "identity": {
+          "contract": "hmc-temperature-tile/3",
+          "encoding_version": "hmc-temperature-tile/3/f32",
+          "engine": "project-bilinear/1",
+          "field": "T_G:surface:0",
+          "level": 0,
+          "matrix": "WebMercatorQuad",
+          "member": null,
+          "model": "GRIB-78-2",
+          "native_grid_sha256": "f0ba18a4c6a01b665196451806ad7df5df91dc571d945574e8b54dae5f06ba59",
+          "publication_job": "76aa7e8d-9bbd-476a-a21f-b4c8e0ce1c2e",
+          "resampling": "bilinear",
+          "revision": "9a6a0a154a94be4235c0b26b9f0f6622d3866c20a787a1858b36c222b6dcc2eb",
+          "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+          "valid_time": "2026-10-16T01:00:00Z"
+        },
+        "method": "native_cell",
+        "query_position": {
+          "crs": "urn:hmc:crs:b4e6a9269ac05945b31ac434f39d5e3b20efa9e1b4c70c07a336cd0663281214",
+          "lat": 3.1805546814635168e-15,
+          "lon": -0.9999999999999939
+        },
+        "reason": null,
+        "revision": "9a6a0a154a94be4235c0b26b9f0f6622d3866c20a787a1858b36c222b6dcc2eb",
+        "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+        "selection": "9a6a0a154a94be4235c0b26b9f0f6622d3866c20a787a1858b36c222b6dcc2eb.eea06744ef3296b7dad607435d8fcaaed1118db150e7a435c64d341fe07f69b7",
+        "source": {
+          "message_sha256": "b87ec7732208685954e2677f8b17ec73f0d36840b804584201a58af6cafc7b7f",
+          "name": "synthetic-template-1.grb",
+          "processing_version": "t5.1",
+          "sha256": "b87ec7732208685954e2677f8b17ec73f0d36840b804584201a58af6cafc7b7f",
+          "source_crs": {
+            "configuration": {
+              "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+              "values": {
+                "coordinate_height_m": 0.0,
+                "earth_radius_m": 6371229.0,
+                "geocentric_translation_m": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "prime_meridian_degrees": 0.0,
+                "schema": "hmc-grib-crs-defaults/1"
+              }
+            },
+            "datum_mode": "explicit-geocentric",
+            "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+            "defaults_used": [
+              "coordinate_height_m",
+              "geocentric_translation_m",
+              "prime_meridian_degrees"
+            ],
+            "earth_shape_code": 6,
+            "grid": {
+              "outer_edges_wsen": [
+                -2.5,
+                -1.5,
+                1.5,
+                1.5
+              ],
+              "scanning_mode": 64,
+              "shape_yx": [
+                3,
+                4
+              ],
+              "spacing_xy": [
+                1.0,
+                1.0
+              ],
+              "units": "degrees"
+            },
+            "id": "urn:hmc:crs:b4e6a9269ac05945b31ac434f39d5e3b20efa9e1b4c70c07a336cd0663281214",
+            "prime_meridian_degrees": 0.0,
+            "proj": "+proj=ob_tran +o_proj=longlat +o_lon_p=-0 +o_lat_p=25 +lon_0=90 +a=6371229 +b=6371229 +pm=0",
+            "rotation": {
+              "angle": 0.0,
+              "south_lat": -25.0,
+              "south_lon": 90.0
+            },
+            "schema": "hmc-grib-crs/1",
+            "semi_major_m": 6371229.0,
+            "semi_minor_m": 6371229.0,
+            "sha256": "b4e6a9269ac05945b31ac434f39d5e3b20efa9e1b4c70c07a336cd0663281214",
+            "template": 1,
+            "wkt": "GEOGCRS[\"unnamed\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],DERIVINGCONVERSION[\"unknown\",METHOD[\"PROJ ob_tran o_proj=longlat\"],PARAMETER[\"o_lon_p\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"o_lat_p\",25,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"lon_0\",90,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"pm\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CS[ellipsoidal,2],AXIS[\"longitude\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],AXIS[\"latitude\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]]"
+          },
+          "synthetic_fixture": "synthetic-crs"
+        },
+        "spatial_selection": "nearest-native-cell",
+        "temporal_selection": "exact",
+        "units": "K",
+        "valid_time": "2026-10-16T01:00:00Z",
+        "value": 285.0
+      },
+      "gis_checks": {
+        "capability_layers": [
+          "g19d1f4b4158b74b0a2547b5a"
+        ],
+        "capability_times": [
+          "2026-10-16T01:00:00.000Z"
+        ],
+        "granule_counts_positive_negative": [
+          1,
+          0
+        ],
+        "identified_value_K": 286.0,
+        "map_bytes": 1185
+      },
+      "gis_derivative": {
+        "bounds": [
+          83.75307684607479,
+          63.54329811066355,
+          93.75602158257281,
+          66.64040808173313
+        ],
+        "crs": "EPSG:4326",
+        "derived": true,
+        "resampling": "nearest-native-cell",
+        "shape_yx": [
+          3,
+          4
+        ],
+        "source_crs": "urn:hmc:crs:b4e6a9269ac05945b31ac434f39d5e3b20efa9e1b4c70c07a336cd0663281214"
+      },
+      "gis_probe": {
+        "position": [
+          90.00491730638606,
+          65.09185309619832
+        ],
+        "value": 286.0
+      }
+    },
+    {
+      "template": 10,
+      "selection": "f24f3a557bc08610e6d1c352d4f73fc9fed99a6463498f2bdcb00c81500fc90d.5f22be74ab6bff11bf6db8e3ec416d11889734cdc990094c8f5e8821cd317d38",
+      "point": {
+        "batch": "hour-01.zarr",
+        "cell": {
+          "column": 1,
+          "lat": 3729490.8517424883,
+          "lon": 857833.1738857114,
+          "row": 1
+        },
+        "coordinate_order": [
+          "x",
+          "y"
+        ],
+        "crs": "urn:hmc:crs:d7f940a830b2afa134a11243007c86a0a342bbedc0acc0dc2a0546b800a2fa88",
+        "field": "T_G:surface:0",
+        "identity": {
+          "contract": "hmc-temperature-tile/3",
+          "encoding_version": "hmc-temperature-tile/3/f32",
+          "engine": "project-bilinear/1",
+          "field": "T_G:surface:0",
+          "level": 0,
+          "matrix": "WebMercatorQuad",
+          "member": null,
+          "model": "GRIB-78-2",
+          "native_grid_sha256": "279df726f7ec29d11de66fcd830c8a7a60b114815021691d2e6e8e2fc55b003e",
+          "publication_job": "dcb4ef91-1a5f-49f7-ab67-669c1fb34d24",
+          "resampling": "bilinear",
+          "revision": "f24f3a557bc08610e6d1c352d4f73fc9fed99a6463498f2bdcb00c81500fc90d",
+          "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+          "valid_time": "2026-10-16T01:00:00Z"
+        },
+        "method": "native_cell",
+        "query_position": {
+          "crs": "urn:hmc:crs:d7f940a830b2afa134a11243007c86a0a342bbedc0acc0dc2a0546b800a2fa88",
+          "lat": 3729490.8517424883,
+          "lon": 857833.1738857114
+        },
+        "reason": null,
+        "revision": "f24f3a557bc08610e6d1c352d4f73fc9fed99a6463498f2bdcb00c81500fc90d",
+        "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+        "selection": "f24f3a557bc08610e6d1c352d4f73fc9fed99a6463498f2bdcb00c81500fc90d.5f22be74ab6bff11bf6db8e3ec416d11889734cdc990094c8f5e8821cd317d38",
+        "source": {
+          "message_sha256": "cd9c316f231c250840cabc0818a5a7ea9ac2fd27ce288624944851e498339bdd",
+          "name": "synthetic-template-10.grb",
+          "processing_version": "t5.1",
+          "sha256": "cd9c316f231c250840cabc0818a5a7ea9ac2fd27ce288624944851e498339bdd",
+          "source_crs": {
+            "configuration": {
+              "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+              "values": {
+                "coordinate_height_m": 0.0,
+                "earth_radius_m": 6371229.0,
+                "geocentric_translation_m": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "prime_meridian_degrees": 0.0,
+                "schema": "hmc-grib-crs-defaults/1"
+              }
+            },
+            "datum_mode": "explicit-geocentric",
+            "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+            "defaults_used": [
+              "coordinate_height_m",
+              "geocentric_translation_m",
+              "prime_meridian_degrees"
+            ],
+            "earth_shape_code": 6,
+            "grid": {
+              "outer_edges_wsen": [
+                848833.1738857114,
+                3720490.8517424883,
+                872833.1738857114,
+                3738490.8517424883
+              ],
+              "scanning_mode": 64,
+              "shape_yx": [
+                3,
+                4
+              ],
+              "spacing_xy": [
+                6000.0,
+                6000.0
+              ],
+              "units": "m"
+            },
+            "id": "urn:hmc:crs:d7f940a830b2afa134a11243007c86a0a342bbedc0acc0dc2a0546b800a2fa88",
+            "prime_meridian_degrees": 0.0,
+            "proj": "+proj=merc +lat_ts=40 +lon_0=0 +a=6371229 +b=6371229 +pm=0 +units=m",
+            "rotation": null,
+            "schema": "hmc-grib-crs/1",
+            "semi_major_m": 6371229.0,
+            "semi_minor_m": 6371229.0,
+            "sha256": "d7f940a830b2afa134a11243007c86a0a342bbedc0acc0dc2a0546b800a2fa88",
+            "template": 10,
+            "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Mercator (variant B)\",ID[\"EPSG\",9805]],PARAMETER[\"Latitude of 1st standard parallel\",40,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Longitude of natural origin\",0,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8802]],PARAMETER[\"False easting\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]"
+          },
+          "synthetic_fixture": "synthetic-crs"
+        },
+        "spatial_selection": "nearest-native-cell",
+        "temporal_selection": "exact",
+        "units": "K",
+        "valid_time": "2026-10-16T01:00:00Z",
+        "value": 285.0
+      },
+      "gis_checks": {
+        "capability_layers": [
+          "g13bee07b6d9732e450c3934c"
+        ],
+        "capability_times": [
+          "2026-10-16T01:00:00.000Z"
+        ],
+        "granule_counts_positive_negative": [
+          1,
+          0
+        ],
+        "identified_value_K": 286.0,
+        "map_bytes": 1186
+      },
+      "gis_derivative": {
+        "bounds": [
+          9.964781836491346,
+          40.162595481258414,
+          10.24652714456056,
+          40.324522803645294
+        ],
+        "crs": "EPSG:4326",
+        "derived": true,
+        "resampling": "nearest-native-cell",
+        "shape_yx": [
+          3,
+          4
+        ],
+        "source_crs": "urn:hmc:crs:d7f940a830b2afa134a11243007c86a0a342bbedc0acc0dc2a0546b800a2fa88"
+      },
+      "gis_probe": {
+        "position": [
+          10.140872654034602,
+          40.24355914245185
+        ],
+        "value": 286.0
+      }
+    },
+    {
+      "template": 20,
+      "selection": "e0adcd77a9de09ea5cea6d22a192b9ef8d8f8298a3de8a56d276da89899cd14a.a50412e9a55a09c09365dc1b2e30b817a2321f1c7e3cca29ddf7b386dbce51b4",
+      "point": {
+        "batch": "hour-01.zarr",
+        "cell": {
+          "column": 1,
+          "lat": -5537873.537373896,
+          "lon": 6000.0,
+          "row": 1
+        },
+        "coordinate_order": [
+          "x",
+          "y"
+        ],
+        "crs": "urn:hmc:crs:d7c8cab773d27e01322689c79ad5e9da256ddfa402a79c712ea3aef113707049",
+        "field": "T_G:surface:0",
+        "identity": {
+          "contract": "hmc-temperature-tile/3",
+          "encoding_version": "hmc-temperature-tile/3/f32",
+          "engine": "project-bilinear/1",
+          "field": "T_G:surface:0",
+          "level": 0,
+          "matrix": "WebMercatorQuad",
+          "member": null,
+          "model": "GRIB-78-2",
+          "native_grid_sha256": "7e1e0eda1c90e43efdbce8357742fa9c9cdbe2b8b15d9614a9fc289b48a17f30",
+          "publication_job": "0de7fd44-5bc8-47ff-a13b-6121b9d757c9",
+          "resampling": "bilinear",
+          "revision": "e0adcd77a9de09ea5cea6d22a192b9ef8d8f8298a3de8a56d276da89899cd14a",
+          "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+          "valid_time": "2026-10-16T01:00:00Z"
+        },
+        "method": "native_cell",
+        "query_position": {
+          "crs": "urn:hmc:crs:d7c8cab773d27e01322689c79ad5e9da256ddfa402a79c712ea3aef113707049",
+          "lat": -5537873.537373897,
+          "lon": 5999.999999999972
+        },
+        "reason": null,
+        "revision": "e0adcd77a9de09ea5cea6d22a192b9ef8d8f8298a3de8a56d276da89899cd14a",
+        "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+        "selection": "e0adcd77a9de09ea5cea6d22a192b9ef8d8f8298a3de8a56d276da89899cd14a.a50412e9a55a09c09365dc1b2e30b817a2321f1c7e3cca29ddf7b386dbce51b4",
+        "source": {
+          "message_sha256": "395ccf6dfac07ef1a7184e1ed1cde3121f4ca0ae2f22612ad289a62ec5690b2c",
+          "name": "synthetic-template-20.grb",
+          "processing_version": "t5.1",
+          "sha256": "395ccf6dfac07ef1a7184e1ed1cde3121f4ca0ae2f22612ad289a62ec5690b2c",
+          "source_crs": {
+            "configuration": {
+              "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+              "values": {
+                "coordinate_height_m": 0.0,
+                "earth_radius_m": 6371229.0,
+                "geocentric_translation_m": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "prime_meridian_degrees": 0.0,
+                "schema": "hmc-grib-crs-defaults/1"
+              }
+            },
+            "datum_mode": "explicit-geocentric",
+            "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+            "defaults_used": [
+              "coordinate_height_m",
+              "geocentric_translation_m",
+              "prime_meridian_degrees"
+            ],
+            "earth_shape_code": 6,
+            "grid": {
+              "outer_edges_wsen": [
+                -3000.0,
+                -5546873.537373896,
+                21000.0,
+                -5528873.537373896
+              ],
+              "scanning_mode": 64,
+              "shape_yx": [
+                3,
+                4
+              ],
+              "spacing_xy": [
+                6000.0,
+                6000.0
+              ],
+              "units": "m"
+            },
+            "id": "urn:hmc:crs:d7c8cab773d27e01322689c79ad5e9da256ddfa402a79c712ea3aef113707049",
+            "prime_meridian_degrees": 0.0,
+            "proj": "+proj=stere +lat_0=90 +lat_ts=60 +lon_0=10 +a=6371229 +b=6371229 +pm=0 +units=m",
+            "rotation": null,
+            "schema": "hmc-grib-crs/1",
+            "semi_major_m": 6371229.0,
+            "semi_minor_m": 6371229.0,
+            "sha256": "d7c8cab773d27e01322689c79ad5e9da256ddfa402a79c712ea3aef113707049",
+            "template": 20,
+            "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Polar Stereographic (variant B)\",ID[\"EPSG\",9829]],PARAMETER[\"Latitude of standard parallel\",60,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8832]],PARAMETER[\"Longitude of origin\",10,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8833]],PARAMETER[\"False easting\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]]],CS[Cartesian,2],AXIS[\"(E)\",south,MERIDIAN[90,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",south,MERIDIAN[180,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]"
+          },
+          "synthetic_fixture": "synthetic-crs"
+        },
+        "spatial_selection": "nearest-native-cell",
+        "temporal_selection": "exact",
+        "units": "K",
+        "valid_time": "2026-10-16T01:00:00Z",
+        "value": 285.0
+      },
+      "gis_checks": {
+        "capability_layers": [
+          "g616e7911faeacd1f89141b1b"
+        ],
+        "capability_times": [
+          "2026-10-16T01:00:00.000Z"
+        ],
+        "granule_counts_positive_negative": [
+          1,
+          0
+        ],
+        "identified_value_K": 286.0,
+        "map_bytes": 1186
+      },
+      "gis_derivative": {
+        "bounds": [
+          9.968910968842346,
+          40.165519344980346,
+          10.217622192946038,
+          40.308557992795166
+        ],
+        "crs": "EPSG:4326",
+        "derived": true,
+        "resampling": "nearest-native-cell",
+        "shape_yx": [
+          3,
+          4
+        ],
+        "source_crs": "urn:hmc:crs:d7c8cab773d27e01322689c79ad5e9da256ddfa402a79c712ea3aef113707049"
+      },
+      "gis_probe": {
+        "position": [
+          10.124355483907156,
+          40.23703866888774
+        ],
+        "value": 286.0
+      }
+    },
+    {
+      "template": 30,
+      "selection": "026036459ef0866ab3950e55e057e10f3ef9a81a5e8dc142a16dc9ae2526dadf.b5a2984fdbf303b1715b15eb427655cc7ea1f2dd6c543490d414621fa8c55725",
+      "point": {
+        "batch": "hour-01.zarr",
+        "cell": {
+          "column": 1,
+          "lat": 6000.0,
+          "lon": 6000.0,
+          "row": 1
+        },
+        "coordinate_order": [
+          "x",
+          "y"
+        ],
+        "crs": "urn:hmc:crs:430c580d66912d50e328a258617c9aa3e0d6e934c84cf2bf7d9d7e6745624f9c",
+        "field": "T_G:surface:0",
+        "identity": {
+          "contract": "hmc-temperature-tile/3",
+          "encoding_version": "hmc-temperature-tile/3/f32",
+          "engine": "project-bilinear/1",
+          "field": "T_G:surface:0",
+          "level": 0,
+          "matrix": "WebMercatorQuad",
+          "member": null,
+          "model": "GRIB-78-2",
+          "native_grid_sha256": "9f2cbbd1a33b654eec988933971829d245120f715ae1217477bf7569a5dd9ee8",
+          "publication_job": "9351f32c-ee9b-4c7e-8c8e-77f863b5ef34",
+          "resampling": "bilinear",
+          "revision": "026036459ef0866ab3950e55e057e10f3ef9a81a5e8dc142a16dc9ae2526dadf",
+          "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+          "valid_time": "2026-10-16T01:00:00Z"
+        },
+        "method": "native_cell",
+        "query_position": {
+          "crs": "urn:hmc:crs:430c580d66912d50e328a258617c9aa3e0d6e934c84cf2bf7d9d7e6745624f9c",
+          "lat": 5999.999999999958,
+          "lon": 5999.999999999912
+        },
+        "reason": null,
+        "revision": "026036459ef0866ab3950e55e057e10f3ef9a81a5e8dc142a16dc9ae2526dadf",
+        "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+        "selection": "026036459ef0866ab3950e55e057e10f3ef9a81a5e8dc142a16dc9ae2526dadf.b5a2984fdbf303b1715b15eb427655cc7ea1f2dd6c543490d414621fa8c55725",
+        "source": {
+          "message_sha256": "c8a3d3939665b5e908492e711fd34a45f4430697226ab186dc0e3167952865f3",
+          "name": "synthetic-template-30.grb",
+          "processing_version": "t5.1",
+          "sha256": "c8a3d3939665b5e908492e711fd34a45f4430697226ab186dc0e3167952865f3",
+          "source_crs": {
+            "configuration": {
+              "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+              "values": {
+                "coordinate_height_m": 0.0,
+                "earth_radius_m": 6371229.0,
+                "geocentric_translation_m": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "prime_meridian_degrees": 0.0,
+                "schema": "hmc-grib-crs-defaults/1"
+              }
+            },
+            "datum_mode": "explicit-geocentric",
+            "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+            "defaults_used": [
+              "coordinate_height_m",
+              "geocentric_translation_m",
+              "prime_meridian_degrees"
+            ],
+            "earth_shape_code": 6,
+            "grid": {
+              "outer_edges_wsen": [
+                -3000.0,
+                -3000.0,
+                21000.0,
+                15000.0
+              ],
+              "scanning_mode": 64,
+              "shape_yx": [
+                3,
+                4
+              ],
+              "spacing_xy": [
+                6000.0,
+                6000.0
+              ],
+              "units": "m"
+            },
+            "id": "urn:hmc:crs:430c580d66912d50e328a258617c9aa3e0d6e934c84cf2bf7d9d7e6745624f9c",
+            "prime_meridian_degrees": 0.0,
+            "proj": "+proj=lcc +lat_0=40 +lon_0=10 +lat_1=30 +lat_2=60 +a=6371229 +b=6371229 +pm=0 +units=m",
+            "rotation": null,
+            "schema": "hmc-grib-crs/1",
+            "semi_major_m": 6371229.0,
+            "semi_minor_m": 6371229.0,
+            "sha256": "430c580d66912d50e328a258617c9aa3e0d6e934c84cf2bf7d9d7e6745624f9c",
+            "template": 30,
+            "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Lambert Conic Conformal (2SP)\",ID[\"EPSG\",9802]],PARAMETER[\"Latitude of false origin\",40,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8821]],PARAMETER[\"Longitude of false origin\",10,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8822]],PARAMETER[\"Latitude of 1st standard parallel\",30,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Latitude of 2nd standard parallel\",60,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8824]],PARAMETER[\"Easting at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8826]],PARAMETER[\"Northing at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8827]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]"
+          },
+          "synthetic_fixture": "synthetic-crs"
+        },
+        "spatial_selection": "nearest-native-cell",
+        "temporal_selection": "exact",
+        "units": "K",
+        "valid_time": "2026-10-16T01:00:00Z",
+        "value": 285.0
+      },
+      "gis_checks": {
+        "capability_layers": [
+          "g0c0bf294bc91b57b760c1d32"
+        ],
+        "capability_times": [
+          "2026-10-16T01:00:00.000Z"
+        ],
+        "granule_counts_positive_negative": [
+          1,
+          0
+        ],
+        "identified_value_K": 286.0,
+        "map_bytes": 1186
+      },
+      "gis_derivative": {
+        "bounds": [
+          9.963620531538272,
+          40.16146505104689,
+          10.254655438147594,
+          40.328808990165626
+        ],
+        "crs": "EPSG:4326",
+        "derived": true,
+        "resampling": "nearest-native-cell",
+        "shape_yx": [
+          3,
+          4
+        ],
+        "source_crs": "urn:hmc:crs:430c580d66912d50e328a258617c9aa3e0d6e934c84cf2bf7d9d7e6745624f9c"
+      },
+      "gis_probe": {
+        "position": [
+          10.145517348169099,
+          40.245137020606286
+        ],
+        "value": 286.0
+      }
+    },
+    {
+      "template": 31,
+      "selection": "dd78f05772da13ebe1d43a938326994f9e65b8d8d0f12c10b4d46da7c0bdd68d.c3f051c21142d220264c84882fddb3c56eb2c72a1353556364fe096876f7d8d5",
+      "point": {
+        "batch": "hour-01.zarr",
+        "cell": {
+          "column": 1,
+          "lat": 6000.0,
+          "lon": 6000.0,
+          "row": 1
+        },
+        "coordinate_order": [
+          "x",
+          "y"
+        ],
+        "crs": "urn:hmc:crs:80a5c6b1bb7b3003dfd2fc0c3bf72fc4394435eb4819460345f863e156d2578e",
+        "field": "T_G:surface:0",
+        "identity": {
+          "contract": "hmc-temperature-tile/3",
+          "encoding_version": "hmc-temperature-tile/3/f32",
+          "engine": "project-bilinear/1",
+          "field": "T_G:surface:0",
+          "level": 0,
+          "matrix": "WebMercatorQuad",
+          "member": null,
+          "model": "GRIB-78-2",
+          "native_grid_sha256": "1280c9e42bfac150c089328958ee3d4689cebce30b73a2c8e39c483c4453b51d",
+          "publication_job": "65806efa-eab1-4d9a-9653-b657c2b20135",
+          "resampling": "bilinear",
+          "revision": "dd78f05772da13ebe1d43a938326994f9e65b8d8d0f12c10b4d46da7c0bdd68d",
+          "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+          "valid_time": "2026-10-16T01:00:00Z"
+        },
+        "method": "native_cell",
+        "query_position": {
+          "crs": "urn:hmc:crs:80a5c6b1bb7b3003dfd2fc0c3bf72fc4394435eb4819460345f863e156d2578e",
+          "lat": 5999.999999999958,
+          "lon": 5999.999999999914
+        },
+        "reason": null,
+        "revision": "dd78f05772da13ebe1d43a938326994f9e65b8d8d0f12c10b4d46da7c0bdd68d",
+        "run": "GRIB-78-2/2026-10-16T00:00:00Z",
+        "selection": "dd78f05772da13ebe1d43a938326994f9e65b8d8d0f12c10b4d46da7c0bdd68d.c3f051c21142d220264c84882fddb3c56eb2c72a1353556364fe096876f7d8d5",
+        "source": {
+          "message_sha256": "3dbf658e2d8c1e9e42c68cab9125a7544515c2bddd5cc2ece0649f409a974722",
+          "name": "synthetic-template-31.grb",
+          "processing_version": "t5.1",
+          "sha256": "3dbf658e2d8c1e9e42c68cab9125a7544515c2bddd5cc2ece0649f409a974722",
+          "source_crs": {
+            "configuration": {
+              "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+              "values": {
+                "coordinate_height_m": 0.0,
+                "earth_radius_m": 6371229.0,
+                "geocentric_translation_m": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "prime_meridian_degrees": 0.0,
+                "schema": "hmc-grib-crs-defaults/1"
+              }
+            },
+            "datum_mode": "explicit-geocentric",
+            "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+            "defaults_used": [
+              "coordinate_height_m",
+              "geocentric_translation_m",
+              "prime_meridian_degrees"
+            ],
+            "earth_shape_code": 6,
+            "grid": {
+              "outer_edges_wsen": [
+                -3000.0,
+                -3000.0,
+                21000.0,
+                15000.0
+              ],
+              "scanning_mode": 64,
+              "shape_yx": [
+                3,
+                4
+              ],
+              "spacing_xy": [
+                6000.0,
+                6000.0
+              ],
+              "units": "m"
+            },
+            "id": "urn:hmc:crs:80a5c6b1bb7b3003dfd2fc0c3bf72fc4394435eb4819460345f863e156d2578e",
+            "prime_meridian_degrees": 0.0,
+            "proj": "+proj=aea +lat_0=40 +lon_0=10 +lat_1=30 +lat_2=60 +a=6371229 +b=6371229 +pm=0 +units=m",
+            "rotation": null,
+            "schema": "hmc-grib-crs/1",
+            "semi_major_m": 6371229.0,
+            "semi_minor_m": 6371229.0,
+            "sha256": "80a5c6b1bb7b3003dfd2fc0c3bf72fc4394435eb4819460345f863e156d2578e",
+            "template": 31,
+            "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Albers Equal Area\",ID[\"EPSG\",9822]],PARAMETER[\"Latitude of false origin\",40,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8821]],PARAMETER[\"Longitude of false origin\",10,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8822]],PARAMETER[\"Latitude of 1st standard parallel\",30,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Latitude of 2nd standard parallel\",60,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8824]],PARAMETER[\"Easting at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8826]],PARAMETER[\"Northing at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8827]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]"
+          },
+          "synthetic_fixture": "synthetic-crs"
+        },
+        "spatial_selection": "nearest-native-cell",
+        "temporal_selection": "exact",
+        "units": "K",
+        "valid_time": "2026-10-16T01:00:00Z",
+        "value": 285.0
+      },
+      "gis_checks": {
+        "capability_layers": [
+          "g04e2de314bc6b4ee3a4f021c"
+        ],
+        "capability_times": [
+          "2026-10-16T01:00:00.000Z"
+        ],
+        "granule_counts_positive_negative": [
+          1,
+          0
+        ],
+        "identified_value_K": 286.0,
+        "map_bytes": 1186
+      },
+      "gis_derivative": {
+        "bounds": [
+          9.963706171517678,
+          40.16306629259112,
+          10.254056038478483,
+          40.320921808611416
+        ],
+        "crs": "EPSG:4326",
+        "derived": true,
+        "resampling": "nearest-native-cell",
+        "shape_yx": [
+          3,
+          4
+        ],
+        "source_crs": "urn:hmc:crs:80a5c6b1bb7b3003dfd2fc0c3bf72fc4394435eb4819460345f863e156d2578e"
+      },
+      "gis_probe": {
+        "position": [
+          10.145174838368185,
+          40.24199405060128
+        ],
+        "value": 286.0
+      }
+    }
+  ]
+}

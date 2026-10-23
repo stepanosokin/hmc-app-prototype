@@ -11,6 +11,7 @@ Building a self-hosted weather map and external GIS/API service using organizati
 - [OGC API alternatives comparison](docs/research/ogc-api-alternatives.md)
 - [Forecast decoder, reproducible commands and A1 evidence](docs/decoder.md)
 - [Zarr/COG round trip, shared sampler and A2 evidence](docs/storage.md)
+- [CRS из GRIB2 и единый файл значений по умолчанию](docs/grib-crs.md)
 - [M1 numerical-adapter comparison, approved envelope and reproduction](docs/adapter-comparison.md)
 - [T3 numerical selection and measured evidence](docs/evidence/t3/validation.md)
 - [Numeric browser tiles and GPU rendering decision](docs/adr/0002-numeric-browser-tiles.md)

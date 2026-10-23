@@ -1,0 +1,20 @@
+test_protected_consistency_policy_and_expiry (test_publication_integrated.ProtectedPublication.test_protected_consistency_policy_and_expiry) ... FAIL
+
+======================================================================
+FAIL: test_protected_consistency_policy_and_expiry (test_publication_integrated.ProtectedPublication.test_protected_consistency_policy_and_expiry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_integrated.py", line 225, in test_protected_consistency_policy_and_expiry
+    self.publish(gap, '2,3')
+  File "/app/tests/test_publication_integrated.py", line 165, in publish
+    collections = self.get('/org/ogc/collections').json()['collections']
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_publication_integrated.py", line 38, in get
+    self.assertEqual(response.status_code, expected, path)
+AssertionError: 413 != 200 : /org/ogc/collections
+
+----------------------------------------------------------------------
+Ran 1 test in 20.480s
+
+FAILED (failures=1)
+

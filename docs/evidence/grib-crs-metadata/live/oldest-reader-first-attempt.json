@@ -1,0 +1,9 @@
+{
+  "phase": "post-deployment verification",
+  "status": "failed",
+  "http_status": 410,
+  "reason": "A pre-existing older control revision exceeded superseded_count=64 after 24 new revisions; no tombstone or file deletion occurred.",
+  "previous_current_revision_http_status": 200,
+  "resolution": "Temporarily raise count to 72 for comparison, restore original policy exactly; verify previous current revision separately.",
+  "source": "recorded from HTTP and PostgreSQL observations"
+}

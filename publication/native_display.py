@@ -17,6 +17,20 @@ BLOCK = CONTRACT['tile_size'][0]
 SIZE = CONTRACT['stored_size'][0]
 HEIGHT, WIDTH = CONTRACT['supported_grid']['shape_yx']
 COLUMNS, ROWS = (WIDTH+BLOCK-1)//BLOCK, (HEIGHT+BLOCK-1)//BLOCK
+CONTRACT_V2_PATH = Path(__file__).with_name('native-display.v2.json')
+CONTRACT_V2 = json.loads(CONTRACT_V2_PATH.read_bytes())
+CONTRACT_V2_SHA256 = hashlib.sha256(CONTRACT_V2_PATH.read_bytes()).hexdigest()
+
+
+def profile(spec: dict | None) -> tuple[dict, str, int]:
+    if spec:
+        from decoder.grib_crs import public_id
+        grid = spec['grid']
+        if (public_id(spec) != CONTRACT['crs'] or grid['shape_yx'] != [HEIGHT, WIDTH]
+                or grid['spacing_xy'] != CONTRACT['supported_grid']['spacing_degrees_xy']
+                or grid['outer_edges_wsen'] != CONTRACT['supported_grid']['outer_cell_edges_wsen']):
+            return CONTRACT_V2, CONTRACT_V2_SHA256, 2
+    return CONTRACT, CONTRACT_SHA256, 1
 
 
 def source(manifest: dict) -> tuple[Path, dict]:
@@ -28,7 +42,7 @@ def source(manifest: dict) -> tuple[Path, dict]:
                     if item['field'] == identity['field']
                     and item['metadata']['valid_time'] == identity['valid_time'])
         grid = item['metadata']['grid']
-        if (any(grid[name] != expected for name, expected in CONTRACT['supported_grid'].items())
+        if ((not item['metadata'].get('source_crs') and any(grid[name] != expected for name, expected in CONTRACT['supported_grid'].items()))
                 or item['metadata']['native_grid_sha256'] != identity['native_grid_sha256']):
             raise ValueError('unsupported native display grid')
         for name, expected in numerical.manifest['assets'].items():
@@ -47,14 +61,15 @@ def key(manifest: dict, item: dict, *part) -> tuple:
             canonical(grid), *part)
 
 
-def validate_address(column: int, row: int) -> None:
-    if not (0 <= column < COLUMNS and 0 <= row < ROWS):
-        raise ValueError('Блок вне нативной сетки: column 0..5, row 0..2.')
+def validate_address(column: int, row: int, shape: list | None = None) -> None:
+    height, width = shape or [HEIGHT, WIDTH]
+    if not (0 <= column < (width+BLOCK-1)//BLOCK and 0 <= row < (height+BLOCK-1)//BLOCK):
+        raise ValueError(f'Блок вне нативной сетки: column 0..{(width+BLOCK-1)//BLOCK-1}, row 0..{(height+BLOCK-1)//BLOCK-1}.')
 
 
 def render(root: Path, item: dict, column: int, row: int) -> bytes:
-    validate_address(column, row)
     height, width = item['metadata']['grid']['shape_yx']
+    validate_address(column, row, [height, width])
     x0, y0 = column * BLOCK - 1, row * BLOCK - 1
     left, bottom, right, top = max(0, x0), max(0, y0), min(width, x0+SIZE), min(height, y0+SIZE)
     group = zarr.open_group(str(asset_path(root, item['zarr'])), mode='r', zarr_format=2)
@@ -74,17 +89,30 @@ def render(root: Path, item: dict, column: int, row: int) -> bytes:
 
 
 def metadata(root: Path, item: dict) -> bytes:
+    contract, contract_hash, _ = profile(item['metadata'].get('source_crs'))
+    height, width = item['metadata']['grid']['shape_yx']
+    columns, rows = (width+BLOCK-1)//BLOCK, (height+BLOCK-1)//BLOCK
+    if columns*rows > contract['limits']['blocks']:
+        raise ValueError('Сетка превышает лимит числовых блоков браузера')
     probes = []
-    for column, row in CONTRACT['readiness']['representatives']:
+    representatives = sorted({(min(c,columns-1),min(r,rows-1)) for c,r in CONTRACT['readiness']['representatives']})
+    for column, row in representatives:
         payload = render(root, item, column, row)
         if payload != render(root, item, column, row):
             raise ValueError('native readiness is not deterministic')
         probes.append({'column': column, 'row': row, 'sha256': hashlib.sha256(payload).hexdigest()})
     left = np.frombuffer(render(root, item, 0, 0)[:SIZE*SIZE*4], dtype='<f4').reshape(SIZE, SIZE)
-    right = np.frombuffer(render(root, item, 1, 0)[:SIZE*SIZE*4], dtype='<f4').reshape(SIZE, SIZE)
-    if not np.array_equal(left[:, -2:], right[:, :2]):
-        raise ValueError('native representative halo mismatch')
-    return canonical({**CONTRACT, 'contract_sha256': CONTRACT_SHA256,
+    if columns > 1:
+        right = np.frombuffer(render(root, item, 1, 0)[:SIZE*SIZE*4], dtype='<f4').reshape(SIZE, SIZE)
+        if not np.array_equal(left[:, -2:], right[:, :2]):
+            raise ValueError('native representative halo mismatch')
+    spec = item['metadata'].get('source_crs')
+    extra = {}
+    if spec:
+        from decoder.grib_crs import public_id
+        extra = {'source_crs': spec, 'crs': public_id(spec), 'crs_definition': spec['proj']}
+    return canonical({**contract, 'contract_sha256': contract_hash,
         'matrix': CONTRACT['matrix_prefix'] + item['metadata']['native_grid_sha256'],
-        'grid': item['metadata']['grid'], 'columns': [0, COLUMNS-1], 'rows': [0, ROWS-1],
+        'grid': item['metadata']['grid'], 'columns': [0, columns-1], 'rows': [0, rows-1],
+        **extra,
         'representative_blocks': probes, 'readiness_state': 'ready'})

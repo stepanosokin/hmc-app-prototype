@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/app/publication/verify_grib_crs.py", line 88, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/app/publication/verify_grib_crs.py", line 78, in main
+    old=get('/ogc/collections/'+args.old_selection).json()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/publication/verify_grib_crs.py", line 18, in get
+    result.raise_for_status()
+  File "/usr/local/lib/python3.12/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 410 Client Error: GONE for url: http://gateway:8000/ogc/collections/003b182954833ed70ed57e23246cc4425490ebd289807696fc70878358d1f23f.129497bb9e43b78dde412cedd952de9bc64ffe95ca67d83d71fcb413b39ecb1d
+

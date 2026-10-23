@@ -1,0 +1,153 @@
+﻿**********************
+Начало записи сценария Windows PowerShell
+Время начала: 20261023125855
+Имя пользователя: STAFF\s.osokin
+Запуск от имени пользователя: STAFF\s.osokin
+Имя конфигурации: 
+Компьютер: N626798 (Microsoft Windows NT 10.0.26200.0)
+Ведущее приложение: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File tools/run-weather-viewer.ps1 -Project hmc-publication-t13-grib49-final3 -Port 8194 -ViewerPort 8195 -Image hmc-publication:grib49-final -WithEdge -Final
+ИД процесса: 40664
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+{"phase":"start","files":218,"status":"passed"}
+ Network hmc-publication-t13-grib49-final3_publication  Creating
+ Network hmc-publication-t13-grib49-final3_publication  Created
+ Network hmc-publication-t13-grib49-final3_edge  Creating
+ Network hmc-publication-t13-grib49-final3_edge  Created
+ Volume hmc-publication-t13-grib49-final3_postgres  Creating
+ Volume hmc-publication-t13-grib49-final3_postgres  Created
+ Volume hmc-publication-t13-grib49-final3_geoserver  Creating
+ Volume hmc-publication-t13-grib49-final3_geoserver  Created
+ Volume hmc-publication-t13-grib49-final3_assets  Creating
+ Volume hmc-publication-t13-grib49-final3_assets  Created
+ Container hmc-publication-t13-grib49-final3-db-1  Creating
+ Container hmc-publication-t13-grib49-final3-viewer-1  Creating
+ Container hmc-publication-t13-grib49-final3-gateway-1  Creating
+ Container hmc-publication-t13-grib49-final3-api-1  Creating
+ Container hmc-publication-t13-grib49-final3-geoserver-1  Creating
+ Container hmc-publication-t13-grib49-final3-gateway-1  Created
+ Container hmc-publication-t13-grib49-final3-api-1  Created
+ Container hmc-publication-t13-grib49-final3-db-1  Created
+ Container hmc-publication-t13-grib49-final3-viewer-1  Created
+ Container hmc-publication-t13-grib49-final3-geoserver-1  Created
+ Container hmc-publication-t13-grib49-final3-viewer-1  Starting
+ Container hmc-publication-t13-grib49-final3-api-1  Starting
+ Container hmc-publication-t13-grib49-final3-geoserver-1  Starting
+ Container hmc-publication-t13-grib49-final3-db-1  Starting
+ Container hmc-publication-t13-grib49-final3-gateway-1  Starting
+ Container hmc-publication-t13-grib49-final3-api-1  Started
+ Container hmc-publication-t13-grib49-final3-geoserver-1  Started
+ Container hmc-publication-t13-grib49-final3-db-1  Started
+ Container hmc-publication-t13-grib49-final3-gateway-1  Started
+ Container hmc-publication-t13-grib49-final3-viewer-1  Started
+Success: no issues found in 68 source files
+befe036c-ebd4-4a3b-b265-c2f089208656
+ Container hmc-publication-t13-grib49-final3-api-1  Restarting
+ Container hmc-publication-t13-grib49-final3-gateway-1  Restarting
+ Container hmc-publication-t13-grib49-final3-api-1  Started
+ Container hmc-publication-t13-grib49-final3-gateway-1  Started
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t13\\hmc-publication-t13-grib49-final3\\browser","status":"passed","cleanup":{"page_released":true,"browser_stopped":true,"profile_removed":true,"browser_processes_remaining":0}}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "views": [{"viewport": [1440, 900], "mode": "mercator", "scope": "map", "valid_samples": 2576, "max_abs_error_K": 0.00148530152495141, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 2240, "max_abs_error_K": 0.00234114995055279, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "EPSG:3576", "scope": "map", "valid_samples": 775, "max_abs_error_K": 0.002420143563313104, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 1320, "max_abs_error_K": 0.001585428273301659, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "mercator", "scope": "map", "valid_samples": 594, "max_abs_error_K": 0.0016956525120122024, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 318, "max_abs_error_K": 0.002175079111964351, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "EPSG:3576", "scope": "map", "valid_samples": 673, "max_abs_error_K": 0.0008919911201132891, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 826, "max_abs_error_K": 0.0014619883456816751, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "mercator", "scope": "map", "valid_samples": 480, "max_abs_error_K": 0.0015129990882769562, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 266, "max_abs_error_K": 0.0019742660674069157, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "EPSG:3576", "scope": "map", "valid_samples": 523, "max_abs_error_K": 0.0005999856027187889, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 654, "max_abs_error_K": 0.001730183567531185, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "mercator", "scope": "map", "valid_samples": 396, "max_abs_error_K": 0.0007425893316508336, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 359, "max_abs_error_K": 0.0007116532071904658, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "EPSG:3576", "scope": "map", "valid_samples": 122, "max_abs_error_K": 0.00029353680281474226, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 209, "max_abs_error_K": 0.001107149035249222, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}], "max_abs_error_K": 0.002420143563313104, "mask_differences": 0, "geometry_max_error_pixels": 5.115907697472721e-13, "dom_layout_max_error_pixels": 0.020691360916224106, "dom_layout_tolerance_pixels": 0.1, "synthetic_projection_error_m": 1.7272198120063829, "synthetic_scope": "projection-only pole/dateline/horizon/cut probes, not forecast coverage"}
+{"status": "passed", "canonical_picks": 12}
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t13\\hmc-publication-t13-grib49-final3\\browser-edge","status":"passed","cleanup":{"page_released":true,"browser_stopped":true,"profile_removed":true,"browser_processes_remaining":0}}
+{"status": "passed", "source_sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a", "views": [{"viewport": [1440, 900], "mode": "mercator", "scope": "map", "valid_samples": 2576, "max_abs_error_K": 0.00148530152495141, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 2240, "max_abs_error_K": 0.00234114995055279, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "EPSG:3576", "scope": "map", "valid_samples": 775, "max_abs_error_K": 0.002420143563313104, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [1440, 900], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 1316, "max_abs_error_K": 0.001504458459749003, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "mercator", "scope": "map", "valid_samples": 594, "max_abs_error_K": 0.0016956525120122024, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 318, "max_abs_error_K": 0.002175079111964351, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "EPSG:3576", "scope": "map", "valid_samples": 673, "max_abs_error_K": 0.0008919911201132891, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [390, 844], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 826, "max_abs_error_K": 0.001839129165034592, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "mercator", "scope": "map", "valid_samples": 480, "max_abs_error_K": 0.0015129990882769562, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 266, "max_abs_error_K": 0.0019742660674069157, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "EPSG:3576", "scope": "map", "valid_samples": 523, "max_abs_error_K": 0.0005999856027187889, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [360, 740], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 654, "max_abs_error_K": 0.00160124548716567, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "mercator", "scope": "map", "valid_samples": 396, "max_abs_error_K": 0.0007425893316508336, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 359, "max_abs_error_K": 0.0007116532071904658, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "EPSG:3576", "scope": "map", "valid_samples": 122, "max_abs_error_K": 0.00029353680281474226, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}, {"viewport": [640, 360], "mode": "hmc:orthographic", "scope": "map", "valid_samples": 209, "max_abs_error_K": 0.0012346644768967963, "numeric_scope": "temperature samples", "server_max_abs_error_K": 0.0}], "max_abs_error_K": 0.002420143563313104, "mask_differences": 0, "geometry_max_error_pixels": 5.115907697472721e-13, "dom_layout_max_error_pixels": 0.020691360916224106, "dom_layout_tolerance_pixels": 0.1, "synthetic_projection_error_m": 1.6476029491543485, "synthetic_scope": "projection-only pole/dateline/horizon/cut probes, not forecast coverage"}
+{"status": "passed", "canonical_picks": 12}
+{"directory":"D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype\\data\\reports\\t13\\hmc-publication-t13-grib49-final3\\browser-unavailable","status":"passed","cleanup":{"page_released":true,"browser_stopped":true,"profile_removed":true,"browser_processes_remaining":0}}
+test_actual_sample_decodes_all_hours_and_native_cell_positions (test_decoder.DecoderContract.test_actual_sample_decodes_all_hours_and_native_cell_positions) ... ok
+test_empty_non_grib_and_missing_hours_fail (test_decoder.DecoderContract.test_empty_non_grib_and_missing_hours_fail) ... ok
+test_failure_atomically_replaces_previous_success_report (test_decoder.DecoderContract.test_failure_atomically_replaces_previous_success_report) ... ok
+test_header_mutations_never_pass_as_sample (test_decoder.DecoderContract.test_header_mutations_never_pass_as_sample) ... ok
+test_truncated_input_fails_without_values (test_decoder.DecoderContract.test_truncated_input_fails_without_values) ... ok
+test_unsupported_packing_has_diagnostic_without_values (test_decoder.DecoderContract.test_unsupported_packing_has_diagnostic_without_values) ... ok
+test_configuration_is_frozen_in_resolved_crs (test_grib_crs.GribCRS.test_configuration_is_frozen_in_resolved_crs) ... ok
+test_explicit_scaled_earth_axes_and_ellipsoid_codes (test_grib_crs.GribCRS.test_explicit_scaled_earth_axes_and_ellipsoid_codes) ... ok
+test_missing_required_projection_and_corrupt_config_fail (test_grib_crs.GribCRS.test_missing_required_projection_and_corrupt_config_fail) ... ok
+test_non_inventory_surface_message_reads_producer_date_and_packing (test_grib_crs.GribCRS.test_non_inventory_surface_message_reads_producer_date_and_packing) ... ok
+test_nonzero_configured_geodetic_parameters_roundtrip (test_grib_crs.GribCRS.test_nonzero_configured_geodetic_parameters_roundtrip) ... ok
+test_producer_rotated_ena_metadata (test_grib_crs.GribCRS.test_producer_rotated_ena_metadata) ... ok
+test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) ... ok
+test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) ... /usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+ok
+test_rotation_against_independent_cartesian_basis (test_grib_crs.GribCRS.test_rotation_against_independent_cartesian_basis) ... ok
+test_standard_earth_codes_override_defaults (test_grib_crs.GribCRS.test_standard_earth_codes_override_defaults) ... ok
+test_wgs84_horizontal_datum_overrides_geodetic_defaults (test_grib_crs.GribCRS.test_wgs84_horizontal_datum_overrides_geodetic_defaults) ... ok
+test_all_blocks_equal_independent_grib_and_share_halos (test_native_display.NativeDisplay.test_all_blocks_equal_independent_grib_and_share_halos) ... skipped 'requires isolated native display gateway'
+test_gateway_native_access_and_validation (test_native_display.NativeDisplay.test_gateway_native_access_and_validation) ... skipped 'requires isolated native display gateway'
+test_native_metadata_and_first_cell_preserve_selection (test_native_display.NativeDisplay.test_native_metadata_and_first_cell_preserve_selection) ... skipped 'requires isolated native display gateway'
+test_warm_storage_loss_expiry_and_deadline (test_native_display.NativeDisplay.test_warm_storage_loss_expiry_and_deadline) ... skipped 'requires isolated native display gateway'
+test_backend_admin_assets_and_near_match_routes_are_not_forwarded (test_publication_access.GatewayBoundary.test_backend_admin_assets_and_near_match_routes_are_not_forwarded) ... ok
+test_missing_key_is_challenged_before_any_backend_request (test_publication_access.GatewayBoundary.test_missing_key_is_challenged_before_any_backend_request) ... ok
+test_url_secrets_and_ambiguous_headers_are_rejected_without_echo (test_publication_access.GatewayBoundary.test_url_secrets_and_ambiguous_headers_are_rejected_without_echo) ... ok
+test_operator_and_gateway_policies (test_publication_access.OrganizationAccess.test_operator_and_gateway_policies) ... skipped 'requires isolated T8 real Compose services'
+test_restart_and_secret_free_evidence (test_publication_access.OrganizationAccess.test_restart_and_secret_free_evidence) ... skipped 'requires isolated T8 real Compose services'
+test_legacy_usage_upgrade_preserves_live_public_reader_and_accounting (test_publication_budgets.UsageBudgets.test_legacy_usage_upgrade_preserves_live_public_reader_and_accounting) ... skipped 'requires isolated T9 actual-sample services'
+test_rate_before_warm_cache_and_organization_identity (test_publication_budgets.UsageBudgets.test_rate_before_warm_cache_and_organization_identity) ... skipped 'requires isolated T9 actual-sample services'
+test_resources_demo_cache_rejections_and_retention (test_publication_budgets.UsageBudgets.test_resources_demo_cache_rejections_and_retention) ... skipped 'requires isolated T9 actual-sample services'
+test_missing_configuration_blocks_new_jobs_but_preserves_reads (test_publication_grib_crs.PublishedGribCRS.test_missing_configuration_blocks_new_jobs_but_preserves_reads) ... skipped 'requires isolated CRS publication services'
+test_six_templates_keep_native_cells_and_publish_correct_geometry (test_publication_grib_crs.PublishedGribCRS.test_six_templates_keep_native_cells_and_publish_correct_geometry) ... skipped 'requires isolated CRS publication services'
+test_catalogue_point_numeric_tile_and_scoped_wms_agree (test_publication_http.PublishedSelection.test_catalogue_point_numeric_tile_and_scoped_wms_agree) ... ok
+test_failed_readiness_and_real_indexing_preserve_published_selection (test_publication_http.PublishedSelection.test_failed_readiness_and_real_indexing_preserve_published_selection) ... skipped 'failure runner supplies durable job IDs'
+test_post_publication_gis_exception_is_a_sanitized_service_failure (test_publication_http.PublishedSelection.test_post_publication_gis_exception_is_a_sanitized_service_failure) ... ok
+test_staging_backend_admin_and_unpublished_selection_are_hidden (test_publication_http.PublishedSelection.test_staging_backend_admin_and_unpublished_selection_are_hidden) ... ok
+test_protected_consistency_policy_and_expiry (test_publication_integrated.ProtectedPublication.test_protected_consistency_policy_and_expiry) ... skipped 'requires isolated T12 Compose services'
+test_catalogue_hierarchy_openapi_and_protected_profile (test_publication_numerical.NumericalContract.test_catalogue_hierarchy_openapi_and_protected_profile) ... ok
+test_discovery_and_exact_position_share_native_point (test_publication_numerical.NumericalContract.test_discovery_and_exact_position_share_native_point) ... ok
+test_position_budget_rejection_preserves_status_and_retry (test_publication_numerical.NumericalContract.test_position_budget_rejection_preserves_status_and_retry) ... ok
+test_position_validation_axes_null_and_exact_selection (test_publication_numerical.NumericalContract.test_position_validation_axes_null_and_exact_selection) ... ok
+test_synthetic_native_nodata_is_null_through_published_gateway (test_publication_numerical.NumericalContract.test_synthetic_native_nodata_is_null_through_published_gateway) ... /usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+ok
+test_scoped_desktop_contract (test_publication_qgis.QgisWms.test_scoped_desktop_contract) ... skipped 'requires isolated T11 Compose services'
+test_a_recoverable_delivery_is_idempotent (test_publication_recovery.Recovery.test_a_recoverable_delivery_is_idempotent) ... skipped 'requires isolated T6 Compose services'
+test_b_bad_deliveries_are_quarantined_with_original_bytes (test_publication_recovery.Recovery.test_b_bad_deliveries_are_quarantined_with_original_bytes) ... skipped 'requires isolated T6 Compose services'
+test_c_capture_crash_is_durable_and_submission_resumes (test_publication_recovery.Recovery.test_c_capture_crash_is_durable_and_submission_resumes) ... skipped 'requires isolated T6 Compose services'
+test_d_derivative_failures_retry_with_bounded_attempts (test_publication_recovery.Recovery.test_d_derivative_failures_retry_with_bounded_attempts) ... skipped 'requires isolated T6 Compose services'
+test_e_partial_job_collects_only_abandoned_hours (test_publication_recovery.Recovery.test_e_partial_job_collects_only_abandoned_hours) ... skipped 'requires isolated T6 Compose services'
+test_worker_crashes_preserve_readers_and_retry_without_duplicates (test_publication_recovery.Recovery.test_worker_crashes_preserve_readers_and_retry_without_duplicates) ... skipped 'requires isolated T6 Compose services'
+test_z_lazy_tile_failures_retry_same_selection (test_publication_recovery.Recovery.test_z_lazy_tile_failures_retry_same_selection) ... skipped 'requires isolated T6 Compose services'
+test_reference_time_controls_all_valid_times_and_fixed_demo_pin (test_publication_retention.RetentionBoundaries.test_reference_time_controls_all_valid_times_and_fixed_demo_pin) ... ok
+test_superseded_grace_budgets_and_tombstones_are_bounded (test_publication_retention.RetentionBoundaries.test_superseded_grace_budgets_and_tombstones_are_bounded) ... ok
+test_00_upgrade_mixed_legacy_and_incremental_publications (test_publication_retention.RetentionGateway.test_00_upgrade_mixed_legacy_and_incremental_publications) ... skipped 'requires isolated T7 Compose services'
+test_policy_cleanup_and_warm_cache_expiry (test_publication_retention.RetentionGateway.test_policy_cleanup_and_warm_cache_expiry) ... skipped 'requires isolated T7 Compose services'
+test_incremental_times_corrections_and_retained_readers (test_publication_revisions.IncrementalPublication.test_incremental_times_corrections_and_retained_readers) ... skipped 'requires isolated T5 Compose services'
+test_bilinear_mask_edges_and_wire_roundtrip (test_publication_tiles.NumericTileContract.test_bilinear_mask_edges_and_wire_roundtrip) ... ok
+test_neighboring_halos_have_identical_global_coordinates (test_publication_tiles.NumericTileContract.test_neighboring_halos_have_identical_global_coordinates) ... ok
+test_actual_sample_round_trip_and_exact_manifest_selection (test_storage.StorageContract.test_actual_sample_round_trip_and_exact_manifest_selection) ... ok
+test_invalid_source_and_clock_never_create_manifest (test_storage.StorageContract.test_invalid_source_and_clock_never_create_manifest) ... ok
+test_synthetic_nodata_is_explicit_and_never_becomes_a_temperature (test_storage.StorageContract.test_synthetic_nodata_is_explicit_and_never_becomes_a_temperature) ... ok
+test_private_unscoped_and_external_paths_never_reach_gateway (test_viewer_bridge.ViewerBridge.test_private_unscoped_and_external_paths_never_reach_gateway) ... ok
+test_scoped_wms_uses_fixed_public_upstream_without_browser_credentials (test_viewer_bridge.ViewerBridge.test_scoped_wms_uses_fixed_public_upstream_without_browser_credentials) ... ok
+test_identify_preserves_pixel_centre_and_resolution (test_wms_options.WmsOptions.test_identify_preserves_pixel_centre_and_resolution) ... ok
+test_only_bounded_dpi_hints_and_context_are_accepted (test_wms_options.WmsOptions.test_only_bounded_dpi_hints_and_context_are_accepted) ... ok
+
+----------------------------------------------------------------------
+Ran 63 tests in 65.150s
+
+OK (skipped=24)
+{"phase":"end","files":218,"status":"passed"}
+**********************
+Конец записи протокола Windows PowerShell
+Время окончания: 20261023130715
+**********************

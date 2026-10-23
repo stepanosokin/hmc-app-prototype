@@ -1,0 +1,143 @@
+{
+  "status": "passed",
+  "fixture": "synthetic-nodata",
+  "nodata": {
+    "domain": {
+      "axes": {
+        "t": {
+          "values": [
+            "2026-10-15T01:00:00Z"
+          ]
+        },
+        "x": {
+          "values": [
+            -23.5
+          ]
+        },
+        "y": {
+          "values": [
+            29.5
+          ]
+        }
+      },
+      "domainType": "PointSeries",
+      "referencing": [
+        {
+          "coordinates": [
+            "x",
+            "y"
+          ],
+          "system": {
+            "id": "urn:hmc:crs:icon-sphere-6371229",
+            "type": "GeographicCRS"
+          }
+        },
+        {
+          "coordinates": [
+            "t"
+          ],
+          "system": {
+            "calendar": "Gregorian",
+            "type": "TemporalRS"
+          }
+        }
+      ],
+      "type": "Domain"
+    },
+    "parameters": {
+      "T_G": {
+        "observedProperty": {
+          "id": "urn:hmc:field:T_G:surface:0",
+          "label": {
+            "ru": "\u0422\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440\u0430 \u043f\u043e\u0432\u0435\u0440\u0445\u043d\u043e\u0441\u0442\u0438"
+          }
+        },
+        "type": "Parameter",
+        "unit": {
+          "symbol": "K"
+        }
+      }
+    },
+    "ranges": {
+      "T_G": {
+        "axisNames": [
+          "t",
+          "y",
+          "x"
+        ],
+        "dataType": "float",
+        "shape": [
+          1,
+          1,
+          1
+        ],
+        "type": "NdArray",
+        "values": [
+          null
+        ]
+      }
+    },
+    "selection": {
+      "batch": "hour-01.zarr",
+      "cell": {
+        "column": 0,
+        "lat": 29.5,
+        "lon": -23.5,
+        "row": 0
+      },
+      "coordinate_order": [
+        "longitude",
+        "latitude"
+      ],
+      "crs": "urn:hmc:crs:icon-sphere-6371229",
+      "field": "T_G:surface:0",
+      "identity": {
+        "contract": "hmc-temperature-tile/2",
+        "encoding_version": "hmc-temperature-tile/2/f32",
+        "engine": "project-bilinear/1",
+        "field": "T_G:surface:0",
+        "level": 0,
+        "matrix": "WebMercatorQuad",
+        "member": null,
+        "model": "ICON-EU",
+        "native_grid_sha256": "cf494ed2870586ab3016f9344c1dc8c016e86d834034f2a45cfeea5a6dd5ddd7",
+        "publication_job": "8c32e6f6-6d8e-4a5a-82fb-e5e09883de1f",
+        "resampling": "bilinear",
+        "revision": "9af1210c5fcb4cd25562863d000cc8c33503199dc09131c9e94bd7b10d6e8bef",
+        "run": "ICON-EU/2026-10-15T00:00:00Z",
+        "valid_time": "2026-10-15T01:00:00Z"
+      },
+      "method": "native_cell",
+      "query_position": {
+        "crs": "urn:hmc:crs:icon-sphere-6371229",
+        "lat": 29.5,
+        "lon": -23.5
+      },
+      "reason": "native_nodata",
+      "revision": "9af1210c5fcb4cd25562863d000cc8c33503199dc09131c9e94bd7b10d6e8bef",
+      "run": "ICON-EU/2026-10-15T00:00:00Z",
+      "selection": "7fe3a940416577b26f8d23bbe77178258b503568301791c6999b9ece8f130419",
+      "source": {
+        "bytes": 26658586,
+        "name": "ICON_EU_T_G_2026101500.grib2",
+        "revision": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a",
+        "sha256": "dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a"
+      },
+      "spatial_selection": "nearest-native-cell",
+      "temporal_selection": "exact",
+      "units": "K",
+      "valid_time": "2026-10-15T01:00:00Z",
+      "value": null
+    },
+    "type": "Coverage"
+  },
+  "missing_array": 503,
+  "missing_chunk": 503,
+  "restored": 200,
+  "expired_collection_position_tiles": 410,
+  "expired_collections": [],
+  "service_error": {
+    "code": "Unavailable",
+    "description": "published service temporarily unavailable"
+  }
+}

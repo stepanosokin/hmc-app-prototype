@@ -1,0 +1,64 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.publication
+#1 transferring dockerfile: 864B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 357B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 4.60kB done
+#4 DONE 0.0s
+
+#5 [ 1/11] FROM docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+#5 resolve docker.io/library/python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c 0.0s done
+#5 DONE 0.0s
+
+#6 [ 3/11] RUN apt-get update && apt-get install -y --no-install-recommends libexpat1=2.5.0-1+deb12u4 && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [ 4/11] COPY requirements.lock requirements.adapters.lock requirements.publication.lock ./
+#7 CACHED
+
+#8 [ 2/11] WORKDIR /app
+#8 CACHED
+
+#9 [ 5/11] RUN pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.lock -r requirements.adapters.lock -r requirements.publication.lock && pip check
+#9 CACHED
+
+#10 [ 6/11] COPY decoder/ decoder/
+#10 DONE 0.0s
+
+#11 [ 7/11] COPY config/ config/
+#11 DONE 0.1s
+
+#12 [ 8/11] COPY trials/ trials/
+#12 DONE 0.1s
+
+#13 [ 9/11] COPY publication/ publication/
+#13 DONE 0.1s
+
+#14 [10/11] COPY tests/ tests/
+#14 DONE 0.1s
+
+#15 [11/11] COPY docs/evidence/t1/a1.json /app/baseline-a1.json
+#15 DONE 0.0s
+
+#16 exporting to image
+#16 exporting layers
+#16 exporting layers 0.3s done
+#16 exporting manifest sha256:bd97abe3ebe6fbfdb0275f846cd802ddf217b6d6adbf59f903fe4b30cc607b4d 0.0s done
+#16 exporting config sha256:41c1e186e512dd1f47d9608d348a5e6bc7e85c298758e0a8b07a7fd40c8318f7 0.0s done
+#16 exporting attestation manifest sha256:5507065b2d26781060662fb6f2a9ffb88f47967e6b2af58e0d37ec4eb1175238 0.0s done
+#16 exporting manifest list sha256:c3794174e8135a0cd6f3363881fdf4c383cea10cfdd34d277c1365ef02521a54 0.0s done
+#16 naming to docker.io/library/hmc-publication:grib49
+#16 naming to docker.io/library/hmc-publication:grib49 done
+#16 unpacking to docker.io/library/hmc-publication:grib49 0.1s done
+#16 DONE 0.6s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/ov040rbhz2ylm3ovigs5biqye

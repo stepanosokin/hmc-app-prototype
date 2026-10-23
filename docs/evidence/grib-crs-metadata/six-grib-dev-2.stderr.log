@@ -1,0 +1,34 @@
+test_configuration_is_frozen_in_resolved_crs (test_grib_crs.GribCRS.test_configuration_is_frozen_in_resolved_crs) ... ok
+test_missing_required_projection_and_corrupt_config_fail (test_grib_crs.GribCRS.test_missing_required_projection_and_corrupt_config_fail) ... ok
+test_producer_rotated_ena_metadata (test_grib_crs.GribCRS.test_producer_rotated_ena_metadata) ... FAIL
+test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) ... ok
+test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) ... /usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+ok
+test_rotation_against_independent_cartesian_basis (test_grib_crs.GribCRS.test_rotation_against_independent_cartesian_basis) ... ok
+test_standard_earth_codes_override_defaults (test_grib_crs.GribCRS.test_standard_earth_codes_override_defaults) ... ok
+
+======================================================================
+FAIL: test_producer_rotated_ena_metadata (test_grib_crs.GribCRS.test_producer_rotated_ena_metadata)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_grib_crs.py", line 173, in test_producer_rotated_ena_metadata
+    self.assertAlmostEqual((lon-lons[i]+180)%360-180,0,places=7)
+AssertionError: np.float64(1.5987306483111752e-06) != 0 within 7 places (np.float64(1.5987306483111752e-06) difference)
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.928s
+
+FAILED (failures=1)

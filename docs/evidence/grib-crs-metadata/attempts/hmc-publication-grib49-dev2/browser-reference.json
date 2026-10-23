@@ -1,0 +1,1594 @@
+[
+  {
+    "template": 0,
+    "earth_shape": 6,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 0,
+      "earth_shape_code": 6,
+      "semi_major_m": 6371229.0,
+      "semi_minor_m": 6371229.0,
+      "proj": "+proj=longlat +a=6371229 +b=6371229 +pm=0",
+      "wkt": "GEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],CS[ellipsoidal,2],AXIS[\"longitude\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],AXIS[\"latitude\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]]",
+      "rotation": null,
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [
+        "coordinate_height_m",
+        "geocentric_translation_m",
+        "prime_meridian_degrees"
+      ],
+      "datum_mode": "explicit-geocentric",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          1.0,
+          1.0
+        ],
+        "outer_edges_wsen": [
+          -2.5,
+          -1.5,
+          1.5,
+          1.5
+        ],
+        "scanning_mode": 64,
+        "units": "degrees"
+      },
+      "id": "urn:hmc:crs:bfcfc3bab25959495d5239aaf825c4c6578ccf80446b314a7af075c488b29a25",
+      "sha256": "bfcfc3bab25959495d5239aaf825c4c6578ccf80446b314a7af075c488b29a25"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        1.0,
+        1.0
+      ],
+      "outer_cell_edges_wsen": [
+        -2.5,
+        -1.5,
+        1.5,
+        1.5
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          -2.0,
+          -1.0
+        ],
+        "wgs84": [
+          -2.0,
+          -1.0067381143174583
+        ],
+        "map": [
+          -222638.98158654713,
+          -112075.34135157336
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          1.0,
+          1.0
+        ],
+        "wgs84": [
+          1.0,
+          1.0067381143174583
+        ],
+        "map": [
+          111319.49079327357,
+          112075.34135157336
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          -0.7,
+          -0.19999999999999996
+        ],
+        "wgs84": [
+          -0.6999999999999998,
+          -0.20134788828838365
+        ],
+        "map": [
+          -77923.64355529149,
+          -22413.990530156192
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          0.20000000000000018,
+          0.3999999999999999
+        ],
+        "wgs84": [
+          0.2000000000000002,
+          0.4026957102170106
+        ],
+        "map": [
+          22263.898158654738,
+          44828.25047796835
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 0,
+    "earth_shape": 5,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 0,
+      "earth_shape_code": 5,
+      "semi_major_m": 6378137.0,
+      "semi_minor_m": 6356752.314245179,
+      "proj": "+proj=longlat +a=6378137 +b=6356752.31424518 +pm=0",
+      "wkt": "GEOGCRS[\"unknown\",DATUM[\"Unknown based on WGS 84 ellipsoid\",ELLIPSOID[\"WGS 84\",6378137,298.25722356301,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],CS[ellipsoidal,2],AXIS[\"longitude\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],AXIS[\"latitude\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]]",
+      "rotation": null,
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [],
+      "datum_mode": "wgs84-angular",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "GRIB-declared WGS84 horizontal datum; preserve geographic angles",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          1.0,
+          1.0
+        ],
+        "outer_edges_wsen": [
+          -2.5,
+          -1.5,
+          1.5,
+          1.5
+        ],
+        "scanning_mode": 64,
+        "units": "degrees"
+      },
+      "id": "urn:hmc:crs:bbc8f9dc09976527577d23ad2f94770f0c25114742d354261d1c5a039e196c50",
+      "sha256": "bbc8f9dc09976527577d23ad2f94770f0c25114742d354261d1c5a039e196c50"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        1.0,
+        1.0
+      ],
+      "outer_cell_edges_wsen": [
+        -2.5,
+        -1.5,
+        1.5,
+        1.5
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          -2.0,
+          -1.0
+        ],
+        "wgs84": [
+          -2.0,
+          -1.0
+        ],
+        "map": [
+          -222638.98158654713,
+          -111325.1428663851
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          1.0,
+          1.0
+        ],
+        "wgs84": [
+          1.0,
+          1.0
+        ],
+        "map": [
+          111319.49079327357,
+          111325.1428663851
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          -0.7,
+          -0.19999999999999996
+        ],
+        "wgs84": [
+          -0.7,
+          -0.19999999999999996
+        ],
+        "map": [
+          -77923.64355529149,
+          -22263.943371933845
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          0.20000000000000018,
+          0.3999999999999999
+        ],
+        "wgs84": [
+          0.20000000000000018,
+          0.3999999999999999
+        ],
+        "map": [
+          22263.898158654734,
+          44528.158026848025
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 1,
+    "earth_shape": 6,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 1,
+      "earth_shape_code": 6,
+      "semi_major_m": 6371229.0,
+      "semi_minor_m": 6371229.0,
+      "proj": "+proj=ob_tran +o_proj=longlat +o_lon_p=-0 +o_lat_p=25 +lon_0=90 +a=6371229 +b=6371229 +pm=0",
+      "wkt": "GEOGCRS[\"unnamed\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],DERIVINGCONVERSION[\"unknown\",METHOD[\"PROJ ob_tran o_proj=longlat\"],PARAMETER[\"o_lon_p\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"o_lat_p\",25,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"lon_0\",90,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"pm\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CS[ellipsoidal,2],AXIS[\"longitude\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],AXIS[\"latitude\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]]",
+      "rotation": {
+        "south_lat": -25.0,
+        "south_lon": 90.0,
+        "angle": 0.0
+      },
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [
+        "coordinate_height_m",
+        "geocentric_translation_m",
+        "prime_meridian_degrees"
+      ],
+      "datum_mode": "explicit-geocentric",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          1.0,
+          1.0
+        ],
+        "outer_edges_wsen": [
+          -2.5,
+          -1.5,
+          1.5,
+          1.5
+        ],
+        "scanning_mode": 64,
+        "units": "degrees"
+      },
+      "id": "urn:hmc:crs:b4e6a9269ac05945b31ac434f39d5e3b20efa9e1b4c70c07a336cd0663281214",
+      "sha256": "b4e6a9269ac05945b31ac434f39d5e3b20efa9e1b4c70c07a336cd0663281214"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        1.0,
+        1.0
+      ],
+      "outer_cell_edges_wsen": [
+        -2.5,
+        -1.5,
+        1.5,
+        1.5
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          -2.0,
+          -1.0
+        ],
+        "wgs84": [
+          85.44621034719746,
+          64.07956058100693
+        ],
+        "map": [
+          9511828.626064966,
+          9369996.522637779
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          1.0,
+          1.0
+        ],
+        "wgs84": [
+          92.45697593172298,
+          66.12333106301094
+        ],
+        "map": [
+          10292263.481005352,
+          9910682.181115074
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          -0.7,
+          -0.19999999999999996
+        ],
+        "wgs84": [
+          88.35633590677567,
+          64.93888688848966
+        ],
+        "map": [
+          9835782.3215017,
+          9592292.429664318
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          0.20000000000000018,
+          0.3999999999999999
+        ],
+        "wgs84": [
+          90.4804239675631,
+          65.54458810154271
+        ],
+        "map": [
+          10072234.72282863,
+          9753302.734219346
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 1,
+    "earth_shape": 5,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 1,
+      "earth_shape_code": 5,
+      "semi_major_m": 6378137.0,
+      "semi_minor_m": 6356752.314245179,
+      "proj": "+proj=ob_tran +o_proj=longlat +o_lon_p=-0 +o_lat_p=25 +lon_0=90 +a=6378137 +b=6356752.31424518 +pm=0",
+      "wkt": "GEOGCRS[\"unnamed\",BASEGEOGCRS[\"unknown\",DATUM[\"Unknown based on WGS 84 ellipsoid\",ELLIPSOID[\"WGS 84\",6378137,298.25722356301,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],DERIVINGCONVERSION[\"unknown\",METHOD[\"PROJ ob_tran o_proj=longlat\"],PARAMETER[\"o_lon_p\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"o_lat_p\",25,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"lon_0\",90,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],PARAMETER[\"pm\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CS[ellipsoidal,2],AXIS[\"longitude\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],AXIS[\"latitude\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]]",
+      "rotation": {
+        "south_lat": -25.0,
+        "south_lon": 90.0,
+        "angle": 0.0
+      },
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [],
+      "datum_mode": "wgs84-angular",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "GRIB-declared WGS84 horizontal datum; preserve geographic angles",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          1.0,
+          1.0
+        ],
+        "outer_edges_wsen": [
+          -2.5,
+          -1.5,
+          1.5,
+          1.5
+        ],
+        "scanning_mode": 64,
+        "units": "degrees"
+      },
+      "id": "urn:hmc:crs:4c025e22138df7d053600ebb056f5553eb508e8f344f1bf19022c8c6d9dfa36e",
+      "sha256": "4c025e22138df7d053600ebb056f5553eb508e8f344f1bf19022c8c6d9dfa36e"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        1.0,
+        1.0
+      ],
+      "outer_cell_edges_wsen": [
+        -2.5,
+        -1.5,
+        1.5,
+        1.5
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          -2.0,
+          -1.0
+        ],
+        "wgs84": [
+          85.44621034719746,
+          63.9279437882968
+        ],
+        "map": [
+          9511828.626064966,
+          9331489.843601994
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          1.0,
+          1.0
+        ],
+        "wgs84": [
+          92.45697593172298,
+          65.98056577537743
+        ],
+        "map": [
+          10292263.481005352,
+          9871528.980280673
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          -0.7,
+          -0.19999999999999996
+        ],
+        "wgs84": [
+          88.35633590677567,
+          64.79089975059458
+        ],
+        "map": [
+          9835782.3215017,
+          9553507.88405591
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          0.20000000000000018,
+          0.3999999999999999
+        ],
+        "wgs84": [
+          90.4804239675631,
+          65.39924005985553
+        ],
+        "map": [
+          10072234.72282863,
+          9714327.580549281
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 10,
+    "earth_shape": 6,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 10,
+      "earth_shape_code": 6,
+      "semi_major_m": 6371229.0,
+      "semi_minor_m": 6371229.0,
+      "proj": "+proj=merc +lat_ts=40 +lon_0=0 +a=6371229 +b=6371229 +pm=0 +units=m",
+      "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Mercator (variant B)\",ID[\"EPSG\",9805]],PARAMETER[\"Latitude of 1st standard parallel\",40,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Longitude of natural origin\",0,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8802]],PARAMETER[\"False easting\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]",
+      "rotation": null,
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [
+        "coordinate_height_m",
+        "geocentric_translation_m",
+        "prime_meridian_degrees"
+      ],
+      "datum_mode": "explicit-geocentric",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          6000.0,
+          6000.0
+        ],
+        "outer_edges_wsen": [
+          848833.1738857114,
+          3720490.8517424883,
+          872833.1738857114,
+          3738490.8517424883
+        ],
+        "scanning_mode": 64,
+        "units": "m"
+      },
+      "id": "urn:hmc:crs:d7f940a830b2afa134a11243007c86a0a342bbedc0acc0dc2a0546b800a2fa88",
+      "sha256": "d7f940a830b2afa134a11243007c86a0a342bbedc0acc0dc2a0546b800a2fa88"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        6000.0,
+        6000.0
+      ],
+      "outer_cell_edges_wsen": [
+        848833.1738857114,
+        3720490.8517424883,
+        872833.1738857114,
+        3738490.8517424883
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          851833.1738857114,
+          3723490.8517424883
+        ],
+        "wgs84": [
+          10.0,
+          40.189610473709315
+        ],
+        "map": [
+          1113194.9079327357,
+          4893534.33452462
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          869833.1738857114,
+          3735490.8517424883
+        ],
+        "wgs84": [
+          10.211308981051907,
+          40.297562027225894
+        ],
+        "map": [
+          1136717.7161034795,
+          4909277.87027241
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          859633.1738857114,
+          3728290.8517424883
+        ],
+        "wgs84": [
+          10.091567225122493,
+          40.232811913682774
+        ],
+        "map": [
+          1123388.1248067247,
+          4899831.772378013
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          865033.1738857114,
+          3731890.8517424883
+        ],
+        "wgs84": [
+          10.154959919438063,
+          40.26519477847634
+        ],
+        "map": [
+          1130444.9672579474,
+          4904554.830156079
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 10,
+    "earth_shape": 5,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 10,
+      "earth_shape_code": 5,
+      "semi_major_m": 6378137.0,
+      "semi_minor_m": 6356752.314245179,
+      "proj": "+proj=merc +lat_ts=40 +lon_0=0 +a=6378137 +b=6356752.31424518 +pm=0 +units=m",
+      "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"Unknown based on WGS 84 ellipsoid\",ELLIPSOID[\"WGS 84\",6378137,298.25722356301,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Mercator (variant B)\",ID[\"EPSG\",9805]],PARAMETER[\"Latitude of 1st standard parallel\",40,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Longitude of natural origin\",0,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8802]],PARAMETER[\"False easting\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]",
+      "rotation": null,
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [],
+      "datum_mode": "wgs84-angular",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "GRIB-declared WGS84 horizontal datum; preserve geographic angles",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          6000.0,
+          6000.0
+        ],
+        "outer_edges_wsen": [
+          850938.5695861843,
+          3708620.7729667877,
+          874938.5695861843,
+          3726620.7729667877
+        ],
+        "scanning_mode": 64,
+        "units": "m"
+      },
+      "id": "urn:hmc:crs:62f34d39c524dba6f9edeecce6583064c35c111941c554b25687d1131ff6af90",
+      "sha256": "62f34d39c524dba6f9edeecce6583064c35c111941c554b25687d1131ff6af90"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        6000.0,
+        6000.0
+      ],
+      "outer_cell_edges_wsen": [
+        850938.5695861843,
+        3708620.7729667877,
+        874938.5695861843,
+        3726620.7729667877
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          853938.5695861843,
+          3711620.7729667877
+        ],
+        "wgs84": [
+          10.000000000000002,
+          40.0
+        ],
+        "map": [
+          1113194.9079327357,
+          4865942.279503175
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          871938.5695861843,
+          3723620.7729667877
+        ],
+        "wgs84": [
+          10.210787996245713,
+          40.1079881692799
+        ],
+        "map": [
+          1136659.720340143,
+          4881647.257193792
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          861738.5695861843,
+          3716420.7729667877
+        ],
+        "wgs84": [
+          10.09134146503981,
+          40.0432159619691
+        ],
+        "map": [
+          1123362.993309279,
+          4872224.294070155
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          867138.5695861843,
+          3720020.7729667877
+        ],
+        "wgs84": [
+          10.154577863913524,
+          40.07560982707079
+        ],
+        "map": [
+          1130402.437031501,
+          4876935.784439067
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 20,
+    "earth_shape": 6,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 20,
+      "earth_shape_code": 6,
+      "semi_major_m": 6371229.0,
+      "semi_minor_m": 6371229.0,
+      "proj": "+proj=stere +lat_0=90 +lat_ts=60 +lon_0=10 +a=6371229 +b=6371229 +pm=0 +units=m",
+      "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Polar Stereographic (variant B)\",ID[\"EPSG\",9829]],PARAMETER[\"Latitude of standard parallel\",60,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8832]],PARAMETER[\"Longitude of origin\",10,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8833]],PARAMETER[\"False easting\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]]],CS[Cartesian,2],AXIS[\"(E)\",south,MERIDIAN[90,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",south,MERIDIAN[180,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]",
+      "rotation": null,
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [
+        "coordinate_height_m",
+        "geocentric_translation_m",
+        "prime_meridian_degrees"
+      ],
+      "datum_mode": "explicit-geocentric",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          6000.0,
+          6000.0
+        ],
+        "outer_edges_wsen": [
+          -3000.0,
+          -5546873.537373896,
+          21000.0,
+          -5528873.537373896
+        ],
+        "scanning_mode": 64,
+        "units": "m"
+      },
+      "id": "urn:hmc:crs:d7c8cab773d27e01322689c79ad5e9da256ddfa402a79c712ea3aef113707049",
+      "sha256": "d7c8cab773d27e01322689c79ad5e9da256ddfa402a79c712ea3aef113707049"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        6000.0,
+        6000.0
+      ],
+      "outer_cell_edges_wsen": [
+        -3000.0,
+        -5546873.537373896,
+        21000.0,
+        -5528873.537373896
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          0.0,
+          -5543873.537373896
+        ],
+        "wgs84": [
+          10.0,
+          40.189610473709315
+        ],
+        "map": [
+          1113194.9079327357,
+          4893534.33452462
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          18000.0,
+          -5531873.537373896
+        ],
+        "wgs84": [
+          10.186432387601954,
+          40.2845272737403
+        ],
+        "map": [
+          1133948.4663879594,
+          4907375.562573734
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          7800.0,
+          -5539073.537373896
+        ],
+        "wgs84": [
+          10.080682587401425,
+          40.227617995171286
+        ],
+        "map": [
+          1122176.452478146,
+          4899074.44685731
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          13200.000000000002,
+          -5535473.537373896
+        ],
+        "wgs84": [
+          10.136628393382916,
+          40.256082525689244
+        ],
+        "map": [
+          1128404.311112025,
+          4903225.574819213
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 20,
+    "earth_shape": 5,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 20,
+      "earth_shape_code": 5,
+      "semi_major_m": 6378137.0,
+      "semi_minor_m": 6356752.314245179,
+      "proj": "+proj=stere +lat_0=90 +lat_ts=60 +lon_0=10 +a=6378137 +b=6356752.31424518 +pm=0 +units=m",
+      "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"Unknown based on WGS 84 ellipsoid\",ELLIPSOID[\"WGS 84\",6378137,298.25722356301,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Polar Stereographic (variant B)\",ID[\"EPSG\",9829]],PARAMETER[\"Latitude of standard parallel\",60,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8832]],PARAMETER[\"Longitude of origin\",10,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8833]],PARAMETER[\"False easting\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]]],CS[Cartesian,2],AXIS[\"(E)\",south,MERIDIAN[90,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",south,MERIDIAN[180,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]",
+      "rotation": null,
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [],
+      "datum_mode": "wgs84-angular",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "GRIB-declared WGS84 horizontal datum; preserve geographic angles",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          6000.0,
+          6000.0
+        ],
+        "outer_edges_wsen": [
+          -3000.0,
+          -5558528.909641995,
+          21000.0,
+          -5540528.909641995
+        ],
+        "scanning_mode": 64,
+        "units": "m"
+      },
+      "id": "urn:hmc:crs:4d2061bf9e1c66e9d2e98f1cd54fbbc35ed42774aa7970887efe4a884711abc8",
+      "sha256": "4d2061bf9e1c66e9d2e98f1cd54fbbc35ed42774aa7970887efe4a884711abc8"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        6000.0,
+        6000.0
+      ],
+      "outer_cell_edges_wsen": [
+        -3000.0,
+        -5558528.909641995,
+        21000.0,
+        -5540528.909641995
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          0.0,
+          -5555528.909641995
+        ],
+        "wgs84": [
+          10.0,
+          39.99999999999982
+        ],
+        "map": [
+          1113194.9079327357,
+          4865942.27950315
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          18000.0,
+          -5543528.909641995
+        ],
+        "wgs84": [
+          10.18604041280997,
+          40.094984168538225
+        ],
+        "map": [
+          1133904.831953712,
+          4879754.735469799
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          7800.0,
+          -5550728.909641995
+        ],
+        "wgs84": [
+          10.080513171029672,
+          40.03803434963091
+        ],
+        "map": [
+          1122157.5931339106,
+          4871470.867839931
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          13200.000000000002,
+          -5547128.909641995
+        ],
+        "wgs84": [
+          10.136341317168291,
+          40.066519113149205
+        ],
+        "map": [
+          1128372.3539339942,
+          4875613.369352497
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 30,
+    "earth_shape": 6,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 30,
+      "earth_shape_code": 6,
+      "semi_major_m": 6371229.0,
+      "semi_minor_m": 6371229.0,
+      "proj": "+proj=lcc +lat_0=40 +lon_0=10 +lat_1=30 +lat_2=60 +a=6371229 +b=6371229 +pm=0 +units=m",
+      "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Lambert Conic Conformal (2SP)\",ID[\"EPSG\",9802]],PARAMETER[\"Latitude of false origin\",40,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8821]],PARAMETER[\"Longitude of false origin\",10,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8822]],PARAMETER[\"Latitude of 1st standard parallel\",30,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Latitude of 2nd standard parallel\",60,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8824]],PARAMETER[\"Easting at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8826]],PARAMETER[\"Northing at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8827]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]",
+      "rotation": null,
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [
+        "coordinate_height_m",
+        "geocentric_translation_m",
+        "prime_meridian_degrees"
+      ],
+      "datum_mode": "explicit-geocentric",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          6000.0,
+          6000.0
+        ],
+        "outer_edges_wsen": [
+          -3000.0,
+          -3000.0,
+          21000.0,
+          15000.0
+        ],
+        "scanning_mode": 64,
+        "units": "m"
+      },
+      "id": "urn:hmc:crs:430c580d66912d50e328a258617c9aa3e0d6e934c84cf2bf7d9d7e6745624f9c",
+      "sha256": "430c580d66912d50e328a258617c9aa3e0d6e934c84cf2bf7d9d7e6745624f9c"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        6000.0,
+        6000.0
+      ],
+      "outer_cell_edges_wsen": [
+        -3000.0,
+        -3000.0,
+        21000.0,
+        15000.0
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          0.0,
+          0.0
+        ],
+        "wgs84": [
+          10.0,
+          40.18961047370934
+        ],
+        "map": [
+          1113194.9079327357,
+          4893534.334524623
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          18000.0,
+          12000.0
+        ],
+        "wgs84": [
+          10.218177158291452,
+          40.3007395261785
+        ],
+        "map": [
+          1137482.2780964635,
+          4909741.653945722
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          7800.0,
+          4800.0
+        ],
+        "wgs84": [
+          10.094440691819775,
+          40.23410834500808
+        ],
+        "map": [
+          1123707.9976562776,
+          4900020.814153156
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          13200.000000000002,
+          8400.0
+        ],
+        "wgs84": [
+          10.159909620995593,
+          40.26743596960226
+        ],
+        "map": [
+          1130995.9655149106,
+          4904881.792690079
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 30,
+    "earth_shape": 5,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 30,
+      "earth_shape_code": 5,
+      "semi_major_m": 6378137.0,
+      "semi_minor_m": 6356752.314245179,
+      "proj": "+proj=lcc +lat_0=40 +lon_0=10 +lat_1=30 +lat_2=60 +a=6378137 +b=6356752.31424518 +pm=0 +units=m",
+      "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"Unknown based on WGS 84 ellipsoid\",ELLIPSOID[\"WGS 84\",6378137,298.25722356301,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Lambert Conic Conformal (2SP)\",ID[\"EPSG\",9802]],PARAMETER[\"Latitude of false origin\",40,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8821]],PARAMETER[\"Longitude of false origin\",10,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8822]],PARAMETER[\"Latitude of 1st standard parallel\",30,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Latitude of 2nd standard parallel\",60,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8824]],PARAMETER[\"Easting at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8826]],PARAMETER[\"Northing at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8827]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]",
+      "rotation": null,
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [],
+      "datum_mode": "wgs84-angular",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "GRIB-declared WGS84 horizontal datum; preserve geographic angles",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          6000.0,
+          6000.0
+        ],
+        "outer_edges_wsen": [
+          -3000.0,
+          -3000.0,
+          21000.0,
+          15000.0
+        ],
+        "scanning_mode": 64,
+        "units": "m"
+      },
+      "id": "urn:hmc:crs:8e414b113ec49438075354089b1f5ea522871fdd0b7bc77f479ba257db730a88",
+      "sha256": "8e414b113ec49438075354089b1f5ea522871fdd0b7bc77f479ba257db730a88"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        6000.0,
+        6000.0
+      ],
+      "outer_cell_edges_wsen": [
+        -3000.0,
+        -3000.0,
+        21000.0,
+        15000.0
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          0.0,
+          0.0
+        ],
+        "wgs84": [
+          10.0,
+          40.0
+        ],
+        "map": [
+          1113194.9079327357,
+          4865942.279503175
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          18000.0,
+          12000.0
+        ],
+        "wgs84": [
+          10.217613049346175,
+          40.1111541962921
+        ],
+        "map": [
+          1137419.4817759234,
+          4882108.075917816
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          7800.0,
+          4800.0
+        ],
+        "wgs84": [
+          10.094196759597724,
+          40.04450773802825
+        ],
+        "map": [
+          1123680.8432455307,
+          4872412.132161163
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          13200.000000000002,
+          8400.0
+        ],
+        "wgs84": [
+          10.159496377046514,
+          40.077842941411426
+        ],
+        "map": [
+          1130949.9634089256,
+          4877260.6598705575
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 31,
+    "earth_shape": 6,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 31,
+      "earth_shape_code": 6,
+      "semi_major_m": 6371229.0,
+      "semi_minor_m": 6371229.0,
+      "proj": "+proj=aea +lat_0=40 +lon_0=10 +lat_1=30 +lat_2=60 +a=6371229 +b=6371229 +pm=0 +units=m",
+      "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",6371229,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Albers Equal Area\",ID[\"EPSG\",9822]],PARAMETER[\"Latitude of false origin\",40,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8821]],PARAMETER[\"Longitude of false origin\",10,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8822]],PARAMETER[\"Latitude of 1st standard parallel\",30,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Latitude of 2nd standard parallel\",60,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8824]],PARAMETER[\"Easting at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8826]],PARAMETER[\"Northing at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8827]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]",
+      "rotation": null,
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [
+        "coordinate_height_m",
+        "geocentric_translation_m",
+        "prime_meridian_degrees"
+      ],
+      "datum_mode": "explicit-geocentric",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          6000.0,
+          6000.0
+        ],
+        "outer_edges_wsen": [
+          -3000.0,
+          -3000.0,
+          21000.0,
+          15000.0
+        ],
+        "scanning_mode": 64,
+        "units": "m"
+      },
+      "id": "urn:hmc:crs:80a5c6b1bb7b3003dfd2fc0c3bf72fc4394435eb4819460345f863e156d2578e",
+      "sha256": "80a5c6b1bb7b3003dfd2fc0c3bf72fc4394435eb4819460345f863e156d2578e"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        6000.0,
+        6000.0
+      ],
+      "outer_cell_edges_wsen": [
+        -3000.0,
+        -3000.0,
+        21000.0,
+        15000.0
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          0.0,
+          0.0
+        ],
+        "wgs84": [
+          10.0,
+          40.189610473709315
+        ],
+        "map": [
+          1113194.9079327357,
+          4893534.33452462
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          18000.0,
+          12000.0
+        ],
+        "wgs84": [
+          10.217668321068233,
+          40.294457912105905
+        ],
+        "map": [
+          1137425.6345958782,
+          4908824.818669632
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          7800.0,
+          4800.0
+        ],
+        "wgs84": [
+          10.094225313160596,
+          40.23159555255045
+        ],
+        "map": [
+          1123684.02181361,
+          4899654.40949173
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          13200.000000000002,
+          8400.0
+        ],
+        "wgs84": [
+          10.159540806234617,
+          40.263039239682456
+        ],
+        "map": [
+          1130954.9092435215,
+          4904240.373475549
+        ],
+        "value": 287.8
+      }
+    ]
+  },
+  {
+    "template": 31,
+    "earth_shape": 5,
+    "source_crs": {
+      "schema": "hmc-grib-crs/1",
+      "template": 31,
+      "earth_shape_code": 5,
+      "semi_major_m": 6378137.0,
+      "semi_minor_m": 6356752.314245179,
+      "proj": "+proj=aea +lat_0=40 +lon_0=10 +lat_1=30 +lat_2=60 +a=6378137 +b=6356752.31424518 +pm=0 +units=m",
+      "wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"Unknown based on WGS 84 ellipsoid\",ELLIPSOID[\"WGS 84\",6378137,298.25722356301,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"unknown\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Albers Equal Area\",ID[\"EPSG\",9822]],PARAMETER[\"Latitude of false origin\",40,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8821]],PARAMETER[\"Longitude of false origin\",10,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8822]],PARAMETER[\"Latitude of 1st standard parallel\",30,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8823]],PARAMETER[\"Latitude of 2nd standard parallel\",60,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8824]],PARAMETER[\"Easting at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8826]],PARAMETER[\"Northing at false origin\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8827]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]",
+      "rotation": null,
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0.0,
+          "earth_radius_m": 6371229.0,
+          "geocentric_translation_m": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "prime_meridian_degrees": 0.0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "defaults_used": [],
+      "datum_mode": "wgs84-angular",
+      "prime_meridian_degrees": 0.0,
+      "datum_operation": "GRIB-declared WGS84 horizontal datum; preserve geographic angles",
+      "grid": {
+        "shape_yx": [
+          3,
+          4
+        ],
+        "spacing_xy": [
+          6000.0,
+          6000.0
+        ],
+        "outer_edges_wsen": [
+          -3000.0,
+          -3000.0,
+          21000.0,
+          15000.0
+        ],
+        "scanning_mode": 64,
+        "units": "m"
+      },
+      "id": "urn:hmc:crs:4c6016e014d4a3efe72c0d95d3a843ba360dc8decbb0996e536e57e5475c7a63",
+      "sha256": "4c6016e014d4a3efe72c0d95d3a843ba360dc8decbb0996e536e57e5475c7a63"
+    },
+    "grid": {
+      "shape_yx": [
+        3,
+        4
+      ],
+      "spacing_degrees_xy": [
+        6000.0,
+        6000.0
+      ],
+      "outer_cell_edges_wsen": [
+        -3000.0,
+        -3000.0,
+        21000.0,
+        15000.0
+      ]
+    },
+    "samples": [
+      {
+        "native": [
+          0.0,
+          0.0
+        ],
+        "wgs84": [
+          10.0,
+          39.99999999999998
+        ],
+        "map": [
+          1113194.9079327357,
+          4865942.279503172
+        ],
+        "value": 280
+      },
+      {
+        "native": [
+          18000.0,
+          12000.0
+        ],
+        "wgs84": [
+          10.217109107366776,
+          40.10489374963774
+        ],
+        "map": [
+          1137363.3832113873,
+          4881196.881727354
+        ],
+        "value": 291
+      },
+      {
+        "native": [
+          7800.0,
+          4800.0
+        ],
+        "wgs84": [
+          10.093983458451667,
+          40.04200344505583
+        ],
+        "map": [
+          1123657.0986705662,
+          4872047.984346986
+        ],
+        "value": 284.5
+      },
+      {
+        "native": [
+          13200.000000000002,
+          8400.0
+        ],
+        "wgs84": [
+          10.159131115078461,
+          40.073461054122134
+        ],
+        "map": [
+          1130909.3026326357,
+          4876623.189124369
+        ],
+        "value": 287.8
+      }
+    ]
+  }
+]

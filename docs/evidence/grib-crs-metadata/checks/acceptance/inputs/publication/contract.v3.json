@@ -1,0 +1,19 @@
+{
+  "contract": "hmc-temperature-tile/3",
+  "status": "approved-for-implementation-and-comparison",
+  "agreement": {"date": "2026-10-23", "authority": "Repository owner approved six GRIB2 CRS templates with per-publication metadata"},
+  "url_template": "/api/v1/selections/{selection}/tiles/3/{z}/{x}/{y}.{encoding}",
+  "matrix": "WebMercatorQuad",
+  "encoding": "f32",
+  "tile_size": [256,256],
+  "stored_size": [258,258],
+  "halo_cells": 1,
+  "units": "K",
+  "projection": "Inverse EPSG:3857 to WGS84 h=source_crs.configuration height, explicit Cartesian bridge and source projection from immutable source_crs; no implicit datum operation",
+  "source_crs": "Required per-publication hmc-grib-crs/1 snapshot",
+  "resampling": "bilinear on canonical source cells; any positive-weight missing contributor invalidates output",
+  "limits": {"zoom_min":0,"zoom_max":6},
+  "encoding_max_abs_error_K":0.001,
+  "total_max_abs_error_K":0.01,
+  "readiness":{"representatives":[[0,0,0],[3,4,2],[3,4,3]]}
+}

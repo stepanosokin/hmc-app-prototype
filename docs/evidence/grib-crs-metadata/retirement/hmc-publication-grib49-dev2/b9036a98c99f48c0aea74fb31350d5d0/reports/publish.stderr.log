@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/app/publication/worker.py", line 343, in <module>
+    main()
+  File "/app/publication/worker.py", line 331, in main
+    once(str(args.job) if args.job else None)
+  File "/app/publication/worker.py", line 265, in once
+    process(job)
+  File "/app/publication/worker.py", line 54, in process
+    incremental(job)
+  File "/app/publication/revisions.py", line 209, in process
+    raise ValueError('source changed during publication')
+ValueError: source changed during publication
+

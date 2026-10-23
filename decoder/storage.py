@@ -27,17 +27,16 @@ TOLERANCE_K = 0.0001
 MAX_FRAME_BYTES = 8 * 1024 * 1024
 FIELD = 'T_G:surface:0'
 RUN = 'ICON-EU/2026-10-15T00:00:00Z'
-# GRIB table 3.2 code 6. Greenwich origin is the documented interpretation;
-# producer confirmation of the precise datum/origin remains a GIS gate input.
-NATIVE_CRS = rasterio.crs.CRS.from_string('+proj=longlat +R=6371229 +no_defs')
-
-
-def field_metadata(frame: bytes, hour: int) -> dict:
-    metadata = decode_message(frame, hour)
+def field_metadata(frame: bytes, hour: int, crs_config: dict | None = None,
+                   sample_inventory: bool = True) -> dict:
+    metadata = decode_message(frame, hour, crs_config, sample_inventory)
     raw = sections(frame)
-    metadata.update(model='ICON-EU', ensemble_member=None,
-                    native_crs_wkt=NATIVE_CRS.to_wkt(),
-                    native_grid_sha256=hashlib.sha256(raw[3]).hexdigest(),
+    raw_grid_hash = hashlib.sha256(raw[3]).hexdigest()
+    resolved_grid_hash = hashlib.sha256(canonical({'raw_grid_sha256':raw_grid_hash,
+        'source_crs_sha256':metadata['source_crs']['sha256']})).hexdigest()
+    metadata.update(ensemble_member=None,
+                    native_crs_wkt=metadata['source_crs']['wkt'],
+                    native_grid_sha256=resolved_grid_hash, raw_native_grid_sha256=raw_grid_hash,
                     source_message_sha256=hashlib.sha256(frame).hexdigest(),
                     grib_metadata_sections_hex={str(number): section.hex()
                                                 for number, section in raw.items() if number != 7})
@@ -62,7 +61,13 @@ def decoded_arrays(frame: bytes, shape: list[int]) -> tuple[np.ndarray, np.ndarr
         values = np.asarray(ec.codes_get_values(handle), dtype='<f8').reshape(shape)
         missing = (ec.codes_get_array(handle, 'bitmap') == 0 if ec.codes_get_long(handle, 'bitmapPresent')
                    else np.zeros(values.size, dtype=bool))
-        return values, missing.reshape(shape)
+        missing = missing.reshape(shape)
+        scan = ec.codes_get_long(handle, 'scanningMode')
+        if not scan & 64:
+            values, missing = values[::-1], missing[::-1]
+        if scan & 128:
+            values, missing = values[:, ::-1], missing[:, ::-1]
+        return values, missing
     finally:
         ec.codes_release(handle)
 
@@ -70,7 +75,6 @@ def decoded_arrays(frame: bytes, shape: list[int]) -> tuple[np.ndarray, np.ndarr
 def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missing: np.ndarray) -> dict:
     """Internal one-field writer; COG reads the completed Zarr, never the GRIB array."""
     zpath, cpath = root / f'{name}.zarr', root / f'{name}.tif'
-    require(metadata['grid']['earth_shape_code'] == 6, 'unsupported native earth shape')
     group = zarr.open_group(str(zpath), mode='w-', zarr_format=2)
     group.attrs.update(metadata=metadata, pipeline_version=PIPELINE)
     ny, nx = values.shape
@@ -86,8 +90,11 @@ def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missi
         array.attrs['_ARRAY_DIMENSIONS'] = dimensions
     group['temperature'].attrs.update(units=metadata['identity']['units'], coordinates='latitude longitude')
     group['missing'].attrs.update(long_name='1 = native missing; 0 = valid')
-    group['latitude'].attrs.update(units='degrees_north', standard_name='latitude')
-    group['longitude'].attrs.update(units='degrees_east', standard_name='longitude')
+    geographic = metadata.get('source_crs', {}).get('template', 0) in (0, 1)
+    group['latitude'].attrs.update(units='degrees' if geographic else 'm',
+        standard_name='grid_latitude' if geographic else 'projection_y_coordinate')
+    group['longitude'].attrs.update(units='degrees' if geographic else 'm',
+        standard_name='grid_longitude' if geographic else 'projection_x_coordinate')
     zarr.consolidate_metadata(str(zpath))
     stored = zarr.open_group(str(zpath), mode='r', zarr_format=2)
     # GRIB/Zarr rows scan south->north. TIFF rows scan north->south.
@@ -96,7 +103,7 @@ def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missi
     temporary = root / f'{name}.working.tif'
     with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True, GDAL_NUM_THREADS='1'):
         with rasterio.open(temporary, 'w', driver='GTiff', width=nx, height=ny, count=1,
-                           dtype='float32', crs=NATIVE_CRS,
+                           dtype='float32', crs=rasterio.crs.CRS.from_wkt(metadata['native_crs_wkt']),
                            transform=from_origin(west, north, dx, dy), tiled=True,
                            blockxsize=256, blockysize=256, compress='DEFLATE') as raster:
             raster.write(numeric, 1)
@@ -136,10 +143,9 @@ def check_field(root: Path, item: dict, baseline: np.ndarray, missing: np.ndarra
     require(np.array_equal(read_values(group, 'longitude'), west + dx / 2 + np.arange(nx) * dx), 'longitude centres changed')
     require(np.array_equal(read_values(group, 'latitude'), south + dy / 2 + np.arange(ny) * dy), 'latitude centres changed')
     with rasterio.open(asset_path(root, item['cog'])) as raster:
-        require(metadata['grid']['earth_shape_code'] == 6, 'unsupported native earth shape')
         # GeoTIFF normalizes geographic WKT axis ordering. Compare operative
         # projection/ellipsoid/prime-meridian parameters, not that serialization.
-        require(raster.crs.to_dict() == NATIVE_CRS.to_dict(), 'COG native spherical CRS changed')
+        require(raster.crs.to_dict() == rasterio.crs.CRS.from_wkt(metadata['native_crs_wkt']).to_dict(), 'COG native CRS changed')
         require(raster.transform == from_origin(west, north, dx, dy), 'half-cell georeferencing failed')
         require(tuple(raster.bounds) == (west, south, east, north), 'COG bounds failed')
         require(raster.tags(ns='IMAGE_STRUCTURE').get('LAYOUT') == 'COG', 'COG layout failed')
@@ -172,13 +178,15 @@ def versions() -> dict:
 
 
 def build(source: Path, target: Path, clock: str, synthetic_nodata: bool = False) -> dict:
+    from decoder.grib_crs import configuration
+    config = configuration()
     require(file_hash(source) == SAMPLE_SHA256, 'checksum differs from supplied sample')
     target.mkdir(parents=True, exist_ok=False)
     tools = versions()
     require('AEC' in tools['features'], 'AEC required')
     fields, checks = [], []
     for hour, frame in enumerate(bounded_frames(source), 1):
-        metadata = field_metadata(frame, hour)
+        metadata = field_metadata(frame, hour, config)
         values, missing = decoded_arrays(frame, metadata['grid']['shape_yx'])
         if synthetic_nodata:
             # Explicit supplement to the mandatory sample, never producer data.

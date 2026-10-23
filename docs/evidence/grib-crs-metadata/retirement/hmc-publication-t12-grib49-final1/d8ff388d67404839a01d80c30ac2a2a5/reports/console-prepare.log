@@ -1,0 +1,85 @@
+﻿**********************
+Начало записи сценария Windows PowerShell
+Время начала: 20261023123215
+Имя пользователя: STAFF\s.osokin
+Запуск от имени пользователя: STAFF\s.osokin
+Имя конфигурации: 
+Компьютер: N626798 (Microsoft Windows NT 10.0.26200.0)
+Ведущее приложение: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -File publication/run-integrated.ps1 -Project hmc-publication-t12-grib49-final1 -Port 8190 -Image hmc-publication:grib49 -SkipBuild
+ИД процесса: 6776
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Success: no issues found in 68 source files
+ Network hmc-publication-t12-grib49-final1_publication  Creating
+ Network hmc-publication-t12-grib49-final1_publication  Created
+ Volume hmc-publication-t12-grib49-final1_assets  Creating
+ Volume hmc-publication-t12-grib49-final1_assets  Created
+ Network hmc-publication-t12-grib49-final1_edge  Creating
+ Network hmc-publication-t12-grib49-final1_edge  Created
+ Volume hmc-publication-t12-grib49-final1_geoserver  Creating
+ Volume hmc-publication-t12-grib49-final1_geoserver  Created
+ Volume hmc-publication-t12-grib49-final1_postgres  Creating
+ Volume hmc-publication-t12-grib49-final1_postgres  Created
+ Container hmc-publication-t12-grib49-final1-api-1  Creating
+ Container hmc-publication-t12-grib49-final1-gateway-1  Creating
+ Container hmc-publication-t12-grib49-final1-geoserver-1  Creating
+ Container hmc-publication-t12-grib49-final1-db-1  Creating
+ Container hmc-publication-t12-grib49-final1-api-1  Created
+ Container hmc-publication-t12-grib49-final1-geoserver-1  Created
+ Container hmc-publication-t12-grib49-final1-gateway-1  Created
+ Container hmc-publication-t12-grib49-final1-db-1  Created
+ Container hmc-publication-t12-grib49-final1-geoserver-1  Starting
+ Container hmc-publication-t12-grib49-final1-api-1  Starting
+ Container hmc-publication-t12-grib49-final1-db-1  Starting
+ Container hmc-publication-t12-grib49-final1-gateway-1  Starting
+ Container hmc-publication-t12-grib49-final1-api-1  Started
+ Container hmc-publication-t12-grib49-final1-geoserver-1  Started
+ Container hmc-publication-t12-grib49-final1-db-1  Started
+ Container hmc-publication-t12-grib49-final1-gateway-1  Started
+{"status": "ready"}
+ece2bc7b-3bf7-473a-a02a-1acab1db8301
+test_post_publication_gis_exception_is_a_sanitized_service_failure (test_publication_http.PublishedSelection.test_post_publication_gis_exception_is_a_sanitized_service_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.681s
+
+OK
+test_incremental_times_corrections_and_retained_readers (test_publication_revisions.IncrementalPublication.test_incremental_times_corrections_and_retained_readers) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 206.295s
+
+OK
+test_protected_consistency_policy_and_expiry (test_publication_integrated.ProtectedPublication.test_protected_consistency_policy_and_expiry) ... FAIL
+
+======================================================================
+FAIL: test_protected_consistency_policy_and_expiry (test_publication_integrated.ProtectedPublication.test_protected_consistency_policy_and_expiry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_integrated.py", line 225, in test_protected_consistency_policy_and_expiry
+    self.publish(gap, '2,3')
+  File "/app/tests/test_publication_integrated.py", line 165, in publish
+    collections = self.get('/org/ogc/collections').json()['collections']
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_publication_integrated.py", line 38, in get
+    self.assertEqual(response.status_code, expected, path)
+AssertionError: 413 != 200 : /org/ogc/collections
+
+----------------------------------------------------------------------
+Ran 1 test in 20.480s
+
+FAILED (failures=1)
+
+PS>TerminatingError(): "integrated failed with native exit 1"
+>> TerminatingError(): "integrated failed with native exit 1"
+**********************
+Конец записи протокола Windows PowerShell
+Время окончания: 20261023123703
+**********************

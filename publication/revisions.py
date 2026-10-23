@@ -25,6 +25,12 @@ def fixture_run(fixture: str) -> str:
     return 'SYNTHETIC-ICON-EU/2026-10-15T01:00:00Z' if fixture == 'overlap' else RUN
 
 
+def source_run(request: dict, metadata: dict, fixture: str) -> str:
+    if request.get('source_profile') != 'surface-temperature-grib2' or fixture != 'actual':
+        return fixture_run(fixture)
+    return request.get('model',metadata['model'])+'/'+metadata['reference_time']
+
+
 def migrate() -> None:
     """Add T5 records without modifying any historical publication or asset."""
     with database() as cursor:
@@ -42,9 +48,13 @@ def normalize(source: Path, target: Path, hour: int, frame: bytes, fixture: str,
     target.mkdir()
     if job is not None:
         recovery.stage(job, 'normalization')
-    metadata = field_metadata(frame, hour)
+    request = (job or {}).get('request', {})
+    metadata = field_metadata(frame,hour,request.get('crs_configuration'),
+                              sample_inventory=request.get('source_profile')!='surface-temperature-grib2')
     values, missing = decoded_arrays(frame, metadata['grid']['shape_yx'])
-    run = fixture_run(fixture)
+    run = source_run(request,metadata,fixture)
+    model = request.get('model',metadata['model']) if request.get('source_profile') else 'ICON-EU'
+    metadata['model'] = model
     if fixture != 'actual':
         metadata['synthetic_fixture'] = fixture
         if fixture == 'correction':
@@ -61,11 +71,12 @@ def normalize(source: Path, target: Path, hour: int, frame: bytes, fixture: str,
     inventory = {path.relative_to(target).as_posix(): {'bytes': path.stat().st_size, 'sha256': file_hash(path)}
                  for path in sorted(target.rglob('*')) if path.is_file()}
     body = {'schema_version': 1, 'pipeline_version': STORAGE_PIPELINE, 'state': 'validated-test',
-            'run': run, 'model': 'ICON-EU', 'member': None, 'synthetic_nodata': False,
-            'fixture': fixture, 'source': {'name': source.name, 'sha256': SAMPLE_SHA256,
+            'run': run, 'model': model, 'member': None, 'synthetic_nodata': False,
+            'fixture': request.get('fixture_label',fixture), 'source': {'name': job['source_name'] if job else source.name, 'sha256': file_hash(source),
                                          'message_sha256': hashlib.sha256(frame).hexdigest(),
                                          'processing_version': processing_version,
-                                         'synthetic_fixture': None if fixture == 'actual' else fixture},
+                                         'synthetic_fixture': request.get('fixture_label') or (None if fixture == 'actual' else fixture),
+                                         'source_crs': metadata['source_crs']},
             'tools': versions(), 'fields': [item], 'assets': inventory}
     revision = hashlib.sha256(canonical(body)).hexdigest()
     write_once(target / 'manifest.json', {**body, 'revision': revision})
@@ -127,36 +138,40 @@ def process(job: dict) -> None:
     request = job['request']
     recoverable = bool(request.get('recoverable'))
     source = recovery.source(job) if recoverable else Path('/input') / job['source_name']
-    if file_hash(source) != SAMPLE_SHA256:
+    checksum = job['checksum'] if request.get('source_profile') else SAMPLE_SHA256
+    if file_hash(source) != checksum:
         raise ValueError('actual sample checksum mismatch')
     attempt = ROOT / identifier / uuid.uuid4().hex
     attempt.mkdir(parents=True)
     staged = source if recoverable else attempt / source.name
     if not recoverable:
         shutil.copyfile(source, staged)
-    if file_hash(staged) != SAMPLE_SHA256:
+    if file_hash(staged) != checksum:
         raise ValueError('staging checksum mismatch')
     staged.chmod(0o444)
     with database() as cursor:
-        cursor.execute('UPDATE app.jobs SET checksum=%s WHERE id=%s', (SAMPLE_SHA256, identifier))
-    transition(identifier, 'staged', source_sha256=SAMPLE_SHA256)
+        cursor.execute('UPDATE app.jobs SET checksum=%s WHERE id=%s', (checksum, identifier))
+    transition(identifier, 'staged', source_sha256=checksum)
     hours = set(request['hours'])
     published = 0
     for hour, frame in enumerate(bounded_frames(staged), 1):
         if hour not in hours:
             continue
-        run = fixture_run(request['fixture'])
+        metadata = field_metadata(frame,hour,request.get('crs_configuration'),
+                                  sample_inventory=request.get('source_profile')!='surface-temperature-grib2')
+        run = source_run(request,metadata,request['fixture'])
         base = latest(run)
         # A repeated delivery of the same validated message reuses the batch;
         # no new Zarr/COG, GIS workspace, or publication revision is required.
         if base and not os.environ.get('T4_TEST_FAILURE'):
-            metadata = field_metadata(frame, hour)
             matching = [entry for entry in base['batches'] if entry['valid_time'] == metadata['valid_time']]
             for entry in matching:
                 existing = selected(base, entry)
                 if (existing['source'].get('message_sha256') == hashlib.sha256(frame).hexdigest()
                         and existing['source'].get('processing_version', PIPELINE) == job['pipeline_version']
-                        and existing.get('fixture', 'actual') == request['fixture']):
+                        and existing['source'].get('source_crs') == metadata['source_crs']
+                        and existing.get('fixture', 'actual') == request['fixture']
+                        and not request.get('rebuild')):
                     with database() as cursor:
                         cursor.execute('UPDATE app.jobs SET selection=%s WHERE id=%s', (existing['selection'], identifier))
                     published += 1
@@ -168,14 +183,16 @@ def process(job: dict) -> None:
         directory = attempt / f'hour-{hour:02d}'
         directory.mkdir()
         numerical = normalize(staged, directory / 'numerical', hour, frame, request['fixture'], job['pipeline_version'], job)
+        metadata = numerical.manifest['fields'][0]['metadata']
         transition(identifier, 'decoded', hour=hour)
         transition(identifier, 'normalized', hour=hour)
-        batch, relative, checksum = publish_batch(job, directory, numerical, commit=False)
+        batch, relative, batch_checksum = publish_batch(job, directory, numerical, commit=False)
         base = latest(numerical.manifest['run'])
         key = batch_key(batch['identity'])
-        entries = {entry['key']: entry for entry in base['batches']} if base else {}
+        entries = {entry['key']: entry for entry in base['batches']
+                   if entry['valid_time'] != batch['identity']['valid_time']} if base else {}
         entries[key] = {'key': key, 'valid_time': batch['identity']['valid_time'],
-                        'manifest_path': relative, 'manifest_sha256': checksum}
+                        'manifest_path': relative, 'manifest_sha256': batch_checksum}
         body = {'schema_version': 2, 'pipeline_version': PIPELINE, 'run': numerical.manifest['run'],
                 'parent': base['revision'] if base else None, 'job': identifier, 'hour': hour,
                 'clock': job['submitted_at'].isoformat(), 'completeness': 'unknown',
@@ -188,7 +205,7 @@ def process(job: dict) -> None:
         # Recheck every referenced batch before making this revision eligible.
         for entry in loaded['batches']:
             selected(loaded, entry)
-        if file_hash(source) != SAMPLE_SHA256:
+        if file_hash(source) != checksum:
             raise ValueError('source changed during publication')
         recovery.checkpoint(job, 'publication')
         with database() as cursor:

@@ -1,0 +1,126 @@
+name: hmc-publication-t4
+x-app: &app
+  image: ${PUBLICATION_IMAGE:-hmc-publication:t4}
+  build:
+    context: .
+    dockerfile: Dockerfile.publication
+  platform: linux/amd64
+  user: "65532:65532"
+  read_only: true
+  tmpfs: ["/tmp:size=512m,mode=1777"]
+  networks: [publication]
+  environment: &environment
+    TZ: UTC
+    # Explicit historical demo clock; use a separate project/volumes for tests.
+    # Operator retention configure can switch the persisted policy to wall UTC.
+    PUBLICATION_CLOCK: ${PUBLICATION_CLOCK:-2026-10-19T05:00:00Z}
+    TILE_CACHE_BYTES: ${TILE_CACHE_BYTES:-16777216}
+    DB_USER: hmc_worker
+    DB_PASSWORD: ${WORKER_PASSWORD:?generate isolated test environment first}
+    MOSAIC_PASSWORD: ${MOSAIC_PASSWORD:?required}
+    GEOSERVER_ADMIN_USER: ${GEOSERVER_ADMIN_USER:?required}
+    GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:?required}
+  volumes:
+    - assets:/assets
+    - ${PUBLICATION_INPUT_DIR:-./data/grib}:/input:ro
+    - ${PUBLICATION_EVIDENCE_DIR:-./data/reports/t4}:/evidence
+    - ./publication:/app/publication:ro
+    - ./tests:/app/tests:ro
+    - ./config:/app/config:ro
+services:
+  viewer:
+    <<: *app
+    networks: [publication, edge]
+    environment:
+      TZ: UTC
+    volumes:
+      - ./publication:/app/publication:ro
+      - ./viewer:/viewer:ro
+      - ./data/viewer:/viewer-runtime:ro
+    ports: ["127.0.0.1:${T13_PORT:-8140}:8000"]
+    entrypoint: ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--threads=8", "--timeout=45", "publication.viewer:create_app()"]
+  init-assets:
+    <<: *app
+    user: "0:0"
+    entrypoint: ["python", "-c", "import os; os.chown('/assets',65532,65532); os.chmod('/assets',0o777)"]
+  db:
+    image: postgis/postgis:18-3.6@sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96
+    platform: linux/amd64
+    networks: [publication]
+    environment:
+      POSTGRES_DB: hmc
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      WORKER_PASSWORD: ${WORKER_PASSWORD:?required}
+      API_PASSWORD: ${API_PASSWORD:?required}
+      GATEWAY_PASSWORD: ${GATEWAY_PASSWORD:-}
+      MOSAIC_PASSWORD: ${MOSAIC_PASSWORD:?required}
+    volumes:
+      - postgres:/var/lib/postgresql
+      - ./publication/init-db.sh:/docker-entrypoint-initdb.d/010-hmc.sh:ro
+      - ./publication/init-access.sh:/docker-entrypoint-initdb.d/020-access.sh:ro
+      - ./publication/native-crs.sql:/docker-entrypoint-initdb.d/native-crs.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hmc"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  geoserver:
+    image: docker.osgeo.org/geoserver:2.27.0@sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633
+    platform: linux/amd64
+    networks: [publication]
+    environment:
+      GEOSERVER_ADMIN_USER: ${GEOSERVER_ADMIN_USER:?required}
+      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:?required}
+      SKIP_DEMO_DATA: "true"
+      CORS_ENABLED: "false"
+      JAVA_OPTS: "-Xms256m -Xmx1536m"
+    volumes:
+      - geoserver:/opt/geoserver_data
+      - assets:/assets
+      - ./publication/epsg.properties:/opt/geoserver_data/user_projections/epsg.properties:ro
+  api:
+    <<: *app
+    environment:
+      TZ: UTC
+      DB_USER: hmc_api
+      DB_PASSWORD: ${API_PASSWORD:?required}
+      T6_TEST_FAULTS: ${T6_TEST_FAULTS:-0}
+      TILE_CACHE_BYTES: ${TILE_CACHE_BYTES:-16777216}
+    volumes:
+      - assets:/assets:ro
+      - ./publication:/app/publication:ro
+    entrypoint: ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--threads=4", "--timeout=90", "publication.api:create_app()"]
+  gateway:
+    <<: *app
+    networks: [publication, edge]
+    environment:
+      TZ: UTC
+      DB_USER: hmc_gateway
+      DB_PASSWORD: ${GATEWAY_PASSWORD:-}
+    volumes:
+      - ./publication:/app/publication:ro
+    ports: ["127.0.0.1:${T4_PORT:-8096}:8000"]
+    entrypoint: ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--threads=8", "--timeout=100", "publication.gateway:create_app()"]
+  worker:
+    <<: *app
+    mem_limit: 2g
+    cpus: 2
+    entrypoint: ["python", "-m", "publication.worker"]
+    command: ["run"]
+  check:
+    <<: *app
+    entrypoint: ["python", "-m", "unittest", "discover", "-s", "tests", "-v"]
+  compare:
+    <<: *app
+    entrypoint: ["python", "-m", "publication.compare"]
+  typecheck:
+    <<: *app
+    entrypoint: ["mypy", "--ignore-missing-imports", "--check-untyped-defs", "--cache-dir=/tmp/mypy", "decoder", "tests", "trials", "publication"]
+volumes:
+  assets:
+  postgres:
+  geoserver:
+networks:
+  edge:
+  publication:
+    internal: true

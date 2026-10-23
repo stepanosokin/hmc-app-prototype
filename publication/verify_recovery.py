@@ -22,7 +22,7 @@ def main() -> None:
     evidence = Path('/evidence')
     if args.inputs:
         root = args.inputs
-        files = [path for directory in ('publication', 'decoder', 'tests', 'tools', 'trials')
+        files = [path for directory in ('publication', 'decoder', 'tests', 'tools', 'trials', 'config')
                  for path in (root / directory).rglob('*') if path.suffix in ('.py', '.ps1', '.json', '.sql', '.sh', '.sld')]
         files.extend(path for path in root.iterdir() if path.name.startswith(('requirements', 'Dockerfile', 'compose')))
         files.extend([root / '.github/workflows/checks.yml', root / 'AGENTS.md', root / 'docs/development-workflow.md'])

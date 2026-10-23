@@ -1,0 +1,43 @@
+{
+    "project":  "hmc-publication-t23a-grib49-final2",
+    "repository":  "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "decfc11057d6e61c6a1c8f435fe0cb6008c7c13ccd94d321e5753858aba77c88",
+                           "name":  "/hmc-publication-t23a-grib49-final2-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-grib49-final2"
+                       },
+                       {
+                           "id":  "9a6faf36b7fb2d3312ca9c31f0a6c5d46b1074c8b814e35d38d691c177daf43f",
+                           "name":  "/hmc-publication-t23a-grib49-final2-api-1",
+                           "image":  "sha256:057a828422d695a2628d38d3a33bad2eb3924556384a823fe224668280ca3519",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-grib49-final2"
+                       },
+                       {
+                           "id":  "f035a423b16d7adfbbebf9bd060e75afa7ae0f90edef3d187d87cb5e58c21e17",
+                           "name":  "/hmc-publication-t23a-grib49-final2-gateway-1",
+                           "image":  "sha256:057a828422d695a2628d38d3a33bad2eb3924556384a823fe224668280ca3519",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-grib49-final2"
+                       },
+                       {
+                           "id":  "5440fff292e56ebaef64932bcee144e952ffea87cbb38a816e973cc4e84ae4e1",
+                           "name":  "/hmc-publication-t23a-grib49-final2-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-t23a-grib49-final2"
+                       }
+                   ],
+    "networks":  [
+                     "b2466098180f",
+                     "40f5d78d4688"
+                 ],
+    "volumes":  [
+                    "hmc-publication-t23a-grib49-final2_assets",
+                    "hmc-publication-t23a-grib49-final2_geoserver",
+                    "hmc-publication-t23a-grib49-final2_postgres"
+                ]
+}

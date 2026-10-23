@@ -54,7 +54,7 @@ def configure_limits() -> dict:
     return limits
 
 
-def prepare(workspace: str, directory: str, valid_time: str) -> dict:
+def prepare(workspace: str, directory: str, valid_time: str, *, srs: str = 'EPSG:100001') -> dict:
     configure_limits()
     admin('POST', '/workspaces', json={'workspace': {'name': workspace}})
     admin('PUT', f'/workspaces/{workspace}/coveragestores/temperature/external.imagemosaic?configure=all',
@@ -70,7 +70,7 @@ def prepare(workspace: str, directory: str, valid_time: str) -> dict:
     admin('PUT', f'/layers/{workspace}:{name}.json', json={'layer': {
         'defaultStyle': {'name': 'raster', 'workspace': workspace}}})
     admin('PUT', coverage_path + '/' + name + '.json', json={'coverage': {'name': name,
-        'srs':'EPSG:100001', 'projectionPolicy':'FORCE_DECLARED', 'enabled':True, 'metadata': {
+        'srs':srs, 'projectionPolicy':'FORCE_DECLARED', 'enabled':True, 'metadata': {
         'entry': [{'@key': 'time', 'dimensionInfo': {'enabled': True, 'presentation': 'LIST',
                    'units': 'ISO8601', 'defaultValue': {'strategy': 'MINIMUM'}, 'nearestMatchEnabled': False}}]}}})
     return {'workspace': workspace, 'layer': f'{workspace}:{name}', 'coverage': name,
@@ -112,9 +112,14 @@ def verify(gis: dict) -> dict:
     layers = [node.text or '' for node in root.findall('.//{*}Layer/{*}Name')]
     if len(layers) != 1 or layers[0].split(':')[-1] != gis['coverage']:
         raise ValueError(f'GIS discovery layers differ: {layers}')
+    map_bbox = '-1000000,5000000,3000000,9000000'
+    if gis.get('derivative'):
+        from pyproj import Transformer
+        bounds = Transformer.from_crs('EPSG:4326','EPSG:3857',always_xy=True).transform_bounds(*gis['derivative']['bounds'])
+        map_bbox = ','.join(map(str,bounds))
     image = wms(gis, {'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetMap',
                      'LAYERS': gis['layer'], 'STYLES': '', 'TIME': gis['valid_time'],
-                     'CRS': 'EPSG:3857', 'BBOX': '-1000000,5000000,3000000,9000000',
+                     'CRS': 'EPSG:3857', 'BBOX': map_bbox,
                      'WIDTH': 64, 'HEIGHT': 64, 'FORMAT': 'image/png', 'TRANSPARENT': 'true'})
     if not image.content.startswith(b'\x89PNG'):
         raise ValueError('GIS map not PNG')
@@ -124,7 +129,13 @@ def verify(gis: dict) -> dict:
     if 'probe' in gis:
         from publication.tiles import MAP_TO_NATIVE
         probe = gis['probe']
-        mx,my,_ = MAP_TO_NATIVE.transform(probe['lon'],probe['lat'],0.,direction='INVERSE')
+        if gis.get('source_crs'):
+            from decoder.grib_crs import transform
+            from pyproj import Transformer
+            longitude,latitude = transform(gis['source_crs'],probe['lon'],probe['lat'],inverse=True)
+            mx,my = Transformer.from_crs('EPSG:4326','EPSG:3857',always_xy=True).transform(longitude,latitude)
+        else:
+            mx,my,_ = MAP_TO_NATIVE.transform(probe['lon'],probe['lat'],0.,direction='INVERSE')
         identified = wms(gis, {'SERVICE':'WMS','VERSION':'1.3.0','REQUEST':'GetFeatureInfo',
             'LAYERS':gis['layer'],'QUERY_LAYERS':gis['layer'],'STYLES':'','TIME':gis['valid_time'],
             'CRS':'EPSG:3857','BBOX':f'{mx-150},{my-150},{mx+150},{my+150}',

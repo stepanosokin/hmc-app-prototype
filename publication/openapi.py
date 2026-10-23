@@ -20,8 +20,8 @@ def document(prefix: str) -> dict:
 
     selection = parameter('selection', 'path')
     point = [parameter(key) for key in ('selection', 'run', 'revision', 'valid_time', 'layer', 'lon', 'lat')]
-    crs = parameter('crs', required=False, enum=['urn:hmc:crs:icon-sphere-6371229',
-        'http://www.opengis.net/def/crs/OGC/1.3/CRS84'], default='urn:hmc:crs:icon-sphere-6371229')
+    crs = parameter('crs', required=False,
+        description='CRS из storageCrs выбранной коллекции либо CRS84; при отсутствии используется исходная CRS публикации.')
     edr = [selection, *[parameter(key) for key in ('coords', 'datetime', 'parameter-name', 'run', 'revision')],
            crs, parameter('f', required=False, enum=['CoverageJSON', 'json'])]
     paths = {
@@ -33,6 +33,9 @@ def document(prefix: str) -> dict:
         '/api/v1/point': operation('Точная выборка ближайшей native-ячейки', [*point, crs]),
         '/api/v1/selections/{selection}/tiles.json': operation('Числовой контракт тайлов v2', [selection]),
         '/api/v1/selections/{selection}/display/1/native.json': operation('Нативное числовое отображение v1', [selection]),
+        '/api/v1/selections/{selection}/display/2/native.json': operation('Нативное отображение с CRS публикации v2', [selection]),
+        '/api/v1/selections/{selection}/display/2/native/{column}/{row}.f32': operation('Нативные ячейки с CRS публикации',
+            [selection, parameter('column', 'path'), parameter('row', 'path')], 'application/vnd.hmc.native-display-f32'),
         '/api/v1/selections/{selection}/display/1/native/{column}/{row}.f32': operation('Нативные ячейки с halo',
             [selection, parameter('column', 'path'), parameter('row', 'path')], 'application/vnd.hmc.native-display-f32'),
         '/ogc': operation('Описание профиля'),

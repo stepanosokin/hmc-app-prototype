@@ -1,0 +1,20 @@
+test_actual_sample_decodes_all_hours_and_native_cell_positions (test_decoder.DecoderContract.test_actual_sample_decodes_all_hours_and_native_cell_positions) ... ok
+test_empty_non_grib_and_missing_hours_fail (test_decoder.DecoderContract.test_empty_non_grib_and_missing_hours_fail) ... ok
+test_failure_atomically_replaces_previous_success_report (test_decoder.DecoderContract.test_failure_atomically_replaces_previous_success_report) ... ok
+test_header_mutations_never_pass_as_sample (test_decoder.DecoderContract.test_header_mutations_never_pass_as_sample) ... 
+  test_header_mutations_never_pass_as_sample (test_decoder.DecoderContract.test_header_mutations_never_pass_as_sample) (label='cell shift') ... FAIL
+test_truncated_input_fails_without_values (test_decoder.DecoderContract.test_truncated_input_fails_without_values) ... ok
+test_unsupported_packing_has_diagnostic_without_values (test_decoder.DecoderContract.test_unsupported_packing_has_diagnostic_without_values) ... ok
+
+======================================================================
+FAIL: test_header_mutations_never_pass_as_sample (test_decoder.DecoderContract.test_header_mutations_never_pass_as_sample) (label='cell shift')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_decoder.py", line 84, in test_header_mutations_never_pass_as_sample
+    self.assertIn(diagnostic, report['error']['message'])
+AssertionError: 'extent' not found in 'longitude cell placement mismatch'
+
+----------------------------------------------------------------------
+Ran 6 tests in 9.138s
+
+FAILED (failures=1)

@@ -1,0 +1,50 @@
+{
+    "project":  "hmc-publication-grib49-dev1",
+    "repository":  "D:\\OSOKIN\\PROG\\HydroMetCenter\\hmc-app-prototype",
+    "containers":  [
+                       {
+                           "id":  "9b2361609694cb482a602564b8d5cd98bc9ec95ad704634f76e98500bf5f79e6",
+                           "name":  "/hmc-publication-grib49-dev1-db-1",
+                           "image":  "sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96",
+                           "state":  "running",
+                           "project":  "hmc-publication-grib49-dev1"
+                       },
+                       {
+                           "id":  "32f77cde2291d656c7a48ba71f9ee82b67f6233e82a00e2c3345aef5ca44fb93",
+                           "name":  "/hmc-publication-grib49-dev1-viewer-1",
+                           "image":  "sha256:c3794174e8135a0cd6f3363881fdf4c383cea10cfdd34d277c1365ef02521a54",
+                           "state":  "running",
+                           "project":  "hmc-publication-grib49-dev1"
+                       },
+                       {
+                           "id":  "86b124f5337108650469f1a68bd33280680f7e693f4c510878299ae19edb89c0",
+                           "name":  "/hmc-publication-grib49-dev1-gateway-1",
+                           "image":  "sha256:c3794174e8135a0cd6f3363881fdf4c383cea10cfdd34d277c1365ef02521a54",
+                           "state":  "running",
+                           "project":  "hmc-publication-grib49-dev1"
+                       },
+                       {
+                           "id":  "4cdf8b1d9771f33fca36b850d5972a7e5d4e17c4a2e634e3d57ee47b69f45e31",
+                           "name":  "/hmc-publication-grib49-dev1-api-1",
+                           "image":  "sha256:c3794174e8135a0cd6f3363881fdf4c383cea10cfdd34d277c1365ef02521a54",
+                           "state":  "running",
+                           "project":  "hmc-publication-grib49-dev1"
+                       },
+                       {
+                           "id":  "6c2a8846c003612366396c951e4ce02ffdf4735723c7e2e03f65f5bfbcc23894",
+                           "name":  "/hmc-publication-grib49-dev1-geoserver-1",
+                           "image":  "sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633",
+                           "state":  "running",
+                           "project":  "hmc-publication-grib49-dev1"
+                       }
+                   ],
+    "networks":  [
+                     "c7c76b81f5a5",
+                     "0d95a8f0756c"
+                 ],
+    "volumes":  [
+                    "hmc-publication-grib49-dev1_assets",
+                    "hmc-publication-grib49-dev1_geoserver",
+                    "hmc-publication-grib49-dev1_postgres"
+                ]
+}

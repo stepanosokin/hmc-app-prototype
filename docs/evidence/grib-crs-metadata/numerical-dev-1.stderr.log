@@ -1,0 +1,41 @@
+test_catalogue_hierarchy_openapi_and_protected_profile (test_publication_numerical.NumericalContract.test_catalogue_hierarchy_openapi_and_protected_profile) ... ok
+test_discovery_and_exact_position_share_native_point (test_publication_numerical.NumericalContract.test_discovery_and_exact_position_share_native_point) ... ok
+test_position_budget_rejection_preserves_status_and_retry (test_publication_numerical.NumericalContract.test_position_budget_rejection_preserves_status_and_retry) ... ok
+test_position_validation_axes_null_and_exact_selection (test_publication_numerical.NumericalContract.test_position_validation_axes_null_and_exact_selection) ... FAIL
+test_synthetic_native_nodata_is_null_through_published_gateway (test_publication_numerical.NumericalContract.test_synthetic_native_nodata_is_null_through_published_gateway) ... /usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+/usr/local/lib/python3.12/site-packages/rasterio/transform.py:178: PendingDeprecationWarning: Use `@` matmul instead of `*` mul operator for matrix multiplication
+  return Affine.translation(west, north) * Affine.scale(xsize, -ysize)
+ERROR
+
+======================================================================
+ERROR: test_synthetic_native_nodata_is_null_through_published_gateway (test_publication_numerical.NumericalContract.test_synthetic_native_nodata_is_null_through_published_gateway)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_numerical.py", line 154, in test_synthetic_native_nodata_is_null_through_published_gateway
+    manifest, _, _ = publish_batch(job, attempt, numerical, commit=True)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/publication/worker.py", line 176, in publish_batch
+    gis_checks = geoserver.verify(gis)
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "/app/publication/geoserver.py", line 139, in verify
+    if match is None or abs(float(match.group(1))-probe['value']) > 0.0001:
+                            ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+TypeError: unsupported operand type(s) for -: 'float' and 'NoneType'
+
+======================================================================
+FAIL: test_position_validation_axes_null_and_exact_selection (test_publication_numerical.NumericalContract.test_position_validation_axes_null_and_exact_selection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/test_publication_numerical.py", line 81, in test_position_validation_axes_null_and_exact_selection
+    self.get(path, 400, params=self.query(selected, **changes))
+  File "/app/tests/test_publication_numerical.py", line 20, in get
+    self.assertEqual(response.status_code, expected, response.text[:300])
+AssertionError: 503 != 400 : {"code":"Unavailable","description":"published service temporarily unavailable"}
+
+
+----------------------------------------------------------------------
+Ran 5 tests in 8.421s
+
+FAILED (failures=1, errors=1)
+

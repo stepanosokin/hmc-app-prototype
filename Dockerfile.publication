@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libexpat1=2.5.0
 COPY requirements.lock requirements.adapters.lock requirements.publication.lock ./
 RUN pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.lock -r requirements.adapters.lock -r requirements.publication.lock && pip check
 COPY decoder/ decoder/
+COPY config/ config/
 COPY trials/ trials/
 COPY publication/ publication/
 COPY tests/ tests/

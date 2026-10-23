@@ -1,6 +1,7 @@
 param(
     [ValidatePattern('^hmc-publication-t12-[a-z0-9-]+$')][string]$Project = 'hmc-publication-t12-check',
     [int]$Port = 8112,
+    [string]$Image = 'hmc-publication:t12',
     [ValidateSet('Prepare','Complete')][string]$Phase = 'Prepare',
     [switch]$Development,
     [switch]$SkipBuild
@@ -12,7 +13,7 @@ $directory = Join-Path (Get-Location) "data/reports/t12/$Project"
 $environmentFile = Join-Path $directory 'environment.env'
 $secretDirectory = Join-Path (Get-Location) ".scratch/hmc-meteo/$Project"
 $env:T4_PORT = [string]$Port
-$env:PUBLICATION_IMAGE = 'hmc-publication:t12'
+$env:PUBLICATION_IMAGE = $Image
 $env:PUBLICATION_EVIDENCE_DIR = './data/reports/t12/' + $Project
 $env:PUBLICATION_CLOCK = '2026-10-19T05:00:00Z'
 $env:T6_TEST_FAULTS = '1'
@@ -130,7 +131,7 @@ if ($Phase -eq 'Prepare') {
     Check access-upgrade @('exec','--no-TTY','db','sh','/docker-entrypoint-initdb.d/020-access.sh')
     Check access-remigrate @('run','--rm','--entrypoint','python','worker','-m','publication.access','migrate')
     Invoke-CheckedProcess -FilePath docker -ArgumentList @('run','--rm','--network',"${Project}_edge",'--entrypoint','python',
-        'hmc-publication:t12','-m','publication.verify_access','--edge-only') -ReportDirectory $directory -Name edge-isolation
+        $Image,'-m','publication.verify_access','--edge-only') -ReportDirectory $directory -Name edge-isolation
     $containerIds = @(& docker ps --all --quiet --filter "label=com.docker.compose.project=$Project")
     if ($LASTEXITCODE -ne 0 -or -not $containerIds.Count) { throw 'Cannot inventory services' }
     $containers = & docker inspect @containerIds | ConvertFrom-Json
