@@ -1,0 +1,31 @@
+test_configuration_is_frozen_in_resolved_crs (test_grib_crs.GribCRS.test_configuration_is_frozen_in_resolved_crs) ... ok
+test_explicit_scaled_earth_axes_and_ellipsoid_codes (test_grib_crs.GribCRS.test_explicit_scaled_earth_axes_and_ellipsoid_codes) ... ok
+test_missing_required_projection_and_corrupt_config_fail (test_grib_crs.GribCRS.test_missing_required_projection_and_corrupt_config_fail) ... ok
+test_non_inventory_surface_message_reads_producer_date_and_packing (test_grib_crs.GribCRS.test_non_inventory_surface_message_reads_producer_date_and_packing) ... skipped 'Private ENA sample is not mounted'
+test_nonzero_configured_geodetic_parameters_roundtrip (test_grib_crs.GribCRS.test_nonzero_configured_geodetic_parameters_roundtrip) ... ok
+test_producer_rotated_ena_metadata (test_grib_crs.GribCRS.test_producer_rotated_ena_metadata) ... skipped 'Private ENA rotation sample is not mounted'
+test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) ... ok
+test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) ... ERROR
+test_rotation_against_independent_cartesian_basis (test_grib_crs.GribCRS.test_rotation_against_independent_cartesian_basis) ... ok
+test_standard_earth_codes_override_defaults (test_grib_crs.GribCRS.test_standard_earth_codes_override_defaults) ... ok
+test_wgs84_horizontal_datum_overrides_geodetic_defaults (test_grib_crs.GribCRS.test_wgs84_horizontal_datum_overrides_geodetic_defaults) ... ok
+
+======================================================================
+ERROR: test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 188, in test_real_grib_messages_storage_and_native_cells_all_templates
+    original=next(bounded_frames(Path('/input/ICON_EU_T_G_2026101500.grib2')))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/storage.py", line 48, in bounded_frames
+    with path.open('rb') as stream:
+         ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/input/ICON_EU_T_G_2026101500.grib2'
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.962s
+
+FAILED (errors=1, skipped=2)

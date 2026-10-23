@@ -122,3 +122,9 @@ The [WMS compatibility retrospective](retro-wms-compat.md) records a desktop
 helper that masked ordinary QGIS defaults, an existing verifier outside the local
 wrapper and PowerShell/mypy command-binding mistakes. The Windows scope now
 reuses that verifier; QGIS and service guidance cover the remaining lessons.
+
+The [GRIB CRS retrospective](retro-grib-crs.md) records two late collection-size
+failures, an expired retained-reader control and shared-image/archive overhead.
+Runtime/All and manual CI now run the existing sample-free CRS tests. Service
+and reload guidance bring payload size, image ownership and retention selection
+forward; accepted implementation evidence and the live stack are preserved.

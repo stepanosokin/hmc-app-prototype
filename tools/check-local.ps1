@@ -35,6 +35,7 @@ try {
     if ($Scope -in @('All', 'Runtime')) {
         Invoke-Check docker @('build', '-f', 'Dockerfile.publication', '-t', $image, '.')
         $mounted = @('run', '--rm', '--network', 'none', '--volume', "${root}:/workspace:ro", '--workdir', '/workspace')
+        Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-B', '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_grib_crs.py', '-v'))
         Invoke-Check docker ($mounted + @('--entrypoint', 'mypy', $image, '--ignore-missing-imports', '--check-untyped-defs', '--cache-dir=/tmp/mypy', 'decoder', 'tests', 'trials', 'publication', 'tools'))
         foreach ($test in @('tiles', 'access', 'retention')) {
             Invoke-Check docker @('run', '--rm', '--network', 'none', '--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tests', '-p', "test_publication_$test.py", '-v')

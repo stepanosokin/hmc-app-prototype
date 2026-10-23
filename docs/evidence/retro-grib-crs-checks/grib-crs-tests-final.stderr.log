@@ -1,0 +1,118 @@
+test_configuration_is_frozen_in_resolved_crs (test_grib_crs.GribCRS.test_configuration_is_frozen_in_resolved_crs) ... ok
+test_explicit_scaled_earth_axes_and_ellipsoid_codes (test_grib_crs.GribCRS.test_explicit_scaled_earth_axes_and_ellipsoid_codes) ... ok
+test_missing_required_projection_and_corrupt_config_fail (test_grib_crs.GribCRS.test_missing_required_projection_and_corrupt_config_fail) ... ok
+test_non_inventory_surface_message_reads_producer_date_and_packing (test_grib_crs.GribCRS.test_non_inventory_surface_message_reads_producer_date_and_packing) ... skipped 'Private ENA sample is not mounted'
+test_nonzero_configured_geodetic_parameters_roundtrip (test_grib_crs.GribCRS.test_nonzero_configured_geodetic_parameters_roundtrip) ... ok
+test_producer_rotated_ena_metadata (test_grib_crs.GribCRS.test_producer_rotated_ena_metadata) ... skipped 'Private ENA rotation sample is not mounted'
+test_projection_units_and_geographic_control_point (test_grib_crs.GribCRS.test_projection_units_and_geographic_control_point) ... ok
+test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) ... 
+  test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=0) ... ERROR
+  test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=1) ... ERROR
+  test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=10) ... ERROR
+  test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=20) ... ERROR
+  test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=30) ... ERROR
+  test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=31) ... ERROR
+test_rotation_against_independent_cartesian_basis (test_grib_crs.GribCRS.test_rotation_against_independent_cartesian_basis) ... ok
+test_standard_earth_codes_override_defaults (test_grib_crs.GribCRS.test_standard_earth_codes_override_defaults) ... ok
+test_wgs84_horizontal_datum_overrides_geodetic_defaults (test_grib_crs.GribCRS.test_wgs84_horizontal_datum_overrides_geodetic_defaults) ... ok
+
+======================================================================
+ERROR: test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 205, in test_real_grib_messages_storage_and_native_cells_all_templates
+    parsed=field_metadata(binary,1,sample_inventory=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/storage.py", line 32, in field_metadata
+    metadata = decode_message(frame, hour, crs_config, sample_inventory)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/inspect_forecast.py", line 144, in decode_message
+    require(ec.codes_get_long(handle, key) == expected, f'decoder/raw header mismatch: {key}')
+  File "/workspace/decoder/inspect_forecast.py", line 29, in require
+    raise ValidationError(message)
+decoder.inspect_forecast.ValidationError: decoder/raw header mismatch: scaleFactorOfFirstFixedSurface
+
+======================================================================
+ERROR: test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 205, in test_real_grib_messages_storage_and_native_cells_all_templates
+    parsed=field_metadata(binary,1,sample_inventory=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/storage.py", line 32, in field_metadata
+    metadata = decode_message(frame, hour, crs_config, sample_inventory)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/inspect_forecast.py", line 144, in decode_message
+    require(ec.codes_get_long(handle, key) == expected, f'decoder/raw header mismatch: {key}')
+  File "/workspace/decoder/inspect_forecast.py", line 29, in require
+    raise ValidationError(message)
+decoder.inspect_forecast.ValidationError: decoder/raw header mismatch: scaleFactorOfFirstFixedSurface
+
+======================================================================
+ERROR: test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=10)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 205, in test_real_grib_messages_storage_and_native_cells_all_templates
+    parsed=field_metadata(binary,1,sample_inventory=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/storage.py", line 32, in field_metadata
+    metadata = decode_message(frame, hour, crs_config, sample_inventory)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/inspect_forecast.py", line 144, in decode_message
+    require(ec.codes_get_long(handle, key) == expected, f'decoder/raw header mismatch: {key}')
+  File "/workspace/decoder/inspect_forecast.py", line 29, in require
+    raise ValidationError(message)
+decoder.inspect_forecast.ValidationError: decoder/raw header mismatch: scaleFactorOfFirstFixedSurface
+
+======================================================================
+ERROR: test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 205, in test_real_grib_messages_storage_and_native_cells_all_templates
+    parsed=field_metadata(binary,1,sample_inventory=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/storage.py", line 32, in field_metadata
+    metadata = decode_message(frame, hour, crs_config, sample_inventory)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/inspect_forecast.py", line 144, in decode_message
+    require(ec.codes_get_long(handle, key) == expected, f'decoder/raw header mismatch: {key}')
+  File "/workspace/decoder/inspect_forecast.py", line 29, in require
+    raise ValidationError(message)
+decoder.inspect_forecast.ValidationError: decoder/raw header mismatch: scaleFactorOfFirstFixedSurface
+
+======================================================================
+ERROR: test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=30)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 205, in test_real_grib_messages_storage_and_native_cells_all_templates
+    parsed=field_metadata(binary,1,sample_inventory=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/storage.py", line 32, in field_metadata
+    metadata = decode_message(frame, hour, crs_config, sample_inventory)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/inspect_forecast.py", line 144, in decode_message
+    require(ec.codes_get_long(handle, key) == expected, f'decoder/raw header mismatch: {key}')
+  File "/workspace/decoder/inspect_forecast.py", line 29, in require
+    raise ValidationError(message)
+decoder.inspect_forecast.ValidationError: decoder/raw header mismatch: scaleFactorOfFirstFixedSurface
+
+======================================================================
+ERROR: test_real_grib_messages_storage_and_native_cells_all_templates (test_grib_crs.GribCRS.test_real_grib_messages_storage_and_native_cells_all_templates) (template=31)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_grib_crs.py", line 205, in test_real_grib_messages_storage_and_native_cells_all_templates
+    parsed=field_metadata(binary,1,sample_inventory=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/storage.py", line 32, in field_metadata
+    metadata = decode_message(frame, hour, crs_config, sample_inventory)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/decoder/inspect_forecast.py", line 144, in decode_message
+    require(ec.codes_get_long(handle, key) == expected, f'decoder/raw header mismatch: {key}')
+  File "/workspace/decoder/inspect_forecast.py", line 29, in require
+    raise ValidationError(message)
+decoder.inspect_forecast.ValidationError: decoder/raw header mismatch: scaleFactorOfFirstFixedSurface
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.758s
+
+FAILED (errors=6, skipped=2)

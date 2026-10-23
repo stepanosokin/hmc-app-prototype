@@ -1,0 +1,45 @@
+﻿**********************
+Начало записи сценария Windows PowerShell
+Время начала: 20261023134154
+Имя пользователя: STAFF\s.osokin
+Запуск от имени пользователя: STAFF\s.osokin
+Имя конфигурации: 
+Компьютер: N626798 (Microsoft Windows NT 10.0.26200.0)
+Ведущее приложение: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+$ErrorActionPreference = 'Stop'
+$report = 'docs/evidence/retro-grib-crs-checks'
+Start-Transcript -Path (Join-Path $report 'documentation.log') | Out-Null
+try {
+& ./tools/check-documentation.ps1
+& ./tools/check-documentation.ps1 -Path @('docs/grib-crs.md','docs/evidence/retro-grib-crs.md','docs/evidence/workflow-retrospectives.md','docs/development/services.md')
+foreach ($path in @('tools/check-local.ps1','tools/check-documentation.ps1')) {
+$tokens = $null
+$parseErrors = $null
+[System.Management.Automation.Language.Parser]::ParseFile((Join-Path (Get-Location) $path), [ref]$tokens, [ref]$parseErrors) | Out-Null
+if ($parseErrors.Count) { throw ($parseErrors | Out-String) }
+Write-Output "PowerShell syntax passed: $path"
+}
+git diff --check
+if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
+} finally { Stop-Transcript | Out-Null }
+$inputs = @('.github/workflows/checks.yml','tools/check-local.ps1','tools/check-documentation.ps1','tests/test_grib_crs.py') | ForEach-Object { @{path=$_;sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $_).Hash.ToLowerInvariant()} }
+@{starting_commit='8c044f0c1baea5f80cacf97d16c36cf2f2442155';inputs=$inputs;tests=@{total=11;passed=9;skipped=2;reason='Private ENA sample intentionally not mounted'};mypy_files=86;review='Diff reviewed: only test fixture, check wiring and workflow documentation; runtime unchanged';historical_archive='No changes to docs/evidence/grib-crs-metadata';resources='Temporary --rm test/typecheck containers removed; no Compose project, named volume, network or browser allocated; hmc-app-live unchanged';issue=@{number=49;state='closed';checked=6;unchecked=0;observation_phase='precommit'}} | ConvertTo-Json -Depth 6 | Set-Content -Encoding UTF8 (Join-Path $report 'validation.json')
+ИД процесса: 31488
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Documentation links passed (25 files).
+Documentation links passed (4 files).
+PowerShell syntax passed: tools/check-local.ps1
+PowerShell syntax passed: tools/check-documentation.ps1
+
+**********************
+Конец записи протокола Windows PowerShell
+Время окончания: 20261023134154
+**********************
