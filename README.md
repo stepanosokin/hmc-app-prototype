@@ -2,6 +2,7 @@
 
 Building a self-hosted weather map and external GIS/API service using organizational data.
 
+- [Администратору: запуск, остановка и обновление данных стенда](ADMIN.md)
 - [Specification — English](.scratch/hmc-meteo/spec.md)
 - [Спецификация — русский](.scratch/hmc-meteo/spec.ru.md)
 - [Wayfinder map — GitHub Issues](https://github.com/stepanosokin/hmc-app-prototype/issues/1)
