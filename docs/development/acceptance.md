@@ -25,6 +25,11 @@ isolated API; selecting `T8_HTTP=1` in the check container alone is insufficient
 Confirm the intended failure and recovery through the gateway in that focused
 run. A successful build or typecheck does not validate these prerequisites.
 
+For a shortened recovery scenario, reuse the seed preparation in
+[run-recovery.ps1](../../publication/run-recovery.ps1), including the accepted
+encoder decision and its bound evidence. Check those files on the host before
+allocating Compose resources or submitting the first worker job.
+
 For actual-sample acceptance, verify that the configured private sample exists
 and matches `SAMPLE_SHA256` in `decoder/inspect_forecast.py` before allocating
 the test project or pulling its service images. For T7, also verify that the runner's frozen

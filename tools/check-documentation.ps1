@@ -1,6 +1,7 @@
 param(
     [string[]]$Path = @(
         'README.md',
+        'ADMIN.md',
         'AGENTS.md',
         'viewer/README.md',
         'docs/development-workflow.md',
@@ -26,12 +27,14 @@ param(
         '.scratch/hmc-meteo/spec.md',
         '.scratch/hmc-meteo/spec.ru.md',
         '.scratch/hmc-meteo/implementation-spec.md'
-    )
+    ),
+    [switch]$ParsePowerShell
 )
 
 $ErrorActionPreference = 'Stop'
 $documentationRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $documentationFailures = @()
+$parsedExamples = 0
 foreach ($documentPath in $Path) {
     $documentAbsolute = if ([System.IO.Path]::IsPathRooted($documentPath)) {
         [System.IO.Path]::GetFullPath($documentPath)
@@ -39,6 +42,23 @@ foreach ($documentPath in $Path) {
         [System.IO.Path]::GetFullPath((Join-Path $documentationRoot $documentPath))
     }
     $documentText = [System.IO.File]::ReadAllText($documentAbsolute)
+    # ADMIN is a runnable recipe; other documents can contain command templates.
+    if ($ParsePowerShell -or $documentAbsolute -eq (Join-Path $documentationRoot 'ADMIN.md')) {
+        $openings = [regex]::Matches($documentText, '(?m)^[ \t]*```powershell[ \t]*\r?$')
+        $examples = [regex]::Matches($documentText, '(?ms)^[ \t]*```powershell[ \t]*\r?\n(.*?)^[ \t]*```[ \t]*\r?$')
+        if ($openings.Count -ne $examples.Count) {
+            $documentationFailures += "${documentPath}: Unclosed PowerShell fence"
+        }
+        foreach ($example in $examples) {
+            $tokens = $null
+            $errors = $null
+            [Management.Automation.Language.Parser]::ParseInput($example.Groups[1].Value, [ref]$tokens, [ref]$errors) | Out-Null
+            foreach ($parseError in $errors) {
+                $documentationFailures += "${documentPath}: PowerShell example: $($parseError.Message)"
+            }
+            $parsedExamples++
+        }
+    }
     # Check inline Markdown link targets; remote URLs and fragment contents are outside this check.
     foreach ($documentLink in [regex]::Matches($documentText, '\]\((<[^>]+>|[^\s)]+)\)')) {
         $documentTarget = $documentLink.Groups[1].Value.Trim('<', '>')
@@ -52,3 +72,4 @@ foreach ($documentPath in $Path) {
 }
 if ($documentationFailures.Count -gt 0) { throw ($documentationFailures -join [Environment]::NewLine) }
 Write-Output "Documentation links passed ($($Path.Count) files)."
+Write-Output "PowerShell examples parsed: $parsedExamples (syntax only; never executed)."

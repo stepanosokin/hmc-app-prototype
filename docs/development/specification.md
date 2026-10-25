@@ -12,7 +12,11 @@ specification and workflow links. For multiple paths, call the script inside
 PowerShell: `& ./tools/check-documentation.ps1 -Path @('README.md','AGENTS.md')`.
 The check resolves local inline Markdown links relative to each file, including
 root README links; it does not validate remote URLs or section fragments.
-It also runs in the existing Windows CI job.
+Its default scope includes the [administrator recipe](../../ADMIN.md), whose
+PowerShell fences are parsed without executing the commands. Other documents
+can contain templates; use `-ParsePowerShell` only for runnable examples in an
+explicit `-Path` selection. The Windows local/CI checks also run
+`tools/check-documentation-tests.ps1` against valid/invalid examples and links.
 
 For ad hoc PowerShell validation, set `$ErrorActionPreference = 'Stop'` before
 checking inputs and inspect native exit codes before reporting success. Resolve

@@ -16,6 +16,9 @@ it supports issue/label REST operations and obtains credentials without printing
 them. Supply operations and output paths in the ignored scratch directory, then
 read back the issue state. If the helper is absent or authentication fails,
 report the specific blocker. Keep credentials out of commands, logs and reports.
+Discover connector tools by listing matching names first, then read metadata
+for the selected operation only. Keep issue bodies in memory or ignored files;
+return only the fields needed for the current decision or state verification.
 The connector's 403 and an automatic approval rejection are separate boundaries:
 if approval review rejects this helper, continue independent implementation and
 request explicit permission for that helper and issue before retrying. The

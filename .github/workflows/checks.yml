@@ -39,9 +39,12 @@ jobs:
       - name: Check publication process exit handling
         shell: powershell
         run: ./tools/check-publication-process.ps1
-      - name: Check current documentation links
+      - name: Check documentation links and administrator command syntax
         shell: powershell
         run: ./tools/check-documentation.ps1
+      - name: Reject invalid documentation examples and missing links
+        shell: powershell
+        run: ./tools/check-documentation-tests.ps1
       - name: Check native browser input capture without Compose
         shell: powershell
         run: ./tools/check-native-display-inputs.ps1
