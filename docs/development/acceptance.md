@@ -1,5 +1,11 @@
 # Before starting final acceptance
 
+For PowerShell runner edits, run `powershell -NoProfile -File tools/check-powershell.ps1`
+before allocating services. It parses runtime scripts without executing them;
+the existing Windows process check includes this guard and its valid/invalid
+fixtures. Parsing catches broken quotes; argument binding still needs the
+focused launcher/scenario check described in [service checks](services.md).
+
 Use the existing CI mypy check against the current read-only workspace before
 allocating a Compose project for Python type errors, when a locked validation
 image is already available. Otherwise let the focused runner build it first.

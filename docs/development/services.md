@@ -173,6 +173,16 @@ Git; a whole-repository archive also copies historical evidence.
 
 ## Review of recovery, retention and budgets
 
+For diagnostics/fault exercises, establish distinct first/latest published
+selections in Development. Save the retained URL, cold-tile URL and checksum
+before enabling faults; warm each required metadata/byte entry immediately
+before the marker. Observe the named stage counter's delta and explicitly
+request the queued job's resulting selection to prove log correlation.
+After restart, `/health` is a prerequisite: wait boundedly for the original
+data URL/checksum and retain intermediate statuses/request IDs. Ordinary fault
+probes still assert their first response. The [T17 retrospective](../evidence/retro-t17.md)
+records the fixture and readiness failures behind these checks.
+
 For recovery reviews, trace capture before queue processing as well as every
 worker stage: durable intent before managed writes, byte/time bounds during
 hashing and copying, and collection of abandoned fragments. T6's existing

@@ -1,9 +1,23 @@
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '../publication/process.ps1')
+& (Join-Path $PSScriptRoot 'check-powershell.ps1')
 
 # Exercise the same launcher used by T5, without Docker, credentials or samples.
 $processCheckDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ('hmc process check ' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $processCheckDirectory | Out-Null
+$processSyntaxFixture = Join-Path $processCheckDirectory 'parse only.ps1'
+"throw 'Parsing must not execute this fixture'" | Set-Content -Encoding ascii -LiteralPath $processSyntaxFixture
+& (Join-Path $PSScriptRoot 'check-powershell.ps1') -Path @($processSyntaxFixture)
+$processBrokenFixture = Join-Path $processCheckDirectory 'broken quote.ps1'
+"Write-Output 'unterminated" | Set-Content -Encoding ascii -LiteralPath $processBrokenFixture
+$processSyntaxRejected = $false
+try {
+    & (Join-Path $PSScriptRoot 'check-powershell.ps1') -Path @($processBrokenFixture)
+} catch {
+    if (-not $_.Exception.Message.StartsWith('PowerShell syntax errors: ')) { throw }
+    $processSyntaxRejected = $true
+}
+if (-not $processSyntaxRejected) { throw 'Malformed PowerShell was accepted' }
 $processCheckFixture = Join-Path $processCheckDirectory 'child process.ps1'
 @'
 param([int]$ExitCode, [string]$Message)
