@@ -31,6 +31,7 @@ try {
         }
         Invoke-Check node @('docs/evidence/wms-compat/verify.mjs')
         Invoke-Check node @('--test', 'tools/test-weather-check-options.mjs')
+        Invoke-Check node @('--test', 'tools/test-publication-ops.mjs')
     }
     if ($Scope -in @('All', 'Runtime')) {
         Invoke-Check docker @('build', '-f', 'Dockerfile.publication', '-t', $image, '.')

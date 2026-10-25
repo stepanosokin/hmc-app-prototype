@@ -121,6 +121,16 @@ It includes killed workers, real GIS failures, managed-source recovery, staging
 collection, cold/warm numeric tiles and retained readers after service restart.
 Its fault markers are enabled only in the explicitly isolated T6 API stack.
 
+For full-stack backup/restore (T18), use
+`powershell -NoProfile -File publication/run-stack-restore.ps1 -Project hmc-publication-t18-<fresh-name>`.
+It includes the complete T6 gate (and its full suite), then T8 policy probes,
+offline backup, restore into separate volumes, pinned public readers, revocation,
+usage/retention and queued-delivery replay. Do not repeat a separate T6 chain.
+Use `-Development` for focused iteration before freezing final inputs.
+The runner retires both projects, including failures. Closed backup bundles stay
+outside portable reports; see [operator recovery](../stack-recovery.md).
+Local Docker success does not establish the agreed organization Linux host gate.
+
 For retention or retained-revision migration changes, also run the actual-sample
 [T7 retention runner](../../publication/run-retention.ps1) in a fresh project. It
 checks mixed legacy/incremental upgrade, collection during gateway read traffic,

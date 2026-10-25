@@ -198,3 +198,10 @@ tests/test_publication_diagnostics.py text eol=lf
 # Retrospective parser/process receipts preserve observed bytes.
 docs/evidence/retro-t17-checks/** -text whitespace=cr-at-eol
 docs/evidence/retro-t17-checks/**/*.log -whitespace
+
+# T18 recovery evidence and operator bytes must survive Linux/Windows checkout.
+tools/publication-ops.mjs text eol=lf
+tools/test-publication-ops.mjs text eol=lf
+docs/evidence/t18/** -text whitespace=cr-at-eol
+docs/evidence/t18/**/*.log -whitespace
+docs/evidence/t18/**/inputs/** -whitespace

@@ -218,6 +218,10 @@ rendering/interpolation, mobile/browser targets and operational Linux-host sizin
 remain #25/#31 and later gates. T4 does not complete M2/M3 as a whole.
 # Recover interrupted deliveries (T6 / #18)
 
+For complete stack backup/restore, including PostgreSQL, managed products,
+GeoServer, access metadata and retained tile contracts, use the
+[T18 operator procedures](stack-recovery.md).
+
 Run `powershell -NoProfile -File publication/run-recovery.ps1 -Project hmc-publication-t6-check1 -Port 8104`.
 The runner requires the unchanged actual sample in `data/grib`, creates isolated
 input fixtures and service volumes, checks project/port availability and waits
