@@ -4,6 +4,9 @@ x-app: &app
   build:
     context: .
     dockerfile: Dockerfile.publication
+  logging:
+    driver: json-file
+    options: {max-size: "5m", max-file: "3"}
   platform: linux/amd64
   user: "65532:65532"
   read_only: true
@@ -45,6 +48,9 @@ services:
     entrypoint: ["python", "-c", "import os; os.chown('/assets',65532,65532); os.chmod('/assets',0o777)"]
   db:
     image: postgis/postgis:18-3.6@sha256:93edcf470afb105e34d83bab74296537f63e773eda55026bd1bebbb5326c8a96
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "3"}
     platform: linux/amd64
     networks: [publication]
     environment:
@@ -66,6 +72,9 @@ services:
       retries: 30
   geoserver:
     image: docker.osgeo.org/geoserver:2.27.0@sha256:12a40a16f36b9da6e691f968b9b86aa9292aee837002602bff3a9bdb489e5633
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "3"}
     platform: linux/amd64
     networks: [publication]
     environment:

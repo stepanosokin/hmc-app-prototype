@@ -75,7 +75,8 @@ def create_app() -> Flask:
 
     @app.before_request
     def protect_reader():
-        if request.path == '/health':
+        g.observed_start = time.monotonic()
+        if request.path in ('/health', '/ops/diagnostics'):
             return
         g.deadline = min(time.time() + 30, float(request.headers.get('X-HMC-Deadline', time.time() + 30)))
         if g.deadline <= time.time():
@@ -131,6 +132,14 @@ def create_app() -> Flask:
             response.headers['X-HMC-Product'] = g.identity['model'] if 'model' in g.identity else g.identity['field']
             response.headers['X-HMC-Run'] = g.identity['run']
             response.headers['X-HMC-Revision'] = g.identity['revision']
+        if request.path not in ('/health', '/ops/diagnostics'):
+            event = {'service': 'api', 'event': 'response',
+                     'request_id': g.get('backend_id'), 'status': response.status_code,
+                     'duration_ms': (time.monotonic()-g.observed_start)*1000,
+                     'bytes': response.calculate_content_length(),
+                     'cache': response.headers.get('X-HMC-Cache'),
+                     'identity': g.get('identity')}
+            print(json.dumps(event), file=sys.stderr, flush=True)
         return response
 
     @app.errorhandler(WorkLimit)
@@ -163,6 +172,10 @@ def create_app() -> Flask:
         response.headers['Retry-After'] = '2'
         response.headers['Cache-Control'] = 'no-store'
         return response
+
+    @app.get('/ops/diagnostics')
+    def operator_diagnostics():
+        return jsonify(numeric=tile_cache.snapshot(), native=native_cache.snapshot())
 
     @app.get('/health')
     def health():

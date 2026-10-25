@@ -1,5 +1,8 @@
 # Incremental publication through the gateway
 
+Диагностика сервисов, очереди и числовых тайлов, корреляция журналов и
+повторяемые упражнения отказов: [инструкция оператора T17](diagnostics.md).
+
 Organization keys, protected numeric/GIS profiles and the T8 runner are
 documented in [access policy and operator commands](access.md).
 

@@ -89,6 +89,10 @@ def create_app() -> Flask:
                    'organization': None, 'key_id': None,
                    'bucket': 'unidentified' if protected else 'public', 'operation': operation,
                    'product': None, 'run': None, 'revision': None, 'cache': 'not-accessed'}
+        selection = re.fullmatch(r'api/v1/selections/([0-9a-f.]+)/.*', path)
+        job = re.fullmatch(r'api/v1/jobs/([0-9a-f-]{36})', path)
+        g.event['selection'] = selection.group(1) if selection else None
+        g.event['job_id'] = job.group(1) if job else None
         g.recorded = False
 
     def metrics(response):
@@ -120,6 +124,7 @@ def create_app() -> Flask:
             metrics(response)
             g.event['durable_store'] = 'unavailable'
             print(json.dumps(g.event), file=sys.stderr, flush=True)
+        print(json.dumps({'service': 'gateway', 'event': 'request', **g.event}), file=sys.stderr, flush=True)
         return response
 
     @app.get('/<path:path>')

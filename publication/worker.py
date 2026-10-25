@@ -16,10 +16,12 @@ from decoder.storage import build, bounded_frames, field_metadata, decoded_array
 from publication.domain import ROOT, PIPELINE, database, write_once, load_manifest
 from publication import geoserver
 from publication import recovery
+from publication.diagnostics import emit, heartbeat
 from publication.tiles import CONTRACT, CONTRACT_PATH, render, encode, decode
 
 
 def transition(job: str, state: str, **extra) -> None:
+    emit('worker', 'stage', job_id=job, stage=state)
     entry = {'state': state, 'observed_at': datetime.now().astimezone().isoformat(), **extra}
     with database() as cursor:
         cursor.execute('UPDATE app.jobs SET state=%s, history=history || %s WHERE id=%s',
@@ -257,6 +259,7 @@ def once(identifier: str | None = None) -> bool:
                 cursor.execute('UPDATE app.jobs SET attempts=attempts+1,error=NULL,retryable=true,retry_at=NULL '
                                "WHERE id=%s RETURNING attempts", (str(job['id']),))
                 job['attempts'] = cursor.fetchone()['attempts']
+        emit('worker', 'job_started', job_id=str(job['id']))
         try:
             if recoverable:
                 with recovery.processing_budget():
@@ -272,8 +275,12 @@ def once(identifier: str | None = None) -> bool:
             with database() as cursor:
                 # Exceptions may contain private URLs/configuration; expose the class only.
                 cursor.execute('UPDATE app.jobs SET error=%s WHERE id=%s', (type(error).__name__, job['id']))
-            print(json.dumps({'job': str(job['id']), 'state': 'failed', 'error': str(error)}), flush=True)
+            print(json.dumps({'job': str(job['id']), 'state': 'failed', 'error_type': type(error).__name__}), flush=True)
             raise
+        with database() as cursor:
+            cursor.execute('SELECT state,selection FROM app.jobs WHERE id=%s', (str(job['id']),))
+            completed = cursor.fetchone()
+        emit('worker', 'job_finished', job_id=str(job['id']), **completed)
         return True
 
 
@@ -333,6 +340,7 @@ def main() -> None:
         recovery.migrate()
         while True:
             try:
+                heartbeat()
                 once()
             except Exception as error:
                 print(type(error).__name__, flush=True)
@@ -340,4 +348,8 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as error:
+        emit('worker', 'command_failed', error_type=type(error).__name__)
+        raise SystemExit(1) from None

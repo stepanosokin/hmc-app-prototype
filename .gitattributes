@@ -189,3 +189,8 @@ docs/evidence/grib-crs-metadata/**/inputs/** -whitespace
 
 docs/evidence/retro-grib-crs-checks/** -text whitespace=cr-at-eol
 docs/evidence/retro-grib-crs-checks/**/*.log -whitespace
+
+# T17 diagnostics evidence preserves observed bytes.
+docs/evidence/t17/** -text whitespace=cr-at-eol
+docs/evidence/t17/**/*.log -whitespace
+tests/test_publication_diagnostics.py text eol=lf

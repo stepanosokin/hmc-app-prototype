@@ -3,6 +3,8 @@
 from collections import OrderedDict
 import os
 import threading
+import time
+from collections import defaultdict
 
 from publication.domain import ROOT, PublicationUnavailable
 from publication.limited import WorkLimit
@@ -18,6 +20,7 @@ class TileCache:
         self.bytes = 0
         self.lock = threading.Lock()
         self.generator = threading.BoundedSemaphore(1)
+        self.metrics: dict[str, float] = defaultdict(float)
 
     def fault(self, stage: str) -> None:
         # Available only in the explicitly isolated recovery acceptance stack.
@@ -34,13 +37,34 @@ class TileCache:
     def get(self, key: tuple, generate) -> bytes:
         return self.lookup(key, generate)[0]
 
+    def snapshot(self) -> dict:
+        with self.lock:
+            return {**self.metrics, 'bytes': self.bytes, 'budget_bytes': self.budget,
+                    'entries': len(self.entries)}
+
     def lookup(self, key: tuple, generate, *, metadata: bool = False, seconds: float = 0) -> tuple[bytes, str]:
+        started = time.monotonic()
+        category = 'metadata' if metadata else 'numeric'
+        outcome = 'failure'
+        transferred = 0
+        try:
+            payload, outcome = self._lookup(key, generate, metadata=metadata, seconds=seconds)
+            transferred = len(payload)
+            return payload, outcome
+        finally:
+            with self.lock:
+                self.metrics[category + '_' + outcome] += 1
+                self.metrics[category + '_bytes'] += transferred
+                self.metrics[category + '_duration_ms'] += (time.monotonic()-started)*1000
+
+    def _lookup(self, key: tuple, generate, *, metadata: bool = False, seconds: float = 0) -> tuple[bytes, str]:
         with self.lock:
             if key in self.entries:
                 self.entries.move_to_end(key)
                 return self.entries[key], 'hit'
         if not self.generator.acquire(timeout=max(0, seconds)):
             raise WorkLimit(504 if seconds > 0 else 429)
+        stage = 'generation'
         try:
             with self.lock:
                 if key in self.entries:
@@ -50,6 +74,7 @@ class TileCache:
             payload = generate()
             if (not metadata and len(payload) != 258 * 258 * 5) or len(payload) > 332820:
                 raise PublicationUnavailable('invalid numeric tile size')
+            stage = 'cache'
             self.fault('cache')
             # Population is atomic: no partial payload enters the cache.
             with self.lock:
@@ -66,6 +91,8 @@ class TileCache:
         except WorkLimit:
             raise
         except (OSError, RuntimeError) as error:
+            with self.lock:
+                self.metrics[stage + '_failure'] += 1
             raise PublicationUnavailable('numeric tile temporarily unavailable; retry same selection') from error
         finally:
             self.generator.release()
