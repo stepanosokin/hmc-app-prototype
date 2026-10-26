@@ -102,7 +102,8 @@ def plan_rows(names: list[str], rows: list[dict], target: str, configuration: di
     body = {'version': 'grib-withdrawal/1', 'target': target, 'names': names,
             'catalogue': rows, 'policy': configuration, 'actions': actions, 'unchecked': unchecked,
             'pending': pending or [], 'source_directories': source_directories,
-            'include_unlocated': include_unlocated, 'assumed': assumed}
+            'include_unlocated': include_unlocated, 'assumed': assumed,
+            'storage_budget_bytes': recovery.MAX_STORAGE_BYTES}
     return {**body, 'id': fingerprint(body)}
 
 
@@ -271,6 +272,11 @@ def main() -> None:
                 with args.plan.open('x', encoding='utf-8') as stream:
                     json.dump(result, stream, ensure_ascii=False, indent=2)
             print('План сохранён. Отсутствующие файлы → снимаемые публикации:')
+            used = recovery.storage_bytes()
+            print(f'Управляемое хранилище: {used} байт; бюджет операции: {result["storage_budget_bytes"]} байт.')
+            if used > result['storage_budget_bytes'] and any(action['keep'] for action in result['actions']):
+                print('Бюджет уже превышен: подготовка замен не выполнится. '
+                      'Создайте новый план с согласованным --storage-budget-bytes.')
             if result['include_unlocated']:
                 print(f'Явно включены старые публикации без каталога: {len(result["assumed"])}')
             for action in result['actions']:

@@ -17,6 +17,15 @@ test('legacy mode is explicit, accepts either flag position and rejects malforme
         assert.throws(()=>parseOptions(args));
     }
 });
+
+test('operation storage budget is explicit, bounded to safe integer bytes and never defaulted by parser',()=>{
+    assert.equal(parseOptions(['--plan','p','--storage-budget-bytes','34359738368'])['--storage-budget-bytes'],'34359738368');
+    assert.equal(parseOptions(['--plan','p'])['--storage-budget-bytes'],undefined);
+    for(const value of ['0','-1','1.5','32GiB','1e12','9007199254740992','']){
+        assert.throws(()=>parseOptions(['--plan','p','--storage-budget-bytes',value]));
+    }
+    assert.throws(()=>parseOptions(['--plan','p','--storage-budget-bytes','16','--storage-budget-bytes','32']));
+});
 test('uses the running stand volume/image/network and refuses stopped or ambiguous services',()=>{
     const services=['db','api','gateway','geoserver'].map(service);
     assert.equal(standConfiguration(services,'test').assets,'actual-override-volume');

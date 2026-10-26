@@ -62,16 +62,19 @@ export function parseOptions(args){
         const key=args[i];
         if(Object.hasOwn(options,key))fail('Повторный параметр.');
         if(key==='--include-unlocated'){options[key]=true;continue;}
-        if(!['--plan','--project','--input-directory'].includes(key)||i+1>=args.length||args[i+1].startsWith('--'))fail('Неизвестный параметр или отсутствует значение.');
+        if(!['--plan','--project','--input-directory','--storage-budget-bytes'].includes(key)||i+1>=args.length||args[i+1].startsWith('--'))fail('Неизвестный параметр или отсутствует значение.');
         options[key]=args[++i];
     }
     if(!options['--plan'])fail('Укажите --plan ФАЙЛ.');
+    const budget=options['--storage-budget-bytes'];
+    if(budget!==undefined&&(!/^[1-9]\d*$/.test(budget)||!Number.isSafeInteger(Number(budget))))fail('Бюджет хранилища должен быть положительным целым числом байтов.');
     return options;
 }
 async function main(){
     const [operation,...args]=process.argv.slice(2);
-    if(!['preview','apply'].includes(operation))fail('Использование: node tools/sync-grib.mjs preview|apply --plan ФАЙЛ [--project ИМЯ] [--input-directory ПАПКА] [--include-unlocated]');
+    if(!['preview','apply'].includes(operation))fail('Использование: node tools/sync-grib.mjs preview|apply --plan ФАЙЛ [--project ИМЯ] [--input-directory ПАПКА] [--include-unlocated] [--storage-budget-bytes ЧИСЛО]');
     const options=parseOptions(args),includeUnlocated=options['--include-unlocated']===true;
+    const storageBudgetBytes=options['--storage-budget-bytes']??null;
     const project=options['--project']??'hmc-app-live';
     if(!/^[a-z0-9][a-z0-9-]+$/.test(project))fail('Некорректное имя стенда.');
     const input=path.resolve(root,options['--input-directory']??'data/grib'),plan=path.resolve(options['--plan']);
@@ -85,11 +88,12 @@ async function main(){
     const stand=standConfiguration(JSON.parse(docker(['inspect',...ids])),project);
     const runtime=Object.fromEntries(['publication/grib_sync.py','publication/revisions.py','publication/domain.py','publication/retention.py','tools/sync-grib.mjs'].map(name=>
         [name,createHash('sha256').update(fs.readFileSync(path.join(root,name))).digest('hex')]));
-    const target=createHash('sha256').update(JSON.stringify({project,input,db:stand.db,assets:stand.assets,image:stand.image,runtime,includeUnlocated})).digest('hex');
+    const target=createHash('sha256').update(JSON.stringify({project,input,db:stand.db,assets:stand.assets,image:stand.image,runtime,includeUnlocated,storageBudgetBytes})).digest('hex');
     const owner=randomUUID(),name='hmc-grib-sync-'+owner;
     const command=['run','--rm','--name',name,'--label','com.docker.compose.project='+project,
         '--label','hmc.grib-sync.owner='+owner,'--read-only','--cap-drop=ALL','--network',stand.network,'--user','65532:65532',
         '--tmpfs','/tmp:rw,size=64m,mode=1777','--env','DB_USER=hmc_worker','--env','DB_PASSWORD',
+        ...(storageBudgetBytes===null?[]:['--env',`PUBLICATION_STORAGE_BYTES=${storageBudgetBytes}`]),
         '--mount',`type=volume,source=${stand.assets},target=/assets`,
         '--mount',`type=bind,source=${input},target=/input,readonly`,
         '--mount',`type=bind,source=${path.join(root,'publication')},target=/app/publication,readonly`,

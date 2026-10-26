@@ -166,6 +166,14 @@ class WithdrawalHTTP(unittest.TestCase):
         plan = grib_sync.preview(self.directory, 'isolated')
         self.assertEqual(len(plan['actions']), 3)
         self.assertEqual(len([a for a in plan['actions'] if a['keep']]), 1)
+        with patch.object(recovery, 'MAX_STORAGE_BYTES', 1):
+            too_small = grib_sync.preview(self.directory, 'isolated')
+            self.assertEqual(too_small['storage_budget_bytes'], 1)
+            with self.assertRaisesRegex(OSError, 'managed storage budget exhausted'):
+                grib_sync.apply(too_small, self.directory, 'isolated')
+        self.assertEqual(self.catalogue(), before)
+        with self.assertRaises(ValueError):
+            grib_sync.apply(too_small, self.directory, 'isolated')
         kept = next(action['keep'][0] for action in plan['actions'] if action['keep'])
         retained = load_manifest(kept['manifest_path'], kept['manifest_sha256'])
         asset_name = min(retained['assets'], key=lambda name: retained['assets'][name]['bytes'])
