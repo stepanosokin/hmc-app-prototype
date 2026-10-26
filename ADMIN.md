@@ -1,272 +1,209 @@
 # Инструкция администратора
 
-Для уже подготовленного стенда `hmc-app-live`.
-Команды Windows приведены ниже; команды Linux — в [отдельном разделе](#linux).
+Для существующего `hmc-app-live`. Изменение `data/grib` само по себе не меняет карту.
+Если вы удалили старые файлы и добавили новые, выполните:
+**просмотр снятия → применение снятия → загрузку файлов → обновление карты**.
 
-Изменение `data/grib` само по себе не обновляет опубликованные данные.
-
-| Что изменилось | Что выполнить |
-| --- | --- |
-| Добавлены файлы или заменено содержимое под прежним именем | Загрузку данных по инструкции для вашей ОС ниже |
-| Удалены или переименованы файлы | Просмотр плана снятия, затем применение проверенного плана |
-| Есть и удаления, и новые/заменённые файлы | Сначала снятие, затем загрузку оставшихся файлов; для пустой папки загрузку пропустить |
-
-Синхронизация проверяет только имена. Переименование означает удаление прежнего
-имени и добавление нового. Обрабатываются непосредственные файлы `data/grib`;
-подпапки и символические ссылки в синхронизацию не входят.
-**Существующая пустая папка снимает все публикации в области синхронизации.**
-В обычном режиме старые публикации без исходного каталога остаются непроверенными;
-их отсутствие в плане снятия не означает совпадение стенда с папкой.
-Подробные правила: [снятие публикаций](docs/grib-sync.md).
-Для подтверждённых оператором старых публикаций используйте
-[отдельный план с `--include-unlocated`](docs/grib-sync.md#отдельный-план-для-старых-публикаций-без-каталога).
-Флаг нужен и при `preview`, и при `apply`; обычный план старые записи не снимает.
+Ниже приведены команды для текущего Windows-стенда. Используются его реальные
+env-файл, образ и файл с именами томов. Пароли в env-файле не меняйте и не публикуйте.
+Первичная установка и обновление кода: [подготовка стенда](viewer/README.md#подготовка).
+Команды Linux — в [отдельном разделе](#linux).
 
 ## Windows
 
-Все команды выполняйте в PowerShell из корня проекта. Запустите Docker Desktop
-и дождитесь его готовности. Для каждого нового окна PowerShell сначала выполните:
+### 1. Подготовить окно PowerShell и запустить стенд
+
+Запустите Docker Desktop. Откройте PowerShell в корне проекта.
+В каждом новом окне сначала выполните:
 
 ```powershell
-$compose = @('compose', '--env-file', 'data/live/hmc-app/environment.env',
-    '--project-name', 'hmc-app-live', '--file', 'compose.publication.yaml')
-```
+$ErrorActionPreference = 'Stop'
+$compose = @('compose',
+    '--env-file', 'data/live/hmc-app/t19-ce4426e953b7/environment.env',
+    '--project-name', 'hmc-app-live',
+    '--file', 'compose.publication.yaml',
+    '--file', 'data/live/hmc-app/t19-ce4426e953b7/compose.live.yaml')
+$env:PUBLICATION_IMAGE = 'hmc-publication:grib52-live'
+$env:PUBLICATION_INPUT_DIR = './data/grib'
+$env:PUBLICATION_EVIDENCE_DIR = './data/live/hmc-app'
+$env:PUBLICATION_CLOCK = '2026-10-19T05:00:00Z'
+$env:T4_PORT = '8141'
+$env:T13_PORT = '8140'
+$budget = '68719476736'
 
-Файл `data/live/hmc-app/environment.env` содержит настройки и пароли стенда.
-Используйте существующий файл; не публикуйте его содержимое. Обновление кода
-приложения и первичная установка описаны отдельно в [подготовке стенда](viewer/README.md#подготовка).
-
-### Запустить
-
-```powershell
 docker @compose start db geoserver api gateway viewer
-docker @compose ps
+if ($LASTEXITCODE -ne 0) { throw 'Стенд не запущен.' }
 Invoke-RestMethod http://127.0.0.1:8141/health
 ```
 
-Дождитесь запуска сервисов. Если проверка ещё не проходит, повторите её через
-несколько секунд. Откройте карту: **http://127.0.0.1:8140**.
-При обычном запуске повторно загружать данные не нужно.
+Если health ещё не проходит, дождитесь запуска служб и повторите проверку.
+Исторические демонстрационные часы не заменяйте текущей датой.
+Файл `compose.live.yaml` сохраняет подключение к томам этого стенда.
 
-### Остановить и снова включить
+Бюджет здесь — **64 GiB для обеих операций**. Это верхний предел, а не выделение
+64 GiB на диске. Старые данные остаются на диске до штатной очистки, а загрузчик
+пересчитывает оставшиеся файлы. Поэтому нужен запас под старые и новые данные.
+32 GiB в прежнем рецепте использовались только для снятия. Если объём вырастет
+до нового лимита, операция снова остановится. Параметр не меняет лимит живых служб.
 
-Сначала дождитесь завершения загрузки данных, если она выполняется в другом окне.
+### 2. Изменить файлы и проверить план снятия
+
+Дождитесь завершения других загрузок. Удалите ненужные файлы из `data/grib`
+и полностью скопируйте новые. После этого не меняйте папку до конца обновления.
+Для этого рецепта используйте расширения `.grb`, `.grib`, `.grb2` или `.grib2`.
+Подпапки и символические ссылки не обрабатываются.
+
+```powershell
+New-Item -ItemType Directory -Force ../hmc-app-evidence/grib-sync-operations | Out-Null
+$stamp = Get-Date -Format yyyyMMdd-HHmmss
+$plan = "../hmc-app-evidence/grib-sync-operations/update-$stamp.json"
+$report = "reload-grib-$stamp.json"
+
+node tools/sync-grib.mjs preview --include-unlocated --storage-budget-bytes $budget --plan $plan
+if ($LASTEXITCODE -ne 0) { throw 'План не подготовлен. Дальше не продолжайте.' }
+$review = Get-Content -Raw -Encoding UTF8 $plan | ConvertFrom-Json
+$review.actions | ForEach-Object { $_.missing } | Sort-Object -Unique
+$review.unchecked | Select-Object root, reason
+```
+
+Сверьте список отсутствующих файлов. Команда preview также показывает снимаемые
+редакции и число сохраняемых партий. `unchecked` — публикации, которые не будут
+проверены. Подробности записаны в JSON-плане.
+
+`--include-unlocated` нужен для старых публикаций этого стенда без исходного
+каталога: их принадлежность `data/grib` подтверждена оператором.
+Обычный режим оставляет их непроверенными. Применение требует тех же параметров,
+что и просмотр. При смене имён, каталога, кода или бюджета создайте новый план.
+**Пустая папка означает снятие всех публикаций в области синхронизации.**
+
+### 3. Применить план, загрузить файлы и обновить службы
+
+Выполняйте следующий блок только после проверки плана. Он останавливается при
+ошибке: загрузка не начнётся после отказа снятия, службы не перезапустятся после
+отказа загрузки. Файлы `.gitkeep` и `proj.txt` не считаются GRIB. Если GRIB не
+осталось, блок пропустит загрузку и выполнит только снятие и перезапуск.
+
+```powershell
+& {
+    node tools/sync-grib.mjs apply --include-unlocated --storage-budget-bytes $budget --plan $plan
+    if ($LASTEXITCODE -ne 0) { throw 'Снятие не подтверждено. Обновление остановлено.' }
+
+    $gribFiles = @(Get-ChildItem -LiteralPath data/grib -File | Where-Object {
+        $_.Extension -in @('.grb', '.grib', '.grb2', '.grib2') -and
+        -not ($_.Attributes -band [IO.FileAttributes]::ReparsePoint)
+    })
+    if ($gribFiles.Count -gt 0) {
+        docker @compose run --rm --env "PUBLICATION_STORAGE_BYTES=$budget" --entrypoint python worker `
+            -m publication.grib_batch --all-fields --clock $env:PUBLICATION_CLOCK --report "/evidence/$report"
+        if ($LASTEXITCODE -ne 0) { throw "Загрузка не завершена. Проверьте data/live/hmc-app/$report" }
+        (Get-Content -Raw -Encoding UTF8 "data/live/hmc-app/$report" | ConvertFrom-Json).files |
+            Select-Object source, state, error
+    }
+
+    docker @compose restart api gateway
+    if ($LASTEXITCODE -ne 0) { throw 'Службы не перезапущены. Проверьте их состояние.' }
+    Invoke-RestMethod http://127.0.0.1:8141/health
+}
+```
+
+`apply` снимает публикации отсутствующих исходников. `grib_batch --all-fields`
+обрабатывает **все оставшиеся GRIB**, включая новые и изменённые файлы, и публикует
+все поддерживаемые поля. Для этого профиля предел исходного файла — 128 MiB.
+Ограничения форматов: [поддерживаемые данные](docs/grib-crs.md).
+Снятие и загрузка — отдельные операции. Если загрузка отказала, уже выполненное
+снятие остаётся в силе; исправьте причину и повторите нужный этап.
+
+### 4. Проверить результат на карте
+
+Блок выше выводит отчёт загрузки. У всех обработанных файлов должно быть
+`state = published`. Сам отчёт остаётся в `data/live/hmc-app/$report`.
+Откройте **http://127.0.0.1:8140**, нажмите **«Проверить обновления»** и примите
+новую редакцию, если карта предлагает её. Выберите нужные расчёт, поле и срок.
+Данные удалённых исходников должны исчезнуть, данные новых — появиться.
+Снятые адреса возвращают `410 Gone`; физическая очистка выполняется позже.
+
+Этот же полный порядок подходит, если файлы только добавлены, заменены или
+удалены. Если снимать нечего, план будет без снятий; загрузка всё равно обновит
+текущие GRIB. При обычном включении стенда повторная загрузка не нужна.
+
+### Остановить стенд
+
+Сначала дождитесь завершения операций в других окнах.
 
 ```powershell
 docker @compose stop viewer gateway api geoserver db
 ```
 
-Данные сохраняются. Для повторного включения выполните команды раздела «Запустить».
-Не используйте `down --volumes`: эта команда удаляет тома с данными.
+Данные сохраняются. Для повторного запуска используйте шаг 1.
+Не выполняйте `down --volumes`: эта команда удаляет тома с данными.
 
-### Загрузить или обновить данные
+### Если произошла ошибка
 
-1. Запустите стенд.
-2. Полностью скопируйте готовые файлы GRIB2 в `data/grib`.
-   Для обновления замените нужный исходный файл готовой новой версией.
-   Во время загрузки файлы не меняйте.
-3. Выполните:
-
-```powershell
-powershell -NoProfile -File tools/reload-grib.ps1 -Image hmc-publication:grib49-final
-if ($LASTEXITCODE -ne 0) { throw 'Загрузка не завершена. Проверьте ошибки в разделе ниже.' }
-docker @compose restart api gateway
-```
-
-Команда пересчитывает **все** GRIB-файлы непосредственно в `data/grib`.
-Подпапки, включая `data/grib/test`, не обрабатываются. Текущий профиль принимает
-температуру поверхности в K: один расчёт модели на файл, одно поле на срок;
-предел размера файла — 64 MiB. Подробнее: [поддерживаемые данные](docs/grib-crs.md).
-
-Новые данные публикуются как новая редакция — версия данных расчёта.
-Прежние редакции сохраняются в пределах действующей политики хранения.
-Стенд использует исторические демонстрационные часы `2026-10-19T05:00:00Z`;
-не заменяйте их текущей датой при обычном обновлении.
-
-### Снять публикации удалённых файлов
-
-Нужен Node.js 26.10.0. Запустите стенд командами выше. Завершите загрузку
-данных в других окнах. Пока проверяете и применяете план, не меняйте папку.
-Из корня проекта создайте новый план:
-
-```powershell
-New-Item -ItemType Directory -Force ../hmc-app-evidence/grib-sync-operations | Out-Null
-$plan = "../hmc-app-evidence/grib-sync-operations/plan-$(Get-Date -Format yyyyMMdd-HHmmss).json"
-node tools/sync-grib.mjs preview --plan $plan
-if ($LASTEXITCODE -ne 0) { throw 'Просмотр не выполнен. Сохраните сообщение об ошибке.' }
-Get-Content -Raw -Encoding UTF8 $plan
-```
-
-Проверьте `actions`: `missing` — отсутствующие имена, `root` — снимаемые
-публикации, `keep` — сохраняемые поля и сроки. В `unchecked` указаны
-непроверенные публикации и причины. Если состав снятия верен, выполните:
-
-```powershell
-node tools/sync-grib.mjs apply --plan $plan
-if ($LASTEXITCODE -ne 0) { throw 'Снятие не подтверждено. Проверьте ошибку и создайте новый план.' }
-docker @compose restart api gateway
-```
-
-Команда по умолчанию работает с `hmc-app-live` и `data/grib`. Просмотр
-не снимает публикации. Применение выполняется в Docker; команда удаляет свой
-временный контейнер. План хранится вне Git, по умолчанию во внешнем архиве
-`../hmc-app-evidence`; при другом `HMC_EVIDENCE_ROOT` измените путь.
-Сохраните план и результат команды. При устаревшем плане повторите просмотр
-с новым именем файла. Сама синхронизация службы не запускает и не перезапускает;
-перезапуск выше обновляет обслуживающие процессы после успешного применения.
-
-В карте нажмите «Проверить обновления». Совместимая замена выбирается
-автоматически; без неё кадр убирается с сообщением «Публикация снята».
-Прежние адреса снятых публикаций возвращают `410 Gone`.
-Возврат файла требует новой загрузки; старые ссылки не восстанавливаются.
-
-### Проверить результат
-
-После добавления или замены файлов используйте отчёт загрузки ниже.
-Результат снятия проверяется отдельно в разделе о снятии публикаций.
-
-Посмотрите итог обработки каждого файла:
-
-```powershell
-(Get-Content -Raw -Encoding UTF8 data/live/hmc-app/reload-grib.json |
-    ConvertFrom-Json).files | Select-Object source, state, error
-```
-
-У успешно загруженных файлов `state` равен `published`. В карте нажмите
-«Проверить обновления» и явно примите новую редакцию. Для другой модели или
-расчёта выберите нужный пункт в карте; проверьте сроки прогноза и значение в точке.
-Для исходного образца ICON-EU должны быть доступны все 24 срока.
-
-### Если возникла ошибка
+Остановитесь. Перезапуск служб после ошибки не применяет незавершённый план.
 
 ```powershell
 docker @compose ps --all
 docker @compose logs --tail 80 db api gateway geoserver viewer
 ```
 
-Ошибки загрузки указаны в `data/live/hmc-app/reload-grib.json`;
-журналы команды — `reload-grib.stdout.log` и `reload-grib.stderr.log` в той же папке.
-При ошибке остановитесь и сохраните отчёт. Не удаляйте тома и не создавайте
-другой Compose-проект вместо существующего стенда.
-Если синхронизация сообщает `managed storage budget exhausted`, проверьте
-[бюджет операции и создание нового плана](docs/grib-sync.md#если-превышен-бюджет-управляемого-хранилища).
-Перезапуск API и gateway после отказа сам по себе публикации не снимает.
-
+Сохраните план, сообщение об ошибке и отчёт загрузки, если он создан.
+При устаревшем плане повторите шаг 2 с новым именем файла.
+При `managed storage budget exhausted` проверьте
+[бюджет операции](docs/grib-sync.md#если-превышен-бюджет-управляемого-хранилища).
+Подробнее о снятии: [инструкция](docs/grib-sync.md).
 Резервное копирование и восстановление: [инструкция](docs/stack-recovery.md).
-Проверка на Linux-сервере организации выполняется отдельно в
-[задаче №50](https://github.com/stepanosokin/hmc-app-prototype/issues/50).
 
 ## Linux
 
-Для уже подготовленного Linux-стенда с запущенным Docker Engine и Compose v2.
-Нужны Bash, curl и доступ оператора к Docker; для синхронизации — Node.js 26.10.0.
-Выполняйте команды из корня проекта.
-Должны существовать образ `hmc-publication:grib49-final`, контейнеры стенда,
-файл `data/live/hmc-app/environment.env` и каталоги данных. Контейнерный
-пользователь UID 65532 должен читать `data/grib` и писать в `data/live/hmc-app`.
-Первичная установка в этот раздел не входит.
+Для уже подготовленного Linux-стенда порядок тот же: preview → apply → загрузка
+→ restart. Нужны Bash, Node.js 26.10.0, curl, Docker Engine и Compose v2.
+Файлы настройки и тома должны соответствовать именно Linux-стенду. Пример ниже
+подходит, если туда перенесены указанные env-файл и override с теми же именами томов.
+UID 65532 должен читать `data/grib` и писать в `data/live/hmc-app` и каталог планов.
+Первичная установка сюда не входит; проверка на сервере организации остаётся
+в [№50](https://github.com/stepanosokin/hmc-app-prototype/issues/50).
 
-В каждом новом сеансе Bash выполните:
+В корне проекта задайте настройки, запустите службы и подготовьте план:
 
 ```bash
-compose=(compose --env-file data/live/hmc-app/environment.env
-    --project-name hmc-app-live --file compose.publication.yaml)
-export PUBLICATION_IMAGE=hmc-publication:grib49-final
+compose=(compose --env-file data/live/hmc-app/t19-ce4426e953b7/environment.env
+    --project-name hmc-app-live --file compose.publication.yaml
+    --file data/live/hmc-app/t19-ce4426e953b7/compose.live.yaml)
+export PUBLICATION_IMAGE=hmc-publication:grib52-live
 export PUBLICATION_INPUT_DIR=./data/grib
 export PUBLICATION_EVIDENCE_DIR=./data/live/hmc-app
 export PUBLICATION_CLOCK=2026-10-19T05:00:00Z
+export T4_PORT=8141
+export T13_PORT=8140
+budget=68719476736
+docker "${compose[@]}" start db geoserver api gateway viewer
+curl --fail --show-error http://127.0.0.1:8141/health
+mkdir -p ../hmc-app-evidence/grib-sync-operations
+stamp=$(date +%Y%m%d-%H%M%S)
+plan="../hmc-app-evidence/grib-sync-operations/update-$stamp.json"
+report="reload-grib-$stamp.json"
+node tools/sync-grib.mjs preview --include-unlocated --storage-budget-bytes "$budget" --plan "$plan"
 ```
 
-### Запустить
+При ошибке не продолжайте. Проверьте список снятия в выводе preview и JSON-плане.
+После проверки примените план и загрузите файлы. `set -e` в отдельном блоке
+прерывает этот блок при ошибке. Если GRIB не осталось, пропустите команду загрузки.
 
 ```bash
-docker "${compose[@]}" start db geoserver api gateway viewer
-docker "${compose[@]}" ps
-curl --fail --show-error http://127.0.0.1:8141/health
+(
+    set -e
+    node tools/sync-grib.mjs apply --include-unlocated --storage-budget-bytes "$budget" --plan "$plan"
+    docker "${compose[@]}" run --rm --env "PUBLICATION_STORAGE_BYTES=$budget" --entrypoint python worker \
+        -m publication.grib_batch --all-fields --clock "$PUBLICATION_CLOCK" --report "/evidence/$report"
+    docker "${compose[@]}" restart api gateway
+    curl --fail --show-error http://127.0.0.1:8141/health
+)
 ```
 
-Дождитесь готовности сервисов; при необходимости повторите проверку health.
-Карта доступна на **http://127.0.0.1:8140** на самом Linux-хосте.
-При удалённой работе настройте SSH-перенаправление локального порта 8140
-на `127.0.0.1:8140` сервера и откройте тот же адрес на своём компьютере.
-
-### Остановить и снова включить
-
-Дождитесь завершения текущей загрузки данных, затем выполните:
+Проверьте `data/live/hmc-app/$report`: все обработанные файлы должны иметь
+`state = published`. Откройте карту и нажмите «Проверить обновления».
+Для остановки после завершения загрузок:
 
 ```bash
 docker "${compose[@]}" stop viewer gateway api geoserver db
 ```
-
-Данные сохраняются. Для повторного запуска используйте команды выше.
-Не выполняйте `down --volumes`: эта команда удаляет тома с данными.
-
-### Загрузить или обновить данные
-
-Запустите стенд. Скопируйте готовые GRIB2 в `data/grib`; для обновления замените
-нужные файлы новыми версиями. Во время загрузки файлы не меняйте.
-Ограничения данных и демонстрационные часы те же, что в разделе Windows.
-
-```bash
-if docker "${compose[@]}" run --rm --entrypoint python worker \
-    -m publication.grib_batch --clock "$PUBLICATION_CLOCK" \
-    --report /evidence/reload-grib.json \
-    >data/live/hmc-app/reload-grib.stdout.log \
-    2>data/live/hmc-app/reload-grib.stderr.log; then
-    docker "${compose[@]}" restart api gateway
-else
-    printf '%s\n' 'Загрузка не завершена. Проверьте отчёт и журналы.' >&2
-fi
-```
-
-### Снять публикации удалённых файлов
-
-Запустите стенд и дождитесь завершения других загрузок. Не меняйте папку
-во время просмотра и применения. Используются те же правила `actions`,
-`unchecked` и пустой папки, что в разделе Windows.
-При другом `HMC_EVIDENCE_ROOT` измените путь архива.
-
-```bash
-mkdir -p ../hmc-app-evidence/grib-sync-operations
-plan="../hmc-app-evidence/grib-sync-operations/plan-$(date +%Y%m%d-%H%M%S).json"
-node tools/sync-grib.mjs preview --plan "$plan"
-```
-
-Только после успешного просмотра откройте сохранённый план:
-
-```bash
-cat "$plan"
-```
-
-Проверьте список снятия. Если он верен, примените именно этот план:
-
-```bash
-if node tools/sync-grib.mjs apply --plan "$plan"; then
-    docker "${compose[@]}" restart api gateway
-else
-    printf '%s\n' 'Снятие не подтверждено. Проверьте ошибку и создайте новый план.' >&2
-fi
-```
-
-Сохраните план и результат. Проверьте карту командой «Проверить обновления».
-При наличии новых или заменённых файлов затем выполните загрузку выше.
-Если папка пуста, загрузку пропустите. Старые публикации без каталога
-остаются непроверенными на обеих ОС.
-
-### Проверить результат и ошибки
-
-```bash
-cat data/live/hmc-app/reload-grib.json
-docker "${compose[@]}" ps --all
-docker "${compose[@]}" logs --tail 80 db api gateway geoserver viewer
-```
-
-В отчёте проверьте `source`, `state` и `error` каждого элемента `files`.
-У успешно загруженных файлов `state` равен `published`. В карте нажмите
-«Проверить обновления», примите редакцию и проверьте сроки и значение в точке.
-При ошибке сохраните отчёт и журналы `reload-grib.stdout.log` и
-`reload-grib.stderr.log` из той же папки. Не удаляйте тома и не создавайте
-другой Compose-проект для исправления ошибки.
-
-Команды сверены с конфигурацией проекта; проверка на Linux-сервере организации
-остаётся в [задаче №50](https://github.com/stepanosokin/hmc-app-prototype/issues/50).
