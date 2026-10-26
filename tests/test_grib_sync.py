@@ -2,6 +2,7 @@
 import copy
 import json
 import os
+import tempfile
 import unittest
 import uuid
 from contextlib import contextmanager
@@ -11,11 +12,47 @@ from unittest.mock import patch
 import requests
 
 from publication import grib_sync, recovery, retention, revisions, worker
-from publication.domain import database, database_transaction, load_manifest, resolve
-from decoder.sampling import file_hash
+from publication.domain import PIPELINE, database, database_transaction, load_manifest, resolve
+from decoder.sampling import canonical, file_hash
 
 
 class PlanBoundaries(unittest.TestCase):
+    def test_preview_reads_sealed_provenance_without_hashing_payloads(self):
+        # A missing large payload must not be opened just to compare source names.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            identity = dict(run='run', field='T_G:surface:0', valid_time='time',
+                            level='surface:0', native_grid_sha256='grid', member='control')
+            batch = dict(pipeline_version=PIPELINE, identity=identity,
+                         source=dict(name='gone.grib2', directory='data/grib'),
+                         assets={'missing-large-payload': dict(bytes=10**12, sha256='unread')})
+            path = root/'batch.json'
+            path.write_bytes(canonical(batch))
+            checksum = file_hash(path)
+            entry = dict(key=revisions.batch_key(identity), manifest_path='batch.json', manifest_sha256=checksum)
+            row = dict(root='root', run='run', state='eligible', kind='revision',
+                       manifest_path='revision.json', manifest_sha256='sha', job_id='job')
+            with patch.object(grib_sync, 'ROOT', root), patch('publication.domain.ROOT', root), \
+                 patch.dict(os.environ, {'GRIB_SOURCE_DIRECTORY':'data/grib'}), \
+                 patch.object(revisions, 'load_revision', return_value={'run':'run', 'batches':[entry]}):
+                plan = grib_sync.plan_rows([], [row], 'target', {})
+                self.assertEqual(plan['actions'][0]['missing'], ['gone.grib2'])
+                legacy = {**row, 'kind':'legacy', 'manifest_path':'batch.json', 'manifest_sha256':checksum}
+                self.assertEqual(grib_sync.plan_rows([], [legacy], 'target', {})['actions'][0]['missing'], ['gone.grib2'])
+                for changed in ({**identity, 'run':'other'}, {**identity, 'member':'other'}):
+                    path.write_bytes(canonical({**batch, 'identity':changed}))
+                    entry['manifest_sha256'] = file_hash(path)
+                    with self.assertRaisesRegex(ValueError, 'identity mismatch'):
+                        grib_sync.plan_rows([], [row], 'target', {})
+                path.write_bytes(canonical({**batch, 'pipeline_version':'unknown'}))
+                entry['manifest_sha256'] = file_hash(path)
+                with self.assertRaisesRegex(ValueError, 'unsupported pipeline'):
+                    grib_sync.plan_rows([], [row], 'target', {})
+                entry['manifest_sha256'] = checksum
+                path.write_bytes(canonical({**batch, 'source':{'name':'other.grib2'}}))
+                with self.assertRaises(ValueError):
+                    grib_sync.plan_rows([], [row], 'target', {})
+
     def test_name_only_empty_renamed_and_unknown_provenance(self):
         rows = [dict(root='mixed', run='run', state='eligible', kind='revision',
                      manifest_path='mixed.json', manifest_sha256='sha', job_id='job'),
@@ -23,13 +60,15 @@ class PlanBoundaries(unittest.TestCase):
                      manifest_path='legacy.json', manifest_sha256='sha', job_id='job'),
                 dict(root='unknown', run='run', state='eligible', kind='legacy',
                      manifest_path='unknown.json', manifest_sha256='sha', job_id='job')]
-        entries = [dict(key='a'), dict(key='b')]
+        entries = [dict(key=key, manifest_path=key, manifest_sha256='sha') for key in ('a', 'b')]
         def legacy(path, checksum):
-            return {'source': {'name': 'a.grib2', **({'directory':'data/grib'} if path == 'legacy.json' else {})}}
-        with patch.object(revisions, 'load_revision', return_value={'batches': entries}), \
+            name = path if path in ('a', 'b') else 'a'
+            return {'identity': {'run':'run','key':name},
+                    'source': {'name': name+'.grib2', **({'directory':'data/grib'} if path != 'unknown.json' else {})}}
+        with patch.object(revisions, 'load_revision', return_value={'run':'run', 'batches': entries}), \
              patch.dict(os.environ, {'GRIB_SOURCE_DIRECTORY':'data/grib'}), \
-             patch.object(revisions, 'selected', side_effect=lambda manifest, entry: {'source': {'name': entry['key']+'.grib2','directory':'data/grib'}}), \
-             patch.object(grib_sync, 'load_manifest', side_effect=legacy):
+             patch.object(revisions, 'batch_key', side_effect=lambda identity: identity['key']), \
+             patch.object(grib_sync, 'source_manifest', side_effect=legacy):
             kept = grib_sync.plan_rows(['b.grib2'], rows, 'stand', {})
             self.assertEqual([a['root'] for a in kept['actions']], ['mixed', 'legacy'])
             self.assertEqual(kept['actions'][0]['keep'], [entries[1]])
@@ -100,6 +139,24 @@ class WithdrawalHTTP(unittest.TestCase):
         plan = grib_sync.preview(self.directory, 'isolated')
         self.assertEqual(len(plan['actions']), 3)
         self.assertEqual(len([a for a in plan['actions'] if a['keep']]), 1)
+        kept = next(action['keep'][0] for action in plan['actions'] if action['keep'])
+        retained = load_manifest(kept['manifest_path'], kept['manifest_sha256'])
+        asset_name = min(retained['assets'], key=lambda name: retained['assets'][name]['bytes'])
+        asset = Path('/assets') / asset_name
+        payload, mode = asset.read_bytes(), asset.stat().st_mode
+        try:
+            asset.chmod(0o644)
+            asset.write_bytes(payload+b'corrupt')
+            load_manifest.cache_clear()
+            # Provenance-only preview succeeds, but preparation refuses bad kept data.
+            grib_sync.validate_plan(plan, grib_sync.preview(self.directory, 'isolated'))
+            with self.assertRaisesRegex(ValueError, 'asset integrity'):
+                grib_sync.apply(plan, self.directory, 'isolated')
+        finally:
+            asset.write_bytes(payload)
+            asset.chmod(mode)
+            load_manifest.cache_clear()
+        self.assertEqual(self.catalogue(), before)
         Path('/evidence/preview.json').write_text(json.dumps(plan, indent=2))
         unchanged = copy.deepcopy(plan)
         (self.directory/'b.grib2').write_bytes((self.directory/'original.grib2').read_bytes())

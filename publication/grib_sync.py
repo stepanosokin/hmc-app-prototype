@@ -13,9 +13,9 @@ import uuid
 from datetime import timedelta
 from pathlib import Path
 
-from decoder.sampling import canonical
+from decoder.sampling import asset_path, canonical
 from publication import recovery, retention, revisions
-from publication.domain import ROOT, database, database_transaction, load_manifest, write_once
+from publication.domain import PIPELINE, ROOT, database, database_transaction, load_manifest, write_once
 
 
 def fingerprint(value) -> str:
@@ -46,6 +46,21 @@ def direct_source(batch: dict, source_directories: list[str]) -> str | None:
     return source
 
 
+def source_manifest(relative: str, checksum: str) -> dict:
+    """Verify sealed provenance, without reading the numerical assets it describes.
+
+    Replacement preparation still uses revisions.selected for full asset integrity.
+    Do not cache across previews: each plan validation must detect metadata changes.
+    """
+    payload = asset_path(ROOT, relative).read_bytes()
+    if hashlib.sha256(payload).hexdigest() != checksum:
+        raise ValueError('publication manifest integrity failed')
+    manifest = json.loads(payload)
+    if manifest['pipeline_version'] != PIPELINE:
+        raise ValueError('unsupported pipeline')
+    return manifest
+
+
 def plan_rows(names: list[str], rows: list[dict], target: str, configuration: dict,
               pending: list[dict] | None = None, source_directories: list[str] | None = None) -> dict:
     """Resolve provenance of every eligible root, including legacy selections."""
@@ -60,10 +75,13 @@ def plan_rows(names: list[str], rows: list[dict], target: str, configuration: di
         if row['kind'] == 'revision':
             manifest = revisions.load_revision(row['manifest_path'], row['manifest_sha256'])
             entries = manifest['batches']
-            batches = [revisions.selected(manifest, entry) for entry in entries]
+            batches = [source_manifest(entry['manifest_path'], entry['manifest_sha256']) for entry in entries]
+            if any(revisions.batch_key(batch['identity']) != entry['key']
+                   or batch['identity']['run'] != manifest['run'] for entry, batch in zip(entries, batches)):
+                raise ValueError('revision batch identity mismatch')
         else:
             entries = []
-            batches = [load_manifest(row['manifest_path'], row['manifest_sha256'])]
+            batches = [source_manifest(row['manifest_path'], row['manifest_sha256'])]
         sources = [direct_source(batch, source_directories) for batch in batches]
         if not sources or None in sources:
             unchecked.append({'root': root, 'reason': 'Неизвестное происхождение или публикация вне области'})
