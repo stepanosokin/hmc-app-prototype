@@ -93,8 +93,8 @@ def browser_report(report: dict[str, Any], sizes: set[tuple[int, int]], phone: b
     require(updates['mockup']['sha256'] == inputs['docs/prototypes/weather-map.prototype.html']['sha256'], 'mockup identity mismatch')
 
 
-def check_updates(root: Path, *, offline: bool = False) -> int:
-    archive = root / ('docs/evidence/t16' if offline else 'docs/evidence/t15')
+def check_updates(root: Path, *, offline: bool = False, archive_root: Path | None = None) -> int:
+    archive = (archive_root or root / 'docs/evidence') / ('t16' if offline else 't15')
     desktop, android = ('desktop-final2', 'android-repeat1') if offline else ('final2', 'android-final2')
     verified: dict[Path, tuple[int, str]] = {}
 

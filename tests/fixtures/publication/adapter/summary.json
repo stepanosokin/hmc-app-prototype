@@ -1,0 +1,1520 @@
+{
+    "repetitions":  [
+                        {
+                            "candidate":  "narrow",
+                            "repetition":  1,
+                            "status":  "passed",
+                            "successful_rps":  188.31899392576094,
+                            "errors":  0,
+                            "operations":  {
+                                               "domain":  {
+                                                              "count":  400,
+                                                              "errors":  0,
+                                                              "p50_ms":  19.453504999546567,
+                                                              "p95_ms":  27.083077000497724,
+                                                              "p99_ms":  32.74954300104582,
+                                                              "response_body_bytes":  219346,
+                                                              "successful_rps_in_mixed_workload":  75.32759757030438
+                                                          },
+                                               "edr":  {
+                                                           "count":  400,
+                                                           "errors":  0,
+                                                           "p50_ms":  20.982003999961307,
+                                                           "p95_ms":  28.95919199909258,
+                                                           "p99_ms":  36.82651700000861,
+                                                           "response_body_bytes":  536595,
+                                                           "successful_rps_in_mixed_workload":  75.32759757030438
+                                                       },
+                                               "metadata":  {
+                                                                "count":  200,
+                                                                "errors":  0,
+                                                                "p50_ms":  19.442468999841367,
+                                                                "p95_ms":  25.605402001019684,
+                                                                "p99_ms":  27.337139999872306,
+                                                                "response_body_bytes":  424000,
+                                                                "successful_rps_in_mixed_workload":  37.66379878515219
+                                                            }
+                                           },
+                            "point_combined":  {
+                                                   "p50_ms":  19.785315000262926,
+                                                   "p95_ms":  28.13931099990441,
+                                                   "p99_ms":  36.19084199999634
+                                               },
+                            "first_operations":  [
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  16.73142599975108,
+                                                         "operation":  "metadata",
+                                                         "prior_operations_since_restart":  [
+
+                                                                                            ],
+                                                         "response_body_bytes":  2120,
+                                                         "response_sha256":  "37d97679d50df9c73fd47f1730859546f7ab137c958b13c8fa57908562d6dd21",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  14.457604998824536,
+                                                         "operation":  "domain",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata"
+                                                                                            ],
+                                                         "response_body_bytes":  548,
+                                                         "response_sha256":  "db46044458b07018496012861d77eaf929ac7ebb06bb5aee3049bc67f9fa9e90",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  8.409621001192136,
+                                                         "operation":  "edr",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata",
+                                                                                                "domain"
+                                                                                            ],
+                                                         "response_body_bytes":  1339,
+                                                         "response_sha256":  "74e4b6ed9687c453e1393fd914f7b221dcd27a4b717716f8852dd77d4a4f8ce1",
+                                                         "status":  200
+                                                     }
+                                                 ],
+                            "resources":  {
+                                              "gateway":  {
+                                                              "after":  {
+                                                                            "cgroup_cpu":  {
+                                                                                               "burst_usec":  0,
+                                                                                               "nr_bursts":  0,
+                                                                                               "nr_periods":  68,
+                                                                                               "nr_throttled":  5,
+                                                                                               "system_usec":  677518,
+                                                                                               "throttled_usec":  244233,
+                                                                                               "usage_usec":  2755516,
+                                                                                               "user_usec":  2077998
+                                                                                           },
+                                                                            "cgroup_io":  {
+
+                                                                                          },
+                                                                            "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                            "cgroup_memory_bytes":  43286528,
+                                                                            "cgroup_memory_peak_bytes":  56672256,
+                                                                            "cpu_max":  "100000 100000",
+                                                                            "memory_limit_bytes":  536870912,
+                                                                            "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                            "uptime_seconds":  9.177889421000145,
+                                                                            "worker_io":  {
+                                                                                              "cancelled_write_bytes":  0,
+                                                                                              "rchar":  3586903,
+                                                                                              "read_bytes":  0,
+                                                                                              "syscr":  4561,
+                                                                                              "syscw":  1059,
+                                                                                              "wchar":  324914,
+                                                                                              "write_bytes":  0
+                                                                                          },
+                                                                            "worker_rss_bytes":  35753984
+                                                                        },
+                                                              "before":  {
+                                                                             "cgroup_cpu":  {
+                                                                                                "burst_usec":  0,
+                                                                                                "nr_bursts":  0,
+                                                                                                "nr_periods":  15,
+                                                                                                "nr_throttled":  1,
+                                                                                                "system_usec":  75238,
+                                                                                                "throttled_usec":  977,
+                                                                                                "usage_usec":  641504,
+                                                                                                "user_usec":  566266
+                                                                                            },
+                                                                             "cgroup_io":  {
+
+                                                                                           },
+                                                                             "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                             "cgroup_memory_bytes":  40902656,
+                                                                             "cgroup_memory_peak_bytes":  53153792,
+                                                                             "cpu_max":  "100000 100000",
+                                                                             "memory_limit_bytes":  536870912,
+                                                                             "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                             "uptime_seconds":  3.8649859500001185,
+                                                                             "worker_io":  {
+                                                                                               "cancelled_write_bytes":  0,
+                                                                                               "rchar":  3004180,
+                                                                                               "read_bytes":  0,
+                                                                                               "syscr":  546,
+                                                                                               "syscw":  55,
+                                                                                               "wchar":  16457,
+                                                                                               "write_bytes":  0
+                                                                                           },
+                                                                             "worker_rss_bytes":  35557376
+                                                                         },
+                                                              "cgroup_io_delta":  null,
+                                                              "cpu_one_core_percent":  39.81086129869857,
+                                                              "cpu_seconds":  2.114012,
+                                                              "worker_io_delta":  {
+                                                                                      "cancelled_write_bytes":  0,
+                                                                                      "rchar":  582723,
+                                                                                      "read_bytes":  0,
+                                                                                      "syscr":  4015,
+                                                                                      "syscw":  1004,
+                                                                                      "wchar":  308457,
+                                                                                      "write_bytes":  0
+                                                                                  }
+                                                          },
+                                              "narrow":  {
+                                                             "after":  {
+                                                                           "cgroup_cpu":  {
+                                                                                              "burst_usec":  0,
+                                                                                              "nr_bursts":  0,
+                                                                                              "nr_periods":  70,
+                                                                                              "nr_throttled":  3,
+                                                                                              "system_usec":  2366596,
+                                                                                              "throttled_usec":  9080,
+                                                                                              "usage_usec":  7456625,
+                                                                                              "user_usec":  5090028
+                                                                                          },
+                                                                           "cgroup_io":  {
+
+                                                                                         },
+                                                                           "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                           "cgroup_memory_bytes":  75194368,
+                                                                           "cgroup_memory_peak_bytes":  89133056,
+                                                                           "cpu_max":  "200000 100000",
+                                                                           "memory_limit_bytes":  2147483648,
+                                                                           "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                           "uptime_seconds":  8.998913605999405,
+                                                                           "worker_io":  {
+                                                                                             "cancelled_write_bytes":  0,
+                                                                                             "rchar":  171807817,
+                                                                                             "read_bytes":  0,
+                                                                                             "syscr":  15944,
+                                                                                             "syscw":  1061,
+                                                                                             "wchar":  317676,
+                                                                                             "write_bytes":  0
+                                                                                         },
+                                                                           "worker_rss_bytes":  89911296
+                                                                       },
+                                                             "before":  {
+                                                                            "cgroup_cpu":  {
+                                                                                               "burst_usec":  0,
+                                                                                               "nr_bursts":  0,
+                                                                                               "nr_periods":  17,
+                                                                                               "nr_throttled":  0,
+                                                                                               "system_usec":  144765,
+                                                                                               "throttled_usec":  0,
+                                                                                               "usage_usec":  1174670,
+                                                                                               "user_usec":  1029905
+                                                                                           },
+                                                                            "cgroup_io":  {
+
+                                                                                          },
+                                                                            "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                            "cgroup_memory_bytes":  74862592,
+                                                                            "cgroup_memory_peak_bytes":  78151680,
+                                                                            "cpu_max":  "200000 100000",
+                                                                            "memory_limit_bytes":  2147483648,
+                                                                            "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                            "uptime_seconds":  3.6860018869992928,
+                                                                            "worker_io":  {
+                                                                                              "cancelled_write_bytes":  0,
+                                                                                              "rchar":  111556446,
+                                                                                              "read_bytes":  0,
+                                                                                              "syscr":  4329,
+                                                                                              "syscw":  57,
+                                                                                              "wchar":  16219,
+                                                                                              "write_bytes":  0
+                                                                                          },
+                                                                            "worker_rss_bytes":  89911296
+                                                                        },
+                                                             "cgroup_io_delta":  null,
+                                                             "cpu_one_core_percent":  118.30114454869035,
+                                                             "cpu_seconds":  6.281955,
+                                                             "worker_io_delta":  {
+                                                                                     "cancelled_write_bytes":  0,
+                                                                                     "rchar":  60251371,
+                                                                                     "read_bytes":  0,
+                                                                                     "syscr":  11615,
+                                                                                     "syscw":  1004,
+                                                                                     "wchar":  301457,
+                                                                                     "write_bytes":  0
+                                                                                 }
+                                                         }
+                                          },
+                            "publication_freshness":  {
+                                                          "failed_refresh_preserved_old_reader":  true,
+                                                          "geoserver_publication_ms":  null,
+                                                          "numerical_manifest_visibility_ms":  169.3300970000564,
+                                                          "old_revision_preserved":  true,
+                                                          "scope":  "synthetic availability revision over real immutable assets; numerical discovery only; not M2/M3 GIS publication freshness"
+                                                      },
+                            "request_corpus_sha256":  "41e0ac0bd2a4a01e6256a5b6caf111f5ed9b6b7b93caab1a77ebe5d4b2f3d4a6",
+                            "image_id":  "sha256:3a9f8e03ff9fe401cd7cf932f3b19b7c8bc842eef722d77d41fabcc15d92c815",
+                            "fingerprint":  "94262aefd8fb503504644907a743440bea610baef85c394058242ca57c0a2898"
+                        },
+                        {
+                            "candidate":  "narrow",
+                            "repetition":  2,
+                            "status":  "passed",
+                            "successful_rps":  185.1643259781085,
+                            "errors":  0,
+                            "operations":  {
+                                               "domain":  {
+                                                              "count":  400,
+                                                              "errors":  0,
+                                                              "p50_ms":  19.70261099995696,
+                                                              "p95_ms":  27.041630000894656,
+                                                              "p99_ms":  35.97953699863865,
+                                                              "response_body_bytes":  219346,
+                                                              "successful_rps_in_mixed_workload":  74.06573039124339
+                                                          },
+                                               "edr":  {
+                                                           "count":  400,
+                                                           "errors":  0,
+                                                           "p50_ms":  21.02562400068564,
+                                                           "p95_ms":  30.488882001009188,
+                                                           "p99_ms":  40.052480000667856,
+                                                           "response_body_bytes":  536595,
+                                                           "successful_rps_in_mixed_workload":  74.06573039124339
+                                                       },
+                                               "metadata":  {
+                                                                "count":  200,
+                                                                "errors":  0,
+                                                                "p50_ms":  19.540223000149126,
+                                                                "p95_ms":  25.31131599971559,
+                                                                "p99_ms":  34.95616000145674,
+                                                                "response_body_bytes":  424000,
+                                                                "successful_rps_in_mixed_workload":  37.032865195621696
+                                                            }
+                                           },
+                            "point_combined":  {
+                                                   "p50_ms":  20.028220998938195,
+                                                   "p95_ms":  29.302254999493016,
+                                                   "p99_ms":  39.898963001178345
+                                               },
+                            "first_operations":  [
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  16.850709998834645,
+                                                         "operation":  "metadata",
+                                                         "prior_operations_since_restart":  [
+
+                                                                                            ],
+                                                         "response_body_bytes":  2120,
+                                                         "response_sha256":  "37d97679d50df9c73fd47f1730859546f7ab137c958b13c8fa57908562d6dd21",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  14.49918899925251,
+                                                         "operation":  "domain",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata"
+                                                                                            ],
+                                                         "response_body_bytes":  548,
+                                                         "response_sha256":  "db46044458b07018496012861d77eaf929ac7ebb06bb5aee3049bc67f9fa9e90",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  8.875958001226536,
+                                                         "operation":  "edr",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata",
+                                                                                                "domain"
+                                                                                            ],
+                                                         "response_body_bytes":  1339,
+                                                         "response_sha256":  "74e4b6ed9687c453e1393fd914f7b221dcd27a4b717716f8852dd77d4a4f8ce1",
+                                                         "status":  200
+                                                     }
+                                                 ],
+                            "resources":  {
+                                              "gateway":  {
+                                                              "after":  {
+                                                                            "cgroup_cpu":  {
+                                                                                               "burst_usec":  0,
+                                                                                               "nr_bursts":  0,
+                                                                                               "nr_periods":  70,
+                                                                                               "nr_throttled":  6,
+                                                                                               "system_usec":  754691,
+                                                                                               "throttled_usec":  373864,
+                                                                                               "usage_usec":  2824937,
+                                                                                               "user_usec":  2070246
+                                                                                           },
+                                                                            "cgroup_io":  {
+
+                                                                                          },
+                                                                            "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                            "cgroup_memory_bytes":  43204608,
+                                                                            "cgroup_memory_peak_bytes":  56766464,
+                                                                            "cpu_max":  "100000 100000",
+                                                                            "memory_limit_bytes":  536870912,
+                                                                            "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                            "uptime_seconds":  9.263794157999655,
+                                                                            "worker_io":  {
+                                                                                              "cancelled_write_bytes":  0,
+                                                                                              "rchar":  3586904,
+                                                                                              "read_bytes":  0,
+                                                                                              "syscr":  4561,
+                                                                                              "syscw":  1059,
+                                                                                              "wchar":  324914,
+                                                                                              "write_bytes":  0
+                                                                                          },
+                                                                            "worker_rss_bytes":  35561472
+                                                                        },
+                                                              "before":  {
+                                                                             "cgroup_cpu":  {
+                                                                                                "burst_usec":  0,
+                                                                                                "nr_bursts":  0,
+                                                                                                "nr_periods":  16,
+                                                                                                "nr_throttled":  1,
+                                                                                                "system_usec":  87336,
+                                                                                                "throttled_usec":  2284,
+                                                                                                "usage_usec":  643114,
+                                                                                                "user_usec":  555777
+                                                                                            },
+                                                                             "cgroup_io":  {
+
+                                                                                           },
+                                                                             "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                             "cgroup_memory_bytes":  40120320,
+                                                                             "cgroup_memory_peak_bytes":  53571584,
+                                                                             "cpu_max":  "100000 100000",
+                                                                             "memory_limit_bytes":  536870912,
+                                                                             "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                             "uptime_seconds":  3.8599039719993016,
+                                                                             "worker_io":  {
+                                                                                               "cancelled_write_bytes":  0,
+                                                                                               "rchar":  3004181,
+                                                                                               "read_bytes":  0,
+                                                                                               "syscr":  546,
+                                                                                               "syscw":  55,
+                                                                                               "wchar":  16457,
+                                                                                               "write_bytes":  0
+                                                                                           },
+                                                                             "worker_rss_bytes":  35364864
+                                                                         },
+                                                              "cgroup_io_delta":  null,
+                                                              "cpu_one_core_percent":  40.39957851985346,
+                                                              "cpu_seconds":  2.181823,
+                                                              "worker_io_delta":  {
+                                                                                      "cancelled_write_bytes":  0,
+                                                                                      "rchar":  582723,
+                                                                                      "read_bytes":  0,
+                                                                                      "syscr":  4015,
+                                                                                      "syscw":  1004,
+                                                                                      "wchar":  308457,
+                                                                                      "write_bytes":  0
+                                                                                  }
+                                                          },
+                                              "narrow":  {
+                                                             "after":  {
+                                                                           "cgroup_cpu":  {
+                                                                                              "burst_usec":  0,
+                                                                                              "nr_bursts":  0,
+                                                                                              "nr_periods":  70,
+                                                                                              "nr_throttled":  2,
+                                                                                              "system_usec":  2326553,
+                                                                                              "throttled_usec":  5395,
+                                                                                              "usage_usec":  7515922,
+                                                                                              "user_usec":  5189369
+                                                                                          },
+                                                                           "cgroup_io":  {
+
+                                                                                         },
+                                                                           "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                           "cgroup_memory_bytes":  74473472,
+                                                                           "cgroup_memory_peak_bytes":  89186304,
+                                                                           "cpu_max":  "200000 100000",
+                                                                           "memory_limit_bytes":  2147483648,
+                                                                           "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                           "uptime_seconds":  9.042165058999672,
+                                                                           "worker_io":  {
+                                                                                             "cancelled_write_bytes":  0,
+                                                                                             "rchar":  171807818,
+                                                                                             "read_bytes":  0,
+                                                                                             "syscr":  15945,
+                                                                                             "syscw":  1061,
+                                                                                             "wchar":  317676,
+                                                                                             "write_bytes":  0
+                                                                                         },
+                                                                           "worker_rss_bytes":  88887296
+                                                                       },
+                                                             "before":  {
+                                                                            "cgroup_cpu":  {
+                                                                                               "burst_usec":  0,
+                                                                                               "nr_bursts":  0,
+                                                                                               "nr_periods":  16,
+                                                                                               "nr_throttled":  0,
+                                                                                               "system_usec":  204938,
+                                                                                               "throttled_usec":  0,
+                                                                                               "usage_usec":  1148428,
+                                                                                               "user_usec":  943489
+                                                                                           },
+                                                                            "cgroup_io":  {
+
+                                                                                          },
+                                                                            "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                            "cgroup_memory_bytes":  73682944,
+                                                                            "cgroup_memory_peak_bytes":  78557184,
+                                                                            "cpu_max":  "200000 100000",
+                                                                            "memory_limit_bytes":  2147483648,
+                                                                            "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                            "uptime_seconds":  3.63683360199866,
+                                                                            "worker_io":  {
+                                                                                              "cancelled_write_bytes":  0,
+                                                                                              "rchar":  111556447,
+                                                                                              "read_bytes":  0,
+                                                                                              "syscr":  4330,
+                                                                                              "syscw":  57,
+                                                                                              "wchar":  16219,
+                                                                                              "write_bytes":  0
+                                                                                          },
+                                                                            "worker_rss_bytes":  88887296
+                                                                        },
+                                                             "cgroup_io_delta":  null,
+                                                             "cpu_one_core_percent":  117.903273467965,
+                                                             "cpu_seconds":  6.367494,
+                                                             "worker_io_delta":  {
+                                                                                     "cancelled_write_bytes":  0,
+                                                                                     "rchar":  60251371,
+                                                                                     "read_bytes":  0,
+                                                                                     "syscr":  11615,
+                                                                                     "syscw":  1004,
+                                                                                     "wchar":  301457,
+                                                                                     "write_bytes":  0
+                                                                                 }
+                                                         }
+                                          },
+                            "publication_freshness":  {
+                                                          "failed_refresh_preserved_old_reader":  true,
+                                                          "geoserver_publication_ms":  null,
+                                                          "numerical_manifest_visibility_ms":  170.61663700042118,
+                                                          "old_revision_preserved":  true,
+                                                          "scope":  "synthetic availability revision over real immutable assets; numerical discovery only; not M2/M3 GIS publication freshness"
+                                                      },
+                            "request_corpus_sha256":  "41e0ac0bd2a4a01e6256a5b6caf111f5ed9b6b7b93caab1a77ebe5d4b2f3d4a6",
+                            "image_id":  "sha256:3a9f8e03ff9fe401cd7cf932f3b19b7c8bc842eef722d77d41fabcc15d92c815",
+                            "fingerprint":  "94262aefd8fb503504644907a743440bea610baef85c394058242ca57c0a2898"
+                        },
+                        {
+                            "candidate":  "narrow",
+                            "repetition":  3,
+                            "status":  "passed",
+                            "successful_rps":  186.1382547929859,
+                            "errors":  0,
+                            "operations":  {
+                                               "domain":  {
+                                                              "count":  400,
+                                                              "errors":  0,
+                                                              "p50_ms":  19.544648999726633,
+                                                              "p95_ms":  27.618268000878743,
+                                                              "p99_ms":  36.83605600053852,
+                                                              "response_body_bytes":  219346,
+                                                              "successful_rps_in_mixed_workload":  74.45530191719436
+                                                          },
+                                               "edr":  {
+                                                           "count":  400,
+                                                           "errors":  0,
+                                                           "p50_ms":  20.887609000055818,
+                                                           "p95_ms":  30.377208000572864,
+                                                           "p99_ms":  40.227614999821526,
+                                                           "response_body_bytes":  536595,
+                                                           "successful_rps_in_mixed_workload":  74.45530191719436
+                                                       },
+                                               "metadata":  {
+                                                                "count":  200,
+                                                                "errors":  0,
+                                                                "p50_ms":  19.5908440000494,
+                                                                "p95_ms":  26.054539999677218,
+                                                                "p99_ms":  30.506554001476616,
+                                                                "response_body_bytes":  424000,
+                                                                "successful_rps_in_mixed_workload":  37.22765095859718
+                                                            }
+                                           },
+                            "point_combined":  {
+                                                   "p50_ms":  19.986396999229328,
+                                                   "p95_ms":  28.913089001434855,
+                                                   "p99_ms":  37.492999001187854
+                                               },
+                            "first_operations":  [
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  16.649162000248907,
+                                                         "operation":  "metadata",
+                                                         "prior_operations_since_restart":  [
+
+                                                                                            ],
+                                                         "response_body_bytes":  2120,
+                                                         "response_sha256":  "37d97679d50df9c73fd47f1730859546f7ab137c958b13c8fa57908562d6dd21",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  13.93882900083554,
+                                                         "operation":  "domain",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata"
+                                                                                            ],
+                                                         "response_body_bytes":  548,
+                                                         "response_sha256":  "db46044458b07018496012861d77eaf929ac7ebb06bb5aee3049bc67f9fa9e90",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  8.986356000605156,
+                                                         "operation":  "edr",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata",
+                                                                                                "domain"
+                                                                                            ],
+                                                         "response_body_bytes":  1339,
+                                                         "response_sha256":  "74e4b6ed9687c453e1393fd914f7b221dcd27a4b717716f8852dd77d4a4f8ce1",
+                                                         "status":  200
+                                                     }
+                                                 ],
+                            "resources":  {
+                                              "gateway":  {
+                                                              "after":  {
+                                                                            "cgroup_cpu":  {
+                                                                                               "burst_usec":  0,
+                                                                                               "nr_bursts":  0,
+                                                                                               "nr_periods":  69,
+                                                                                               "nr_throttled":  5,
+                                                                                               "system_usec":  645504,
+                                                                                               "throttled_usec":  288519,
+                                                                                               "usage_usec":  2740270,
+                                                                                               "user_usec":  2094766
+                                                                                           },
+                                                                            "cgroup_io":  {
+
+                                                                                          },
+                                                                            "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                            "cgroup_memory_bytes":  42315776,
+                                                                            "cgroup_memory_peak_bytes":  56762368,
+                                                                            "cpu_max":  "100000 100000",
+                                                                            "memory_limit_bytes":  536870912,
+                                                                            "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                            "uptime_seconds":  9.246232920999319,
+                                                                            "worker_io":  {
+                                                                                              "cancelled_write_bytes":  0,
+                                                                                              "rchar":  3586901,
+                                                                                              "read_bytes":  0,
+                                                                                              "syscr":  4561,
+                                                                                              "syscw":  1059,
+                                                                                              "wchar":  324914,
+                                                                                              "write_bytes":  0
+                                                                                          },
+                                                                            "worker_rss_bytes":  36151296
+                                                                        },
+                                                              "before":  {
+                                                                             "cgroup_cpu":  {
+                                                                                                "burst_usec":  0,
+                                                                                                "nr_bursts":  0,
+                                                                                                "nr_periods":  15,
+                                                                                                "nr_throttled":  0,
+                                                                                                "system_usec":  47158,
+                                                                                                "throttled_usec":  0,
+                                                                                                "usage_usec":  651642,
+                                                                                                "user_usec":  604484
+                                                                                            },
+                                                                             "cgroup_io":  {
+
+                                                                                           },
+                                                                             "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                             "cgroup_memory_bytes":  40370176,
+                                                                             "cgroup_memory_peak_bytes":  53653504,
+                                                                             "cpu_max":  "100000 100000",
+                                                                             "memory_limit_bytes":  536870912,
+                                                                             "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                             "uptime_seconds":  3.8709158700003172,
+                                                                             "worker_io":  {
+                                                                                               "cancelled_write_bytes":  0,
+                                                                                               "rchar":  3004178,
+                                                                                               "read_bytes":  0,
+                                                                                               "syscr":  546,
+                                                                                               "syscw":  55,
+                                                                                               "wchar":  16457,
+                                                                                               "write_bytes":  0
+                                                                                           },
+                                                                             "worker_rss_bytes":  35561472
+                                                                         },
+                                                              "cgroup_io_delta":  null,
+                                                              "cpu_one_core_percent":  38.87735708317645,
+                                                              "cpu_seconds":  2.088628,
+                                                              "worker_io_delta":  {
+                                                                                      "cancelled_write_bytes":  0,
+                                                                                      "rchar":  582723,
+                                                                                      "read_bytes":  0,
+                                                                                      "syscr":  4015,
+                                                                                      "syscw":  1004,
+                                                                                      "wchar":  308457,
+                                                                                      "write_bytes":  0
+                                                                                  }
+                                                          },
+                                              "narrow":  {
+                                                             "after":  {
+                                                                           "cgroup_cpu":  {
+                                                                                              "burst_usec":  0,
+                                                                                              "nr_bursts":  0,
+                                                                                              "nr_periods":  72,
+                                                                                              "nr_throttled":  3,
+                                                                                              "system_usec":  2173152,
+                                                                                              "throttled_usec":  11577,
+                                                                                              "usage_usec":  7487611,
+                                                                                              "user_usec":  5314459
+                                                                                          },
+                                                                           "cgroup_io":  {
+
+                                                                                         },
+                                                                           "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                           "cgroup_memory_bytes":  75366400,
+                                                                           "cgroup_memory_peak_bytes":  89841664,
+                                                                           "cpu_max":  "200000 100000",
+                                                                           "memory_limit_bytes":  2147483648,
+                                                                           "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                           "uptime_seconds":  9.04174328299996,
+                                                                           "worker_io":  {
+                                                                                             "cancelled_write_bytes":  0,
+                                                                                             "rchar":  171807819,
+                                                                                             "read_bytes":  0,
+                                                                                             "syscr":  15944,
+                                                                                             "syscw":  1061,
+                                                                                             "wchar":  317676,
+                                                                                             "write_bytes":  0
+                                                                                         },
+                                                                           "worker_rss_bytes":  89948160
+                                                                       },
+                                                             "before":  {
+                                                                            "cgroup_cpu":  {
+                                                                                               "burst_usec":  0,
+                                                                                               "nr_bursts":  0,
+                                                                                               "nr_periods":  18,
+                                                                                               "nr_throttled":  0,
+                                                                                               "system_usec":  152469,
+                                                                                               "throttled_usec":  0,
+                                                                                               "usage_usec":  1155559,
+                                                                                               "user_usec":  1003089
+                                                                                           },
+                                                                            "cgroup_io":  {
+
+                                                                                          },
+                                                                            "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                            "cgroup_memory_bytes":  74203136,
+                                                                            "cgroup_memory_peak_bytes":  78446592,
+                                                                            "cpu_max":  "200000 100000",
+                                                                            "memory_limit_bytes":  2147483648,
+                                                                            "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                            "uptime_seconds":  3.666252548999182,
+                                                                            "worker_io":  {
+                                                                                              "cancelled_write_bytes":  0,
+                                                                                              "rchar":  111556447,
+                                                                                              "read_bytes":  0,
+                                                                                              "syscr":  4329,
+                                                                                              "syscw":  57,
+                                                                                              "wchar":  16219,
+                                                                                              "write_bytes":  0
+                                                                                          },
+                                                                            "worker_rss_bytes":  89554944
+                                                                        },
+                                                             "cgroup_io_delta":  null,
+                                                             "cpu_one_core_percent":  117.8637108538436,
+                                                             "cpu_seconds":  6.332052,
+                                                             "worker_io_delta":  {
+                                                                                     "cancelled_write_bytes":  0,
+                                                                                     "rchar":  60251372,
+                                                                                     "read_bytes":  0,
+                                                                                     "syscr":  11615,
+                                                                                     "syscw":  1004,
+                                                                                     "wchar":  301457,
+                                                                                     "write_bytes":  0
+                                                                                 }
+                                                         }
+                                          },
+                            "publication_freshness":  {
+                                                          "failed_refresh_preserved_old_reader":  true,
+                                                          "geoserver_publication_ms":  null,
+                                                          "numerical_manifest_visibility_ms":  171.5433879999182,
+                                                          "old_revision_preserved":  true,
+                                                          "scope":  "synthetic availability revision over real immutable assets; numerical discovery only; not M2/M3 GIS publication freshness"
+                                                      },
+                            "request_corpus_sha256":  "41e0ac0bd2a4a01e6256a5b6caf111f5ed9b6b7b93caab1a77ebe5d4b2f3d4a6",
+                            "image_id":  "sha256:3a9f8e03ff9fe401cd7cf932f3b19b7c8bc842eef722d77d41fabcc15d92c815",
+                            "fingerprint":  "94262aefd8fb503504644907a743440bea610baef85c394058242ca57c0a2898"
+                        },
+                        {
+                            "candidate":  "pygeoapi",
+                            "repetition":  1,
+                            "status":  "passed",
+                            "successful_rps":  179.21539364456942,
+                            "errors":  0,
+                            "operations":  {
+                                               "domain":  {
+                                                              "count":  400,
+                                                              "errors":  0,
+                                                              "p50_ms":  20.45297399854462,
+                                                              "p95_ms":  27.113998999993782,
+                                                              "p99_ms":  30.34767600001942,
+                                                              "response_body_bytes":  219346,
+                                                              "successful_rps_in_mixed_workload":  71.68615745782778
+                                                          },
+                                               "edr":  {
+                                                           "count":  400,
+                                                           "errors":  0,
+                                                           "p50_ms":  23.175276999609196,
+                                                           "p95_ms":  29.277372001160984,
+                                                           "p99_ms":  34.99234100127069,
+                                                           "response_body_bytes":  498195,
+                                                           "successful_rps_in_mixed_workload":  71.68615745782778
+                                                       },
+                                               "metadata":  {
+                                                                "count":  200,
+                                                                "errors":  0,
+                                                                "p50_ms":  21.182717000556295,
+                                                                "p95_ms":  25.82582899958652,
+                                                                "p99_ms":  29.936341001302935,
+                                                                "response_body_bytes":  491600,
+                                                                "successful_rps_in_mixed_workload":  35.84307872891389
+                                                            }
+                                           },
+                            "point_combined":  {
+                                                   "p50_ms":  21.017449000282795,
+                                                   "p95_ms":  27.75687200119137,
+                                                   "p99_ms":  33.62575699975423
+                                               },
+                            "first_operations":  [
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  18.66270699974848,
+                                                         "operation":  "metadata",
+                                                         "prior_operations_since_restart":  [
+
+                                                                                            ],
+                                                         "response_body_bytes":  2458,
+                                                         "response_sha256":  "44da14069c6c7abc2e367c8adf08a30fb660ad430337db93b39334a435e839f9",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  15.062255000884761,
+                                                         "operation":  "domain",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata"
+                                                                                            ],
+                                                         "response_body_bytes":  548,
+                                                         "response_sha256":  "db46044458b07018496012861d77eaf929ac7ebb06bb5aee3049bc67f9fa9e90",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  10.37055400047393,
+                                                         "operation":  "edr",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata",
+                                                                                                "domain"
+                                                                                            ],
+                                                         "response_body_bytes":  1243,
+                                                         "response_sha256":  "dcb85a5aa47b04cfcd0f53ef204979bc959f001b5710bb692b66edd4d8c54f7d",
+                                                         "status":  200
+                                                     }
+                                                 ],
+                            "resources":  {
+                                              "gateway":  {
+                                                              "after":  {
+                                                                            "cgroup_cpu":  {
+                                                                                               "burst_usec":  0,
+                                                                                               "nr_bursts":  0,
+                                                                                               "nr_periods":  74,
+                                                                                               "nr_throttled":  6,
+                                                                                               "system_usec":  666854,
+                                                                                               "throttled_usec":  152571,
+                                                                                               "usage_usec":  2797536,
+                                                                                               "user_usec":  2130681
+                                                                                           },
+                                                                            "cgroup_io":  {
+
+                                                                                          },
+                                                                            "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                            "cgroup_memory_bytes":  42897408,
+                                                                            "cgroup_memory_peak_bytes":  56848384,
+                                                                            "cpu_max":  "100000 100000",
+                                                                            "memory_limit_bytes":  536870912,
+                                                                            "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                            "uptime_seconds":  9.544621977000133,
+                                                                            "worker_io":  {
+                                                                                              "cancelled_write_bytes":  0,
+                                                                                              "rchar":  3586904,
+                                                                                              "read_bytes":  0,
+                                                                                              "syscr":  4561,
+                                                                                              "syscw":  1059,
+                                                                                              "wchar":  327020,
+                                                                                              "write_bytes":  0
+                                                                                          },
+                                                                            "worker_rss_bytes":  35762176
+                                                                        },
+                                                              "before":  {
+                                                                             "cgroup_cpu":  {
+                                                                                                "burst_usec":  0,
+                                                                                                "nr_bursts":  0,
+                                                                                                "nr_periods":  18,
+                                                                                                "nr_throttled":  1,
+                                                                                                "system_usec":  86701,
+                                                                                                "throttled_usec":  1799,
+                                                                                                "usage_usec":  748782,
+                                                                                                "user_usec":  662081
+                                                                                            },
+                                                                             "cgroup_io":  {
+
+                                                                                           },
+                                                                             "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                             "cgroup_memory_bytes":  51703808,
+                                                                             "cgroup_memory_peak_bytes":  53407744,
+                                                                             "cpu_max":  "100000 100000",
+                                                                             "memory_limit_bytes":  536870912,
+                                                                             "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                             "uptime_seconds":  3.961419395000121,
+                                                                             "worker_io":  {
+                                                                                               "cancelled_write_bytes":  0,
+                                                                                               "rchar":  3004181,
+                                                                                               "read_bytes":  0,
+                                                                                               "syscr":  546,
+                                                                                               "syscw":  55,
+                                                                                               "wchar":  16563,
+                                                                                               "write_bytes":  0
+                                                                                           },
+                                                                             "worker_rss_bytes":  35172352
+                                                                         },
+                                                              "cgroup_io_delta":  null,
+                                                              "cpu_one_core_percent":  36.716825459088625,
+                                                              "cpu_seconds":  2.048754,
+                                                              "worker_io_delta":  {
+                                                                                      "cancelled_write_bytes":  0,
+                                                                                      "rchar":  582723,
+                                                                                      "read_bytes":  0,
+                                                                                      "syscr":  4015,
+                                                                                      "syscw":  1004,
+                                                                                      "wchar":  310457,
+                                                                                      "write_bytes":  0
+                                                                                  }
+                                                          },
+                                              "pygeoapi":  {
+                                                               "after":  {
+                                                                             "cgroup_cpu":  {
+                                                                                                "burst_usec":  0,
+                                                                                                "nr_bursts":  0,
+                                                                                                "nr_periods":  76,
+                                                                                                "nr_throttled":  1,
+                                                                                                "system_usec":  2378100,
+                                                                                                "throttled_usec":  3501,
+                                                                                                "usage_usec":  7964354,
+                                                                                                "user_usec":  5586254
+                                                                                            },
+                                                                             "cgroup_io":  {
+
+                                                                                           },
+                                                                             "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                             "cgroup_memory_bytes":  96010240,
+                                                                             "cgroup_memory_peak_bytes":  109957120,
+                                                                             "cpu_max":  "200000 100000",
+                                                                             "memory_limit_bytes":  2147483648,
+                                                                             "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                             "uptime_seconds":  9.361290240000017,
+                                                                             "worker_io":  {
+                                                                                               "cancelled_write_bytes":  0,
+                                                                                               "rchar":  176964264,
+                                                                                               "read_bytes":  0,
+                                                                                               "syscr":  16767,
+                                                                                               "syscw":  1061,
+                                                                                               "wchar":  317676,
+                                                                                               "write_bytes":  0
+                                                                                           },
+                                                                             "worker_rss_bytes":  122765312
+                                                                         },
+                                                               "before":  {
+                                                                              "cgroup_cpu":  {
+                                                                                                 "burst_usec":  0,
+                                                                                                 "nr_bursts":  0,
+                                                                                                 "nr_periods":  20,
+                                                                                                 "nr_throttled":  0,
+                                                                                                 "system_usec":  156510,
+                                                                                                 "throttled_usec":  0,
+                                                                                                 "usage_usec":  1466255,
+                                                                                                 "user_usec":  1309745
+                                                                                             },
+                                                                              "cgroup_io":  {
+
+                                                                                            },
+                                                                              "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                              "cgroup_memory_bytes":  106602496,
+                                                                              "cgroup_memory_peak_bytes":  106606592,
+                                                                              "cpu_max":  "200000 100000",
+                                                                              "memory_limit_bytes":  2147483648,
+                                                                              "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                              "uptime_seconds":  3.777515855999809,
+                                                                              "worker_io":  {
+                                                                                                "cancelled_write_bytes":  0,
+                                                                                                "rchar":  116712891,
+                                                                                                "read_bytes":  0,
+                                                                                                "syscr":  5152,
+                                                                                                "syscw":  57,
+                                                                                                "wchar":  16219,
+                                                                                                "write_bytes":  0
+                                                                                            },
+                                                                              "worker_rss_bytes":  121802752
+                                                                          },
+                                                               "cgroup_io_delta":  null,
+                                                               "cpu_one_core_percent":  116.4559370226383,
+                                                               "cpu_seconds":  6.498099,
+                                                               "worker_io_delta":  {
+                                                                                       "cancelled_write_bytes":  0,
+                                                                                       "rchar":  60251373,
+                                                                                       "read_bytes":  0,
+                                                                                       "syscr":  11615,
+                                                                                       "syscw":  1004,
+                                                                                       "wchar":  301457,
+                                                                                       "write_bytes":  0
+                                                                                   }
+                                                           }
+                                          },
+                            "publication_freshness":  {
+                                                          "failed_refresh_preserved_old_reader":  true,
+                                                          "geoserver_publication_ms":  null,
+                                                          "numerical_manifest_visibility_ms":  173.45766200014623,
+                                                          "old_revision_preserved":  true,
+                                                          "scope":  "synthetic availability revision over real immutable assets; numerical discovery only; not M2/M3 GIS publication freshness"
+                                                      },
+                            "request_corpus_sha256":  "41e0ac0bd2a4a01e6256a5b6caf111f5ed9b6b7b93caab1a77ebe5d4b2f3d4a6",
+                            "image_id":  "sha256:3a9f8e03ff9fe401cd7cf932f3b19b7c8bc842eef722d77d41fabcc15d92c815",
+                            "fingerprint":  "94262aefd8fb503504644907a743440bea610baef85c394058242ca57c0a2898"
+                        },
+                        {
+                            "candidate":  "pygeoapi",
+                            "repetition":  2,
+                            "status":  "passed",
+                            "successful_rps":  175.60519982968137,
+                            "errors":  0,
+                            "operations":  {
+                                               "domain":  {
+                                                              "count":  400,
+                                                              "errors":  0,
+                                                              "p50_ms":  20.849599000939634,
+                                                              "p95_ms":  27.597586000410956,
+                                                              "p99_ms":  37.67501600123069,
+                                                              "response_body_bytes":  219346,
+                                                              "successful_rps_in_mixed_workload":  70.24207993187255
+                                                          },
+                                               "edr":  {
+                                                           "count":  400,
+                                                           "errors":  0,
+                                                           "p50_ms":  23.786117999406997,
+                                                           "p95_ms":  29.925536999144242,
+                                                           "p99_ms":  36.975937999159214,
+                                                           "response_body_bytes":  498195,
+                                                           "successful_rps_in_mixed_workload":  70.24207993187255
+                                                       },
+                                               "metadata":  {
+                                                                "count":  200,
+                                                                "errors":  0,
+                                                                "p50_ms":  21.433287000036216,
+                                                                "p95_ms":  25.119890000496525,
+                                                                "p99_ms":  32.60330600096495,
+                                                                "response_body_bytes":  491600,
+                                                                "successful_rps_in_mixed_workload":  35.121039965936276
+                                                            }
+                                           },
+                            "point_combined":  {
+                                                   "p50_ms":  21.357342000555946,
+                                                   "p95_ms":  28.37060899946664,
+                                                   "p99_ms":  37.16515599990089
+                                               },
+                            "first_operations":  [
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  18.790507998346584,
+                                                         "operation":  "metadata",
+                                                         "prior_operations_since_restart":  [
+
+                                                                                            ],
+                                                         "response_body_bytes":  2458,
+                                                         "response_sha256":  "44da14069c6c7abc2e367c8adf08a30fb660ad430337db93b39334a435e839f9",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  15.829275000214693,
+                                                         "operation":  "domain",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata"
+                                                                                            ],
+                                                         "response_body_bytes":  548,
+                                                         "response_sha256":  "db46044458b07018496012861d77eaf929ac7ebb06bb5aee3049bc67f9fa9e90",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  9.986142000343534,
+                                                         "operation":  "edr",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata",
+                                                                                                "domain"
+                                                                                            ],
+                                                         "response_body_bytes":  1243,
+                                                         "response_sha256":  "dcb85a5aa47b04cfcd0f53ef204979bc959f001b5710bb692b66edd4d8c54f7d",
+                                                         "status":  200
+                                                     }
+                                                 ],
+                            "resources":  {
+                                              "gateway":  {
+                                                              "after":  {
+                                                                            "cgroup_cpu":  {
+                                                                                               "burst_usec":  0,
+                                                                                               "nr_bursts":  0,
+                                                                                               "nr_periods":  73,
+                                                                                               "nr_throttled":  5,
+                                                                                               "system_usec":  671139,
+                                                                                               "throttled_usec":  306832,
+                                                                                               "usage_usec":  2912572,
+                                                                                               "user_usec":  2241433
+                                                                                           },
+                                                                            "cgroup_io":  {
+
+                                                                                          },
+                                                                            "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                            "cgroup_memory_bytes":  42344448,
+                                                                            "cgroup_memory_peak_bytes":  57221120,
+                                                                            "cpu_max":  "100000 100000",
+                                                                            "memory_limit_bytes":  536870912,
+                                                                            "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                            "uptime_seconds":  9.568570723999073,
+                                                                            "worker_io":  {
+                                                                                              "cancelled_write_bytes":  0,
+                                                                                              "rchar":  3586901,
+                                                                                              "read_bytes":  0,
+                                                                                              "syscr":  4561,
+                                                                                              "syscw":  1059,
+                                                                                              "wchar":  327020,
+                                                                                              "write_bytes":  0
+                                                                                          },
+                                                                            "worker_rss_bytes":  36151296
+                                                                        },
+                                                              "before":  {
+                                                                             "cgroup_cpu":  {
+                                                                                                "burst_usec":  0,
+                                                                                                "nr_bursts":  0,
+                                                                                                "nr_periods":  17,
+                                                                                                "nr_throttled":  0,
+                                                                                                "system_usec":  61502,
+                                                                                                "throttled_usec":  0,
+                                                                                                "usage_usec":  733930,
+                                                                                                "user_usec":  672428
+                                                                                            },
+                                                                             "cgroup_io":  {
+
+                                                                                           },
+                                                                             "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                             "cgroup_memory_bytes":  50929664,
+                                                                             "cgroup_memory_peak_bytes":  53407744,
+                                                                             "cpu_max":  "100000 100000",
+                                                                             "memory_limit_bytes":  536870912,
+                                                                             "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                             "uptime_seconds":  3.8708674059998884,
+                                                                             "worker_io":  {
+                                                                                               "cancelled_write_bytes":  0,
+                                                                                               "rchar":  3004178,
+                                                                                               "read_bytes":  0,
+                                                                                               "syscr":  546,
+                                                                                               "syscw":  55,
+                                                                                               "wchar":  16563,
+                                                                                               "write_bytes":  0
+                                                                                           },
+                                                                             "worker_rss_bytes":  35561472
+                                                                         },
+                                                              "cgroup_io_delta":  null,
+                                                              "cpu_one_core_percent":  38.25808637673367,
+                                                              "cpu_seconds":  2.178642,
+                                                              "worker_io_delta":  {
+                                                                                      "cancelled_write_bytes":  0,
+                                                                                      "rchar":  582723,
+                                                                                      "read_bytes":  0,
+                                                                                      "syscr":  4015,
+                                                                                      "syscw":  1004,
+                                                                                      "wchar":  310457,
+                                                                                      "write_bytes":  0
+                                                                                  }
+                                                          },
+                                              "pygeoapi":  {
+                                                               "after":  {
+                                                                             "cgroup_cpu":  {
+                                                                                                "burst_usec":  0,
+                                                                                                "nr_bursts":  0,
+                                                                                                "nr_periods":  76,
+                                                                                                "nr_throttled":  2,
+                                                                                                "system_usec":  2335501,
+                                                                                                "throttled_usec":  10260,
+                                                                                                "usage_usec":  8074517,
+                                                                                                "user_usec":  5739016
+                                                                                            },
+                                                                             "cgroup_io":  {
+
+                                                                                           },
+                                                                             "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                             "cgroup_memory_bytes":  96931840,
+                                                                             "cgroup_memory_peak_bytes":  111247360,
+                                                                             "cpu_max":  "200000 100000",
+                                                                             "memory_limit_bytes":  2147483648,
+                                                                             "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                             "uptime_seconds":  9.333984729000804,
+                                                                             "worker_io":  {
+                                                                                               "cancelled_write_bytes":  0,
+                                                                                               "rchar":  176964266,
+                                                                                               "read_bytes":  0,
+                                                                                               "syscr":  16767,
+                                                                                               "syscw":  1061,
+                                                                                               "wchar":  317676,
+                                                                                               "write_bytes":  0
+                                                                                           },
+                                                                             "worker_rss_bytes":  123781120
+                                                                         },
+                                                               "before":  {
+                                                                              "cgroup_cpu":  {
+                                                                                                 "burst_usec":  0,
+                                                                                                 "nr_bursts":  0,
+                                                                                                 "nr_periods":  19,
+                                                                                                 "nr_throttled":  0,
+                                                                                                 "system_usec":  229054,
+                                                                                                 "throttled_usec":  0,
+                                                                                                 "usage_usec":  1429616,
+                                                                                                 "user_usec":  1200561
+                                                                                             },
+                                                                              "cgroup_io":  {
+
+                                                                                            },
+                                                                              "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                              "cgroup_memory_bytes":  105852928,
+                                                                              "cgroup_memory_peak_bytes":  105852928,
+                                                                              "cpu_max":  "200000 100000",
+                                                                              "memory_limit_bytes":  2147483648,
+                                                                              "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                              "uptime_seconds":  3.636168491000717,
+                                                                              "worker_io":  {
+                                                                                                "cancelled_write_bytes":  0,
+                                                                                                "rchar":  116712892,
+                                                                                                "read_bytes":  0,
+                                                                                                "syscr":  5152,
+                                                                                                "syscw":  57,
+                                                                                                "wchar":  16219,
+                                                                                                "write_bytes":  0
+                                                                                            },
+                                                                              "worker_rss_bytes":  122814464
+                                                                          },
+                                                               "cgroup_io_delta":  null,
+                                                               "cpu_one_core_percent":  116.68791679534496,
+                                                               "cpu_seconds":  6.644901,
+                                                               "worker_io_delta":  {
+                                                                                       "cancelled_write_bytes":  0,
+                                                                                       "rchar":  60251374,
+                                                                                       "read_bytes":  0,
+                                                                                       "syscr":  11615,
+                                                                                       "syscw":  1004,
+                                                                                       "wchar":  301457,
+                                                                                       "write_bytes":  0
+                                                                                   }
+                                                           }
+                                          },
+                            "publication_freshness":  {
+                                                          "failed_refresh_preserved_old_reader":  true,
+                                                          "geoserver_publication_ms":  null,
+                                                          "numerical_manifest_visibility_ms":  176.9257159994595,
+                                                          "old_revision_preserved":  true,
+                                                          "scope":  "synthetic availability revision over real immutable assets; numerical discovery only; not M2/M3 GIS publication freshness"
+                                                      },
+                            "request_corpus_sha256":  "41e0ac0bd2a4a01e6256a5b6caf111f5ed9b6b7b93caab1a77ebe5d4b2f3d4a6",
+                            "image_id":  "sha256:3a9f8e03ff9fe401cd7cf932f3b19b7c8bc842eef722d77d41fabcc15d92c815",
+                            "fingerprint":  "94262aefd8fb503504644907a743440bea610baef85c394058242ca57c0a2898"
+                        },
+                        {
+                            "candidate":  "pygeoapi",
+                            "repetition":  3,
+                            "status":  "passed",
+                            "successful_rps":  177.22583260768536,
+                            "errors":  0,
+                            "operations":  {
+                                               "domain":  {
+                                                              "count":  400,
+                                                              "errors":  0,
+                                                              "p50_ms":  20.44244299941056,
+                                                              "p95_ms":  27.42109300015727,
+                                                              "p99_ms":  42.7365439991263,
+                                                              "response_body_bytes":  219346,
+                                                              "successful_rps_in_mixed_workload":  70.89033304307414
+                                                          },
+                                               "edr":  {
+                                                           "count":  400,
+                                                           "errors":  0,
+                                                           "p50_ms":  23.442226000042865,
+                                                           "p95_ms":  30.803419000221766,
+                                                           "p99_ms":  38.10502600026666,
+                                                           "response_body_bytes":  498195,
+                                                           "successful_rps_in_mixed_workload":  70.89033304307414
+                                                       },
+                                               "metadata":  {
+                                                                "count":  200,
+                                                                "errors":  0,
+                                                                "p50_ms":  20.902168998873094,
+                                                                "p95_ms":  25.538509999023518,
+                                                                "p99_ms":  29.772923000564333,
+                                                                "response_body_bytes":  491600,
+                                                                "successful_rps_in_mixed_workload":  35.44516652153707
+                                                            }
+                                           },
+                            "point_combined":  {
+                                                   "p50_ms":  21.104729999933625,
+                                                   "p95_ms":  29.386639000222203,
+                                                   "p99_ms":  38.222510998821235
+                                               },
+                            "first_operations":  [
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  18.116167000698624,
+                                                         "operation":  "metadata",
+                                                         "prior_operations_since_restart":  [
+
+                                                                                            ],
+                                                         "response_body_bytes":  2458,
+                                                         "response_sha256":  "44da14069c6c7abc2e367c8adf08a30fb660ad430337db93b39334a435e839f9",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  14.439956001297105,
+                                                         "operation":  "domain",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata"
+                                                                                            ],
+                                                         "response_body_bytes":  548,
+                                                         "response_sha256":  "db46044458b07018496012861d77eaf929ac7ebb06bb5aee3049bc67f9fa9e90",
+                                                         "status":  200
+                                                     },
+                                                     {
+                                                         "cache":  "BYPASS",
+                                                         "correct":  true,
+                                                         "elapsed_ms":  8.973720001449692,
+                                                         "operation":  "edr",
+                                                         "prior_operations_since_restart":  [
+                                                                                                "metadata",
+                                                                                                "domain"
+                                                                                            ],
+                                                         "response_body_bytes":  1243,
+                                                         "response_sha256":  "dcb85a5aa47b04cfcd0f53ef204979bc959f001b5710bb692b66edd4d8c54f7d",
+                                                         "status":  200
+                                                     }
+                                                 ],
+                            "resources":  {
+                                              "gateway":  {
+                                                              "after":  {
+                                                                            "cgroup_cpu":  {
+                                                                                               "burst_usec":  0,
+                                                                                               "nr_bursts":  0,
+                                                                                               "nr_periods":  72,
+                                                                                               "nr_throttled":  6,
+                                                                                               "system_usec":  691541,
+                                                                                               "throttled_usec":  255844,
+                                                                                               "usage_usec":  2838288,
+                                                                                               "user_usec":  2146747
+                                                                                           },
+                                                                            "cgroup_io":  {
+
+                                                                                          },
+                                                                            "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                            "cgroup_memory_bytes":  42762240,
+                                                                            "cgroup_memory_peak_bytes":  57090048,
+                                                                            "cpu_max":  "100000 100000",
+                                                                            "memory_limit_bytes":  536870912,
+                                                                            "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                            "uptime_seconds":  9.550343401000646,
+                                                                            "worker_io":  {
+                                                                                              "cancelled_write_bytes":  0,
+                                                                                              "rchar":  3586904,
+                                                                                              "read_bytes":  0,
+                                                                                              "syscr":  4561,
+                                                                                              "syscw":  1059,
+                                                                                              "wchar":  327020,
+                                                                                              "write_bytes":  0
+                                                                                          },
+                                                                            "worker_rss_bytes":  36159488
+                                                                        },
+                                                              "before":  {
+                                                                             "cgroup_cpu":  {
+                                                                                                "burst_usec":  0,
+                                                                                                "nr_bursts":  0,
+                                                                                                "nr_periods":  16,
+                                                                                                "nr_throttled":  1,
+                                                                                                "system_usec":  57724,
+                                                                                                "throttled_usec":  3405,
+                                                                                                "usage_usec":  684452,
+                                                                                                "user_usec":  626727
+                                                                                            },
+                                                                             "cgroup_io":  {
+
+                                                                                           },
+                                                                             "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                             "cgroup_memory_bytes":  46624768,
+                                                                             "cgroup_memory_peak_bytes":  53379072,
+                                                                             "cpu_max":  "100000 100000",
+                                                                             "memory_limit_bytes":  536870912,
+                                                                             "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                             "uptime_seconds":  3.904883122000683,
+                                                                             "worker_io":  {
+                                                                                               "cancelled_write_bytes":  0,
+                                                                                               "rchar":  3004181,
+                                                                                               "read_bytes":  0,
+                                                                                               "syscr":  546,
+                                                                                               "syscw":  55,
+                                                                                               "wchar":  16563,
+                                                                                               "write_bytes":  0
+                                                                                           },
+                                                                             "worker_rss_bytes":  35569664
+                                                                         },
+                                                              "cgroup_io_delta":  null,
+                                                              "cpu_one_core_percent":  38.171537840040656,
+                                                              "cpu_seconds":  2.153836,
+                                                              "worker_io_delta":  {
+                                                                                      "cancelled_write_bytes":  0,
+                                                                                      "rchar":  582723,
+                                                                                      "read_bytes":  0,
+                                                                                      "syscr":  4015,
+                                                                                      "syscw":  1004,
+                                                                                      "wchar":  310457,
+                                                                                      "write_bytes":  0
+                                                                                  }
+                                                          },
+                                              "pygeoapi":  {
+                                                               "after":  {
+                                                                             "cgroup_cpu":  {
+                                                                                                "burst_usec":  0,
+                                                                                                "nr_bursts":  0,
+                                                                                                "nr_periods":  76,
+                                                                                                "nr_throttled":  2,
+                                                                                                "system_usec":  2496416,
+                                                                                                "throttled_usec":  13571,
+                                                                                                "usage_usec":  8001543,
+                                                                                                "user_usec":  5505127
+                                                                                            },
+                                                                             "cgroup_io":  {
+
+                                                                                           },
+                                                                             "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                             "cgroup_memory_bytes":  97558528,
+                                                                             "cgroup_memory_peak_bytes":  111415296,
+                                                                             "cpu_max":  "200000 100000",
+                                                                             "memory_limit_bytes":  2147483648,
+                                                                             "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                             "uptime_seconds":  9.369016746999478,
+                                                                             "worker_io":  {
+                                                                                               "cancelled_write_bytes":  0,
+                                                                                               "rchar":  176964265,
+                                                                                               "read_bytes":  0,
+                                                                                               "syscr":  16767,
+                                                                                               "syscw":  1061,
+                                                                                               "wchar":  317676,
+                                                                                               "write_bytes":  0
+                                                                                           },
+                                                                             "worker_rss_bytes":  124375040
+                                                                         },
+                                                               "before":  {
+                                                                              "cgroup_cpu":  {
+                                                                                                 "burst_usec":  0,
+                                                                                                 "nr_bursts":  0,
+                                                                                                 "nr_periods":  20,
+                                                                                                 "nr_throttled":  0,
+                                                                                                 "system_usec":  203272,
+                                                                                                 "throttled_usec":  0,
+                                                                                                 "usage_usec":  1410709,
+                                                                                                 "user_usec":  1207437
+                                                                                             },
+                                                                              "cgroup_io":  {
+
+                                                                                            },
+                                                                              "cgroup_io_status":  "unavailable: empty io.stat on this Docker/WSL2 host",
+                                                                              "cgroup_memory_bytes":  100761600,
+                                                                              "cgroup_memory_peak_bytes":  100761600,
+                                                                              "cpu_max":  "200000 100000",
+                                                                              "memory_limit_bytes":  2147483648,
+                                                                              "scope":  "whole container CPU/memory; current HTTP worker RSS and /proc/self/io; rchar includes logical reads, read_bytes block I/O can be zero with cached pages; empty cgroup I/O is unavailable, not zero",
+                                                                              "uptime_seconds":  3.7231731200008653,
+                                                                              "worker_io":  {
+                                                                                                "cancelled_write_bytes":  0,
+                                                                                                "rchar":  116712891,
+                                                                                                "read_bytes":  0,
+                                                                                                "syscr":  5152,
+                                                                                                "syscw":  57,
+                                                                                                "wchar":  16219,
+                                                                                                "write_bytes":  0
+                                                                                            },
+                                                                              "worker_rss_bytes":  123408384
+                                                                          },
+                                                               "cgroup_io_delta":  null,
+                                                               "cpu_one_core_percent":  116.80660432290412,
+                                                               "cpu_seconds":  6.590834,
+                                                               "worker_io_delta":  {
+                                                                                       "cancelled_write_bytes":  0,
+                                                                                       "rchar":  60251374,
+                                                                                       "read_bytes":  0,
+                                                                                       "syscr":  11615,
+                                                                                       "syscw":  1004,
+                                                                                       "wchar":  301457,
+                                                                                       "write_bytes":  0
+                                                                                   }
+                                                           }
+                                          },
+                            "publication_freshness":  {
+                                                          "failed_refresh_preserved_old_reader":  true,
+                                                          "geoserver_publication_ms":  null,
+                                                          "numerical_manifest_visibility_ms":  170.26799300037965,
+                                                          "old_revision_preserved":  true,
+                                                          "scope":  "synthetic availability revision over real immutable assets; numerical discovery only; not M2/M3 GIS publication freshness"
+                                                      },
+                            "request_corpus_sha256":  "41e0ac0bd2a4a01e6256a5b6caf111f5ed9b6b7b93caab1a77ebe5d4b2f3d4a6",
+                            "image_id":  "sha256:3a9f8e03ff9fe401cd7cf932f3b19b7c8bc842eef722d77d41fabcc15d92c815",
+                            "fingerprint":  "94262aefd8fb503504644907a743440bea610baef85c394058242ca57c0a2898"
+                        }
+                    ],
+    "percentile_estimator":  "nearest rank",
+    "total_warm_requests":  6000,
+    "per_operation_gates":  "Domain and EDR assessed separately; all six repetitions pass",
+    "source_commit":  "400aeec",
+    "scope":  "Local numerical adapter gate only",
+    "warm_errors":  0,
+    "cache_scope":  "process-first and warm phases separate; OS cache uncontrolled; response cache bypassed",
+    "agreement":  {
+                      "status":  "agreed",
+                      "host":  "This workstation: Docker Desktop / WSL2, linux/amd64, engine 29.1.2, 24 logical CPUs, 33160323072 bytes Docker RAM",
+                      "approved_by":  "Repository owner, explicit user reply in this Codex conversation",
+                      "approved_at":  "2026-10-19T11:24:44Z",
+                      "approval_reference":  "User reply approving request_user_input_async call_48aee41be8c8415f99f477deed3d5b13 Q1 and call_2d0f8c3d8ebd4c9fa37f837a22d10602 Q1/Q2",
+                      "approval_time_note":  "Timestamp records receipt/recording time; the reply has no separate user-authored timestamp.",
+                      "cpus":  2,
+                      "memory_mib":  2048,
+                      "workers":  1,
+                      "concurrency":  4,
+                      "point_p95_ms":  250,
+                      "point_p99_ms":  500,
+                      "metadata_p95_ms":  100,
+                      "metadata_p99_ms":  250,
+                      "min_success_rps":  10,
+                      "max_error_rate":  0,
+                      "scope":  "Local prototype comparison only; HTTP through isolated trial gateway; actual-sample and explicitly synthetic-mask fixtures; GeoServer/QGIS publication compatibility remains a separate real-service gate."
+                  },
+    "status":  "passed",
+    "image_id":  "sha256:3a9f8e03ff9fe401cd7cf932f3b19b7c8bc842eef722d77d41fabcc15d92c815"
+}

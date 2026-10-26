@@ -14,16 +14,16 @@ Building a self-hosted weather map and external GIS/API service using organizati
 - [Zarr/COG round trip, shared sampler and A2 evidence](docs/storage.md)
 - [CRS из GRIB2 и единый файл значений по умолчанию](docs/grib-crs.md)
 - [M1 numerical-adapter comparison, approved envelope and reproduction](docs/adapter-comparison.md)
-- [T3 numerical selection and measured evidence](docs/evidence/t3/validation.md)
+- [T3 numerical selection and measured evidence](docs/validation/archives.md)
 - [Numeric browser tiles and GPU rendering decision](docs/adr/0002-numeric-browser-tiles.md)
 - [One-time publication, operator commands and gateway contracts](docs/publication.md)
 - [Числовой API: discovery, point, EDR Position и OpenAPI](docs/numerical-api.md)
 - [QGIS: закреплённый клиент, подключение с ключом и проверка WMS-T](docs/qgis.md)
-- [T11: проверка QGIS Desktop, scoped WMS и доказательства](docs/evidence/t11/validation.md)
+- [T11: проверка QGIS Desktop, scoped WMS и доказательства](docs/validation/archives.md)
 - [M3: интегрированная защищённая публикация и воспроизведение T12](docs/integrated-publication.md)
-- [T12: локальный M3 подтверждён в Compose и QGIS Desktop](docs/evidence/t12/validation.md)
+- [T12: локальный M3 подтверждён в Compose и QGIS Desktop](docs/validation/archives.md)
 - [Лимиты организаций, публичного демо и учёт запросов T9](docs/budgets.md)
-- [T4 local publication and numeric-engine evidence](docs/evidence/t4/validation.md)
+- [T4 local publication and numeric-engine evidence](docs/validation/archives.md)
 - [Исходные GRIB, PostgreSQL, Zarr и COG: сравнение и обоснование](docs/source-storage-comparison.ru.md)
 - [Рабочая GPU-карта: запуск, выбор прогноза и проверки T13](viewer/README.md)
 
@@ -33,9 +33,9 @@ Implementation and deployment follow the planning handoff. Local data under `dat
 
 The [T2 storage comparison in Russian](docs/source-storage-comparison.ru.md) explains source GRIB archives, PostgreSQL tables/arrays and PostGIS Raster, the Zarr numerical core, selected COG map derivatives and metadata storage. It distinguishes forecast grids from observations, measured sample results from assumptions, and evidence that would justify reconsidering the choice. The comparison does not change accepted architecture.
 
-Current waypoint (2026-10-19): **T1/A1 and the original T2 storage checks validated locally; T3 selects the narrow numerical HTTP adapter.** All 24 supplied messages retain exact Zarr values; numeric COGs meet the recorded 0.0001 K bound. Equivalent pygeoapi and narrow trials use the same manifest sampler through a real isolated gateway under the user-approved workstation envelope. The [T3 evidence](docs/evidence/t3/validation.md) records correctness, repeated point/metadata measurements, resource/byte counters, numerical catalogue visibility and the integration trade-off. Bilingual specification 0.3 extends the accepted baseline with numeric browser tiles and GPU rendering, including new A2 display checks; the completed wayfinder map remains closed. This is local prototype evidence, not a production SLA or successful GIS publication.
+Current waypoint (2026-10-19): **T1/A1 and the original T2 storage checks validated locally; T3 selects the narrow numerical HTTP adapter.** All 24 supplied messages retain exact Zarr values; numeric COGs meet the recorded 0.0001 K bound. Equivalent pygeoapi and narrow trials use the same manifest sampler through a real isolated gateway under the user-approved workstation envelope. The [T3 evidence](docs/validation/archives.md) records correctness, repeated point/metadata measurements, resource/byte counters, numerical catalogue visibility and the integration trade-off. Bilingual specification 0.3 extends the accepted baseline with numeric browser tiles and GPU rendering, including new A2 display checks; the completed wayfinder map remains closed. This is local prototype evidence, not a production SLA or successful GIS publication.
 
-T4 now supplies a **locally validated M2/M3 foundation**: durable actual-sample jobs, one published time, manifest-selected numeric tiles, canonical points and scoped GeoServer WMS through the gateway. Its [evidence](docs/evidence/t4/validation.md) includes real readiness/indexing failures, granule filtering, discovery visibility, full-resolution identify and persistent-service restart. Subsequent M2 lifecycle/retention work and the complete external GIS/API profile remain open. QGIS compatibility, production access accounting and operational capacity require their separate gates before M3/M5 completion; Martin remains deferred.
+T4 now supplies a **locally validated M2/M3 foundation**: durable actual-sample jobs, one published time, manifest-selected numeric tiles, canonical points and scoped GeoServer WMS through the gateway. Its [evidence](docs/validation/archives.md) includes real readiness/indexing failures, granule filtering, discovery visibility, full-resolution identify and persistent-service restart. Subsequent M2 lifecycle/retention work and the complete external GIS/API profile remain open. QGIS compatibility, production access accounting and operational capacity require their separate gates before M3/M5 completion; Martin remains deferred.
 
 Browser delivery amendment (v0.3): **manifest-selected numeric tiles → gateway/cache → MapLibre GPU scalar rendering**. GeoServer temporal WMS remains the QGIS/image interface. T4 freezes numeric contract v2 with owner-approved bilinear/error budgets and an explicit prototype datum operation, selecting float32 plus a validity mask after the three-engine comparison and local browser decode/upload checks. GPU rendering/interpolation and desktop/mobile performance targets remain #25/#31; the T3 point/metadata measurements do not establish those results. Wind particles, temporal blending and bulk coverage downloads remain deferred.
 

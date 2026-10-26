@@ -97,7 +97,7 @@ try {
         & ./publication/run-recovery.ps1 @t6Args
     } else {
         foreach ($evidence in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
-            Copy-Item -LiteralPath (Join-Path 'docs/evidence/t4' $evidence) -Destination $report
+            Copy-Item -LiteralPath (Join-Path 'tests/fixtures/publication/tile-engine' $evidence) -Destination $report
         }
         if (-not $SkipBuild) { Check build @('build','worker') }
         Check services @('up','--detach','db','api','gateway','geoserver')

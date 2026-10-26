@@ -2,8 +2,9 @@
 
 For the production T13 viewer, use the [viewer instructions](../../viewer/README.md)
 and `tools/run-weather-viewer.ps1`. Run its Node tests and TypeScript check before
-allocating Compose; the `weather-viewer` CI job runs these existing commands and
-`node docs/evidence/t13/verify.mjs` against the accepted historical archive.
+allocating Compose; the `weather-viewer` CI job runs these existing commands.
+Run `tools/check-archives.ps1` separately against the external historical archive;
+its tracked T13 checker is `tools/archive-checks/t13.mjs`.
 Use the verifier's `--current` option only when validating that archive's exact
 runtime revision; future source changes keep their own input inventories.
 For the accepted T14 run/time archive, use `python tools/check_evidence.py --t14`
@@ -25,7 +26,7 @@ real desktop GPU readback, both display projections, synthetic masks and
 pole/dateline/horizon/cut cases. Keep physical Android/iOS acceptance separate
 from desktop viewport emulation. Timeout probes use a distinct organization:
 the existing conservative reservation must not occupy public browser slots.
-The native evidence CI command is `tools/check_evidence.py --native-display`;
+The optional historical command is `tools/check_evidence.py --native-display`;
 it verifies the selected Chrome/Edge reports, frozen inputs and contract,
 numerical/resource bounds, required T12/T6 service regressions and retirement
 receipts. The default evidence command preserves historical T3–T12/T22 checks.
@@ -39,14 +40,15 @@ requirements change. The Windows CI
 the native runner's file selection, without Compose or Git-filter dependence.
 
 For T23, `python -B tools/check_evidence.py --t23` verifies all three frozen
-continuation/diagnosis/implementation indexes, including failed attempts. CI
-also replays `tools/native-display/budgets.mjs` against the three selected
+continuation/diagnosis/implementation indexes, including failed attempts.
+The optional archive command also replays `tools/native-display/budgets.mjs` against the three selected
 Chrome/Edge/physical Android reports. This preserves bytes and measured budgets;
 it does not rerun physical acceptance or establish deferred Safari support.
 
 The [checks workflow](../../.github/workflows/checks.yml) builds the existing
 hash-locked publication image and runs mypy, numeric boundary tests, interpreter
-startup/shutdown probes and archived-evidence integrity checks. Its Windows job
+startup/shutdown probes and synthetic archive-checker tests. Historical archive
+integrity is checked separately using `HMC_EVIDENCE_ROOT`. Its Windows job
 checks the actual publication process launcher with successful and failing child
 processes, spaced paths/arguments and captured stdout/stderr. The Ubuntu job also
 runs the existing retirement check against disposable Docker resources using
@@ -96,13 +98,13 @@ repeat the separate T5/T8/T9 chains. First exercise new scenarios in Development
 When a combined scenario depends on catalogue history or shared-cache pressure,
 reproduce that prerequisite in a focused run before the final gate. A short seed
 alone does not establish parity with the post-T5 state. Use the
-[T12 development failures](../evidence/t12/development.md) to distinguish observer
+[T12 development failures](../validation/archives.md) to distinguish observer
 timing and cache prerequisites from service failures.
 When expanding collection metadata, measure the serialized listing at post-T5
 history size against the gateway response budget, including nested copies in
 `source`. Verify that the individual collection still exposes the full metadata.
 Keep its two-tile cache budget and API fault flags unchanged across phases.
-Prepare verifies the archived M1 comparison and explicit adapter selection;
+Prepare verifies the tracked M1 comparison fixture and explicit adapter selection;
 Complete binds desktop, HTTP and restart evidence to the same frozen inputs.
 Development passes do not establish M3. Add T6/T7 when their change categories
 above also apply; browser/GPU acceptance remains separate.
@@ -162,7 +164,7 @@ A comma-separated string passed through native `powershell -File` is one path.
 Assign a JSON array directly as above before checking its Count; in Windows
 PowerShell 5.1, wrapping that pipeline in `@(...)` can retain the parsed array
 as a single nested item. Verify the native exit code and expected ownership/count
-before a service mutation. The [WMS retrospective](../evidence/retro-wms-compat.md)
+before a service mutation. The [WMS retrospective](../validation/retrospectives/retro-wms-compat.md)
 records both command-binding failures.
 
 Use that same launcher for a nested PowerShell runner under
@@ -190,7 +192,7 @@ before the marker. Observe the named stage counter's delta and explicitly
 request the queued job's resulting selection to prove log correlation.
 After restart, `/health` is a prerequisite: wait boundedly for the original
 data URL/checksum and retain intermediate statuses/request IDs. Ordinary fault
-probes still assert their first response. The [T17 retrospective](../evidence/retro-t17.md)
+probes still assert their first response. The [T17 retrospective](../validation/archives.md)
 records the fixture and readiness failures behind these checks.
 
 For recovery reviews, trace capture before queue processing as well as every

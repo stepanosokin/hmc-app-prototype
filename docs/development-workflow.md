@@ -17,8 +17,9 @@ powershell -NoProfile -File tools/check-local.ps1 -Scope Runtime
 Install Node.js 26.10.0 and Docker before running. The runner mirrors the three
 jobs in `.github/workflows/checks.yml`, stops on failure and retains a transcript
 under `data/reports/local-checks/`. Archive that transcript with ticket evidence.
-The Windows scope also verifies the accepted WMS compatibility archive locally,
-without Docker, QGIS, a private GRIB or current-input matching.
+Historical archive verification is separate from ordinary local/CI checks:
+see [external evidence storage](validation/evidence-storage.md). It requires the
+external archive and is explicitly not performed when that archive is unavailable.
 Docker build caches and installed dependencies are retained. Runtime containers
 use `--rm`; the retirement check manages its own disposable fixtures and receipts.
 After any failed attempt verify cleanup under the procedure below. Viewer and
@@ -71,7 +72,8 @@ local browser: no Docker, server, network or build.
    attempts. Browser checks retire their own browser/profile. Docker checks use
    the project retirement procedure. Resource-free checks record that no test
    resources were created. Preserve the user's windows, source data and caches.
-6. After acceptance, evidence and cleanup, make one ticket commit, push once,
+6. After acceptance, external evidence archival and cleanup, commit the compact
+   `docs/validation/` record with the implementation, push once,
    verify remote HEAD, then close/read back the completed ticket under
    [ticket completion](../AGENTS.md#ticket-completion).
 
@@ -125,5 +127,5 @@ read [issue tracking](development/tracking.md).
 ## Retrospective basis
 
 Historical reasons and failure records are retained in
-[workflow retrospectives](evidence/workflow-retrospectives.md). Consult the
+[workflow retrospectives](validation/retrospectives/workflow-retrospectives.md). Consult the
 relevant record when diagnosing that failure class.

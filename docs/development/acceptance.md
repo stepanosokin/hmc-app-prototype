@@ -62,7 +62,7 @@ Reuse an unaffected unit/Python suite after a viewer-only fix when its source,
 fixtures, configuration, dependencies and toolchain are unchanged. Preserve the
 original result (including skips), record matching input lengths/hashes and
 review the intervening diff for dependencies the manifest may omit. Repeat the
-affected browser gate after its inputs change. The [T25 comparison](../evidence/t25/checks/reused-checks.json)
+affected browser gate after its inputs change. The [T25 comparison](../validation/archives.md)
 records this separation; unchanged backend hashes do not establish a new browser
 result or replace a required service scenario.
 
@@ -70,7 +70,7 @@ When reusing an unaffected platform's complete gate after a platform-specific
 runner fix, preserve both frozen snapshots and record every differing path,
 length and hash. Review the actual diff and establish that it is unreachable on
 the reused platform; repeat the affected platform's full gate. The
-[T16 record](../evidence/t16/checks/validation-input-difference.json) covers only
+[T16 record](../validation/archives.md) covers only
 its desktop cleanup change. It does not authorize other mixed-input acceptance
 or imply that Android executed the newer runner bytes.
 
@@ -93,19 +93,20 @@ After staging, compare the actual index blobs with the selected input hashes;
 repeat against HEAD after commit. `git add --renormalize -- <exact-path>` applies
 an intentional attribute change to an already staged file. A clean working tree
 alone does not establish byte identity.
-For a large archive, read committed object identities once with
+For a large set of tracked inputs, read committed object identities once with
 `git ls-tree -rz HEAD` (or staged identities with `git ls-files --stage -z`),
-then compare the path/object map with the artifact index in one process.
+then compare the path/object map with the input inventory in one process.
 Retain the per-input prospective-filter check before acceptance. Thousands of
 individual `git rev-parse` processes add overhead without stronger verification.
-For newly added evidence, run the staged diff check before the ticket commit:
+For new tracked validation records, run the staged diff check before the ticket commit:
 an unstaged check omits new files. Preserve raw historical input snapshots;
 report their existing whitespace separately from changed source/documentation
 checks, with the exact snapshot-only exclusion recorded in validation.
 
 For Node subprocesses reading a repository-wide Git index, set an explicit output
 buffer large enough for the archive (T13 used 64 MiB), or stream the output.
-Compare new/changed inputs and byte-addressed evidence to raw Git blobs; compare
+Compare new/changed tracked inputs to raw Git blobs; preserve external evidence
+against its recorded hashes independently of Git. Compare
 unchanged baseline files using their existing checkout filters. Preserve the
 exact raw bytes in the validation snapshot. Existing baseline CRLF normalization
 is distinct from an input changing during acceptance.

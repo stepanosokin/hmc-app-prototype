@@ -46,7 +46,7 @@ function Invoke-T17Check {
 # Reuse the exact immutable, successful T4 engine decision and its bound probes.
 # No new encoding/CRS/dependency decision is made by T17.
 foreach ($t17Evidence in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
-    Copy-Item -LiteralPath (Join-Path 'docs/evidence/t4' $t17Evidence) -Destination $t17Directory
+    Copy-Item -LiteralPath (Join-Path 'tests/fixtures/publication/tile-engine' $t17Evidence) -Destination $t17Directory
 }
 try {
 if (-not $SkipBuild) { Invoke-T17Compose build worker }

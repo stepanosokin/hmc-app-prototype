@@ -45,7 +45,7 @@ if ($Phase -eq 'Prepare') {
     }
     $lines | Set-Content -Encoding ascii -LiteralPath $environmentFile
     foreach ($name in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
-        Copy-Item -LiteralPath (Join-Path 'docs/evidence/t4' $name) -Destination $directory
+        Copy-Item -LiteralPath (Join-Path 'tests/fixtures/publication/tile-engine' $name) -Destination $directory
     }
     if (-not $SkipBuild) { Check build @('build','worker') }
     Check types @('run','--rm','typecheck')

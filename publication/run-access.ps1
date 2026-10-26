@@ -45,7 +45,7 @@ function Invoke-T8Check {
 Start-Transcript -Path (Join-Path $t8Directory 'console.log') | Out-Null
 try {
     foreach ($t8Evidence in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
-        Copy-Item -LiteralPath (Join-Path 'docs/evidence/t4' $t8Evidence) -Destination $t8Directory
+        Copy-Item -LiteralPath (Join-Path 'tests/fixtures/publication/tile-engine' $t8Evidence) -Destination $t8Directory
     }
     if (-not $SkipBuild) { Invoke-T8Check -Name build -Arguments @('build','worker') }
     Invoke-T8Check -Name types -Arguments @('run','--rm','typecheck')

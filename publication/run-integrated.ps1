@@ -33,7 +33,7 @@ if ($Phase -eq 'Prepare') {
         (Get-FileHash -Algorithm SHA256 -LiteralPath $sample).Hash -ne 'dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a') {
         throw 'Required actual sample is unavailable or changed'
     }
-    $m1Directory = Join-Path (Get-Location) 'docs/evidence/t3'
+    $m1Directory = Join-Path (Get-Location) 'tests/fixtures/publication/adapter'
     $m1Index = Get-Content -Raw -Encoding UTF8 (Join-Path $m1Directory 'artifact-index.json') | ConvertFrom-Json
     foreach ($artifact in $m1Index.artifacts) {
         $path = Join-Path $m1Directory $artifact.name
@@ -78,7 +78,7 @@ if ($Phase -eq 'Prepare') {
     }
     $lines | Set-Content -Encoding ascii -LiteralPath $environmentFile
     foreach ($name in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
-        Copy-Item -LiteralPath (Join-Path 'docs/evidence/t4' $name) -Destination $directory
+        Copy-Item -LiteralPath (Join-Path 'tests/fixtures/publication/tile-engine' $name) -Destination $directory
     }
     if (-not $SkipBuild) { Check build @('build','worker') }
     Check types @('run','--rm','typecheck')

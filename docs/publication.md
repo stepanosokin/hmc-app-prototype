@@ -209,7 +209,7 @@ separate ≤0.0001 K COG bound remain unchanged. Producer datum confirmation and
 desktop QGIS checks remain separate compatibility inputs. v1's angular placement
 is retained for diagnosis and is not eligible for publication.
 
-The [comparison evidence](evidence/t4/validation.md) records GeoServer numerical
+The [comparison evidence](validation/archives.md) records GeoServer numerical
 WMS/WCS, rio-tiler 7.9.2 (including no-overview/explicit-CRS probes), and the project
 bilinear candidate. Do not generalize a tested configuration's failure to every
 possible use of that product. GeoServer remains the GIS renderer; numeric WCS

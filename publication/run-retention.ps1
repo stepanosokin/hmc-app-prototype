@@ -46,7 +46,7 @@ function Get-T7LegacyInventory {
 }
 try {
     foreach ($t7Evidence in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
-        Copy-Item -LiteralPath (Join-Path 'docs/evidence/t4' $t7Evidence) -Destination $t7Directory
+        Copy-Item -LiteralPath (Join-Path 'tests/fixtures/publication/tile-engine' $t7Evidence) -Destination $t7Directory
     }
     if (-not $SkipBuild) { Invoke-T7Compose build worker }
     Invoke-T7Check -Name runtime -Arguments @('run','--rm','--entrypoint','python','check','-m','publication.runtime')

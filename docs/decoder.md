@@ -45,7 +45,7 @@ Every message includes SHA256 of its decoded little-endian float64 array and uin
 
 ## Evidence and failed gates
 
-The checked-in [A1 report](evidence/t1/a1.json), [failure examples](evidence/t1/failures.json) and [validation record](evidence/t1/validation.md) record the local run. Reproduce the report from the source rather than treating the snapshot as a live test. The source is not redistributed.
+The checked-in [A1 report](validation/archives.md), [failure examples](validation/archives.md) and [validation record](validation/archives.md) record the local run. Reproduce the report from the source rather than treating the snapshot as a live test. The source is not redistributed.
 
 If a legitimate source fails CCSDS/identity/grid validation, retain the original read-only source, checksum, diagnostic JSON, tool versions and command. Stop A1 and reopen [GRIB/storage decision #3](https://github.com/stepanosokin/hmc-app-prototype/issues/3), linking the evidence; reopen architecture #5 too if affected. Do not replace the agreed architecture. The CLI prints this required disposition but does not mutate tracker decisions automatically: deliberate truncated/unsupported fixtures are expected rejections, not failed product compatibility. No such compatibility failure occurred in this local run.
 

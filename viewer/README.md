@@ -51,7 +51,8 @@ env-файле проекта. Не создавать второй проект
    `access` при старте PostgreSQL само по себе не создаёт таблицы и права gateway.
 4. До `worker submit` скопировать одобренные `selection.json`, `browser.json`,
    `comparison.json`, `geoserver-numeric.json` из
-   [архива T4](../docs/evidence/t4/validation.md) в каталог, смонтированный как
+   [принятого T4 эталона](../tests/fixtures/publication/tile-engine/selection.json)
+   из `tests/fixtures/publication/tile-engine/` в каталог, смонтированный как
    `/evidence`. Без `selection.json` worker не допускает публикацию.
 5. Выполнить `run --rm worker submit --clock <UTC>` и `run --rm worker once`,
    перезапустить `api gateway`, проверить непустой `/api/v1/catalogue` и открыть
@@ -210,7 +211,7 @@ worker и вложенного worker должны попасть в журна�
 для проверяемого приложения; setup-time скачивания и сеть других приложений
 не отключаются. Физический Android проверяется тем же `-Offline` без `-WithEdge`.
 Версии, локальные пути и основания распространения перечислены в
-[реестре ресурсов T16](../docs/evidence/t16/runtime-rights.md).
+[реестре ресурсов T16](../docs/validation/archives.md).
 
 ```powershell
 npm --prefix viewer test

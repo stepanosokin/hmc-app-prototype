@@ -12,12 +12,7 @@ if ($functions.Count -ne 1) { throw 'Expected one native InputSnapshot function'
 # Execute only the repository's inventory function, never runner provisioning.
 . ([scriptblock]::Create($functions[0].Extent.Text))
 $paths = @(InputSnapshot -PathsOnly)
-$archive = Join-Path (Get-Location) 'docs/evidence/t23a'
-$index = Get-Content -Raw -LiteralPath (Join-Path $archive 'artifact-index.json') | ConvertFrom-Json
-$expected = @(foreach ($selection in $index.selected) {
-    $report = Get-Content -Raw -LiteralPath (Join-Path $archive $selection.report) | ConvertFrom-Json
-    $report.inputs.PSObject.Properties.Name
-}) | Sort-Object -Unique
+$expected = [IO.File]::ReadAllText((Join-Path (Get-Location) 'tests/fixtures/native-browser-inputs.json')) | ConvertFrom-Json
 if (-not $expected.Count -or -not $paths.Count) { throw 'Expected nonempty browser and runner input sets' }
 $missing = @($expected | Where-Object { $_ -notin $paths })
 if ($missing.Count) { throw "Browser inputs absent from runner inventory: $($missing -join ', ')" }

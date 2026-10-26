@@ -2,7 +2,9 @@
 
 Maintain acceptance checkboxes throughout implementation: mark a criterion only
 after its required behavior and validation are supported by evidence. Attach or
-link the relevant evidence in the ticket. Leave blocked/unvalidated criteria
+link the tracked validation record and its external archive reference in the ticket.
+Full archives follow [external storage rules](../validation/evidence-storage.md).
+Leave blocked/unvalidated criteria
 unchecked and explain what remains. Read back the updated body before handoff;
 after satisfying the [ticket completion conditions](../../AGENTS.md#ticket-completion),
 close the ticket using standing user authorization and verify the closed state
@@ -49,7 +51,7 @@ observation time: a pre-commit snapshot can legitimately say open/push pending.
 After pushing, read local HEAD, the named remote branch and the live issue state
 again; include a direct commit link in the handoff. Inspect only those fields
 from tracker responses. Use `git -c commit.verbose=false commit --quiet` for
-large evidence commits and keep temporary commit messages in ignored `data/`
+ticket commits and keep temporary commit messages in ignored `data/`
 or a system temporary directory. Verify the final working tree after removing
 task-created temporary files. These commands avoid printing thousands of
 archived file names while retaining the actual exit status.

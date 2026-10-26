@@ -30,10 +30,12 @@ with the copied files, not just the retirement receipt. Retirement selects repor
 extensions; T13's initial copies retained 24 of 172 inputs. Copy any missing
 source/runtime bytes from the start snapshot and verify their recorded SHA256
 before removing that snapshot. The existing
-[T13 verifier](../evidence/t13/verify.mjs) checks every frozen input independently
+[T13 verifier](../validation/archives.md) checks every frozen input independently
 of the report-only retirement index.
 
-Keep committed historical evidence unchanged. Local report directories and
+Keep external historical evidence unchanged. Copy completed report/input snapshots
+and retirement receipts into `HMC_EVIDENCE_ROOT`; commit only the compact
+[validation record](../validation/evidence-storage.md). Local report directories and
 source mounts remain available; shared images/build cache are reusable Docker
 cache, outside project retirement. Use exact project labels and repository
 ownership checks; global prune commands are outside this cleanup scope. Include

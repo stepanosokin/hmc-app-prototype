@@ -5,12 +5,15 @@ This checks recorded evidence; it is not a fresh browser run or a backend profil
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, default=Path("docs/evidence/t23/continuation"))
+    repository = Path(__file__).resolve().parents[1]
+    archive = Path(os.environ.get('HMC_EVIDENCE_ROOT', str(repository.parent / 'hmc-app-evidence')))
+    parser.add_argument("--root", type=Path, default=archive / 't23/continuation')
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     index = json.loads((args.root / "artifact-index.json").read_text(encoding="utf-8"))

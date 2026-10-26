@@ -17,7 +17,7 @@ than the advertised GetMap limit, then run the actual Identify tool on the same
 layer at two available times without pinning URI time. The desktop helper now
 asserts these conditions. GetFeatureInfo carries a virtual canvas that can be
 larger than GetMap; compare its selected pixel against the native reference in
-both CRSs, including NoData. See the [WMS compatibility acceptance](../evidence/wms-compat/validation.md).
+both CRSs, including NoData. See the [WMS compatibility acceptance](../validation/archives.md).
 
 For agent-driven desktop work, prefer the available
 [QGIS MCP connection](../qgis.md#работа-агента-через-qgis-mcp) to the running QGIS

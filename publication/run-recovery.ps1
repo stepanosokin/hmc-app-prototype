@@ -48,7 +48,7 @@ function Invoke-T6Check {
 # Reuse the exact immutable, successful T4 engine decision and its bound probes.
 # No new encoding/CRS/dependency decision is made by T6.
 foreach ($t6Evidence in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
-    Copy-Item -LiteralPath (Join-Path 'docs/evidence/t4' $t6Evidence) -Destination $t6Directory
+    Copy-Item -LiteralPath (Join-Path 'tests/fixtures/publication/tile-engine' $t6Evidence) -Destination $t6Directory
 }
 if (-not $SkipBuild) { Invoke-T6Compose build worker }
 Invoke-T6Check -Name runtime -Arguments @('run','--rm','--entrypoint','python','check','-m','publication.runtime')

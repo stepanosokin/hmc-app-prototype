@@ -84,7 +84,7 @@ gis запрещён. Организационные ссылки сохраня
 `numeric_tiles` коллекции и ссылка `tiles` каталога раскрывают один и тот же
 manifest-scoped контракт: выбранный f32, little-endian 258×258 значений и uint8
 mask, WebMercatorQuad/EPSG:3857, zoom 0..6, halo, bilinear и бюджеты ошибок.
-Сохранён [выбор T4](evidence/t4/validation.md): погрешность кодирования ≤0.001 K,
+Сохранён [выбор T4](validation/archives.md): погрешность кодирования ≤0.001 K,
 общая display-погрешность ≤0.01 K. Это отдельные допуски от канонического point/EDR
 и COG ≤0.0001 K. При клике значение читают из point, никогда из цветов палитры.
 Availability и ошибки/expiry описаны в metadata. Tiles conformance не заявлена.

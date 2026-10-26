@@ -62,7 +62,7 @@ try{
     Check assets @('run','--rm','init-assets')
     Check readiness @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions','--ready-only')
     Check migrate @('run','--rm','worker','once','--migrate')
-    foreach($name in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')){Copy-Item (Join-Path docs/evidence/t4 $name) $directory}
+    foreach($name in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')){Copy-Item (Join-Path tests/fixtures/publication/tile-engine $name) $directory}
     if($Final){
         Check types @('run','--rm','typecheck')
     }

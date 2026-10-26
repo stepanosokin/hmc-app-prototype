@@ -12,14 +12,18 @@ Update acceptance checkboxes as criteria are verified using [issue tracking](doc
 
 Close the ticket automatically once implementation, all checked criteria, required validation, archived evidence, verified cleanup and push are complete. Closure has standing authorization. Read back closed state and completed checklist; preserve unrelated parent issues/milestones and report already-closed tickets as closed.
 
-Review uncommitted changes against the starting commit. Complete implementation, review, validation, evidence and cleanup before one ticket commit containing code/tests/docs/evidence, then push once on the current branch. This overrides skills requesting intermediate commits. Verify remote branch equals local HEAD before reporting push complete.
+Review uncommitted changes against the starting commit. Complete implementation, review, validation, external evidence archival and cleanup before one ticket commit containing code/tests/docs and compact validation records, then push once on the current branch. This overrides skills requesting intermediate commits. Verify remote branch equals local HEAD before reporting push complete.
+
+## Evidence storage
+
+Follow [external evidence storage](docs/validation/evidence-storage.md). Full reports, logs, screenshots and frozen snapshots belong in `HMC_EVIDENCE_ROOT` (default: sibling `../hmc-app-evidence`). Keep brief results, archive references and recorded hashes in tracked `docs/validation/`; keep required build/test fixtures and check programs in tracked source directories. Ordinary build/CI checks work without the historical archive. Run historical verification separately and report missing archives as not performed. The migration on 2026-10-26 explicitly omits file-count, size and hash verification; future checks retain their normal validation rules.
 
 ## Repository search
 
 Use ordinary `rg` searches with [.rgignore](.rgignore), which excludes
-`docs/evidence/`, `data/reports/` and `data/archives/`. Preserve these archives; read them only
+the former `docs/evidence/`, `data/reports/` and `data/archives/`. Preserve external archives; read them only
 for a specific evidence check. Search an explicitly selected archive with
-`rg --no-ignore -- <pattern> docs/evidence/<archive>/` (or the selected
+`rg -- <pattern> <HMC_EVIDENCE_ROOT>/<archive>/` (or search the selected
 `data/reports/<report>/` or `data/archives/<archive>/`); read a known evidence file directly. Keep overrides
 scoped to that archive rather than disabling ignores repository-wide.
 

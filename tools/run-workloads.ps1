@@ -1,7 +1,7 @@
 param(
     [ValidatePattern('^hmc-publication-t19-[a-z0-9-]+$')][string]$Project='hmc-publication-t19-dev1',
     [string]$Image='hmc-publication:t19-dev1',
-    [string]$Inventory='docs/evidence/t19/final-inventory/inventory.json',
+    [string]$Inventory,
     [int]$Port=0,
     [int]$ViewerPort=0,
     [switch]$Development
@@ -11,6 +11,10 @@ $ErrorActionPreference='Stop'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 $directory=Join-Path (Get-Location) "data/reports/t19/$Project"
 if(Test-Path -LiteralPath $directory){throw 'Use a fresh T19 report/project'}
+if (-not $Inventory) {
+    . (Join-Path $PSScriptRoot 'evidence-paths.ps1')
+    $Inventory = Join-Path (Get-HmcEvidenceRoot) 't19/final-inventory/inventory.json'
+}
 $inventoryPath=(Resolve-Path -LiteralPath $Inventory).Path
 $validated=[IO.File]::ReadAllText($inventoryPath)|ConvertFrom-Json
 if($validated.state -ne 'completed'){throw 'Completed actual-input inventory is required'}
@@ -74,7 +78,7 @@ try{
     # Hold exact comparison revisions for this isolated experiment only. The
     # production defaults and expiry semantics are unchanged.
     Check retention-fixture @('run','--rm','--entrypoint','python','check','-m','publication.retention','configure','--clock',$env:PUBLICATION_CLOCK,'--superseded-count','1024','--superseded-bytes','1099511627776')
-    foreach($name in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')){Copy-Item (Join-Path docs/evidence/t4 $name) $directory}
+    foreach($name in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')){Copy-Item (Join-Path tests/fixtures/publication/tile-engine $name) $directory}
     $seedHours=if($Development){'1,3'}else{(1..24)-join ','}
     Check seed @('run','--rm','worker','submit','--clock',$env:PUBLICATION_CLOCK,'--hours',$seedHours)
     Check publish @('run','--rm','worker','once')

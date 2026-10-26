@@ -46,7 +46,7 @@ function Invoke-T9Check {
 Start-Transcript -Path (Join-Path $t9Directory 'console.log') | Out-Null
 try {
     foreach ($t9Evidence in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
-        Copy-Item -LiteralPath (Join-Path 'docs/evidence/t4' $t9Evidence) -Destination $t9Directory
+        Copy-Item -LiteralPath (Join-Path 'tests/fixtures/publication/tile-engine' $t9Evidence) -Destination $t9Directory
     }
     if (-not $SkipBuild) { Invoke-T9Check -Name build -Arguments @('build','worker') }
     Invoke-T9Check -Name types -Arguments @('run','--rm','typecheck')

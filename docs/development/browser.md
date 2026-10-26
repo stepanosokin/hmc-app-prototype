@@ -2,7 +2,7 @@
 
 For the approved T22 visual baseline, start with the
 [opening instructions](../prototypes/weather-map.README.md) and
-[acceptance record](../evidence/t22/validation.md). Its existing browser runner drives
+[acceptance record](../validation/archives.md). Its existing browser runner drives
 visible controls, records input hashes/screenshots and verifies browser cleanup.
 New runs write to ignored reports; select a fresh `T22_REPORT_DIRECTORY` per
 attempt. Keep the accepted archive unchanged. Real Compose/GPU/QGIS gates remain
@@ -14,8 +14,8 @@ metadata/field I/O, shader compilation and uploads through the first complete
 field render. Record cache reset scope; keep field-load and warm-switch timings
 separate. Profile a missed budget before changing execution mechanisms.
 
-For T23 interaction work, start with the [diagnosis](../evidence/t23/diagnosis/diagnosis.md)
-and [accepted implementation](../evidence/t23/implementation/validation.md). Prove
+For T23 interaction work, start with the [diagnosis](../validation/archives.md)
+and [accepted implementation](../validation/archives.md). Prove
 continuous rotation on the same Map before timing it; a flat-camera jump or a
 new view after pointerup measures a different operation. Before freezing desktop
 and mobile inputs, exercise a real click/tap, drag and pinch through the actual
@@ -38,7 +38,7 @@ then wait for both the completing click and the DOM selected index. Record
 visual viewport width/offset before repeated mode changes: offscreen map labels
 can expand a phone viewport and make otherwise correct touch coordinates miss.
 Use `-Updates -UpdatesOnly` for the T15 update/failure scenario before the full
-`-Navigation -Updates` gate; see the [T15 retrospective](../evidence/retro-t15.md).
+`-Navigation -Updates` gate; see the [T15 retrospective](../validation/retrospectives/retro-t15.md).
 If pointerdown/up arrive but the click does not, retain the failed attempt and
 probe the same control on the same device before replaying the full gate.
 A successful replay does not establish the cause or a fix for the missed click.
@@ -79,7 +79,7 @@ platform first; status-layout fixes can use `-TimeStatusOnly` with those flags.
 Inspect the focused full-page phone screenshots before freezing the full gate.
 Exercise loading/error with a retained point outside the projection, the timeline
 collapsed, and both fonts: a correct DOM message can still be covered by a button.
-The [T25 retrospective](../evidence/retro-t25.md) links the failure and the focused
+The [T25 retrospective](../validation/retrospectives/retro-t25.md) links the failure and the focused
 rectangle/screenshot checks.
 
 Inspect screenshots as well as assertions before requesting visual approval.

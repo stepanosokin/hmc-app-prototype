@@ -1,4 +1,4 @@
-﻿param(
+param(
     [ValidateSet('All', 'Viewer', 'Windows', 'Runtime')]
     [string]$Scope = 'All'
 )
@@ -22,14 +22,12 @@ try {
         Invoke-Check npm.cmd @('--prefix', 'viewer', 'run', 'check')
         Invoke-Check npm.cmd @('--prefix', 'viewer', 'test')
         Invoke-Check node @('--test', 'tools/test-viewer-network.mjs')
-        Invoke-Check node @('docs/evidence/t13/verify.mjs')
-        Invoke-Check node @('docs/evidence/t25/verify.mjs')
+        Invoke-Check node @('--test', 'tools/test-archive-paths.mjs')
     }
     if ($Scope -in @('All', 'Windows')) {
         foreach ($script in @('check-publication-process', 'check-documentation', 'check-documentation-tests', 'check-native-display-inputs')) {
             Invoke-Check powershell @('-NoProfile', '-File', "tools/$script.ps1")
         }
-        Invoke-Check node @('docs/evidence/wms-compat/verify.mjs')
         Invoke-Check node @('--test', 'tools/test-weather-check-options.mjs')
         Invoke-Check node @('--test', 'tools/test-publication-ops.mjs')
     }
@@ -43,14 +41,6 @@ try {
         }
         Invoke-Check docker @('run', '--rm', '--network', 'none', '--tmpfs', '/evidence:mode=1777', '--entrypoint', 'python', $image, '-m', 'publication.runtime')
         Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_evidence*.py', '-v'))
-        foreach ($flag in @('', '--native-display', '--t23', '--t24', '--t14', '--t15', '--t16')) {
-            $arguments = $mounted + @('--entrypoint', 'python', $image, 'tools/check_evidence.py')
-            if ($flag) { $arguments += $flag }
-            Invoke-Check docker $arguments
-        }
-        foreach ($attempt in @('desktop1/reports/browser', 'desktop1/reports/browser-edge', 'android6/reports/browser')) {
-            Invoke-Check node @('tools/native-display/budgets.mjs', "docs/evidence/t23/implementation/attempts/$attempt/browser.json")
-        }
         Invoke-Check powershell @('-NoProfile', '-File', 'tools/check-publication-retirement.ps1', '-Image', $image)
     }
 } finally {

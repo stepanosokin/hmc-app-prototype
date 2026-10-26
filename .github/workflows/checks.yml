@@ -24,10 +24,8 @@ jobs:
         run: npm --prefix viewer test
       - name: Check offline interception and cancellation
         run: node --test tools/test-viewer-network.mjs
-      - name: Verify accepted T13 archive
-        run: node docs/evidence/t13/verify.mjs
-      - name: Verify accepted T25 archive without runtime resources
-        run: node docs/evidence/t25/verify.mjs
+      - name: Check external archive path resolution without archive data
+        run: node --test tools/test-archive-paths.mjs
 
   windows-process:
     runs-on: windows-2022
@@ -91,52 +89,12 @@ jobs:
         run: >-
           docker run --rm --network none --entrypoint python hmc-publication:checks
           -m unittest discover -s tests -p test_publication_retention.py -v
-      - name: Verify archived evidence bytes
-        run: >-
-          docker run --rm --network none
-          --volume "$PWD:/workspace:ro" --workdir /workspace
-          --entrypoint python hmc-publication:checks tools/check_evidence.py
       - name: Check archive validation failures
         run: >-
           docker run --rm --network none
           --volume "$PWD:/workspace:ro" --workdir /workspace
           --entrypoint python hmc-publication:checks
           -m unittest discover -s tools -p 'test_evidence*.py' -v
-      - name: Verify native display proof and regression archives
-        run: >-
-          docker run --rm --network none
-          --volume "$PWD:/workspace:ro" --workdir /workspace
-          --entrypoint python hmc-publication:checks tools/check_evidence.py --native-display
-      - name: Verify T23 continuation, diagnosis and implementation archives
-        run: >-
-          docker run --rm --network none
-          --volume "$PWD:/workspace:ro" --workdir /workspace
-          --entrypoint python hmc-publication:checks tools/check_evidence.py --t23
-      - name: Verify T24 mockup archive
-        run: >-
-          docker run --rm --network none
-          --volume "$PWD:/workspace:ro" --workdir /workspace
-          --entrypoint python hmc-publication:checks tools/check_evidence.py --t24
-      - name: Verify T14 viewer navigation and race archive
-        run: >-
-          docker run --rm --network none
-          --volume "$PWD:/workspace:ro" --workdir /workspace
-          --entrypoint python hmc-publication:checks tools/check_evidence.py --t14
-      - name: Verify T15 desktop and physical Android update archive
-        run: >-
-          docker run --rm --network none
-          --volume "$PWD:/workspace:ro" --workdir /workspace
-          --entrypoint python hmc-publication:checks tools/check_evidence.py --t15
-      - name: Verify T16 offline desktop and physical Android archive
-        run: >-
-          docker run --rm --network none
-          --volume "$PWD:/workspace:ro" --workdir /workspace
-          --entrypoint python hmc-publication:checks tools/check_evidence.py --t16
-      - name: Verify accepted T23 desktop and Android measurement budgets
-        run: |
-          node tools/native-display/budgets.mjs docs/evidence/t23/implementation/attempts/desktop1/reports/browser/browser.json
-          node tools/native-display/budgets.mjs docs/evidence/t23/implementation/attempts/desktop1/reports/browser-edge/browser.json
-          node tools/native-display/budgets.mjs docs/evidence/t23/implementation/attempts/android6/reports/browser/browser.json
       - name: Check evidence archival and project retirement
         shell: pwsh
         run: ./tools/check-publication-retirement.ps1 -Image hmc-publication:checks

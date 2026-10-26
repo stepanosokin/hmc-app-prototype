@@ -4,7 +4,7 @@
 [согласованный проект](design/t23a-native-display-draft.md),
 [контракт hmc-native-display/1](../publication/native-display.v1.json).
 Статус реализации и неудачные пробы приведены в
-[development evidence](evidence/t23a/development.md); этот документ сам по себе
+[development evidence](validation/archives.md); этот документ сам по себе
 не подтверждает окончательную приёмку.
 
 ## Доставка

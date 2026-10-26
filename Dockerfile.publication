@@ -9,6 +9,6 @@ COPY config/ config/
 COPY trials/ trials/
 COPY publication/ publication/
 COPY tests/ tests/
-COPY docs/evidence/t1/a1.json /app/baseline-a1.json
+COPY tests/fixtures/publication/a1.json /app/baseline-a1.json
 USER 65532:65532
 ENTRYPOINT ["python", "-m", "publication.worker"]

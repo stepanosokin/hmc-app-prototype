@@ -2,9 +2,9 @@
 
 Задача [T12 / #24](https://github.com/stepanosokin/hmc-app-prototype/issues/24)
 проверяет совместную работу существующих сервисов. Выбранный в
-[M1 / T3](evidence/t3/validation.md) узкий HTTP-адаптер вызывает общий
+[M1 / T3](validation/archives.md) узкий HTTP-адаптер вызывает общий
 manifest-backed Zarr sampler. Temporal WMS остаётся в GeoServer; числовые
-тайлы используют выбранный в [T4](evidence/t4/validation.md) `project-bilinear/1`,
+тайлы используют выбранный в [T4](validation/archives.md) `project-bilinear/1`,
 контракт `hmc-temperature-tile/2`, Float32 и отдельную маску.
 
 Поддерживаемый профиль:
@@ -88,4 +88,4 @@ M3 относится к серверной интеграции и указан
 итоговая приёмка. T3 остаётся point/metadata evidence. Производственная
 ёмкость, другие версии QGIS, browser navigation и TLS здесь не заявляются.
 
-Проверенный результат: [итоговый M3 gate и доказательства T12](evidence/t12/validation.md).
+Проверенный результат: [итоговый M3 gate и доказательства T12](validation/archives.md).

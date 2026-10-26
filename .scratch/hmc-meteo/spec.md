@@ -49,7 +49,7 @@ Native mobile, production integration of tens of sources, live database connecti
 | Retention | Initially seven days by model-run reference time; configurable toward 30 days |
 | Hosting | One organization-controlled Linux server, Docker Compose, self-hosted runtime; internet available for setup |
 
-Local [T1 decoder](../../docs/decoder.md), [T2 storage](../../docs/storage.md) and [T3 adapter](../../docs/evidence/t3/validation.md) evidence now exists for the supplied sample. T2 covers Zarr/COG precision; its A2 evidence does not cover the new tile encoding/resampling checks. T3 covers point/metadata operations on the approved workstation, with no numeric-tile or GPU benchmark. Real publication/QGIS and full-stack gates remain open. Update frequency does not by itself establish the number of distinct model runs. Server sizing is explicitly deferred. See [sample inventory](assets/sample-inventory.md).
+Local [T1 decoder](../../docs/decoder.md), [T2 storage](../../docs/storage.md) and [T3 adapter](../../docs/validation/archives.md) evidence now exists for the supplied sample. T2 covers Zarr/COG precision; its A2 evidence does not cover the new tile encoding/resampling checks. T3 covers point/metadata operations on the approved workstation, with no numeric-tile or GPU benchmark. Real publication/QGIS and full-stack gates remain open. Update frequency does not by itself establish the number of distinct model runs. Server sizing is explicitly deferred. See [sample inventory](assets/sample-inventory.md).
 
 ## 3. Architecture and responsibilities
 
@@ -103,7 +103,7 @@ Accepted M1 gate: compare pygeoapi with a narrow adapter calling the **same** ma
 
 Select one numerical adapter before freezing M3 implementation; do not ship all candidates. Reuse GeoServer for temporal WMS. Compare feature-service candidates only when representative vector schemas/data become available. This preserves one external contract and permits different engines for different operations.
 
-M1 result: [ADR 0001](../../docs/adr/0001-numerical-http-adapter.md) and [T3 evidence](../../docs/evidence/t3/validation.md) select the narrow adapter for bounded point/metadata work. The comparison above is the retained selection method. It neither ranks tile engines nor proves broader OGC conformance; pygeoapi can be reconsidered independently for a later standards profile.
+M1 result: [ADR 0001](../../docs/adr/0001-numerical-http-adapter.md) and [T3 evidence](../../docs/validation/archives.md) select the narrow adapter for bounded point/metadata work. The comparison above is the retained selection method. It neither ranks tile engines nor proves broader OGC conformance; pygeoapi can be reconsidered independently for a later standards profile.
 
 ## 4. Data identity and ingestion
 

@@ -21,8 +21,9 @@ sparse fill or native nodata. Reuse the public point/EDR fault-and-recovery case
 in [test_publication_numerical.py](../../tests/test_publication_numerical.py).
 
 Before changing shared configuration, read its current contents. Existing
-`.gitattributes` rules preserve historical evidence bytes; append compatible
-rules rather than replacing them. `tools/check_evidence.py` verifies the T3
+`.gitattributes` rules preserve tracked fixtures; preserve archived raw bytes
+outside Git under [external storage rules](../validation/evidence-storage.md).
+`tools/check_evidence.py` verifies the T3
 artifact index, T4's archived selection/contract hashes and T5-T12 report/input
 artifact index and T22's browser archive. These are historical records: compare each against its recorded
 inputs, rather than against future

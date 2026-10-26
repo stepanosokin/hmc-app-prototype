@@ -39,7 +39,7 @@ function Check {
     Invoke-CheckedProcess -FilePath docker -ArgumentList ($compose+$Arguments) -ReportDirectory $directory -Name $Name
 }
 foreach ($name in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
-    Copy-Item (Join-Path 'docs/evidence/t4' $name) $directory
+    Copy-Item (Join-Path 'tests/fixtures/publication/tile-engine' $name) $directory
 }
 Check services @('up','-d','--no-build','db','geoserver','api','gateway','viewer')
 Check assets @('run','--rm','init-assets')

@@ -4,8 +4,18 @@ import argparse
 import hashlib
 import json
 import math
+import os
 from pathlib import Path, PurePosixPath
 from typing import Any
+
+
+_external_archive: Path | None = None
+
+def evidence_path(root: Path, name: str = 'docs/evidence') -> Path:
+    if _external_archive is None:
+        return root / name
+    relative = Path(name).relative_to('docs/evidence')
+    return _external_archive / relative
 
 
 def verify(path: Path, expected: str, size: int | None = None) -> None:
@@ -19,7 +29,7 @@ def verify(path: Path, expected: str, size: int | None = None) -> None:
 def check_browser_archive(root: Path, ticket: str = 't22') -> int:
     """Check mockup archive bytes and identities, not future live inputs."""
     prefix = f'docs/evidence/{ticket}/'
-    index = json.loads((root / prefix / 'artifact-index.json').read_bytes())
+    index = json.loads((evidence_path(root, prefix) / 'artifact-index.json').read_bytes())
     if index['schema'] != 1:
         raise ValueError('unsupported browser evidence schema')
     artifacts: dict[str, Any] = {}
@@ -34,8 +44,8 @@ def check_browser_archive(root: Path, ticket: str = 't22') -> int:
             raise ValueError(f'duplicate browser artifact: {name}')
         artifacts[name] = artifact
         if name.startswith(prefix):
-            verify(root / name, artifact['sha256'], artifact['bytes'])
-            payload = (root / name).read_bytes()
+            verify(evidence_path(root, name), artifact['sha256'], artifact['bytes'])
+            payload = (evidence_path(root, name)).read_bytes()
             blob = b'blob ' + str(len(payload)).encode() + b'\0' + payload
             if hashlib.sha1(blob).hexdigest() != artifact['git_object']:
                 raise ValueError(f'evidence Git object mismatch: {name}')
@@ -45,7 +55,7 @@ def check_browser_archive(root: Path, ticket: str = 't22') -> int:
     if ticket == 't24':
         if len(selections) != 2 or {item.get('browser') for item in selections} != {'chrome', 'edge'}:
             raise ValueError('T24 browser matrix is incomplete')
-        actual = {path.relative_to(root).as_posix() for path in (root / prefix).rglob('*')
+        actual = {'docs/evidence/' + path.relative_to(evidence_path(root)).as_posix() for path in (evidence_path(root, prefix)).rglob('*')
                   if path.is_file() and path.name != 'artifact-index.json'}
         if actual != {name for name in artifacts if name.startswith(prefix)}:
             raise ValueError('T24 artifact coverage is incomplete')
@@ -59,7 +69,7 @@ def check_browser_report(root: Path, prefix: str, selection: dict[str, Any],
     selected = selection['report']
     if selected not in artifacts or not selected.startswith(prefix):
         raise ValueError('browser selected report is not archived')
-    report = json.loads((root / selected).read_bytes())
+    report = json.loads((evidence_path(root, selected)).read_bytes())
     if (report['status'] != 'passed' or len(report['checks']) != selection['checks']
             or report['errors'] or report['external_requests']):
         raise ValueError('browser selected report is not passing')
@@ -71,7 +81,7 @@ def check_browser_report(root: Path, prefix: str, selection: dict[str, Any],
         if name not in artifacts or artifacts[name]['sha256'] != checksum:
             raise ValueError(f'browser input identity mismatch: {name}')
         if ticket == 't24':
-            verify((root / selected).parent / 'inputs' / name, checksum)
+            verify((evidence_path(root, selected)).parent / 'inputs' / name, checksum)
     if ticket == 't24':
         if report.get('scope') != ('T24 projection mockup; desktop browser and emulated mobile viewport, '
                                    'not real hardware or production GPU/API'):
@@ -91,7 +101,7 @@ def check_browser_report(root: Path, prefix: str, selection: dict[str, Any],
                             for panel in ('forecastPanel', 'navigationPanel', 'legendPanel', 'timelinePanel'))
         if not required.issubset(report['checks']):
             raise ValueError('T24 layout interactions are incomplete')
-        reference = json.loads(((root / selected).parent / 'geometry-reference.json').read_bytes())
+        reference = json.loads(((evidence_path(root, selected)).parent / 'geometry-reference.json').read_bytes())
         executable = report.get('browser_executable', '').lower()
         expected = 'chrome.exe' if selection['browser'] == 'chrome' else 'msedge.exe'
         if not executable.endswith(expected):
@@ -103,7 +113,7 @@ def check_browser_report(root: Path, prefix: str, selection: dict[str, Any],
 
 
 def check(root: Path) -> int:
-    evidence = root / 'docs/evidence'
+    evidence = evidence_path(root)
     t3 = evidence / 't3'
     index = json.loads((t3 / 'artifact-index.json').read_bytes())
     count = 0
@@ -129,7 +139,7 @@ def check(root: Path) -> int:
 
 def check_native_display(root: Path) -> int:
     """Verify the selected T23a proof without comparing future workspace bytes."""
-    archive = root / 'docs/evidence/t23a'
+    archive = evidence_path(root, 'docs/evidence/t23a')
     index = json.loads((archive / 'artifact-index.json').read_bytes())
     if index['schema'] != 1:
         raise ValueError('unsupported native display evidence schema')
@@ -227,7 +237,7 @@ def check_t23_archives(root: Path) -> int:
     """Verify T23's three frozen archives, including unsuccessful attempts."""
     count = 0
     for phase in ('continuation', 'diagnosis', 'implementation'):
-        archive = root / 'docs/evidence/t23' / phase
+        archive = evidence_path(root, 'docs/evidence/t23') / phase
         index = json.loads((archive / 'artifact-index.json').read_bytes())
         if index.get('schema', 1) != 1:
             raise ValueError('unsupported T23 evidence schema')
@@ -252,7 +262,7 @@ def check_t23_archives(root: Path) -> int:
 
 def check_viewer_navigation(root: Path) -> int:
     """Verify historical T14 bytes and full acceptance, independently of live inputs."""
-    archive = root / 'docs/evidence/t14'
+    archive = evidence_path(root, 'docs/evidence/t14')
     index = json.loads((archive / 'artifact-index.json').read_bytes())
     names: set[str] = set()
     for item in index['artifacts']:
@@ -262,8 +272,8 @@ def check_viewer_navigation(root: Path) -> int:
                 or '\\' in name or ':' in name or path.as_posix() != name or name in names):
             raise ValueError('invalid or duplicate T14 artifact path')
         names.add(name)
-        verify(root / name, item['sha256'], item['bytes'])
-    actual = {path.relative_to(root).as_posix() for path in archive.rglob('*')
+        verify(evidence_path(root, name), item['sha256'], item['bytes'])
+    actual = {'docs/evidence/' + path.relative_to(evidence_path(root)).as_posix() for path in archive.rglob('*')
               if path.is_file() and path != archive / 'artifact-index.json'}
     if names != actual:
         raise ValueError('T14 artifact coverage is incomplete')
@@ -369,8 +379,10 @@ def check_viewer_navigation(root: Path) -> int:
 
 
 def main() -> None:
+    global _external_archive
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument('--archive-root', type=Path, help='External evidence directory; defaults to HMC_EVIDENCE_ROOT or sibling hmc-app-evidence')
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument('--native-display', action='store_true', help='Require the complete T23a numerical/service archive')
     selection.add_argument('--t23', action='store_true', help='Verify T23 continuation, diagnosis and implementation archive bytes')
@@ -379,10 +391,13 @@ def main() -> None:
     selection.add_argument('--t15', action='store_true', help='Verify T15 desktop/physical Android updates and cleanup archive')
     selection.add_argument('--t16', action='store_true', help='Verify T16 offline desktop/physical Android archive')
     args = parser.parse_args()
+    _external_archive = (args.archive_root or Path(os.environ.get('HMC_EVIDENCE_ROOT', str(args.root.parent / 'hmc-app-evidence')))).resolve()
+    if not _external_archive.is_dir():
+        parser.exit(2, 'Historical archive unavailable: verification NOT PERFORMED.\n')
     checker = check_viewer_navigation if args.t14 else check_t23_archives if args.t23 else check_native_display if args.native_display else check
     if args.t15 or args.t16:
         from evidence_t15 import check_updates
-        count = check_updates(args.root, offline=args.t16)
+        count = check_updates(args.root, offline=args.t16, archive_root=_external_archive)
     else:
         count = check_browser_archive(args.root, 't24') if args.t24 else checker(args.root)
     print(f'Verified {count} archived evidence references')

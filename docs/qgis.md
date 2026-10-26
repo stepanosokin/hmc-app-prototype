@@ -117,7 +117,7 @@ WMS-провайдер из этой установки. Другая верси
 
 Проверьте наличие исходного GRIB с SHA256 из `decoder/inspect_forecast.py`,
 Docker Desktop и работающего QGIS указанной версии. M1 выбран по
-[результатам T3](evidence/t3/validation.md). Для каждого запуска нужен новый проект.
+[результатам T3](validation/archives.md). Для каждого запуска нужен новый проект.
 
 ```powershell
 powershell -NoProfile -File publication/run-qgis.ps1 -Project hmc-publication-t11-check -Phase Prepare
@@ -156,4 +156,4 @@ Runner сохраняет логи и автоматически архивир�
 После ручной очистки удалите приватный файл ключа; отчёты и архивы сохраните.
 
 Проверенный результат T11 и сохранённые изображения:
-[отчёт приёмки](evidence/t11/validation.md).
+[отчёт приёмки](validation/archives.md).
