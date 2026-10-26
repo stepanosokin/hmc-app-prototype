@@ -1,5 +1,11 @@
 # Retrospective basis
 
+The [GRIB withdrawal retrospective](retro-grib-sync.md) follows #52's missing
+overlap fixture, late unavailable-state review and excessive nested report output.
+Resource-free checks now verify fixture guards/order and bounded JSON summaries
+in local/manual CI. Review guidance covers withdrawal/provenance/commit outcomes;
+the application, accepted evidence and stopped live stack remain unchanged.
+
 These changes follow the [#16 review](../archives.md),
 [compatibility failures and final checks](../archives.md), and the
 subsequent verified push/closure. They address missing CI coverage, delayed

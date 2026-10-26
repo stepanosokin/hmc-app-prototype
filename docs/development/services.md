@@ -185,6 +185,19 @@ Git; a whole-repository archive also copies historical evidence.
 
 ## Review of recovery, retention and budgets
 
+For publication withdrawal reviews, trace provenance from submission to batch
+reuse: the source directory belongs to the captured delivery, not the later
+worker environment. Follow a historical replacement through catalogue ordering,
+superseded budgets and later registration; removing roots must not revive prior
+expiry decisions. The #52 regressions in `tests/test_grib_sync.py` and
+`tests/test_publication_retention.py` exercise these boundaries.
+
+For an uncertain COMMIT, establish completion of the original transaction before
+using a negative reference query to authorize file deletion. Include the new
+directory's parent in durability checks. For unavailable viewer states, review
+map clicks, point-series creation, links and time controls together; use
+[browser checks](browser.md) for the early narrow-screen visual gate.
+
 For diagnostics/fault exercises, establish distinct first/latest published
 selections in Development. Save the retained URL, cold-tile URL and checksum
 before enabling faults; warm each required metadata/byte entry immediately

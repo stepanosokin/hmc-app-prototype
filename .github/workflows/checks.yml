@@ -28,6 +28,8 @@ jobs:
         run: node --test tools/test-archive-paths.mjs
       - name: Check running stand selection for GRIB withdrawal
         run: node --test tools/test-sync-grib.mjs
+      - name: Check bounded validation report summaries
+        run: node --test tools/test-validation-summary.mjs
 
   windows-process:
     runs-on: windows-2022
@@ -48,6 +50,9 @@ jobs:
       - name: Check native browser input capture without Compose
         shell: powershell
         run: ./tools/check-native-display-inputs.ps1
+      - name: Check viewer fixture preparation without Compose
+        shell: powershell
+        run: ./tools/check-viewer-fixtures-tests.ps1
       - name: Check mockup scenario selection without browser resources
         run: node --test tools/test-weather-check-options.mjs
       - name: Reject corrupted recovery bundles without service resources

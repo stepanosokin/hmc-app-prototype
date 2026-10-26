@@ -1,5 +1,16 @@
 # Before starting final acceptance
 
+For viewer fixture changes, run `tools/check-viewer-fixtures-tests.ps1` before
+allocating services. It reads the actual runner's conditions for Navigation and
+Updates, including seed/publish/restart order, without executing runner code.
+This catches missing overlap prerequisites; syntax parsing alone cannot.
+
+For JSON/JSONL diagnostics, start with
+`node tools/validation-summary.mjs <known-report-path>`. It limits output to
+12 KiB and selects failures, selection identity, counts and cleanup. Read a
+specific raw field only when the summary leaves a diagnostic question open;
+complete reports remain in their archive. A summary is not an acceptance check.
+
 For PowerShell runner edits, run `powershell -NoProfile -File tools/check-powershell.ps1`
 before allocating services. It parses runtime scripts without executing them;
 the existing Windows process check includes this guard and its valid/invalid

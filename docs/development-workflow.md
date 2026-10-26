@@ -33,6 +33,7 @@ when a change crosses boundaries. Ticket-specific acceptance criteria still appl
 | Change | During development | Final acceptance |
 | --- | --- | --- |
 | Documentation only | Documentation link check on changed files | Link check; verify recorded hashes when completing existing evidence |
+| Viewer fixture preflight / report-summary tooling | Resource-free fixture/summary regressions | Same regressions, PowerShell syntax and local/CI wiring; unchanged application runners do not require service/browser gates |
 | Mockup CSS / layout | Affected scenario and viewport, selected screenshots | Complete mockup matrix in Chrome and Edge; visually inspect smallest portrait/landscape, both fonts and basemaps |
 | Mockup interactions | Affected base, mobile-controls or landscape scenario | Complete browser matrix and relevant visual inspection |
 | Mockup projection geometry | Projection scenario and independent PROJ comparison | Complete browser matrix and independent PROJ; preserve numerical tolerances |
