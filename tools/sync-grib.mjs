@@ -27,7 +27,7 @@ export function standConfiguration(containers,project){
     if(!password)fail('В конфигурации стенда нет учётных данных оператора.');
     return {assets:assets.Name,network:networks[0],image:api.Image,db:db.Id,password};
 }
-async function runOwned(args,environment,name,owner){
+async function runOwned(args,environment,name,owner,timeoutMs){
     let child,timer,cancel;
     try{
         return await new Promise((resolve,reject)=>{
@@ -37,7 +37,7 @@ async function runOwned(args,environment,name,owner){
             child.stderr.on('data',chunk=>{stderr=(stderr+chunk).slice(-1600);});
             cancel=()=>{timedOut=true;child.kill();};
             process.once('SIGINT',cancel);process.once('SIGTERM',cancel);
-            timer=setTimeout(cancel,120000);
+            timer=setTimeout(cancel,timeoutMs);
             child.once('error',reject);
             child.once('close',code=>code===0&&!timedOut?resolve(stdout.trim()):reject(Error(
                 timedOut?'Операция прервана; проверьте каталог перед повторным просмотром.':'Операция не выполнена. '+stderr)));
@@ -56,15 +56,22 @@ async function runOwned(args,environment,name,owner){
         if(docker(['container','ls','--all','--quiet','--filter',`name=^/${name}$`]))fail('Не удалось удалить контейнер операции.');
     }
 }
-async function main(){
-    const [operation,...args]=process.argv.slice(2);
-    if(!['preview','apply'].includes(operation)||args.length%2)fail('Использование: node tools/sync-grib.mjs preview|apply --plan ФАЙЛ [--project ИМЯ] [--input-directory ПАПКА]');
+export function parseOptions(args){
     const options={};
-    for(let i=0;i<args.length;i+=2){
-        if(!['--plan','--project','--input-directory'].includes(args[i])||Object.hasOwn(options,args[i]))fail('Неизвестный или повторный параметр.');
-        options[args[i]]=args[i+1];
+    for(let i=0;i<args.length;i++){
+        const key=args[i];
+        if(Object.hasOwn(options,key))fail('Повторный параметр.');
+        if(key==='--include-unlocated'){options[key]=true;continue;}
+        if(!['--plan','--project','--input-directory'].includes(key)||i+1>=args.length||args[i+1].startsWith('--'))fail('Неизвестный параметр или отсутствует значение.');
+        options[key]=args[++i];
     }
     if(!options['--plan'])fail('Укажите --plan ФАЙЛ.');
+    return options;
+}
+async function main(){
+    const [operation,...args]=process.argv.slice(2);
+    if(!['preview','apply'].includes(operation))fail('Использование: node tools/sync-grib.mjs preview|apply --plan ФАЙЛ [--project ИМЯ] [--input-directory ПАПКА] [--include-unlocated]');
+    const options=parseOptions(args),includeUnlocated=options['--include-unlocated']===true;
     const project=options['--project']??'hmc-app-live';
     if(!/^[a-z0-9][a-z0-9-]+$/.test(project))fail('Некорректное имя стенда.');
     const input=path.resolve(root,options['--input-directory']??'data/grib'),plan=path.resolve(options['--plan']);
@@ -78,7 +85,7 @@ async function main(){
     const stand=standConfiguration(JSON.parse(docker(['inspect',...ids])),project);
     const runtime=Object.fromEntries(['publication/grib_sync.py','publication/revisions.py','publication/domain.py','publication/retention.py','tools/sync-grib.mjs'].map(name=>
         [name,createHash('sha256').update(fs.readFileSync(path.join(root,name))).digest('hex')]));
-    const target=createHash('sha256').update(JSON.stringify({project,input,db:stand.db,assets:stand.assets,image:stand.image,runtime})).digest('hex');
+    const target=createHash('sha256').update(JSON.stringify({project,input,db:stand.db,assets:stand.assets,image:stand.image,runtime,includeUnlocated})).digest('hex');
     const owner=randomUUID(),name='hmc-grib-sync-'+owner;
     const command=['run','--rm','--name',name,'--label','com.docker.compose.project='+project,
         '--label','hmc.grib-sync.owner='+owner,'--read-only','--cap-drop=ALL','--network',stand.network,'--user','65532:65532',
@@ -89,7 +96,8 @@ async function main(){
         '--mount',`type=bind,source=${path.dirname(plan)},target=/plan`,
         '--entrypoint','python',stand.image,'-m','publication.grib_sync',operation,'--target',target,'--plan','/plan/'+path.basename(plan),
         '--source-directory',input.replaceAll('\\','/'),'--source-directory',path.relative(root,input).replaceAll('\\','/')];
-    console.log(await runOwned(command,{...process.env,DB_PASSWORD:stand.password},name,owner));
+    if(includeUnlocated)command.push('--include-unlocated');
+    console.log(await runOwned(command,{...process.env,DB_PASSWORD:stand.password},name,owner,operation==='apply'?1800000:120000));
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     try{await main();}catch(error){console.error('Синхронизация остановлена: '+error.message);process.exitCode=1;}

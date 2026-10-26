@@ -17,6 +17,30 @@ from decoder.sampling import canonical, file_hash
 
 
 class PlanBoundaries(unittest.TestCase):
+    def test_explicit_unlocated_mode_preserves_scope_and_binds_the_plan(self):
+        rows = [dict(root='old', run='run', state='eligible', kind='legacy',
+                     manifest_path='old', manifest_sha256='sha', job_id='job')]
+        batch: dict = {'source':{'name':'gone.grib2'}}
+        with patch.object(grib_sync, 'source_manifest', return_value=batch):
+            ordinary = grib_sync.plan_rows([], rows, 'stand', {}, source_directories=['data/grib'])
+            explicit = grib_sync.plan_rows([], rows, 'stand', {}, source_directories=['data/grib'], include_unlocated=True)
+            self.assertFalse(ordinary['actions'])
+            self.assertEqual(explicit['actions'][0]['missing'], ['gone.grib2'])
+            self.assertEqual(explicit['assumed'], [{'root':'old','sources':['gone.grib2']}])
+            self.assertTrue(explicit['include_unlocated'])
+            with self.assertRaises(ValueError):
+                grib_sync.validate_plan(explicit, ordinary)
+            invalid_cases: list[dict] = [{'source':{'name':'../bad'}}, {'source':{}},
+                            {'source':{'name':'gone.grib2','directory':'other'}},
+                            {'source':{'name':'gone.grib2','directory':''}},
+                            {'source':{'name':'gone.grib2'},'fixture':'correction'}]
+            for invalid in invalid_cases:
+                batch.clear(); batch.update(invalid)
+                excluded = grib_sync.plan_rows([], rows, 'stand', {}, source_directories=['data/grib'], include_unlocated=True)
+                self.assertFalse(excluded['actions'])
+                self.assertFalse(excluded['assumed'])
+                self.assertEqual(len(excluded['unchecked']), 1)
+
     def test_preview_reads_sealed_provenance_without_hashing_payloads(self):
         # A missing large payload must not be opened just to compare source names.
         with tempfile.TemporaryDirectory() as directory:
@@ -105,10 +129,13 @@ class WithdrawalHTTP(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         return response.json()['selections']
 
-    def publish(self, source, hours):
+    def publish(self, source, hours, unlocated=False):
         identifier = recovery.submit('2026-10-19T05:00:00Z',
             {'hours': hours, 'fixture': 'actual', 'recoverable': True, 'batch': uuid.uuid4().hex}, source,
             file_hash(self.directory/source), 0)
+        if unlocated:
+            with database() as cursor:
+                cursor.execute("UPDATE app.jobs SET request=request-'source_directory' WHERE id=%s", (identifier,))
         self.assertTrue(worker.once(identifier))
         with database() as cursor:
             cursor.execute('SELECT * FROM app.jobs WHERE id=%s', (identifier,))
@@ -242,9 +269,14 @@ class WithdrawalHTTP(unittest.TestCase):
             with database_transaction():
                 yield
             raise RuntimeError('COMMIT acknowledgement lost')
-        with patch.object(grib_sync, 'database_transaction', lost_acknowledgement):
+        with patch.object(grib_sync, 'database_transaction', lost_acknowledgement), \
+             patch.object(revisions, 'selected', wraps=revisions.selected) as verified:
             with self.assertRaises(RuntimeError):
                 grib_sync.apply(historical, self.directory, 'isolated')
+        references = [(call.args[1]['manifest_path'], call.args[1]['manifest_sha256'])
+                      for call in verified.call_args_list]
+        self.assertTrue(references)
+        self.assertEqual(len(references), len(set(references)))
         current = revisions.latest(mixed['identity']['run'])
         assert current is not None
         self.assertEqual(current['revision'], unaffected['selection'].split('.')[0])
@@ -253,4 +285,26 @@ class WithdrawalHTTP(unittest.TestCase):
             resolve(selection['selection'])  # Every committed manifest survived.
         (self.directory/'b.grib2').unlink()
         grib_sync.apply(grib_sync.preview(self.directory, 'isolated'), self.directory, 'isolated')
+        self.assertFalse(self.catalogue())
+        # A separate, explicit plan handles pre-directory publications. Metadata
+        # remains immutable; default preview still refuses to assume provenance.
+        for name in ('old-a.grib2', 'old-b.grib2'):
+            (self.directory/name).write_bytes(Path('/evidence/sample.grib2').read_bytes())
+            self.publish(name, [1 if name=='old-a.grib2' else 3], unlocated=True)
+        (self.directory/'old-a.grib2').unlink()
+        ordinary = grib_sync.preview(self.directory, 'isolated')
+        explicit = grib_sync.preview(self.directory, 'isolated', include_unlocated=True)
+        self.assertFalse(ordinary['actions'])
+        self.assertTrue(explicit['actions'])
+        self.assertTrue(explicit['assumed'])
+        before = self.catalogue()
+        with self.assertRaises(ValueError):
+            grib_sync.apply(explicit, self.directory, 'isolated')
+        self.assertEqual(self.catalogue(), before)
+        grib_sync.apply(explicit, self.directory, 'isolated', include_unlocated=True)
+        self.assertEqual(len(self.catalogue()), 1)
+        self.assertEqual(self.catalogue()[0]['valid_time'], '2026-10-15T03:00:00Z')
+        (self.directory/'old-b.grib2').unlink()
+        grib_sync.apply(grib_sync.preview(self.directory, 'isolated', include_unlocated=True),
+                        self.directory, 'isolated', include_unlocated=True)
         self.assertFalse(self.catalogue())

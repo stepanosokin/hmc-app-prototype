@@ -15,7 +15,7 @@ from pathlib import Path
 
 from decoder.sampling import asset_path, canonical
 from publication import recovery, retention, revisions
-from publication.domain import PIPELINE, ROOT, database, database_transaction, load_manifest, write_once
+from publication.domain import PIPELINE, ROOT, database, database_transaction, write_once
 
 
 def fingerprint(value) -> str:
@@ -35,12 +35,15 @@ def input_names(directory: Path) -> list[str]:
     return sorted(names)
 
 
-def direct_source(batch: dict, source_directories: list[str]) -> str | None:
+def direct_source(batch: dict, source_directories: list[str], include_unlocated: bool = False) -> str | None:
     source = batch.get('source', {}).get('name')
     origin = batch.get('source', {}).get('directory')
     if (not isinstance(source, str) or not source or source in ('.', '..')
-            or '/' in source or '\\' in source or batch.get('fixture', 'actual') != 'actual'
-            or not isinstance(origin, str)
+            or '/' in source or '\\' in source or batch.get('fixture', 'actual') != 'actual'):
+        return None
+    if origin is None and include_unlocated:
+        return source
+    if (not isinstance(origin, str)
             or posixpath.normpath(origin.replace('\\', '/')) not in source_directories):
         return None
     return source
@@ -62,9 +65,10 @@ def source_manifest(relative: str, checksum: str) -> dict:
 
 
 def plan_rows(names: list[str], rows: list[dict], target: str, configuration: dict,
-              pending: list[dict] | None = None, source_directories: list[str] | None = None) -> dict:
+              pending: list[dict] | None = None, source_directories: list[str] | None = None,
+              include_unlocated: bool = False) -> dict:
     """Resolve provenance of every eligible root, including legacy selections."""
-    actions, unchecked = [], []
+    actions, unchecked, assumed = [], [], []
     present = set(names)
     source_directories = sorted({posixpath.normpath(value.replace('\\', '/')) for value in
                                  (source_directories or [os.environ.get('GRIB_SOURCE_DIRECTORY', 'data/grib')])})
@@ -82,10 +86,14 @@ def plan_rows(names: list[str], rows: list[dict], target: str, configuration: di
         else:
             entries = []
             batches = [source_manifest(row['manifest_path'], row['manifest_sha256'])]
-        sources = [direct_source(batch, source_directories) for batch in batches]
+        sources = [direct_source(batch, source_directories, include_unlocated) for batch in batches]
         if not sources or None in sources:
             unchecked.append({'root': root, 'reason': 'Неизвестное происхождение или публикация вне области'})
             continue
+        assumed_names = sorted({source for source, batch in zip(sources, batches)
+                                if source is not None and batch.get('source', {}).get('directory') is None})
+        if assumed_names:
+            assumed.append({'root': root, 'sources': assumed_names})
         missing = sorted({source for source in sources if source is not None and source not in present})
         if missing:
             kept = [entry for entry, source in zip(entries, sources) if source in present]
@@ -93,11 +101,13 @@ def plan_rows(names: list[str], rows: list[dict], target: str, configuration: di
                             'job_id': row['job_id'], 'missing': missing, 'keep': kept})
     body = {'version': 'grib-withdrawal/1', 'target': target, 'names': names,
             'catalogue': rows, 'policy': configuration, 'actions': actions, 'unchecked': unchecked,
-            'pending': pending or [], 'source_directories': source_directories}
+            'pending': pending or [], 'source_directories': source_directories,
+            'include_unlocated': include_unlocated, 'assumed': assumed}
     return {**body, 'id': fingerprint(body)}
 
 
-def preview(directory: Path, target: str, source_directories: list[str] | None = None) -> dict:
+def preview(directory: Path, target: str, source_directories: list[str] | None = None,
+            include_unlocated: bool = False) -> dict:
     configuration, _, roots = retention.snapshot()
     with database() as cursor:
         cursor.execute('SELECT * FROM app.revisions ORDER BY published_at,revision')
@@ -115,7 +125,7 @@ def preview(directory: Path, target: str, source_directories: list[str] | None =
         rows.append({**root, **record, 'kind': 'revision' if root['root'] in modern else 'legacy'})
     # Canonical JSON-compatible snapshots retain dates and UUIDs without credentials.
     rows = json.loads(json.dumps(rows, default=str))
-    return plan_rows(input_names(directory), rows, target, configuration, pending, source_directories)
+    return plan_rows(input_names(directory), rows, target, configuration, pending, source_directories, include_unlocated)
 
 
 def validate_plan(saved: dict, current: dict) -> None:
@@ -123,16 +133,18 @@ def validate_plan(saved: dict, current: dict) -> None:
         raise ValueError('План устарел или изменён: выполните предварительный просмотр заново')
 
 
-def apply(saved: dict, directory: Path, target: str, source_directories: list[str] | None = None) -> dict:
+def apply(saved: dict, directory: Path, target: str, source_directories: list[str] | None = None,
+          include_unlocated: bool = False) -> dict:
     """Prepare immutable leftovers, then expose all changes in one DB commit."""
     prepared: list[tuple[dict, dict, str, str]] = []
     created: list[Path] = []
+    verified_assets: dict[tuple[str, str], dict] = {}
     visibility_attempted = False
     with database() as guard:
         if not recovery.lock(guard):
             raise RuntimeError('Идёт публикация или очистка: повторите синхронизацию позже')
         try:
-            current = preview(directory, target, source_directories)
+            current = preview(directory, target, source_directories, include_unlocated)
             validate_plan(saved, current)
             missing = {name for action in current['actions'] for name in action['missing']}
             if any(job['source_name'] in missing for job in current['pending']):
@@ -157,7 +169,11 @@ def apply(saved: dict, directory: Path, target: str, source_directories: list[st
                 relative = path.relative_to(ROOT).as_posix()
                 manifest = revisions.load_revision(relative, checksum)
                 for entry in manifest['batches']:
-                    revisions.selected(manifest, entry)
+                    reference = (entry['manifest_path'], entry['manifest_sha256'])
+                    if reference not in verified_assets:
+                        # Shared immutable batches occur in many historical replacements.
+                        # Validate each fully once per operation, retaining only its asset graph.
+                        verified_assets[reference] = revisions.selected(manifest, entry)['assets']
                 descriptor = os.open(attempt.parent, os.O_RDONLY | os.O_DIRECTORY)
                 try:
                     os.fsync(descriptor)
@@ -165,13 +181,13 @@ def apply(saved: dict, directory: Path, target: str, source_directories: list[st
                     os.close(descriptor)
                 prepared.append((action, manifest, relative, checksum))
             # Revalidate after potentially expensive asset verification as well.
-            validate_plan(saved, preview(directory, target, source_directories))
+            validate_plan(saved, preview(directory, target, source_directories, include_unlocated))
             visibility_attempted = True
             with database_transaction():
                 with database() as cursor:
                     cursor.execute("SET LOCAL lock_timeout = '110s'")
                     cursor.execute('SELECT pg_advisory_xact_lock(16002)')
-                    validate_plan(saved, preview(directory, target, source_directories))
+                    validate_plan(saved, preview(directory, target, source_directories, include_unlocated))
                     for action, manifest, relative, checksum in prepared:
                         original = rows[action['root']]
                         cursor.execute('INSERT INTO app.revisions VALUES(%s,%s,%s,%s,%s,%s)',
@@ -179,7 +195,7 @@ def apply(saved: dict, directory: Path, target: str, source_directories: list[st
                                         original['published_at'], action['job_id']))
                         assets = {}
                         for entry in manifest['batches']:
-                            assets.update(load_manifest(entry['manifest_path'], entry['manifest_sha256'])['assets'])
+                            assets.update(verified_assets[(entry['manifest_path'], entry['manifest_sha256'])])
                         # A historical leftover keeps its place in publication
                         # order and its original retention deadlines.
                         cursor.execute('INSERT INTO app.retention_roots '
@@ -243,23 +259,28 @@ def main() -> None:
     parser.add_argument('--plan', type=Path, required=True)
     parser.add_argument('--input', type=Path, default=Path('/input'))
     parser.add_argument('--source-directory', action='append')
+    parser.add_argument('--include-unlocated', action='store_true',
+                        help='Явно считать старые публикации без каталога принадлежащими выбранной папке по имени')
     args = parser.parse_args()
     try:
         if args.operation == 'preview':
             with database() as guard:
                 if not recovery.lock(guard):
                     raise RuntimeError('Идёт публикация или очистка: повторите просмотр позже')
-                result = preview(args.input, args.target, args.source_directory)
+                result = preview(args.input, args.target, args.source_directory, args.include_unlocated)
                 with args.plan.open('x', encoding='utf-8') as stream:
                     json.dump(result, stream, ensure_ascii=False, indent=2)
             print('План сохранён. Отсутствующие файлы → снимаемые публикации:')
+            if result['include_unlocated']:
+                print(f'Явно включены старые публикации без каталога: {len(result["assumed"])}')
             for action in result['actions']:
                 print(f'{", ".join(action["missing"])} → {action["root"]}; остаётся полей: {len(action["keep"])}')
             print(f'Публикаций вне области или с неизвестным происхождением: {len(result["unchecked"])}')
             for row in result['unchecked']:
                 print(f'Непроверенная публикация: {row["root"]}; {row["reason"]}')
         else:
-            result = apply(json.loads(args.plan.read_text(encoding='utf-8')), args.input, args.target, args.source_directory)
+            result = apply(json.loads(args.plan.read_text(encoding='utf-8')), args.input, args.target,
+                           args.source_directory, args.include_unlocated)
             print(json.dumps(result, ensure_ascii=False))
     except (OSError, ValueError, RuntimeError, KeyError) as error:
         raise SystemExit(f'Синхронизация остановлена: {error}') from error
