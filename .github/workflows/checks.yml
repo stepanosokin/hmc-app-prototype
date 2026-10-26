@@ -41,6 +41,9 @@ jobs:
       - name: Check publication process exit handling
         shell: powershell
         run: ./tools/check-publication-process.ps1
+      - name: Check refresh_grib stage ordering and failure stops
+        shell: powershell
+        run: ./tools/check-refresh-grib.ps1
       - name: Check documentation links and administrator command syntax
         shell: powershell
         run: ./tools/check-documentation.ps1
