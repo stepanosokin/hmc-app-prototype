@@ -3,6 +3,7 @@
 Building a self-hosted weather map and external GIS/API service using organizational data.
 
 - [Администратору: запуск, остановка и обновление данных стенда](ADMIN.md)
+- [Снятие публикаций удалённых GRIB: просмотр и применение плана](docs/grib-sync.md)
 - [Specification — English](.scratch/hmc-meteo/spec.md)
 - [Спецификация — русский](.scratch/hmc-meteo/spec.ru.md)
 - [Wayfinder map — GitHub Issues](https://github.com/stepanosokin/hmc-app-prototype/issues/1)
@@ -26,6 +27,16 @@ Building a self-hosted weather map and external GIS/API service using organizati
 - [T4 local publication and numeric-engine evidence](docs/validation/archives.md)
 - [Исходные GRIB, PostgreSQL, Zarr и COG: сравнение и обоснование](docs/source-storage-comparison.ru.md)
 - [Рабочая GPU-карта: запуск, выбор прогноза и проверки T13](viewer/README.md)
+
+Для обновления `hmc-app-live` после изменения `data/grib` используйте
+[ADMIN.md](ADMIN.md): новые и заменённые файлы загружаются через `reload-grib.ps1`,
+удалённые — через отдельные `sync-grib.mjs preview` и `apply`. Изменение папки
+само по себе не меняет публикации. Старые публикации без записанного исходного
+каталога остаются непроверенными. Команды ниже по ссылкам рассчитаны на уже
+подготовленный стенд; новая синхронизация реализована в [№52](https://github.com/stepanosokin/hmc-app-prototype/issues/52).
+
+Далее сохранена история решений и этапов с их исходными датами. Указанный
+в ней статус отдельного этапа относится к той дате, а не к текущему состоянию.
 
 The user accepted both specification copies (revision 0.2) for implementation on 2026-10-19; the wayfinder planning effort is complete. The agreed baseline is a Zarr numerical core, selected COG products, GeoServer for temporal WMS/QGIS and MapLibre for the web map. Revision 0.2 compares OGC API alternatives; the user accepted selecting the numerical adapter through the M1 implementation measurement gate. Martin is deferred until vector layers arrive. GitHub Issues is the canonical tracker; local ticket Markdown files are snapshots.
 
