@@ -36,9 +36,15 @@ ET.register_namespace('xlink', 'http://www.w3.org/1999/xlink')
 
 def links(manifest: dict) -> dict:
     selection, identity = manifest['selection'], manifest['identity']
-    version = native_display.profile(manifest['source'].get('source_crs'))[2]
+    version = native_display.profile(manifest['source'].get('source_crs'),manifest['source'].get('field_profile'))[2]
     prefix = request.headers.get('X-Publication-Prefix', '')
-    return {'selection': selection, **identity, 'units': 'K', 'state': 'published',
+    descriptor = manifest['source'].get('field_descriptor',{})
+    return {'selection': selection, **identity, 'units': descriptor.get('units','K'), 'state': 'published',
+            **({'field_label':descriptor['label'],'field_profile':manifest['source']['field_profile'],
+                'display_blocks':descriptor['display_blocks'],'interval':descriptor['interval'],
+                'field_short_name':descriptor.get('short_name'),'field_level_type':descriptor['level_type'],
+                **({key:descriptor[key] for key in ('wind_axis','wind_pair','uv_relative_to_grid')}
+                   if 'wind_axis' in descriptor else {})} if descriptor else {}),
             'module': 'meteorology',
             'collection': prefix + '/ogc/collections/' + selection,
             'position': prefix + '/ogc/collections/' + selection + '/position',
@@ -49,13 +55,15 @@ def links(manifest: dict) -> dict:
             'point': prefix + '/api/v1/point',
             'tiles': prefix + f'/api/v1/selections/{selection}/tiles.json',
             'native_display': prefix + f'/api/v1/selections/{selection}/display/{version}/native.json',
-            'wms': prefix + '/gis/v1/runs/' + quote(identity['run'], safe='') + '/revisions/' + identity['revision'] + '/wms'}
+            'wms': prefix + '/gis/v1/runs/' + quote(identity['run'], safe='') + '/revisions/' + identity['revision']
+                   + ('/fields/'+identity['field'].removeprefix('GRIB2:') if descriptor else '') + '/wms'}
 
 
-def revision_links(row: dict) -> list[dict]:
+def revision_links(row: dict,field: str | None = None) -> list[dict]:
     try:
         revision = revisions.load_revision(row['manifest_path'], row['manifest_sha256'])
-        return [links(revisions.selected(revision, entry)) for entry in revision['batches']]
+        return [links(revisions.selected(revision, entry)) for entry in revision['batches']
+                if field is None or entry.get('field','T_G:surface:0')==field]
     except (OSError, ValueError, KeyError, TypeError, ValidationError) as error:
         raise PublicationUnavailable('published revision unavailable') from error
 
@@ -198,16 +206,28 @@ def create_app() -> Flask:
 
     @app.get('/api/v1/catalogue')
     def catalogue():
-        arguments(set())
+        args=arguments(set(),{'view'})
+        if args.get('view')=='compact':
+            from publication.catalogue import compact,MAX_BYTES
+            with database() as cursor:
+                cursor.execute('SELECT selection,manifest_path,manifest_sha256 FROM app.catalogue ORDER BY selection')
+                legacy_rows=cursor.fetchall()
+                cursor.execute('SELECT revision,manifest_path,manifest_sha256 FROM app.revisions ORDER BY published_at,revision')
+                revision_rows=cursor.fetchall()
+            response=jsonify(compact(revision_rows,legacy_rows,g.expired_roots))
+            if (response.calculate_content_length() or 0)>MAX_BYTES:
+                raise ValueError('Каталог превышает лимит 4 МиБ')
+            return response
+        if args:raise ValueError('Unknown catalogue view')
         return jsonify(version='1', selections=published_selections())
 
     @app.get('/api/v1/modules')
     def modules():
         arguments(set())
-        present = bool(published_selections())
+        selections=published_selections();present = bool(selections)
         return jsonify(modules=[{'id': 'meteorology', 'title': 'Метеорология',
             'available': present, 'sources': ['manifest-zarr'],
-            'products': ['surface-temperature'], 'queries': ['point', 'position'],
+            'products': ['surface-temperature']+(['grib2-fields'] if any(s.get('field_profile') for s in selections) else []), 'queries': ['point', 'position'],
             'access': {'scope': 'api', 'organization_prefix': '/org', 'public_demo': True}}])
 
     @app.get('/api/v1/models')
@@ -280,13 +300,16 @@ def create_app() -> Flask:
         args = arguments({'coords', 'datetime', 'parameter-name', 'run', 'revision'}, {'f', 'crs'})
         if args.get('f', 'CoverageJSON') not in ('CoverageJSON', 'json'):
             raise ValueError('Поддерживается формат CoverageJSON.')
-        if args['parameter-name'] != 'T_G':
+        selected_manifest=resolve(selection)
+        field=selected_manifest['identity']['field']
+        parameter=field if selected_manifest['source'].get('field_profile') else 'T_G'
+        if args['parameter-name'] != parameter:
             raise KeyError('parameter')
         match = re.fullmatch(r'POINT\(\s*([^\s()]+)\s+([^\s()]+)\s*\)', args['coords'])
         if not match:
             raise ValueError('Требуется одна двумерная точка POINT(lon lat).')
         crs = args.get('crs')
-        manifest, point = numerical.sample(selection, args['run'], args['revision'], 'T_G:surface:0',
+        manifest, point = numerical.sample(selection, args['run'], args['revision'], field,
                                            args['datetime'], match.group(1), match.group(2), crs)
         g.identity = manifest['identity']
         return Response(app.json.dumps(numerical.coverage(point)), content_type='application/vnd.cov+json')
@@ -351,6 +374,7 @@ def create_app() -> Flask:
 
     @app.get('/api/v1/selections/<selection>/tiles/2/<int:z>/<int:x>/<int:y>.f32')
     @app.get('/api/v1/selections/<selection>/tiles/3/<int:z>/<int:x>/<int:y>.f32')
+    @app.get('/api/v1/selections/<selection>/tiles/4/<int:z>/<int:x>/<int:y>.f32')
     def tile(selection, z, x, y):
         arguments(set())
         manifest = resolve(selection)
@@ -369,7 +393,7 @@ def create_app() -> Flask:
         response.set_etag(hashlib.sha256(payload).hexdigest())
         return response
 
-    def native_response(selection, coordinates=None, experiment=None):
+    def native_response(selection, coordinates=None, experiment=None, portrayal=False):
         arguments(set())
         deadline = min(g.deadline, time.time() + 10)
         def bounded(operation, arguments):
@@ -388,12 +412,12 @@ def create_app() -> Flask:
         g.identity = manifest['identity']
         source = json.loads(bounded('native-source', {'manifest': manifest}))
         root, item = source['root'], source['item']
-        version = native_display.profile(item['metadata'].get('source_crs'))[2]
+        version = native_display.profile(item['metadata'].get('source_crs'),item['metadata'].get('field_profile'))[2]
         if '/experiment/' not in request.path and f'/display/{version}/' not in request.path:
             raise KeyError('native display version does not match selection')
         if coordinates is not None:
             native_display.validate_address(coordinates[0], coordinates[1], item['metadata']['grid']['shape_yx'])
-        operation = 'native-experiment' if experiment else 'native-metadata' if coordinates is None else 'native-block'
+        operation = 'native-portrayal' if portrayal else 'native-experiment' if experiment else 'native-metadata' if coordinates is None else 'native-block'
         frame = None
         if experiment:
             from publication.display_experiment import FRAMES
@@ -401,7 +425,7 @@ def create_app() -> Flask:
         payload, outcome = native_cache.lookup(native_display.key(manifest, item, operation, coordinates,
             json.dumps(frame, sort_keys=True)),
             lambda: bounded(operation, {'root': root, 'item': item, 'coordinates': coordinates, 'mode': experiment}),
-            metadata=coordinates is None and experiment is None, seconds=max(0, deadline-time.time()))
+            metadata=coordinates is None and experiment is None, image=portrayal, seconds=max(0, deadline-time.time()))
         if time.time() >= deadline:
             raise WorkLimit(504)
         if coordinates is None and experiment is None:
@@ -413,7 +437,7 @@ def create_app() -> Flask:
             metadata['url'] = metadata['url_template']
             response = jsonify(metadata)
         else:
-            response = Response(payload, content_type=native_display.CONTRACT['content_type'])
+            response = Response(payload, content_type='image/png' if portrayal else native_display.CONTRACT['content_type'])
         response.headers['X-HMC-Cache'] = outcome
         response.headers['Cache-Control'] = 'private, no-cache'
         response.set_etag(hashlib.sha256(response.get_data()).hexdigest())
@@ -421,13 +445,23 @@ def create_app() -> Flask:
 
     @app.get('/api/v1/selections/<selection>/display/1/native.json')
     @app.get('/api/v1/selections/<selection>/display/2/native.json')
+    @app.get('/api/v1/selections/<selection>/display/3/native.json')
     def native_metadata(selection):
         return native_response(selection)
 
     @app.get('/api/v1/selections/<selection>/display/1/native/<int:column>/<int:row>.f32')
     @app.get('/api/v1/selections/<selection>/display/2/native/<int:column>/<int:row>.f32')
+    @app.get('/api/v1/selections/<selection>/display/3/native/<int:column>/<int:row>.f32')
     def native_block(selection, column, row):
         return native_response(selection, (column, row))
+
+    @app.get('/api/v1/selections/<selection>/display/1/native/<int:column>/<int:row>.png')
+    @app.get('/api/v1/selections/<selection>/display/2/native/<int:column>/<int:row>.png')
+    @app.get('/api/v1/selections/<selection>/display/3/native/<int:column>/<int:row>.png')
+    def native_portrayal(selection,column,row):
+        if os.environ.get('T19_PROFILE')!='1':
+            raise KeyError('isolated T19 portrayal comparator')
+        return native_response(selection,(column,row),portrayal=True)
 
     @app.get('/api/v1/selections/<selection>/display/1/experiment/<mode>.f32')
     def display_experiment(selection, mode):
@@ -439,7 +473,8 @@ def create_app() -> Flask:
         return response
 
     @app.get('/gis/v1/runs/<path:run_id>/revisions/<revision>/wms')
-    def wms(run_id, revision):
+    @app.get('/gis/v1/runs/<path:run_id>/revisions/<revision>/fields/<field_id>/wms')
+    def wms(run_id, revision, field_id=None):
         _, _, retained = retention.snapshot()
         matches = [row for row in retained if row['run'] == run_id and row['wms_revision'] == revision]
         if matches and all(row['state'] == 'expired' for row in matches):
@@ -451,10 +486,12 @@ def create_app() -> Flask:
             cursor.execute('SELECT selection FROM app.catalogue')
             legacy = cursor.fetchall()
         if row is not None:
-            candidates = revision_links(row)
+            candidates = revision_links(row,'GRIB2:'+field_id if field_id is not None else None)
         else:
             candidates = [links(resolve(item['selection'])) for item in legacy if item['selection'] not in g.expired_roots]
             candidates = [item for item in candidates if item['run'] == run_id and item['revision'] == revision]
+        if field_id is not None:
+            candidates=[item for item in candidates if item['field']=='GRIB2:'+field_id]
         if not candidates:
             raise KeyError('GIS selection')
         # Normalize case, then reject duplicate and arbitrary pass-through options.
@@ -478,6 +515,7 @@ def create_app() -> Flask:
         manifest = resolve(chosen[0]['selection'])
         g.identity = manifest['identity']
         gis = manifest['gis']
+        layer_name='field' if manifest['source'].get('field_profile') else 'temperature'
         if params.get('SERVICE') != 'WMS' or params.get('VERSION') != '1.3.0':
             raise ValueError('WMS 1.3.0 required')
         allowed = {'SERVICE', 'VERSION', 'REQUEST'}
@@ -485,7 +523,7 @@ def create_app() -> Flask:
             allowed |= {'LAYERS', 'STYLES', 'TIME', 'CRS', 'BBOX', 'WIDTH', 'HEIGHT', 'FORMAT', 'TRANSPARENT'}
             if operation == 'GetFeatureInfo':
                 allowed |= {'QUERY_LAYERS', 'INFO_FORMAT', 'I', 'J', 'FEATURE_COUNT'}
-            if params.get('LAYERS') != 'temperature' or params.get('TIME') != gis['valid_time']:
+            if params.get('LAYERS') != layer_name or params.get('TIME') != gis['valid_time']:
                 raise KeyError('GIS layer/time')
             if params.get('CRS') not in ('EPSG:4326', 'EPSG:3857'):
                 raise ValueError('unsupported WMS CRS')
@@ -496,12 +534,12 @@ def create_app() -> Flask:
                     raise ValueError('map dimensions outside advertised bounds')
             params['LAYERS'] = gis['layer']
             if operation == 'GetFeatureInfo':
-                if params.get('QUERY_LAYERS') != 'temperature' or params.get('INFO_FORMAT') != 'text/plain':
+                if params.get('QUERY_LAYERS') != layer_name or params.get('INFO_FORMAT') != 'text/plain':
                     raise ValueError('unsupported identify')
                 params['QUERY_LAYERS'] = gis['layer']
         elif operation == 'GetLegendGraphic':
             allowed |= {'LAYER', 'STYLE', 'FORMAT', 'TIME', 'WIDTH', 'HEIGHT', 'SLD_VERSION', 'TRANSPARENT'}
-            if (params.get('LAYER') != 'temperature' or params.get('STYLE', '') not in ('', 'raster')
+            if (params.get('LAYER') != layer_name or params.get('STYLE', '') not in ('', 'raster')
                     or params.get('FORMAT') != 'image/png'
                     or params.get('SLD_VERSION', '1.1.0') != '1.1.0'):
                 raise ValueError('unsupported legend')
@@ -554,12 +592,13 @@ def create_app() -> Flask:
                     if key.endswith('}href'):
                         node.set(key, scoped)
                 if node.tag.endswith('}Name') and node.text and node.text.split(':')[-1] == gis['coverage']:
-                    node.text = 'temperature'
+                    node.text = layer_name
                 if node.tag == namespace+'Title' and node.text == gis['coverage']:
-                    node.text = 'Температура поверхности, K'
+                    descriptor=manifest['source'].get('field_descriptor',{})
+                    node.text = descriptor.get('label','Температура поверхности')+', '+descriptor.get('units','K')
             for node in root.findall('.//' + namespace + 'LegendURL/' + namespace + 'OnlineResource'):
                 node.set('{http://www.w3.org/1999/xlink}href', scoped +
-                         'SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&LAYER=temperature&STYLE=raster&FORMAT=image/png')
+                         'SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&LAYER='+layer_name+'&STYLE=raster&FORMAT=image/png')
             payload = ET.tostring(root, encoding='utf-8', xml_declaration=True)
         response = Response(payload, content_type=result.headers.get('Content-Type', 'application/xml'))
         response.headers['Cache-Control'] = 'private, no-cache'

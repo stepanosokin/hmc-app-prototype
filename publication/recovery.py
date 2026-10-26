@@ -29,6 +29,10 @@ RETRY_SECONDS = 2
 MAX_JOBS = 128
 
 
+def source_limit(request: dict) -> int:
+    return 128 * 1024**2 if request.get('source_profile')=='grib2-fields' else MAX_SOURCE_BYTES
+
+
 class DeliveryInvalid(ValueError):
     """A retained delivery is invalid for the approved sample pipeline."""
 
@@ -137,14 +141,15 @@ def capture(clock: str, request: dict, source_name: str, delivery_sha256: str | 
         before = source.stat()
         if not stat.S_ISREG(before.st_mode):
             raise ValueError('source must be a regular file')
-        if before.st_size > MAX_SOURCE_BYTES:
-            raise ValueError('source exceeds 64 MiB sample pipeline limit')
+        limit=source_limit(request)
+        if before.st_size > limit:
+            raise ValueError('source exceeds bounded pipeline limit')
         if delivery_sha256 is None:
             time.sleep(stability_seconds)
             after = source.stat()
             if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
                 raise ValueError('delivery still changing; retry discovery')
-        checksum = bounded_checksum(source)
+        checksum = bounded_checksum(source,limit)
         key = hashlib.sha256(canonical({'source': checksum, 'pipeline': PIPELINE, 'request': request,
                                       'producer_sha256': delivery_sha256})).hexdigest()
         with database() as cursor:
@@ -155,7 +160,7 @@ def capture(clock: str, request: dict, source_name: str, delivery_sha256: str | 
             cursor.execute("SELECT count(*) AS count FROM app.jobs WHERE state <> 'published'")
             if cursor.fetchone()['count'] >= MAX_JOBS and existing is None:
                 raise RuntimeError('job backlog budget exhausted')
-        reserve(MAX_SOURCE_BYTES)
+        reserve(limit)
         identifier = str(existing['id']) if existing else str(uuid.uuid4())
         directory = ROOT / identifier
         relative = (directory / 'original.grib2').relative_to(ROOT).as_posix()
@@ -177,7 +182,7 @@ def capture(clock: str, request: dict, source_name: str, delivery_sha256: str | 
         if not staged.exists():
             temporary = directory / ('capture-' + uuid.uuid4().hex + '.grib2')
             with source.open('rb') as incoming, temporary.open('xb') as outgoing:
-                remaining = MAX_SOURCE_BYTES + 1
+                remaining = limit + 1
                 while remaining:
                     chunk = incoming.read(min(1024**2, remaining))
                     if not chunk:
@@ -191,15 +196,16 @@ def capture(clock: str, request: dict, source_name: str, delivery_sha256: str | 
             temporary.rename(staged)
         checkpoint({'id': identifier, 'request': request}, 'captured')
         complete_capture({'id': identifier, 'source_name': source_name, 'managed_source': relative,
-                          'checksum': checksum, 'request': {'producer_sha256': delivery_sha256}}, stability_seconds)
+                          'checksum': checksum, 'request': {**request,'producer_sha256': delivery_sha256}}, stability_seconds)
         return identifier
 
 
 def complete_capture(job: dict, stability_seconds: float | None) -> None:
     staged = ROOT / job['managed_source']
-    observed = bounded_checksum(staged, MAX_SOURCE_BYTES + 1)
+    limit=source_limit(job['request'])
+    observed = bounded_checksum(staged, limit + 1)
     declared = job['request'].get('producer_sha256')
-    invalid = (staged.stat().st_size > MAX_SOURCE_BYTES or observed != job['checksum']
+    invalid = (staged.stat().st_size > limit or observed != job['checksum']
                or (declared is not None and observed != declared))
     # A crash after metadata durability but before database acknowledgement
     # reuses the same original and records another immutable capture receipt.
@@ -230,10 +236,11 @@ def source(job: dict) -> Path:
     try:
         count = 0
         for count, frame in enumerate(bounded_frames(staged), 1):
-            generic = job.get('request',{}).get('source_profile')=='surface-temperature-grib2'
+            generic = bool(job.get('request',{}).get('source_profile'))
             if count > (4096 if generic else 24):
                 raise DeliveryInvalid('too many source messages')
-            metadata = field_metadata(frame,count,job.get('request', {}).get('crs_configuration'),sample_inventory=not generic)
+            metadata = field_metadata(frame,count,job.get('request', {}).get('crs_configuration'),sample_inventory=not generic,
+                                      all_fields=job.get('request',{}).get('source_profile')=='grib2-fields')
             decoded_arrays(frame, metadata['grid']['shape_yx'])
             checkpoint(job, 'decoding')
         if (not job.get('request',{}).get('source_profile') and (count != 24 or job['checksum'] != SAMPLE_SHA256)) or count<1:

@@ -19,7 +19,7 @@ export class PointChart {
     private selected=0;
     private preview=0;
     private key='';
-    private format=(value:number)=>String(value);
+    private format:(value:number,units:string)=>string=String;
     constructor(privateChoose:(index:number)=>void){
         this.element.className='pointChart realPointChart';this.caption.textContent='Прогноз выбранной точки';
         this.range.type='range';this.range.min='0';this.range.step='1';this.range.setAttribute('aria-label','Просмотреть срок графика');
@@ -36,12 +36,12 @@ export class PointChart {
         this.svg.addEventListener('click',event=>{if(this.series?.expired)return;locate(event);privateChoose(this.preview);});
         this.element.append(this.caption,this.status,this.svg,this.range,this.tooltip,this.select,this.retry);
     }
-    update(series:PointSeries,selected:number,format:(value:number)=>string){
+    update(series:PointSeries,selected:number,format:(value:number,units:string)=>string){
         const changed=this.key!==series.key||this.selected!==selected;this.key=series.key;
         this.series=series;this.selected=selected;this.format=format;
         if(changed||!this.element.isConnected)this.preview=selected;
         const entries=series.entries,values=entries.flatMap(e=>e.result?.value!=null?[e.result.value]:[]);
-        const low=Math.min(...values),high=Math.max(...values),span=Math.max(1,high-low);
+        const low=Math.min(...values),high=Math.max(...values),span=Math.max(1e-30,Math.abs(low)*1e-6,high-low);
         const x=(i:number)=>12+i/Math.max(1,entries.length-1)*240;
         const y=(v:number)=>88-(v-low)/span*68;
         const nodes:Element[]=[];let path='';
@@ -69,7 +69,7 @@ export class PointChart {
     }
     private describe(){
         const entry:SeriesEntry|undefined=this.series?.entries[this.preview];if(!entry)return;
-        const description=utc(entry.time)+' · '+(entry.result?.value!=null?this.format(entry.result.value):labels[entry.state]);
+        const description=utc(entry.time)+' · '+(entry.result?.value!=null?this.format(entry.result.value,entry.result.units):labels[entry.state]);
         this.tooltip.textContent=description+(this.preview===this.selected?' · выбран':'');
         this.range.setAttribute('aria-valuetext',description);
     }

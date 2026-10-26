@@ -23,14 +23,26 @@ def derivative(root: Path, item: dict, target: Path) -> dict:
     if not finite.any():
         raise ValueError('Не удалось определить покрытие производного ГИС-растра')
     bounds = [float(lon[finite].min()),float(lat[finite].min()),float(lon[finite].max()),float(lat[finite].max())]
-    if bounds[2]-bounds[0]>180:
+    contained_poles=[]
+    if item['metadata'].get('field_profile'):
+        for pole in (-90,90):
+            px,py=transform(spec,0,pole)
+            if w<=px<e and s<=py<n:contained_poles.append(pole)
+    if contained_poles:
+        # A geographic pole in the interior cannot be found by sampling the
+        # perimeter alone. Its footprint spans every longitude. Keep the
+        # existing bounded nearest-cell GIS derivative, with explicit extent.
+        bounds[0],bounds[2]=-180.,180.
+        if -90 in contained_poles:bounds[1]=-90.
+        if 90 in contained_poles:bounds[3]=90.
+    elif bounds[2]-bounds[0]>180:
         raise ValueError('ГИС-покрытие через антимеридиан требует отдельного разбиения')
     ny,nx = grid['shape_yx']
     scale = max(1.,np.sqrt(nx*ny/2000000))
     width,height = max(2,round(nx/scale)),max(2,round(ny/scale))
     affine = from_bounds(*bounds,width,height)
     group = zarr.open_group(str(asset_path(root,item['zarr'])),mode='r',zarr_format=2)
-    values = read_values(group,'temperature')
+    values = read_values(group,item.get('data_variable','temperature'))
     missing = read_values(group,'missing').astype(bool)
     output = np.zeros((height,width),dtype='<f4')
     valid = np.zeros((height,width),dtype='uint8')
@@ -57,4 +69,5 @@ def derivative(root: Path, item: dict, target: Path) -> dict:
         raster_copy(temporary,target,driver='COG',COMPRESS='DEFLATE',BLOCKSIZE=256)
     temporary.unlink()
     return {'derived':True,'crs':'EPSG:4326','resampling':'nearest-native-cell',
+            **({'contained_geographic_poles':contained_poles,'extent_method':'densified-boundary-and-contained-poles'} if contained_poles else {}),
             'source_crs':spec['id'],'bounds':bounds,'shape_yx':[height,width]}

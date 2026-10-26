@@ -33,6 +33,8 @@ def main():
             elif args['operation'] == 'native-experiment':
                 from publication.display_experiment import render
                 payload = render(Path(args['root']), args['item'], args['mode'])
+            elif args['operation']=='native-portrayal':
+                payload=native_display.portrayal(Path(args['root']),args['item'],*args['coordinates'])
             else:
                 payload = native_display.render(Path(args['root']), args['item'], *args['coordinates'])
             result = {'body': base64.b64encode(payload).decode()}

@@ -17,7 +17,7 @@ export async function pointValue(current:Selection,position:Position,signal:Abor
     if(JSON.stringify(result).length>8192||!result.identity||
         ['model','run','revision','field','level','native_grid_sha256','member','valid_time'].some(key=>result.identity[key]!==current[key as keyof Selection])||
         ['selection','run','revision','valid_time','field'].some(key=>result[key as keyof PointResult]!==current[key as keyof Selection])||
-        result.spatial_selection!=='nearest-native-cell'||result.temporal_selection!=='exact'||result.units!=='K'||
+        result.spatial_selection!=='nearest-native-cell'||result.temporal_selection!=='exact'||result.units!==current.units||
         !(result.value===null&&['outside_coverage','native_nodata'].includes(result.reason??'')||
           typeof result.value==='number'&&Number.isFinite(result.value)&&result.reason===null))
         throw Error('Несогласованное значение точки.');

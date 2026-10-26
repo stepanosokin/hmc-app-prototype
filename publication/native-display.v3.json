@@ -1,0 +1,84 @@
+{
+  "contract": "hmc-native-display/3",
+  "status": "approved-for-implementation-and-comparison",
+  "agreement": {
+    "date": "2026-10-25",
+    "authority": "Owner authorized processing every field in supplied ENA workload"
+  },
+  "engine": "native-cells/3",
+  "metadata_url": "/api/v1/selections/{selection}/display/3/native.json",
+  "url_template": "/api/v1/selections/{selection}/display/3/native/{column}/{row}.f32",
+  "crs": "selection-specific source_crs",
+  "coordinate_order": [
+    "x",
+    "y"
+  ],
+  "units": "selection-specific source units",
+  "matrix_prefix": "NativeCells256-",
+  "origin": "southwest outer cell edge; first centre offset by half the grid spacing",
+  "orientation": "rows south to north; columns west to east; row-major",
+  "tile_size": [
+    256,
+    256
+  ],
+  "halo_cells": 1,
+  "stored_size": [
+    258,
+    258
+  ],
+  "supported_templates": [
+    0,
+    1,
+    10,
+    20,
+    30,
+    31
+  ],
+  "encoding": "f32",
+  "content_type": "application/vnd.hmc.native-display-f32",
+  "layout": "258*258 little-endian float32, then 258*258 uint8; offset=4*(r*258+c); maskOffset=4*258*258+r*258+c",
+  "validity": "0 missing with value 0; 1 finite valid value; padding outside the native array is missing",
+  "interpolation": "one bilinear interpolation from native cells; positive-weight missing contributor invalidates result",
+  "bounds": "half-open native footprint; clamp fractional native indices to edge centres",
+  "selection_identity": [
+    "model",
+    "run",
+    "revision",
+    "field",
+    "level",
+    "valid_time",
+    "native_grid_sha256",
+    "member"
+  ],
+  "limits": {
+    "blocks": 64,
+    "block_bytes": 332820,
+    "view_bytes": 25165824,
+    "decoded_and_gpu_bytes": 134217728,
+    "client_concurrency": 2,
+    "generation_seconds": 10,
+    "generators_per_process": 1
+  },
+  "readiness": {
+    "mode": "lazy with eager representative probes",
+    "representatives": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        5,
+        2
+      ]
+    ]
+  },
+  "precision": "Zarr float64 is exact; per-field float32 absolute bound is max(abs(source))*2^-23 in source units; no implicit unit conversion"
+}

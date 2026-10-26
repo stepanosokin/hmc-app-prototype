@@ -34,7 +34,7 @@ def render(root: Path, item: dict, mode: str) -> bytes:
                              np.where(eligible, latitude, 0))
     group = zarr.open_group(str(asset_path(root, item['zarr'])), mode='r', zarr_format=2)
     grid = item['metadata']['grid']
-    values, valid = bilinear(read_values(group, 'temperature'), read_values(group, 'missing').astype(bool),
+    values, valid = bilinear(read_values(group, item.get('data_variable', 'temperature')), read_values(group, 'missing').astype(bool),
                             lon, lat, grid['outer_cell_edges_wsen'], grid['spacing_degrees_xy'])
     valid &= eligible.astype('uint8')
     return encode(np.where(valid, values, 0), valid, 'f32')

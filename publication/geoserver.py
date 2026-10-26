@@ -54,7 +54,7 @@ def configure_limits() -> dict:
     return limits
 
 
-def prepare(workspace: str, directory: str, valid_time: str, *, srs: str = 'EPSG:100001') -> dict:
+def prepare(workspace: str, directory: str, valid_time: str, *, srs: str = 'EPSG:100001', portrayal: dict | None = None) -> dict:
     configure_limits()
     admin('POST', '/workspaces', json={'workspace': {'name': workspace}})
     admin('PUT', f'/workspaces/{workspace}/coveragestores/temperature/external.imagemosaic?configure=all',
@@ -64,8 +64,23 @@ def prepare(workspace: str, directory: str, valid_time: str, *, srs: str = 'EPSG
     if len(names) != 1:
         raise ValueError('unexpected GIS coverage count')
     name = names[0]['name']
+    style=Path(__file__).with_name('temperature.sld').read_bytes()
+    if portrayal:
+        import xml.etree.ElementTree as ET
+        root=ET.fromstring(style)
+        for title in root.findall('.//{*}Title'):
+            title.text='Поле GRIB · '+portrayal['units']
+        colors=['#7272b5','#529abd','#70c8b2','#d6d67f','#edab68','#c96761']
+        for color_map in root.findall('.//{*}ColorMap'):
+            color_map.clear();color_map.set('type','ramp')
+            low,high=portrayal['range']
+            for index,color in enumerate(colors):
+                quantity=low+(max(high-low,abs(low)*1e-7,1e-30))*index/5
+                ET.SubElement(color_map,'{http://www.opengis.net/sld}ColorMapEntry',color=color,
+                              quantity=str(quantity),label=str(quantity)+' '+portrayal['units'])
+        style=ET.tostring(root,encoding='utf8')
     admin('POST', f'/workspaces/{workspace}/styles?name=raster',
-          data=Path(__file__).with_name('temperature.sld').read_bytes(),
+          data=style,
           headers={'Content-Type': 'application/vnd.ogc.sld+xml'})
     admin('PUT', f'/layers/{workspace}:{name}.json', json={'layer': {
         'defaultStyle': {'name': 'raster', 'workspace': workspace}}})
@@ -145,4 +160,5 @@ def verify(gis: dict) -> dict:
             raise ValueError('GIS coordinate placement/value differs from native baseline')
         identified_value = float(match.group(1))
     return {'granule_counts_positive_negative': observed, 'capability_times': times,
-            'capability_layers': layers, 'map_bytes': len(image.content),'identified_value_K':identified_value}
+            'capability_layers': layers, 'map_bytes': len(image.content),
+            **({'identified_value':identified_value,'units':gis['units']} if 'units' in gis else {'identified_value_K':identified_value})}

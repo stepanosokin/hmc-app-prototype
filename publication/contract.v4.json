@@ -1,0 +1,48 @@
+{
+  "contract": "hmc-field-tile/4",
+  "status": "approved-for-implementation-and-comparison",
+  "agreement": {
+    "date": "2026-10-25",
+    "authority": "Owner authorized processing every field in supplied ENA workload"
+  },
+  "url_template": "/api/v1/selections/{selection}/tiles/4/{z}/{x}/{y}.{encoding}",
+  "matrix": "WebMercatorQuad",
+  "encoding": "f32",
+  "tile_size": [
+    256,
+    256
+  ],
+  "stored_size": [
+    258,
+    258
+  ],
+  "halo_cells": 1,
+  "units": "selection-specific source units",
+  "projection": "Inverse EPSG:3857 to WGS84 h=source_crs.configuration height, explicit Cartesian bridge and source projection from immutable source_crs; no implicit datum operation",
+  "source_crs": "Required per-publication hmc-grib-crs/1 snapshot",
+  "resampling": "bilinear on canonical source cells; any positive-weight missing contributor invalidates output",
+  "limits": {
+    "zoom_min": 0,
+    "zoom_max": 6
+  },
+  "readiness": {
+    "representatives": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        3,
+        4,
+        2
+      ],
+      [
+        3,
+        4,
+        3
+      ]
+    ]
+  },
+  "precision": "Zarr float64 is exact; per-field float32 absolute bound is max(abs(source))*2^-23 in source units; no implicit unit conversion"
+}

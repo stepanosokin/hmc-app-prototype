@@ -89,12 +89,12 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
     identifier = str(job['id'])
     item = numerical.manifest['fields'][0]
     from publication.tiles import contract_for
-    tile_contract = contract_for(item['metadata'].get('source_crs'))
+    tile_contract = contract_for(item['metadata'].get('source_crs'),item['metadata'].get('field_profile'))
     failure = os.environ.get('T4_TEST_FAILURE')
     if os.environ.get('T5_FAIL_HOUR') not in (None, str(item['metadata']['message'])):
         failure = None
     selection_body = {key: numerical.manifest[key] for key in ['model', 'run', 'member']}
-    selection_body.update(revision=numerical.revision, field=item['field'], level=0,
+    selection_body.update(revision=numerical.revision, field=item['field'], level=item['metadata']['identity']['level'],
                           valid_time=item['metadata']['valid_time'],
                           native_grid_sha256=item['metadata']['native_grid_sha256'],
                           publication_job=identifier, contract=tile_contract['contract'])
@@ -115,6 +115,8 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
                      'selection': selection, 'identity': selection_body,
                      'source_crs': item['metadata'].get('source_crs'),
                      'url': tile_contract['url_template'].replace('{selection}', selection).replace('{encoding}', decision['encoding'])}
+    if item['metadata'].get('field_profile'):
+        tile_metadata.update(units=item['metadata']['identity']['units'],encoding_max_abs_error=item['metadata']['float32_abs_error_bound'])
     write_once(attempt / 'tiles.json', tile_metadata)
     recovery.stage(job, 'tiles')
     tile_checks = []
@@ -125,7 +127,8 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
             raise ValueError('non-deterministic representative tile')
         restored, restored_mask = decode(payload, 'f32')
         import numpy as np
-        if not np.array_equal(restored_mask, valid) or np.max(np.abs(restored-values)) > 0.001:
+        bound=item['metadata'].get('float32_abs_error_bound',0.001)
+        if not np.array_equal(restored_mask, valid) or np.max(np.abs(restored-values)) > bound:
             raise ValueError('representative numeric readiness failed')
         tile_path = attempt / f'{z}-{x}-{y}.f32'
         tile_path.write_bytes(payload)
@@ -155,17 +158,25 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
     recovery.checkpoint(job, 'derivatives')
     workspace = 'p' + hashlib.sha256(attempt.relative_to(ROOT).as_posix().encode()).hexdigest()[:24]
     index_name = 'g' + workspace[1:]
+    pool = ([r'min\ connections=0',r'max\ connections=2',
+             r'Evictor\ run\ periodicity=1',r'Max\ connection\ idle\ time=5',
+             r'Evictor\ tests\ per\ run=2'] if item['metadata'].get('field_profile') else [])
     (mosaic / 'datastore.properties').write_text('\n'.join([
         'SPI=org.geotools.data.postgis.PostgisNGDataStoreFactory', 'host=db', 'port=5432',
         'database=hmc', 'schema=' + ('nonexistent' if failure == 'index' else 'mosaic'), 'user=hmc_mosaic',
-        'passwd=' + os.environ['MOSAIC_PASSWORD'], 'Loose bbox=true', 'preparedStatements=true']))
+        'passwd=' + os.environ['MOSAIC_PASSWORD'], 'Loose bbox=true', 'preparedStatements=true']+pool))
     (mosaic / 'indexer.properties').write_text('TimeAttribute=time\nMosaicCRS='+gis_crs+'\nName=' + index_name + '\nTypeName=' + index_name + '\nSchema=*the_geom:Polygon,location:String,time:java.util.Date\nPropertyCollectors=TimestampFileNameExtractorSPI[timeregex](time)\n')
     (mosaic / 'timeregex.properties').write_text('regex=[0-9]{8}T[0-9]{6}\nformat=yyyyMMdd\'T\'HHmmss\n')
     # An interrupted index may already exist. Every attempt owns its workspace;
     # only the manifest-selected one becomes reachable through the gateway.
     write_once(attempt / 'workspace.json', {'workspace': workspace})
     recovery.stage(job, 'indexing')
-    gis = geoserver.prepare(workspace, str(mosaic), item['metadata']['valid_time'], srs=gis_crs)
+    portrayal=None
+    if item['metadata'].get('field_profile'):
+        portrayal={'units':item['metadata']['identity']['units'],
+                   'range':[item['metadata']['values']['min'],item['metadata']['values']['max']]}
+    gis = geoserver.prepare(workspace, str(mosaic), item['metadata']['valid_time'], srs=gis_crs,portrayal=portrayal)
+    if portrayal:gis['units']=portrayal['units']
     if derivative:
         gis['derivative'] = derivative
     recovery.checkpoint(job, 'indexing')

@@ -26,7 +26,7 @@ def fixture_run(fixture: str) -> str:
 
 
 def source_run(request: dict, metadata: dict, fixture: str) -> str:
-    if request.get('source_profile') != 'surface-temperature-grib2' or fixture != 'actual':
+    if request.get('source_profile') not in ('surface-temperature-grib2','grib2-fields') or fixture != 'actual':
         return fixture_run(fixture)
     return request.get('model',metadata['model'])+'/'+metadata['reference_time']
 
@@ -50,7 +50,8 @@ def normalize(source: Path, target: Path, hour: int, frame: bytes, fixture: str,
         recovery.stage(job, 'normalization')
     request = (job or {}).get('request', {})
     metadata = field_metadata(frame,hour,request.get('crs_configuration'),
-                              sample_inventory=request.get('source_profile')!='surface-temperature-grib2')
+                              sample_inventory=not request.get('source_profile'),
+                              all_fields=request.get('source_profile')=='grib2-fields')
     values, missing = decoded_arrays(frame, metadata['grid']['shape_yx'])
     run = source_run(request,metadata,fixture)
     model = request.get('model',metadata['model']) if request.get('source_profile') else 'ICON-EU'
@@ -78,6 +79,20 @@ def normalize(source: Path, target: Path, hour: int, frame: bytes, fixture: str,
                                          'synthetic_fixture': request.get('fixture_label') or (None if fixture == 'actual' else fixture),
                                          'source_crs': metadata['source_crs']},
             'tools': versions(), 'fields': [item], 'assets': inventory}
+    if metadata.get('field_profile'):
+        descriptor = metadata['raw_identity']
+        body['source'].update(field_profile=metadata['field_profile'], field_descriptor={
+            'id':item['field'], 'units':metadata['identity']['units'],
+            'label':f'Поле GRIB {descriptor["discipline"]}.{descriptor["parameterCategory"]}.{descriptor["parameterNumber"]}',
+            'level_type':metadata['identity']['typeOfLevel'], 'level':metadata['identity']['level'],
+            'short_name':metadata['identity']['shortName'],
+            'display_blocks':((metadata['grid']['shape_yx'][0]+255)//256)*((metadata['grid']['shape_yx'][1]+255)//256),
+            'raw_identity':metadata['field_identity'], 'interval':metadata['interval']})
+        if 'uv_relative_to_grid' in metadata['identity']:
+            pair={key:value for key,value in metadata['field_identity'].items() if key!='parameterNumber'}
+            body['source']['field_descriptor'].update(wind_axis='u' if descriptor['parameterNumber']==2 else 'v',
+                wind_pair=hashlib.sha256(canonical(pair)).hexdigest(),
+                uv_relative_to_grid=metadata['identity']['uv_relative_to_grid'])
     revision = hashlib.sha256(canonical(body)).hexdigest()
     write_once(target / 'manifest.json', {**body, 'revision': revision})
     for path in target.rglob('*'):
@@ -126,8 +141,39 @@ def selected(revision: dict, entry: dict) -> dict:
     identity = {**batch['identity'], 'revision': revision['revision']}
     return {**batch, 'identity': identity, 'selection': revision['revision'] + '.' + entry['key'],
             'batch_selection': batch['selection'], 'completeness': revision['completeness'],
-            'revision_times': sorted({item['valid_time'] for item in revision['batches']}),
+            'revision_times': sorted({item['valid_time'] for item in revision['batches']
+                                      if item.get('field','T_G:surface:0')==identity['field']}),
             'fixture': batch.get('fixture', 'actual')}
+
+
+def commit_revision(job: dict, directory: Path, run: str, base: dict | None, entries: dict,
+                    key: str, hour: int, source: Path, checksum: str) -> str:
+    """Expose a fully validated immutable manifest with one database commit."""
+    identifier = str(job['id'])
+    body = {'schema_version': 2, 'pipeline_version': PIPELINE, 'run': run,
+            'parent': base['revision'] if base else None, 'job': identifier, 'hour': hour,
+            'clock': job['submitted_at'].isoformat(), 'completeness': 'unknown',
+            'batches': sorted(entries.values(), key=lambda entry: entry['key'])}
+    revision = hashlib.sha256(canonical(body)).hexdigest()
+    manifest = directory / 'revision.json'
+    revision_checksum = write_once(manifest, {**body, 'revision': revision})
+    manifest_relative = manifest.relative_to(ROOT).as_posix()
+    loaded = load_revision(manifest_relative, revision_checksum)
+    # Recheck every referenced batch before making this revision eligible.
+    for entry in loaded['batches']:
+        selected(loaded, entry)
+    if file_hash(source) != checksum:
+        raise ValueError('source changed during publication')
+    recovery.checkpoint(job, 'publication')
+    with database() as cursor:
+        cursor.execute('INSERT INTO app.revisions VALUES(%s,%s,%s,%s,clock_timestamp(),%s)',
+                       (revision, body['run'], manifest_relative, revision_checksum, identifier))
+        cursor.execute('UPDATE app.jobs SET selection=%s, manifest_path=%s, manifest_sha256=%s WHERE id=%s',
+                       (revision + '.' + key, manifest_relative, revision_checksum, identifier))
+        from publication.retention import register
+        register(cursor, revision, loaded, manifest_relative)
+    recovery.checkpoint(job, 'committed')
+    return revision
 
 
 def process(job: dict) -> None:
@@ -136,6 +182,8 @@ def process(job: dict) -> None:
     from publication.worker import transition, publish_batch
     identifier = str(job['id'])
     request = job['request']
+    if request.get('source_profile')=='grib2-fields':
+        transition(identifier,job['state'],processing_started=True)
     recoverable = bool(request.get('recoverable'))
     source = recovery.source(job) if recoverable else Path('/input') / job['source_name']
     checksum = job['checksum'] if request.get('source_profile') else SAMPLE_SHA256
@@ -154,11 +202,13 @@ def process(job: dict) -> None:
     transition(identifier, 'staged', source_sha256=checksum)
     hours = set(request['hours'])
     published = 0
+    pending: dict = {}
     for hour, frame in enumerate(bounded_frames(staged), 1):
         if hour not in hours:
             continue
         metadata = field_metadata(frame,hour,request.get('crs_configuration'),
-                                  sample_inventory=request.get('source_profile')!='surface-temperature-grib2')
+                                  sample_inventory=not request.get('source_profile'),
+                                  all_fields=request.get('source_profile')=='grib2-fields')
         run = source_run(request,metadata,request['fixture'])
         base = latest(run)
         # A repeated delivery of the same validated message reuses the batch;
@@ -189,37 +239,28 @@ def process(job: dict) -> None:
         batch, relative, batch_checksum = publish_batch(job, directory, numerical, commit=False)
         base = latest(numerical.manifest['run'])
         key = batch_key(batch['identity'])
-        entries = {entry['key']: entry for entry in base['batches']
-                   if entry['valid_time'] != batch['identity']['valid_time']} if base else {}
+        previous = dict(pending) if pending else {entry['key']:entry for entry in base['batches']} if base else {}
+        entries = {entry['key']: entry for entry in previous.values()
+                   if not (entry['valid_time']==batch['identity']['valid_time']
+                           and entry.get('field','T_G:surface:0')==batch['identity']['field'])}
         entries[key] = {'key': key, 'valid_time': batch['identity']['valid_time'],
+                        'field':batch['identity']['field'],
                         'manifest_path': relative, 'manifest_sha256': batch_checksum}
-        body = {'schema_version': 2, 'pipeline_version': PIPELINE, 'run': numerical.manifest['run'],
-                'parent': base['revision'] if base else None, 'job': identifier, 'hour': hour,
-                'clock': job['submitted_at'].isoformat(), 'completeness': 'unknown',
-                'batches': sorted(entries.values(), key=lambda entry: entry['key'])}
-        revision = hashlib.sha256(canonical(body)).hexdigest()
-        manifest = directory / 'revision.json'
-        revision_checksum = write_once(manifest, {**body, 'revision': revision})
-        manifest_relative = manifest.relative_to(ROOT).as_posix()
-        loaded = load_revision(manifest_relative, revision_checksum)
-        # Recheck every referenced batch before making this revision eligible.
-        for entry in loaded['batches']:
-            selected(loaded, entry)
-        if file_hash(source) != checksum:
-            raise ValueError('source changed during publication')
-        recovery.checkpoint(job, 'publication')
-        with database() as cursor:
-            cursor.execute('INSERT INTO app.revisions VALUES(%s,%s,%s,%s,clock_timestamp(),%s)',
-                           (revision, body['run'], manifest_relative, revision_checksum, identifier))
-            cursor.execute('UPDATE app.jobs SET selection=%s, manifest_path=%s, manifest_sha256=%s WHERE id=%s',
-                           (revision + '.' + key, manifest_relative, revision_checksum, identifier))
-            from publication.retention import register
-            register(cursor, revision, loaded, manifest_relative)
-        recovery.checkpoint(job, 'committed')
+        from publication.catalogue import discovery
+        entries[key]['discovery']=discovery(batch)
+        if request.get('source_profile')=='grib2-fields':
+            pending=entries
+            published+=1
+            transition(identifier,'validated',prepared_fields=published)
+            continue
+        revision = commit_revision(job, directory, numerical.manifest['run'], base, entries, key, hour, source, checksum)
         published += 1
         transition(identifier, 'validated', revision=revision, published_times=published)
     if published != len(hours):
         raise ValueError('requested source times unavailable')
+    if pending:
+        revision = commit_revision(job, directory, run, latest(run), pending, key, hour, source, checksum)
+        transition(identifier, 'validated', revision=revision, published_times=published)
     transition(identifier, 'published', published_times=published)
     if recoverable:
         with database() as cursor:

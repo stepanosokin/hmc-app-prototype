@@ -24,6 +24,10 @@ docs/evidence/t10/*.log -whitespace
 tools/check_evidence.py -text whitespace=cr-at-eol
 docs/development-workflow.md text eol=lf
 
+# T19 source snapshots and failed attempts remain byte-addressed.
+docs/evidence/t19/** -text whitespace=cr-at-eol
+docs/evidence/t19/**/*.log -whitespace
+
 docs/evidence/t11/** -text whitespace=cr-at-eol
 docs/evidence/t11/*.log -whitespace
 

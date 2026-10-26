@@ -20,7 +20,9 @@ CONTRACT_V3_PATH = Path(__file__).with_name('contract.v3.json')
 CONTRACT_V3 = json.loads(CONTRACT_V3_PATH.read_text())
 
 
-def contract_for(spec: dict | None) -> dict:
+def contract_for(spec: dict | None, field_profile: str | None = None) -> dict:
+    if field_profile:
+        return json.loads(Path(__file__).with_name('contract.v4.json').read_bytes())
     if spec:
         from publication.native_display import profile
         if profile(spec)[2] == 2:
@@ -70,7 +72,7 @@ def bilinear(values: np.ndarray, missing: np.ndarray, lon: np.ndarray, lat: np.n
 def render(root: Path, item: dict, z: int, x: int, y: int) -> tuple[np.ndarray, np.ndarray]:
     group = zarr.open_group(str(asset_path(root, item['zarr'])), mode='r', zarr_format=2)
     grid = item['metadata']['grid']
-    return bilinear(read_values(group, 'temperature'), read_values(group, 'missing').astype(bool),
+    return bilinear(read_values(group, item.get('data_variable', 'temperature')), read_values(group, 'missing').astype(bool),
                     *coordinates(z, x, y, item['metadata'].get('source_crs')), grid['outer_cell_edges_wsen'], grid['spacing_degrees_xy'])
 
 

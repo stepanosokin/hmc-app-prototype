@@ -9,6 +9,9 @@ import {checkUpdates} from './viewer-updates.mjs';
 import {checkTimeSwitch} from './viewer-time-switch.mjs';
 import {checkPointSeries} from './viewer-point-series.mjs';
 import {checkSourceSettings} from './viewer-settings.mjs';
+import {measureViewer} from './viewer-workload.mjs';
+import {checkFieldGroups,nativePointPixel} from './viewer-fields.mjs';
+import {captureScalarReference} from './viewer-reference.mjs';
 const directory=resolve(process.env.T13_REPORT_DIRECTORY||'data/reports/t13/browser-'+randomUUID());
 assert.ok(directory.startsWith(resolve('data/reports')+sep));
 const origin=process.env.T13_VIEWER||'http://127.0.0.1:8140';assert.match(origin,/^http:\/\/127\.0\.0\.1:\d+$/);
@@ -59,6 +62,7 @@ try{
         else if(message.method==='Runtime.exceptionThrown')report.errors.push(message.params.exceptionDetails);
         else if(message.method==='Network.requestWillBeSent')report.requests.push({url:message.params.request.url,headers:Object.keys(message.params.request.headers),request_id:message.params.requestId,time_ms:message.params.timestamp*1000});
         else if(message.method==='Network.responseReceived')report.responses.push({url:message.params.response.url,status:message.params.response.status,request_id:message.params.requestId,time_ms:message.params.timestamp*1000});
+        else if(message.method==='Network.loadingFinished')(report.transfers??=[]).push({request_id:message.params.requestId,encoded_bytes:message.params.encodedDataLength,time_ms:message.params.timestamp*1000});
     };
     call=(method,params={})=>new Promise((resolve,reject)=>{const id=++next,timer=setTimeout(()=>{pending.delete(id);reject(Error('CDP timeout: '+method));},cleanupMode?5000:android?120000:30000);
         pending.set(id,{resolve,reject,timer});socket.send(JSON.stringify({id,method,params}));});
@@ -123,7 +127,7 @@ try{
     report.browser=await call('Browser.getVersion');
     if(android){await call('Page.bringToFront');report.user_agent=await evaluate('navigator.userAgent');report.device_pixel_ratio=await evaluate('devicePixelRatio');}
     report.configuration={gpu_disabled:disabled,focused,public_runtime_blocked:offline,initial_load_repeats:Number(process.env.T27_INITIAL_REPEATS||0)};
-    const sizes=android?[await evaluate('[innerWidth,innerHeight,true]')]:focused||disabled?[[1440,900,false]]:[[1440,900,false],[390,844,true],[360,740,true],[640,360,true]];
+    const sizes=android?[await evaluate('[innerWidth,innerHeight,true]')]:process.env.T19_WORKLOAD==='1'?(focused?[[1440,900,false]]:[[1440,900,false],[900,640,false]]):focused||disabled?[[1440,900,false]]:[[1440,900,false],[390,844,true],[360,740,true],[640,360,true]];
     for(const [width,height,mobile] of sizes){
         if(!android)await call('Emulation.setDeviceMetricsOverride',{width,height,mobile,deviceScaleFactor:1});
         if(report.configuration.initial_load_repeats){
@@ -139,7 +143,7 @@ try{
             assert.ok(report.initial_loads.every(item=>item.state.ready),'Every initial-load probe must succeed');
             report.checks.push('Initial GPU field probe');continue;
         }
-        await call('Page.navigate',{url:origin+'/?validation=1'});
+        await call('Page.navigate',{url:origin+'/?validation=1'+(process.env.T19_PORTRAYAL==='1'?'&portrayal=1':'')});
         if(disabled){
             await wait("document.getElementById('projectionStatus').textContent.includes('Режим недоступен')",'GPU unavailable reason');
             await check('Russian unavailable renderer with explicit Mercator',"!document.getElementById('useMercator').hidden&&document.getElementById('projection').value==='mercator'");
@@ -150,6 +154,17 @@ try{
         report.gpu=await evaluate("(()=>{const gl=document.querySelector('.maplibregl-canvas').getContext('webgl2'),debug=gl.getExtension('WEBGL_debug_renderer_info');return {renderer:gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER),version:gl.getParameter(gl.VERSION),highp_precision:gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER,gl.HIGH_FLOAT).precision,max_texture_size:gl.getParameter(gl.MAX_TEXTURE_SIZE),max_array_layers:gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)};})()");
         if(android){
             await wait("document.visibilityState==='visible'",'unlocked visible Galaxy tab');
+        }
+        if(process.env.T19_WORKLOAD==='1'){
+            assert.ok(!android&&!disabled,'T19 desktop profile; physical Android is #51');
+            if(process.env.T19_REFERENCE_ONLY==='1'){
+                await captureScalarReference({call,evaluate,wait,click,select,capture,report,directory});continue;
+            }
+            if(process.env.T19_FIELD_UI_ONLY==='1'){
+                await checkFieldGroups({call,evaluate,wait,click,select,capture,origin,report,directory});continue;
+            }
+            await measureViewer({call,evaluate,wait,click,select,capture,origin,report,directory,width,height});
+            continue;
         }
         if(!android){
             await checkSourceSettings({call,evaluate,wait,click,select,capture,report,directory,width,height,origin});
@@ -203,7 +218,7 @@ try{
             (viewport.measurements??=[]).push({mode,transfer_bytes:frame.transfer_bytes,managed_bytes:frame.managed_bytes,
                 load_ms:frame.load_ms,warm_switch_ms:frame.warm_switch_ms,upload_timings:frame.upload_timings});
             assert.ok(frame.managed_bytes<=128*1024**2);assert.ok(frame.transfer_bytes<=8*1024**2);
-            const target=await evaluate("(()=>{const r=[...document.querySelectorAll('.mapLabel')].find(e=>e.textContent.includes('Москва')).getBoundingClientRect();return {x:r.x+3,y:r.y+3};})()");
+            const target=await nativePointPixel(evaluate,mode);assert.ok(target,'An unobstructed native point for the canonical click');
             const pointRequests=report.requests.filter(item=>item.url.includes('/api/v1/point?')).length;
             if(android){await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:Math.floor(target.x)+.5,y:Math.floor(target.y)+.5,id:1}]});
                 await delay(50);await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
@@ -326,6 +341,12 @@ try{
         const remaining=execFileSync('powershell',['-NoProfile','-Command',
             "@(Get-CimInstance Win32_Process -Filter \"Name='chrome.exe' OR Name='msedge.exe'\" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains($env:T13_PROFILE) }).Count"],
             {encoding:'utf8',env:{...process.env,T13_PROFILE:profile},windowsHide:true}).trim();
+        if(process.env.T19_WORKLOAD==='1'&&/^[1-9]\d*$/.test(remaining)){
+            const observations=report.browser_cleanup_observations=[{observed_at:new Date().toISOString(),
+                count:Number(remaining),processes:null,scope:'Original one-shot inventory returned count only; PIDs unavailable'}];
+            const {waitForWorkloadBrowserExit}=await import('./viewer-workload-cleanup.mjs');
+            await waitForWorkloadBrowserExit(profile,observations);return;
+        }
         assert.equal(remaining,'0');
         });
         await clean('profile_removed',()=>rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:200}));

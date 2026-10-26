@@ -96,7 +96,7 @@ def tool_versions() -> dict[str, Any]:
 
 
 def decode_message(frame: bytes, hour: int, crs_config: dict | None = None,
-                   sample_inventory: bool = True) -> dict[str, Any]:
+                   sample_inventory: bool = True, all_fields: bool = False) -> dict[str, Any]:
     raw = sections(frame)
     identification, grid, product, packing = raw[1], raw[3], raw[4], raw[5]
     if sample_inventory:
@@ -104,7 +104,9 @@ def decode_message(frame: bytes, hour: int, crs_config: dict | None = None,
         require(len(packing) >= 25, 'truncated section 5')
     from decoder.grib_crs import resolve
     geometry = resolve(grid, crs_config)
-    require(uint(product, 7, 9) == 0, 'unsupported product template: expected 4.0')
+    product_template = uint(product, 7, 9)
+    require(product_template in (0, 8) if all_fields else product_template == 0,
+            'unsupported product template: expected 4.0 or explicit field-profile 4.8')
     raw_identity = {
         'discipline': frame[6], 'centre': uint(identification, 5, 7),
         'subCentre': uint(identification, 7, 9), 'tablesVersion': identification[9],
@@ -120,7 +122,7 @@ def decode_message(frame: bytes, hour: int, crs_config: dict | None = None,
     }
     if sample_inventory:
         require(raw_identity == expected_identity, f'parameter/table/surface identity differs from sample: {raw_identity}')
-    else:
+    elif not all_fields:
         require(all(raw_identity[key] == expected_identity[key] for key in
             ('discipline','parameterCategory','parameterNumber','typeOfFirstFixedSurface')),
             'Поддерживается только мгновенная температура поверхности GRIB2')
@@ -133,6 +135,20 @@ def decode_message(frame: bytes, hour: int, crs_config: dict | None = None,
     require(product[17] in unit_seconds,'Не поддерживается единица прогнозного срока GRIB2')
     lead_seconds = unit_seconds[product[17]]*uint(product,18,22)
     valid = reference + timedelta(seconds=lead_seconds)
+    interval = None
+    if product_template == 8:
+        require(len(product) >= 58 and product[41] == 1, 'Поддерживается один статистический интервал GRIB2 4.8')
+        require(product[46] in (0, 1, 2, 3) and product[48] in unit_seconds,
+                'Не поддерживается статистическая операция или единица интервала')
+        end = datetime(uint(product,34,36),product[36],product[37],product[38],product[39],product[40],tzinfo=timezone.utc)
+        duration = uint(product,49,53)*unit_seconds[product[48]]
+        require(end >= valid and (end-valid).total_seconds() == duration,
+                'Границы и длительность статистического интервала не согласованы')
+        interval = {'start':valid.isoformat().replace('+00:00','Z'),
+                    'end':end.isoformat().replace('+00:00','Z'), 'statistical_process':product[46],
+                    'duration_seconds':duration, 'time_increment_type':product[47],
+                    'time_increment_unit':product[53], 'time_increment':uint(product,54,58)}
+        valid = end
     nj, ni = geometry['grid']['shape_yx']
     dx, dy = geometry['grid']['spacing_xy']
     west, south, east, north = geometry['grid']['outer_edges_wsen']
@@ -141,13 +157,21 @@ def decode_message(frame: bytes, hour: int, crs_config: dict | None = None,
     handle = ec.codes_new_from_message(frame)
     try:
         for key, expected in raw_identity.items():
-            require(ec.codes_get_long(handle, key) == expected, f'decoder/raw header mismatch: {key}')
+            raw_missing = (key == 'scaleFactorOfFirstFixedSurface' and expected == 255
+                       or key == 'scaledValueOfFirstFixedSurface' and expected == 0xffffffff)
+            require(bool(ec.codes_is_missing(handle, key)) if all_fields and raw_missing
+                    else ec.codes_get_long(handle, key) == expected, f'decoder/raw header mismatch: {key}')
         identity = {key: ec.codes_get(handle, key) for key in ['paramId', 'shortName', 'name', 'units', 'typeOfLevel', 'level', 'packingType', 'gridType']}
+        if all_fields and raw_identity['discipline']==0 and raw_identity['parameterCategory']==2 and raw_identity['parameterNumber'] in (2,3):
+            require(ec.codes_is_defined(handle,'uvRelativeToGrid') and not ec.codes_is_missing(handle,'uvRelativeToGrid'),
+                    'Не задана ориентация компонент ветра')
+            identity['uv_relative_to_grid']=bool(ec.codes_get_long(handle,'uvRelativeToGrid'))
         if sample_inventory:
             require((identity['shortName'], identity['paramId'], identity['units'], identity['typeOfLevel'], identity['level']) == ('T_G', 500010, 'K', 'surface', 0), f'decoder did not establish surface-temperature identity: {identity}')
             require(identity['packingType'] == 'grid_ccsds', 'decoder packing mismatch')
-        require((identity['units'],identity['typeOfLevel'],identity['level'])==('K','surface',0),
-                'Декодер не подтвердил температуру поверхности в K')
+        if not all_fields:
+            require((identity['units'],identity['typeOfLevel'],identity['level'])==('K','surface',0),
+                    'Декодер не подтвердил температуру поверхности в K')
         checks = {'Ni': ni, 'Nj': nj, 'scanningMode': geometry['grid']['scanning_mode'],
                   'dataDate':int(reference.strftime('%Y%m%d')),'dataTime':int(reference.strftime('%H%M')),
                   'validityDate':int(valid.strftime('%Y%m%d')),'validityTime':int(valid.strftime('%H%M'))}
@@ -193,6 +217,7 @@ def decode_message(frame: bytes, hour: int, crs_config: dict | None = None,
                     'value': None if mask[index] else float(values[index])} for index in positions]
         return {
             'message': hour, 'identity': identity, 'raw_identity': raw_identity, 'source_crs': geometry,
+            **({'product_template':product_template,'interval':interval} if all_fields else {}),
             'reference_time': reference.isoformat().replace('+00:00', 'Z'),
             'lead_hours': lead_seconds/3600, 'raw_lead': {'unit_code': product[17], 'value': uint(product, 18, 22)},
             'model': 'ICON-EU' if sample_inventory else f'GRIB-{raw_identity["centre"]}-{product[13]}',

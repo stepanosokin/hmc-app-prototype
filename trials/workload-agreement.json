@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "scope": "T19: локальные измерения, не производственный SLA",
+  "authorization": "25.10.2026 пользователь выбрал прежний локальный хост, указал data/grib и поручил агенту выбрать цели задержек и FPS с учётом мощности хоста.",
+  "host": {
+    "environment": "Windows / Docker Desktop / WSL2",
+    "logical_cpus": 24,
+    "docker_memory_bytes_observed": 33160335360,
+    "network": "loopback; physical Android explicitly deferred by owner to issue #51",
+    "operational_linux_host": false
+  },
+  "profiles": {
+    "http_clients": [1, 10, 50, 100],
+    "browser_clients": 1,
+    "repetitions": 3,
+    "duration_seconds": 60,
+    "think_seconds": 1,
+    "policy": "Действующие ограничения gateway сохраняются. 429/504 учитываются отдельно; число клиентов не означает число допущенных параллельных запросов."
+  },
+  "targets": {
+    "all_modes": ["mercator", "orthographic", "laea"],
+    "numeric_block_cold_p95_ms": 1500,
+    "numeric_block_cold_p99_ms": 3000,
+    "numeric_block_warm_p95_ms": 250,
+    "numeric_block_warm_p99_ms": 500,
+    "complete_field_cold_p95_ms": 5000,
+    "complete_field_warm_p95_ms": 2000,
+    "time_switch_cold_p95_ms": 5000,
+    "time_switch_warm_p95_ms": 1000,
+    "series_complete_warm_p95_ms": 5000,
+    "desktop_frame_p95_ms": 33.3333333333,
+    "desktop_median_fps_min": 60,
+    "physical_android_frame_p95_ms": 50,
+    "physical_android_median_fps_min": 30,
+    "managed_memory_max_bytes": 134217728,
+    "unexpected_error_count_max": 0,
+    "scope": "Цели выбраны до измерения для каждой из трёх проекций. Отменённый T26 не восстановлен: обязательного показа промежуточных сроков и норматива 100 мс нет. При провале цели сохраняется фактический результат."
+  },
+  "resource_budgets": {
+    "worker": {"cpus": 2, "memory_bytes": 2147483648},
+    "api": {"cpus": 4, "memory_bytes": 2147483648},
+    "gateway": {"cpus": 2, "memory_bytes": 1073741824},
+    "db": {"cpus": 2, "memory_bytes": 2147483648},
+    "geoserver": {"cpus": 2, "memory_bytes": 2147483648},
+    "viewer": {"cpus": 1, "memory_bytes": 536870912},
+    "load_generator": {"cpus": 2, "memory_bytes": 1073741824}
+  },
+  "android_scope": "25.10.2026 owner explicitly moved physical Chrome/Android acceptance to #51; no mobile pass is claimed in #31",
+  "comparison_retention": {"superseded_count":1024,"superseded_bytes":1099511627776,"scope":"Изолированный эксперимент сохраняет закреплённые редакции до конца сравнений. Рабочие умолчания не изменены; в расчёте хранения показываются обе политики."},
+  "ingestion_tail_wait_seconds":86400,
+  "ingestion_tail_poll_seconds":30,
+  "wind_direction_reference": {"source":"independent ecCodes U/V and source coordinates; analytic WGS84 datum conversion; PROJ display direction","placement_max_m":1,"screen_unit_vector_error_max":0.0002,"scope":"Задано до измерений нового экранного контроля. Исходные допуски float32 и CRS сохраняются."},
+  "scalar_reference": {"canonical":"exact independent ecCodes float64","native_float32":"max(abs(source))*2^-23 in source units","pressure_gpu_total_max_abs_error_Pa":5,"scope":"Допуск нового экранного поля давления задан до GPU-измерения; это 0,05 гПа. Исторический температурный GPU-допуск 0,01 K, исходная точность Zarr/COG/тайлов и геометрические допуски не меняются. GPU readback выполняется отдельно от замеров FPS."},
+  "readiness": "pending: correctness, supported input publication, full server/desktop browser workload and evidence are required; mobile remains #51"
+}

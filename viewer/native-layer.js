@@ -15,6 +15,8 @@ uniform vec2 orthoCenter;
 uniform bool numeric;
 uniform bool alternatePalette;
 uniform bool geometryOnly;
+uniform bool portrayalBaseline;
+uniform vec2 displayRange;
 uniform vec4 nativeBounds;
 uniform vec2 nativeSpacing;
 uniform ivec2 nativeShape;
@@ -68,6 +70,7 @@ void main(){
     bool visible=abs(geo.y)<=90.;
     geo.x=mod(geo.x+180.,360.)-180.;
     if(geometryOnly){color=vec4(geo,visible&&!(mode==1&&geo.y<45.)?1.:0.,1.);return;}
+    if(!visible){color=vec4(0.);return;}
     vec2 native=sourcePosition(geo);
     if(any(isnan(native))||any(isinf(native))){color=vec4(0.);return;}
     if(native.x<nativeBounds.x||native.x>=nativeBounds.z||native.y<nativeBounds.y||native.y>=nativeBounds.w
@@ -75,6 +78,14 @@ void main(){
     vec2 f=clamp((native-(nativeBounds.xy+nativeSpacing*.5))/nativeSpacing,vec2(0.),vec2(nativeShape-1));
     ivec2 i=ivec2(floor(f)),block=i/256,local=i-block*256+1;
     vec2 w=fract(f);int layer=block.y*nativeColumns+block.x;
+    if(portrayalBaseline){
+        vec4 a=texelFetch(field,ivec3(local,layer),0),b=texelFetch(field,ivec3(local+ivec2(1,0),layer),0);
+        vec4 c=texelFetch(field,ivec3(local+ivec2(0,1),layer),0),d=texelFetch(field,ivec3(local+ivec2(1,1),layer),0);
+        if(i.x==nativeShape.x-1){b=a;d=c;}if(i.y==nativeShape.y-1){c=a;d=b;}
+        vec4 weights=vec4((1.-w.x)*(1.-w.y),w.x*(1.-w.y),(1.-w.x)*w.y,w.x*w.y);
+        if((weights.x>0.&&a.a==0.)||(weights.y>0.&&b.a==0.)||(weights.z>0.&&c.a==0.)||(weights.w>0.&&d.a==0.)){color=vec4(0.);return;}
+        color=(a*weights.x+b*weights.y+c*weights.z+d*weights.w)*.8;return;
+    }
     vec2 aa=texelFetch(field,ivec3(local,layer),0).rg;
     vec2 ab=texelFetch(field,ivec3(local+ivec2(1,0),layer),0).rg;
     vec2 ba=texelFetch(field,ivec3(local+ivec2(0,1),layer),0).rg;
@@ -86,7 +97,7 @@ void main(){
     if((weights.x>0.&&aa.y==0.)||(weights.y>0.&&ab.y==0.)
        ||(weights.z>0.&&ba.y==0.)||(weights.w>0.&&bb.y==0.)){color=vec4(0.);return;}
     float value=dot(vec4(aa.x,ab.x,ba.x,bb.x),weights);
-    float t=clamp((value-253.15)/60.,0.,1.);
+    float t=clamp((value-displayRange.x)/max(displayRange.y-displayRange.x,1.e-30),0.,1.);
         vec3 stops[6]=vec3[6](vec3(114.,114.,181.),vec3(82.,154.,189.),vec3(112.,200.,178.),vec3(214.,214.,127.),vec3(237.,171.,104.),vec3(201.,103.,97.));
     float v=min(t*5.,4.99999);int index=int(floor(v));
     vec3 rgb=alternatePalette?mix(vec3(.12,.18,.55),vec3(1.,.8,.2),t):mix(stops[index],stops[index+1],fract(v))/255.;
@@ -107,7 +118,7 @@ export class NativeLayer {
         this.blocks=blocks;this.mode=mode;this.projection=projection;
         this.cacheIdentity={contract:metadata.contract,contract_sha256:metadata.contract_sha256,matrix:metadata.matrix,
             crs:metadata.crs,grid:metadata.grid,identity:metadata.identity,selection:metadata.selection,
-            source_engine:metadata.engine,renderer_engine:'native-gpu-bilinear/1',
+            source_engine:metadata.engine,renderer_engine:metadata.portrayal_baseline?'cached-native-rgba8/1':'native-gpu-bilinear/1',
             display_crs:mode,display_definition:mode==='EPSG:3576'?proj4.defs('EPSG:3576'):mode==='mercator'?proj4.defs('EPSG:3857'):
                 `+proj=ortho +lat_0=${center[1]} +lon_0=${center[0]} +R=6378137`};
     }
@@ -123,11 +134,18 @@ export class NativeLayer {
         gl.bindTexture(gl.TEXTURE_2D_ARRAY,this.texture);
         gl.texParameteri(gl.TEXTURE_2D_ARRAY,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D_ARRAY,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
-        gl.texImage3D(gl.TEXTURE_2D_ARRAY,0,gl.RG32F,258,258,this.blockCount,0,gl.RG,gl.FLOAT,null);
+        const image=this.metadata.portrayal_baseline;
+        gl.texImage3D(gl.TEXTURE_2D_ARRAY,0,image?gl.RGBA8:gl.RG32F,258,258,this.blockCount,0,image?gl.RGBA:gl.RG,image?gl.UNSIGNED_BYTE:gl.FLOAT,null);
         this.blocks.forEach((bytes,index)=>this.uploadBlock(index,bytes));
     }
     uploadBlock(index,bytes) {
         const start=performance.now();
+        if(this.metadata.portrayal_baseline){
+            const gl=this.gl;gl.bindTexture(gl.TEXTURE_2D_ARRAY,this.texture);
+            gl.texSubImage3D(gl.TEXTURE_2D_ARRAY,0,0,0,index,258,258,1,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(bytes));
+            (this.uploadTimings??=[]).push({index,decode_ms:0,upload_submit_ms:performance.now()-start});
+            this.blocks[index]=bytes;this.ready=this.blocks.filter(Boolean).length===this.blockCount;return;
+        }
         const gl=this.gl,values=new Float32Array(bytes,0,258*258),mask=new Uint8Array(bytes,258*258*4);
         const upload=new Float32Array(258*258*2);
         for(let i=0;i<values.length;i++){upload[2*i]=values[i];upload[2*i+1]=mask[i];}
@@ -160,7 +178,8 @@ export class NativeLayer {
     checkBudget() {
         const gl=this.gl,width=this.map.getCanvas().width,height=this.map.getCanvas().height;
         const maximum=gl.getParameter(gl.MAX_TEXTURE_SIZE);
-        const bytes=332820*this.blockCount+258*258*8+258*258*this.blockCount*8+width*height*(this.context?28:24);
+        const perCell=this.metadata.portrayal_baseline?4:8;
+        const bytes=(this.metadata.portrayal_baseline?258*258*4:332820)*this.blockCount+258*258*perCell+258*258*this.blockCount*perCell+width*height*(this.context?28:24);
         if(width>maximum||height>maximum||258>maximum||gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)<this.blockCount
             ||bytes>128*1024**2)throw Error('Размер вида превышает бюджет числовых ресурсов.');
         return bytes;
@@ -173,6 +192,8 @@ export class NativeLayer {
         gl.uniform2fv(location('nativeSpacing'),this.metadata.grid.spacing_degrees_xy);
         gl.uniform2iv(location('nativeShape'),[this.metadata.grid.shape_yx[1],this.metadata.grid.shape_yx[0]]);
         gl.uniform1i(location('nativeColumns'),this.metadata.columns[1]+1);
+        gl.uniform1i(location('portrayalBaseline'),this.metadata.portrayal_baseline?1:0);
+        gl.uniform2fv(location('displayRange'),this.metadata.display_range??[253.15,313.15]);
         gl.uniform2fv(location('orthoCenter'),this.center);
         gl.uniform1i(location('alternatePalette'),this.alternatePalette?1:0);gl.uniform1i(location('field'),0);gl.uniform2fv(location('origin'),view.origin);
         gl.uniform1f(location('scale'),view.scale);gl.uniform1f(location('height'),view.height);
@@ -185,6 +206,7 @@ export class NativeLayer {
     }
     render(gl) {this.context?.render(this.geometry(),this.center);if(this.ready)this.draw(gl,false);}
     samples(view=this.geometry()) {
+        if(this.metadata.portrayal_baseline)throw Error('Цветное изображение не содержит канонических чисел.');
         this.checkBudget();
         const gl=this.gl,{width,height}=view;
         if(!gl.getExtension('EXT_color_buffer_float'))throw Error('Нет поддержки числового GPU readback.');

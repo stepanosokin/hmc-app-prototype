@@ -2,6 +2,10 @@ export interface Selection {
     selection: string; model: string; run: string; revision: string; field: string;
     level: string; valid_time: string; units: string; state: string; fixture?: string;
     completeness?: string; native_display: string; collection: string; point: string;
+    field_profile?: string; field_label?: string; interval?:{start:string;end:string;statistical_process:number}|null;
+    field_short_name?:string;field_level_type?:string;
+    field_surfaces?:{type:number;scale_factor:number;scaled_value:number;value:number|null}[];
+    display_blocks?: number; wind_axis?: 'u'|'v'; wind_pair?: string; uv_relative_to_grid?: boolean; wind_v?:Selection;
     native_grid_sha256: string; member: string | null; wms: string;
 }
 export interface PublishedGroup {key: string; selection: Selection; times: (Selection|null)[]; start: number}
@@ -11,9 +15,12 @@ export const referenceTime=(run: string)=>run.slice(run.lastIndexOf('/')+1);
 export function publishedGroups(selections: Selection[],validationFixtures=false): PublishedGroup[] {
     const groups=new Map<string,PublishedGroup>();
     const syntheticRevisions=new Set(selections.filter(item=>item.fixture&&item.fixture!=='actual').map(item=>item.revision));
-    for(const item of selections){
+    for(const source of selections){
+        const partner=source.wind_axis==='u'&&source.units==='m s**-1'&&/^[0-9a-f]{64}$/.test(source.wind_pair??'')?selections.find(other=>other.state==='published'&&other.wind_axis==='v'&&other.units===source.units&&other.wind_pair===source.wind_pair&&
+            ['model','run','revision','level','valid_time','native_grid_sha256','member','uv_relative_to_grid'].every(key=>other[key as keyof Selection]===source[key as keyof Selection])):undefined;
+        const item=partner?{...source,wind_v:partner,field_label:'Ветер — движущиеся стрелки (ряд точки: компонента U)'}:source;
         if(!validationFixtures&&syntheticRevisions.has(item.revision))continue;
-        if(item.state!=='published'||item.field!=='T_G:surface:0'||item.units!=='K'||
+        if(item.state!=='published'||!(item.field==='T_G:surface:0'&&item.units==='K'||item.field_profile==='grib2-fields/1'&&/^GRIB2:[0-9a-f]{64}$/.test(item.field))||
             item.fixture&&item.fixture!=='actual'&&!(validationFixtures&&['overlap','correction'].includes(item.fixture)))continue;
         const key=JSON.stringify([item.model,item.run,item.revision,item.field,item.level,item.native_grid_sha256,item.member]);
         if(!groups.has(key))groups.set(key,{key,selection:item,times:[],start:0});

@@ -22,7 +22,9 @@ export const navigationDelays=`(()=>{
     };
     const arrayBuffer=Response.prototype.arrayBuffer,text=Response.prototype.text;
     Response.prototype.arrayBuffer=async function(){const bytes=await arrayBuffer.call(this);
-        if(this.url.includes('/native/'))await hold('decode',this.url);return bytes;};
+        if(this.url.includes('/native/'))await hold('decode',this.url);
+        if(this.url.includes('/api/v1/catalogue'))await hold('catalogue',this.url);
+        if(this.url.includes('/point?'))await hold('point',this.url);return bytes;};
     Response.prototype.text=async function(){const bytes=await text.call(this);
         if(this.url.includes('/api/v1/catalogue'))await hold('catalogue',this.url);
         if(this.url.includes('/point?'))await hold('point',this.url);return bytes;};

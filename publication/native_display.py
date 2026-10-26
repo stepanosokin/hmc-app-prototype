@@ -2,10 +2,12 @@
 
 import hashlib
 import json
+import io
 from pathlib import Path
 
 import numpy as np
 import zarr
+from PIL import Image
 
 from decoder.sampling import asset_path, canonical, read_values
 from publication.domain import PublicationUnavailable, sampler
@@ -22,7 +24,10 @@ CONTRACT_V2 = json.loads(CONTRACT_V2_PATH.read_bytes())
 CONTRACT_V2_SHA256 = hashlib.sha256(CONTRACT_V2_PATH.read_bytes()).hexdigest()
 
 
-def profile(spec: dict | None) -> tuple[dict, str, int]:
+def profile(spec: dict | None, field_profile: str | None = None) -> tuple[dict, str, int]:
+    if field_profile:
+        payload = Path(__file__).with_name('native-display.v3.json').read_bytes()
+        return json.loads(payload), hashlib.sha256(payload).hexdigest(), 3
     if spec:
         from decoder.grib_crs import public_id
         grid = spec['grid']
@@ -56,7 +61,8 @@ def source(manifest: dict) -> tuple[Path, dict]:
 
 def key(manifest: dict, item: dict, *part) -> tuple:
     grid = item['metadata']['grid']
-    return (manifest['selection'], CONTRACT_SHA256, CONTRACT['engine'], CONTRACT['crs'],
+    contract,checksum,_ = profile(item['metadata'].get('source_crs'),item['metadata'].get('field_profile'))
+    return (manifest['selection'], checksum, contract['engine'], contract['crs'],
             canonical({name: manifest['identity'][name] for name in CONTRACT['selection_identity']}),
             canonical(grid), *part)
 
@@ -74,12 +80,13 @@ def render(root: Path, item: dict, column: int, row: int) -> bytes:
     left, bottom, right, top = max(0, x0), max(0, y0), min(width, x0+SIZE), min(height, y0+SIZE)
     group = zarr.open_group(str(asset_path(root, item['zarr'])), mode='r', zarr_format=2)
     index = (slice(bottom, top), slice(left, right))
-    values = read_values(group, 'temperature', index)
+    values = read_values(group, item.get('data_variable', 'temperature'), index)
     missing = read_values(group, 'missing', index).astype(bool)
     if not np.all(np.isfinite(values[~missing])):
         raise ValueError('non-finite native display value')
     encoded = np.where(missing, 0, values).astype('<f4')
-    if not np.all(np.isfinite(encoded)) or np.any(np.abs(encoded[~missing]-values[~missing]) > .001):
+    bound = item['metadata'].get('float32_abs_error_bound', .001)
+    if not np.all(np.isfinite(encoded)) or np.any(np.abs(encoded[~missing]-values[~missing]) > bound):
         raise ValueError('native encoding exceeds approved error')
     result = np.zeros((SIZE, SIZE), dtype='<f4')
     valid = np.zeros((SIZE, SIZE), dtype='uint8')
@@ -88,8 +95,23 @@ def render(root: Path, item: dict, column: int, row: int) -> bytes:
     return result.tobytes() + valid.tobytes()
 
 
+def portrayal(root: Path, item: dict, column: int, row: int) -> bytes:
+    """T19 cached-image comparator; colours never become canonical numbers."""
+    payload=render(root,item,column,row)
+    values=np.frombuffer(payload[:SIZE*SIZE*4],dtype='<f4').reshape(SIZE,SIZE)
+    mask=np.frombuffer(payload[SIZE*SIZE*4:],dtype='uint8').reshape(SIZE,SIZE)
+    low,high=(item['metadata']['values'][key] for key in ('min','max')) if item['metadata'].get('field_profile') else (253.15,313.15)
+    stops=np.array([[114,114,181],[82,154,189],[112,200,178],[214,214,127],[237,171,104],[201,103,97]],dtype=float)
+    scale=np.clip((values-low)/max(high-low,1e-30),0,1)*5
+    left=np.minimum(scale.astype(int),4);fraction=scale-left
+    colors=np.rint(stops[left]*(1-fraction[...,None])+stops[left+1]*fraction[...,None]).astype('uint8')
+    rgba=np.dstack((colors,mask*255));rgba[mask==0]=0
+    output=io.BytesIO();Image.fromarray(rgba).save(output,format='PNG')
+    return output.getvalue()
+
+
 def metadata(root: Path, item: dict) -> bytes:
-    contract, contract_hash, _ = profile(item['metadata'].get('source_crs'))
+    contract, contract_hash, _ = profile(item['metadata'].get('source_crs'),item['metadata'].get('field_profile'))
     height, width = item['metadata']['grid']['shape_yx']
     columns, rows = (width+BLOCK-1)//BLOCK, (height+BLOCK-1)//BLOCK
     if columns*rows > contract['limits']['blocks']:
@@ -111,6 +133,13 @@ def metadata(root: Path, item: dict) -> bytes:
     if spec:
         from decoder.grib_crs import public_id
         extra = {'source_crs': spec, 'crs': public_id(spec), 'crs_definition': spec['proj']}
+    if item['metadata'].get('field_profile'):
+        extra.update(units=item['metadata']['identity']['units'],
+                     encoding_max_abs_error=item['metadata']['float32_abs_error_bound'],
+                     display_range=[item['metadata']['values']['min'], item['metadata']['values']['max']],
+                     interval=item['metadata']['interval'])
+        if 'uv_relative_to_grid' in item['metadata']['identity']:
+            extra['uv_relative_to_grid']=item['metadata']['identity']['uv_relative_to_grid']
     return canonical({**contract, 'contract_sha256': contract_hash,
         'matrix': CONTRACT['matrix_prefix'] + item['metadata']['native_grid_sha256'],
         'grid': item['metadata']['grid'], 'columns': [0, columns-1], 'rows': [0, rows-1],

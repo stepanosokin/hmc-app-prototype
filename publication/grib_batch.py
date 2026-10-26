@@ -29,6 +29,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--clock',required=True)
     parser.add_argument('--report',type=Path,required=True)
+    parser.add_argument('--all-fields',action='store_true',help='Обработать все поля GRIB2 4.0/4.8, сохраняя единицы и интервалы')
     args = parser.parse_args()
     # Fail the WHOLE batch before queue mutations when configuration is invalid.
     config = configuration()
@@ -39,21 +40,21 @@ def main():
         entry: dict = {'source':path.name}
         report['files'].append(entry)
         try:
-            if path.stat().st_size>recovery.MAX_SOURCE_BYTES:
+            if path.stat().st_size>recovery.source_limit({'source_profile':'grib2-fields' if args.all_fields else 'surface-temperature-grib2'}):
                 raise ValueError('GRIB2 превышает лимит размера исходного файла')
             frames = list(bounded_frames(path))
             if not 1<=len(frames)<=4096:
                 raise ValueError('GRIB2 должен содержать от 1 до 4096 сообщений')
-            metadata = [field_metadata(frame,index,config,sample_inventory=False) for index,frame in enumerate(frames,1)]
+            metadata = [field_metadata(frame,index,config,sample_inventory=False,all_fields=args.all_fields) for index,frame in enumerate(frames,1)]
             if len({(m['model'],m['reference_time']) for m in metadata})!=1:
                 raise ValueError('Один исходный файл должен содержать один расчёт модели')
-            if len({m['valid_time'] for m in metadata})!=len(metadata):
-                raise ValueError('В одном файле поддерживается одно поле температуры поверхности на каждый срок')
+            if len({(m.get('field','T_G:surface:0'),m['valid_time']) for m in metadata})!=len(metadata):
+                raise ValueError('Повторяется поле и срок в одном исходном файле')
             specs = [m['source_crs'] for m in metadata]
             del frames
             checksum = file_hash(path)
             request: dict = {'hours':list(range(1,len(metadata)+1)),'fixture':'actual','recoverable':True,
-                       'source_profile':'surface-temperature-grib2',
+                       'source_profile':'grib2-fields' if args.all_fields else 'surface-temperature-grib2',
                        'rebuild':True,'batch':uuid.uuid4().hex,'crs_configuration':config}
             if checksum==SAMPLE_SHA256:
                 request['model']='ICON-EU'

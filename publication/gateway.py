@@ -22,10 +22,10 @@ ROUTES = (
     re.compile(r'api/v1/(?:catalogue|point|modules|models|runs|revisions|openapi\.json)'),
     re.compile(r'ogc(?:/(?:conformance|collections(?:/[0-9a-f.]+(?:/position)?)?))?'),
     re.compile(r'api/v1/jobs/[0-9a-f-]{36}'),
-    re.compile(r'api/v1/selections/[0-9a-f.]+/(?:tiles\.json|tiles/[23]/[0-9]+/[0-9]+/[0-9]+\.f32)'),
-    re.compile(r'api/v1/selections/[0-9a-f.]+/display/[12]/(?:native\.json|native/[0-9]+/[0-9]+\.f32)'),
+    re.compile(r'api/v1/selections/[0-9a-f.]+/(?:tiles\.json|tiles/[234]/[0-9]+/[0-9]+/[0-9]+\.f32)'),
+    re.compile(r'api/v1/selections/[0-9a-f.]+/display/[123]/(?:native\.json|native/[0-9]+/[0-9]+\.(?:f32|png))'),
     re.compile(r'api/v1/selections/[0-9a-f.]+/display/1/experiment/(?:ortho|laea)\.f32'),
-    re.compile(r'gis/v1/runs/[A-Za-z0-9_.:/-]+/revisions/[0-9a-f]+/wms'),
+    re.compile(r'gis/v1/runs/[A-Za-z0-9_.:/-]+/revisions/[0-9a-f]+(?:/fields/[0-9a-f]{64})?/wms'),
 )
 SECRET_PARAMETERS = {'key', 'api_key', 'apikey', 'token', 'access_token', 'authorization', 'x-api-key'}
 
@@ -80,7 +80,7 @@ def create_app() -> Flask:
         protected = request.path.startswith('/org/')
         path = request.path[5:] if protected else request.path[1:]
         # Store categories, never client-supplied URLs/query strings.
-        operation = ('tile-metadata' if path.endswith(('/tiles.json', '/native.json')) else 'tile' if '/tiles/2/' in path or '/display/1/native/' in path or '/display/1/experiment/' in path
+        operation = ('tile-metadata' if path.endswith(('/tiles.json', '/native.json')) else 'tile' if '/tiles/' in path or '/native/' in path or '/display/1/experiment/' in path
                      else 'wms' if path.startswith('gis/') else 'point' if path == 'api/v1/point'
                      else 'position' if path.endswith('/position') else 'discovery' if path.startswith('ogc')
                      or path in ('api/v1/modules', 'api/v1/models', 'api/v1/runs', 'api/v1/revisions', 'api/v1/openapi.json')
@@ -168,7 +168,7 @@ def create_app() -> Flask:
                     return failure(429)
             else:
                 limits = budgets.Limits()
-            if '/tiles/2/' in upstream_path or '/tiles/3/' in upstream_path:
+            if '/tiles/2/' in upstream_path or '/tiles/3/' in upstream_path or '/tiles/4/' in upstream_path:
                 z, x, y = (int(part.removesuffix('.f32')) for part in upstream_path.rsplit('/', 3)[-3:])
                 if not (0 <= z <= limits.zoom and 0 <= x < 2**z and 0 <= y < 2**z):
                     return failure(400)

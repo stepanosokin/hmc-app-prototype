@@ -8,23 +8,23 @@
 <main aria-label="Карта опубликованного прогноза">
   <div id="map" tabindex="0" aria-label="Карта. Нажмите для выбора точки."></div>
   <header class="panel brand"><div class="symbol" aria-hidden="true">ГМ</div><div><strong>Гидрометцентр</strong><small>Карта прогноза · <b>опубликованные данные</b></small></div></header>
-  <details id="forecastPanel" class="forecastControls" open><summary class="panel widgetToggle"><span id="forecastSummary">ICON-EU · расчёт UTC</span><small id="compactProjection">Меркатор</small></summary><div class="widgetBody">
-  <section class="panel model" aria-label="Выбор модели данных"><label for="model">Модель</label><select id="model" aria-label="Модель данных" title="Доступна опубликованная ICON-EU"><option value="icon-eu">ICON-EU</option></select></section>
-  <section class="panel selection" aria-label="Выбранный прогноз"><h1>Температура поверхности</h1><div id="reference"></div><div id="valid"></div><small id="selectionIdentity"></small><button id="settings" aria-expanded="false" aria-controls="drawer">Источник и настройки</button></section>
+  <details id="forecastPanel" class="forecastControls" open><summary class="panel widgetToggle"><span id="forecastSummary">Загрузка прогноза…</span><small id="compactProjection">Меркатор</small></summary><div class="widgetBody">
+  <section class="panel model" aria-label="Выбор модели данных"><label for="model">Модель</label><select id="model" aria-label="Модель данных" title="Опубликованная модель"><option value="" disabled selected>Загрузка моделей…</option></select></section>
+  <section class="panel selection" aria-label="Выбранный прогноз"><h1>Поле прогноза</h1><div id="reference"></div><div id="valid"></div><small id="selectionIdentity"></small><button id="settings" aria-expanded="false" aria-controls="drawer">Источник и настройки</button></section>
   <section class="panel projectionControl" aria-label="Проекция карты"><label for="projection">Вид карты</label><select id="projection" aria-label="Вид карты: Меркатор, ортографический глобус, LAEA — Арктика (EPSG:3576)" aria-describedby="projectionStatus"><option value="mercator">Меркатор</option><option value="orthographic">Глобус</option><option value="laea">LAEA — Арктика (EPSG:3576)</option></select><small id="projectionStatus" role="status"></small><button id="useMercator" hidden>Перейти в Меркатор</button></section>
   </div></details>
-  <aside class="panel layers" aria-label="Слои"><button id="temperature" aria-label="Температура" aria-describedby="temperatureTooltip" aria-pressed="true"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 14.5V5a3 3 0 0 1 6 0v9.5a5 5 0 1 1-6 0Z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="18" r="2" fill="currentColor"/></svg></button><span id="temperatureTooltip" class="layerTooltip" role="tooltip">Температура</span></aside>
+  <aside id="fieldGroups" class="fieldGroups" aria-label="Поля выбранной модели"><nav id="fieldButtons" aria-label="Группы показателей"></nav><section id="fieldMenu" class="panel fieldMenu" aria-label="Показатели и уровни" hidden></section></aside>
   <details id="navigationPanel" class="navigation" aria-label="Навигация по карте" open><summary class="panel widgetToggle">Карта</summary><div class="widgetBody"><button id="fit">К области данных</button><div><button id="zoomIn" aria-label="Приблизить">+</button><button id="zoomOut" aria-label="Отдалить">−</button><button id="west" aria-label="Сдвинуть карту к западу">←</button><button id="east" aria-label="Сдвинуть карту к востоку">→</button></div></div></details>
   <div id="notice" class="panel notice" role="status" aria-live="polite"></div>
   <div id="pointMarker" hidden aria-hidden="true"></div>
   <button id="showPoint" class="panel pointRecall" aria-controls="drawer" hidden>Выбранная точка</button>
   <section id="pointCard" class="panel point" hidden aria-label="Значение выбранной точки"><button id="closePoint" aria-label="Закрыть значение точки" title="Закрыть">×</button><div id="pointContent"></div></section>
-  <details id="legendPanel" class="panel legend" aria-label="Шкала температуры" open><summary class="widgetToggle"><span id="legendSummary">Температура · °C</span></summary><div class="widgetBody"><div>Температура <b class="unit">°C</b></div><div class="ramp"></div><div class="ticks"><span>−20</span><span>0</span><span>20</span><span>40</span></div><small>T_G · поверхность · числовые данные</small></div></details>
+  <details id="legendPanel" class="panel legend" aria-label="Шкала выбранного поля" open><summary class="widgetToggle"><span id="legendSummary">Поле прогноза</span></summary><div class="widgetBody"><div><span id="legendTitle">Поле прогноза</span> <b class="unit">°C</b></div><div class="ramp"></div><div class="ticks"><span>−20</span><span>0</span><span>20</span><span>40</span></div><small id="legendSource">Числовые данные</small></div></details>
   <section id="drawer" class="panel drawer" aria-label="Подробности и настройки" hidden>
     <nav class="sheetTabs" aria-label="Содержимое панели"><button id="sheetSettings">Настройки</button><button id="sheetPoint" hidden>Точка</button></nav>
     <button id="closeDrawer" aria-label="Свернуть панель">Свернуть ⌄</button><button id="clearMobilePoint" aria-label="Закрыть значение точки">Удалить выбранную точку ×</button><div id="mobilePoint"></div>
     <div id="settingsBody">
-      <h2>Источник и публикация</h2><p>Числовое поле ICON-EU T_G: температура поверхности, не воздуха на высоте 2 м. Значение точки — ближайшая нативная ячейка; отображение — билинейная интерполяция.</p>
+      <h2>Источник и публикация</h2><p id="sourceDescription">Загрузка описания выбранного поля.</p>
       <label><span id="runTimeLabel">Расчёт UTC</span><select id="run"></select></label>
       <small id="timezoneInfo"></small>
       <label>Единицы<select id="units"><option value="C">Градусы Цельсия · °C</option><option value="K">Кельвины · K</option></select></label>
@@ -36,7 +36,7 @@
         <a id="apiLink" target="_blank" rel="noopener noreferrer">API · значение точки ↗</a>
         <label class="connectionUrl">Адрес API<input id="apiUrl" readonly aria-label="Адрес API"></label><button id="apiCopy" disabled>Скопировать URL API</button>
         <small id="linkPoint"></small><small id="copyStatus" role="status" aria-live="polite"></small>
-        <p>Публичные демонстрационные ссылки. WMS закреплён за расчётом и редакцией; API — за точным сроком UTC и точкой. Исходные числовые значения — в K.</p>
+        <p id="sourceUnitsInfo">Публичные демонстрационные ссылки. WMS закреплён за расчётом и редакцией; API — за точным сроком UTC и точкой.</p>
       </section>
       <details><summary>Происхождение и числовой контракт</summary><dl id="metadata"></dl><a id="metadataLink" target="_blank" rel="noopener noreferrer" hidden>Технические метаданные ↗</a></details>
       <button id="retry">Повторить загрузку</button><button id="refresh">Проверить обновления</button>

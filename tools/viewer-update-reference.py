@@ -55,7 +55,7 @@ def main():
     assert abs(point['value']-float(values[point['cell']['row'],point['cell']['column']])) <= .0001
     query = {'coords': f"POINT({position['lng']} {position['lat']})", 'datetime': point['valid_time'],
              'run': point['run'], 'revision': point['revision'], 'parameter-name': 'T_G', 'crs': 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}
-    coverage = requests.get('http://gateway:8000'+updates['after']['position'], params=query, timeout=90)
+    coverage = requests.get('http://gateway:8000'+updates['after']['collection']+'/position', params=query, timeout=90)
     coverage.raise_for_status()
     body = coverage.json()
     assert body['selection'] == point

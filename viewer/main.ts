@@ -1,4 +1,4 @@
-import {publishedGroups,referenceTime,type Selection,type PublishedGroup} from './selection.js';
+import {referenceTime,type Selection,type PublishedGroup} from './selection.js';
 import {FieldLoader,json,PublicationExpired,type FieldData} from './field.js';
 import {create,clippedLine} from './geometry.js';
 import {WeatherLayer} from './weather-layer.js';
@@ -8,15 +8,22 @@ import {LocalContext} from './local-context.js';
 import {PointSeries,pointValue,SERIES_BUDGET,type PointResult,type Position} from './series.js';
 import {PointChart} from './point-chart.js';
 import {SourceSettings,type SourceDescription} from './source-settings.js';
+import {FieldPicker,fieldPresentation,fieldUnits,fieldNumber} from './fields.js';
+import {compactGroups,type CompactCatalogue} from './catalogue.js';
 
 type Mode='mercator'|'orthographic'|'laea';
 const $=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 const control=(id:string)=>$<HTMLSelectElement>(id);
 const text=(id:string,value:string)=>{$(id).textContent=value;};
 const mobile=()=>matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches;
-const loader=new FieldLoader();
+const portrayalBaseline=new URL(location.href).searchParams.get('validation')==='1'&&new URL(location.href).searchParams.get('portrayal')==='1';
+const loader=new FieldLoader(portrayalBaseline);
 const charts=new Map<string,PointChart>();
+// Shared discovery, current/pending catalogues and four hydrated groups each.
+// This is a managed estimate; actual JS heap remains a separate observation.
+const CATALOGUE_BUDGET=24*1024**2;
 const sourceSettings=new SourceSettings();
+const fieldPicker=new FieldPicker(target=>setGroup(target,true));
 const series=new PointSeries(pointValue,seriesChanged);
 function seriesChanged(){
     if(series.expired&&timeState!=='expired'){
@@ -42,9 +49,10 @@ let ownedCanvas:HTMLCanvasElement|undefined;
 let screenPick:unknown;
 let unit='C',alternate=false,light=false,pointCollapsed=false,lost=false,rendererError='';
 let metadata:SourceDescription|undefined,bootController=new AbortController(),pendingGroups:PublishedGroup[]|undefined;
-const updateLoader=new FieldLoader();
+const updateLoader=new FieldLoader(portrayalBaseline);
 let updateController=new AbortController(),catalogueController=new AbortController(),updateBusy=false;
 let dismissedPublication='',updateSerial=0,timeStagingBytes=0,updateStagingBytes=0;
+let catalogueChecks=0;
 let timeController=new AbortController(),displayed:Selection|undefined;
 let reselectController=new AbortController();
 let timeState:'loading'|'ready'|'missing'|'error'|'expired'='missing',pointMessage='',timeError='';
@@ -55,11 +63,15 @@ function cancelUpdate(){
     if(wasBusy)updateMessage('Обновление отменено. Текущая выборка сохранена.');
 }
 let firstCompleteMs:number|undefined,lastFrame:number|undefined;const frames:number[]=[];
+let lastRendered:{selection:string;mode:string;at:number}|undefined;
 const renderTimes:number[]=[];let warmSwitchMs:number|undefined;
 const panels=['forecastPanel','navigationPanel','legendPanel','timelinePanel'].map(id=>$<HTMLDetailsElement>(id));
 const timestamp=(value:string)=>new Intl.DateTimeFormat('ru-RU',{timeZone:'UTC',dateStyle:'short',timeStyle:'short'}).format(new Date(value))+' UTC';
 const degrees=(value:number)=>value.toFixed(3)+'°';
-const valueText=(value:number)=> (value-(unit==='C'?273.15:0)).toFixed(2)+' '+(unit==='C'?'°C':'K');
+const sourceUnits=()=>displayed?.units??selected?.units??group?.selection.units??'K';
+const unitsText=()=>sourceUnits()==='K'?(unit==='C'?'°C':'K'):fieldUnits(sourceUnits());
+const valueText=(value:number,source=sourceUnits())=>fieldNumber(value-(source==='K'&&unit==='C'?273.15:0),source)+' '+
+    (source==='K'?(unit==='C'?'°C':'K'):fieldUnits(source));
 function statusLayout(){
     document.documentElement.style.setProperty('--notice-left',($('showPoint').offsetLeft+$('showPoint').offsetWidth+8)+'px');
     document.documentElement.style.setProperty('--notice-height',($('notice').hidden?0:$('notice').getBoundingClientRect().height)+'px');
@@ -78,6 +90,11 @@ function rendererFailure(error:unknown){
 function selectionDetails(){
     if(!group)return;
     const source=group.selection;
+    control('model').value=source.model;
+    const title=fieldPresentation(displayed??source).label;
+    document.querySelector('#forecastPanel h1')!.textContent=title;
+    fieldPicker.update(groups,group);
+    $('legendPanel').setAttribute('aria-label','Шкала выбранного поля');
     text('reference',(displayed?'Показан расчёт: ':'Выбран расчёт: ')+timestamp(referenceTime((displayed??source).run)));
     const valid=new Date(group.start+index*3600000).toISOString();
     const shown=displayed?timestamp(displayed.valid_time):'нет поля';
@@ -89,7 +106,7 @@ function selectionDetails(){
     text('retry',timeState==='expired'?'Перевыбрать публикацию':'Повторить загрузку');
     sourceSettings.update(group,index,selected,position,metadata,timeState,displayed,
         timeState==='ready'?data?.metadata.grid.outer_cell_edges_wsen:undefined,timestamp);
-    layout();
+    palette();layout();
 }
 function timeControls(){
     if(!group)return;
@@ -99,7 +116,14 @@ function timeControls(){
 }
 function syncTime(){control('time').value=String(index);$<HTMLInputElement>('timeRange').value=String(index);
     $<HTMLButtonElement>('previous').disabled=index===0;$<HTMLButtonElement>('next').disabled=index===(group?.times.length??1)-1;}
-function setGroup(newGroup:PublishedGroup){clearPoint();group=newGroup;index=0;timeState='missing';timeControls();void chooseTime(0);}
+function setGroup(newGroup:PublishedGroup,preservePoint=false){
+    const time=group?group.start+index*3600000:newGroup.start;
+    if(preservePoint){cancelUpdate();pointController.abort();series.clear();point=undefined;}
+    else clearPoint();
+    group=newGroup;index=0;
+    if(preservePoint){let distance=Infinity;group.times.forEach((item,i)=>{const delta=Math.abs(group!.start+i*3600000-time);if(item&&delta<distance){distance=delta;index=i;}});}
+    timeState='missing';runControls();timeControls();ensureSeries();void chooseTime(index);
+}
 function clearPoint(){reselectController.abort();series.clear();cancelUpdate();pointController.abort();point=undefined;position=undefined;pointCollapsed=false;
     $('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');placePoint();if(group)selectionDetails();}
 function releaseLayer(){
@@ -107,16 +131,27 @@ function releaseLayer(){
     previous?.context?.remove();
     if(previous&&map?.getLayer(previous.id))map.removeLayer(previous.id);
 }
-function reserveFrame(){
+function reserveFrame(target:Selection){
     // Bound the download before allocating it, and include its future texture and
     // decode scratch. No frame cache; cancellation releases the reservation.
-    const bytes=8*1024**2+258*258*8+258*258*18*8;
-    if((layer?.checkBudget()??0)+bytes+SERIES_BUDGET>128*1024**2)throw Error('Превышен бюджет обновления GPU.');
+    const blocks=target.field_profile?(target.display_blocks??64):18;
+    if(!Number.isInteger(blocks)||blocks<1||blocks>64)throw Error('Некорректный размер опубликованного поля.');
+    const canvas=map?.getCanvas();
+    const bytes=(332820*blocks+1024**2)*(target.wind_v?2:1)+(target.wind_v?0:258*258*8+258*258*blocks*8)+
+        (target.wind_v&&canvas?canvas.width*canvas.height*4:0);
+    if(stagingBase()+bytes+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)throw Error('Превышен бюджет обновления GPU.');
     return bytes;
 }
+function stagingBase(){
+    // checkBudget reserves a full RGBA32F readback texture (16 bytes/pixel).
+    // Readback is forbidden while staging; the old display and its arrays stay.
+    const canvas=map?.getCanvas();
+    return layer?layer.checkBudget()-(canvas?canvas.width*canvas.height*16:0):0;
+}
 async function prepareLayer(field:FieldData,owner:any,signal:AbortSignal){
-    const extra=field.bytes+258*258*8+258*258*18*8;
-    if((layer?.checkBudget()??owner.getCanvas().width*owner.getCanvas().height*28)+extra+SERIES_BUDGET>128*1024**2)
+    const extra=field.blocks.reduce((n,b)=>n+b.byteLength,0)+(field.wind?.blocks.reduce((n,b)=>n+b.byteLength,0)??0)+(field.wind?2*1024**2:258*258*8+258*258*field.blocks.length*8)+
+        (field.wind?owner.getCanvas().width*owner.getCanvas().height*4:0);
+    if((layer?stagingBase():owner.getCanvas().width*owner.getCanvas().height*28)+extra+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)
         throw Error('Превышен бюджет обновления GPU.');
     const candidate=new WeatherLayer(field,mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
     candidate.baseCenter=[...mapBaseCenter];candidate.baseProjection=mapBaseProjection;
@@ -156,7 +191,7 @@ async function chooseTime(next:number){
     const abort=()=>loader.cancel();signal.addEventListener('abort',abort,{once:true});
     let candidate:WeatherLayer|undefined,owner:any;
     try{
-        timeStagingBytes=reserveFrame();
+        timeStagingBytes=reserveFrame(current);
         const [field,description]=await Promise.all([loader.load(current),json<SourceDescription>(current.collection,loader.controller.signal)]);
         signal.throwIfAborted();if(version!==selectionVersion)return;
         if(!map){
@@ -240,6 +275,7 @@ async function rebuild(fit=false){
         lastFrame=undefined;
         map.on('render',()=>{const now=performance.now();
             if(layer?.ready&&layer.fieldVisible&&!lost){firstCompleteMs??=now;renderTimes.push(now);if(renderTimes.length>120)renderTimes.shift();
+                lastRendered={selection:layer.metadata.selection,mode:layer.mode,at:now};
                 if(lastFrame!==undefined){frames.push(now-lastFrame);if(frames.length>120)frames.shift();}lastFrame=now;}});
         map.once('render',()=>{warmSwitchMs=performance.now()-mountStart;});
         for(const [name,coords] of [['Москва',[37.6173,55.7558]],['Санкт-Петербург',[30.3158,59.9391]]] as const){
@@ -305,8 +341,8 @@ function renderPoint(message=pointMessage){
             provenance.className='pointProvenance';summary.textContent='Ячейка и происхождение';details.append(summary,provenance);
             container.replaceChildren(coordinate,value,details);
         }
-        container.querySelector('.pointCoordinates')!.textContent=position?degrees(position.lng)+' в. д. · '+degrees(position.lat)+' с. ш.':'';
-        const value=container.querySelector('.pointValue')!;value.textContent=message||(point?.value!=null?valueText(point.value):
+        container.querySelector('.pointCoordinates')!.textContent=position?degrees(position.lng)+' в. д. · '+degrees(position.lat)+' с. ш.'+(selected?.wind_v?' · ряд: компонента U ветра':''):'';
+        const value=container.querySelector('.pointValue')!;value.textContent=message||(point?.value!=null?valueText(point.value,point.units):
             point?.reason==='outside_coverage'?'Вне покрытия':point?.reason==='native_nodata'?'Нет данных в нативной ячейке':'Загрузка значения…');
         value.classList.toggle('pointMessage',Boolean(message));
         container.querySelector('.pointProvenance')!.textContent=(group?'Расчёт: '+group.selection.run+'. Редакция: '+group.selection.revision+
@@ -364,10 +400,21 @@ function openDrawer(pointMode=false){
     $('settings').setAttribute('aria-expanded','true');layout();
 }
 function palette(){
-    for(const e of document.querySelectorAll('.unit'))e.textContent=unit==='C'?'°C':'K';
-    text('legendSummary','Температура · '+(unit==='C'?'°C':'K'));
-    const ticks=document.querySelectorAll('.ticks span');[-20,0,20,40].forEach((value,i)=>ticks[i].textContent=String(unit==='C'?value:value+273.15));
+    const temperature=sourceUnits()==='K';control('units').disabled=!temperature;
+    control('units').closest('label')!.hidden=!temperature;
+    control('palette').options[0].textContent=temperature?'Температурная':'Стандартная';
+    for(const e of document.querySelectorAll('.unit'))e.textContent=unitsText();
+    const title=group?fieldPresentation(displayed??group.selection).label:'Поле прогноза';
+    text('legendSummary',title+' · '+unitsText());text('legendTitle',title);
+    const source=displayed??selected??group?.selection;
+    text('legendSource',source?.wind_v?'Ряд точки: компонента U ветра':source?source.model+' · числовые данные':'Публикация не выбрана');
+    const range=data?.metadata.display_range??[253.15,313.15];
+    const ticks=document.querySelectorAll('.ticks span');
+    Array.from({length:4},(_,i)=>range[0]+(range[1]-range[0])*i/3).forEach((value,i)=>ticks[i].textContent=temperature?String(Number((value-(unit==='C'?273.15:0)).toFixed(2))):fieldNumber(value,sourceUnits()));
     const ramp=document.querySelector<HTMLElement>('.ramp')!;
+    const wind=Boolean((displayed??selected)?.wind_v)&&!portrayalBaseline;
+    ramp.style.display=wind?'none':'';(document.querySelector('.ticks') as HTMLElement).style.display=wind?'none':'';
+    if(wind)text('legendSummary','Ветер · стрелки движутся по потоку');
     ramp.style.background=alternate?'linear-gradient(90deg,#1f2e8c,#ffcc33)':'';
     layer?.setPalette(alternate);if(position)renderPoint();
 }
@@ -384,7 +431,7 @@ function layout(){
     document.documentElement.style.setProperty('--time-height',$('timelinePanel').getBoundingClientRect().height+'px');
     if(!mobile())document.querySelector<HTMLElement>('.projectionControl')!.style.top=(document.querySelector('.selection')!.getBoundingClientRect().bottom+8)+'px';
     else document.querySelector<HTMLElement>('.projectionControl')!.style.top='';
-    map?.resize();placePoint();statusLayout();
+    map?.resize();placePoint();statusLayout();fieldPicker.layout();
 }
 control('projection').onchange=()=>changeProjection(control('projection').value as Mode);
 $('useMercator').onclick=()=>changeProjection('mercator',true);
@@ -398,7 +445,8 @@ control('time').onchange=()=>void chooseTime(Number(control('time').value));
 $<HTMLInputElement>('timeRange').oninput=event=>void chooseTime(Number((event.target as HTMLInputElement).value));
 $('previous').onclick=()=>void chooseTime(index-1);$('next').onclick=()=>void chooseTime(index+1);
 control('run').onchange=()=>{const found=groups.find(item=>item.key===control('run').value);if(found)setGroup(found);};
-$('settings').onclick=()=>openDrawer();$('temperature').onclick=()=>openDrawer();
+control('model').onchange=()=>{const found=groups.find(item=>item.selection.model===control('model').value);if(found){control('run').value=found.key;setGroup(found);}};
+$('settings').onclick=()=>openDrawer();
 $('sheetSettings').onclick=()=>openDrawer();$('sheetPoint').onclick=()=>openDrawer(true);
 $('closeDrawer').onclick=()=>{$('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');pointCollapsed=true;layout();};
 $('showPoint').onclick=()=>{pointCollapsed=false;openDrawer(true);placePoint();};
@@ -457,8 +505,13 @@ const endDrag=(event:PointerEvent)=>{
 };
 container.addEventListener('pointerup',endDrag);container.addEventListener('pointercancel',endDrag);
 container.addEventListener('click',event=>{if(suppressClick){event.stopImmediatePropagation();suppressClick=false;}},true);
-async function catalogue(signal=bootController.signal){return publishedGroups((await json<{selections:Selection[]}>('/api/v1/catalogue',signal)).selections,validationFixtures);}
-function runControls(){control('run').replaceChildren(...groups.map(item=>new Option((item.selection.fixture==='overlap'?'Тестовый расчёт · ':item.selection.fixture==='correction'?'Тестовая коррекция +1 K · ':'')+item.selection.model+' · '+timestamp(referenceTime(item.selection.run))+' · '+item.selection.revision.slice(0,8),item.key)));
+async function catalogue(signal=bootController.signal){return compactGroups(await json<CompactCatalogue>('/api/v1/catalogue?view=compact',signal,4*1024**2),validationFixtures);}
+function runControls(){
+    const current=group??groups[0];
+    const runs=groups.filter(item=>!current||item.selection.model===current.selection.model&&item.selection.field===current.selection.field);
+    control('run').replaceChildren(...runs.map(item=>new Option((item.selection.fixture==='overlap'?'Тестовый расчёт · ':item.selection.fixture==='correction'?'Тестовая коррекция +1 K · ':'')+item.selection.model+' · '+timestamp(referenceTime(item.selection.run))+' · '+item.selection.revision.slice(0,8),item.key)));
+    control('model').replaceChildren(...[...new Set(groups.map(item=>item.selection.model))].map(model=>new Option(model,model)));
+    control('model').title='Опубликованные модели';if(group)control('model').value=group.selection.model;
     if(group)control('run').value=group.key;}
 function sameRun(item:PublishedGroup){return group&&['model','run','field','level'].every(key=>item.selection[key as keyof Selection]===group!.selection[key as keyof Selection]);}
 function updateActions(){
@@ -475,6 +528,7 @@ async function checkUpdates(manual=false){
         const newestRevision=latest.find(sameRun);
         const changed=Boolean(newestRevision&&newestRevision.key!==group?.key)||latest.some(item=>!sameRun(item)&&referenceTime(item.selection.run)>referenceTime(group?.selection.run??''));
         pendingGroups=changed?latest:undefined;updateActions();
+        catalogueChecks++;
         if(changed&&JSON.stringify(latest.map(item=>item.key))!==dismissedPublication)
             updateMessage('Есть новая публикация. Текущая выборка сохранена до подтверждения.');
         else if(manual)updateMessage(changed?'Обновление отложено. Выборка сохранена.':'Новых публикаций нет.');
@@ -496,7 +550,7 @@ async function acceptPublication(newRun=false){
     let candidate:WeatherLayer|undefined;
     const abortField=()=>updateLoader.cancel();signal.addEventListener('abort',abortField,{once:true});
     try{
-        updateStagingBytes=reserveFrame();
+        updateStagingBytes=reserveFrame(current);
         const fieldPromise=updateLoader.load(current);
         const [field,description,nextPoint]=await Promise.all([fieldPromise,json<SourceDescription>(current.collection,signal),
             !newRun&&oldPosition?pointValue(current,oldPosition,signal):Promise.resolve(undefined)]);
@@ -528,13 +582,14 @@ const poll=setInterval(()=>{if(!document.hidden)void checkUpdates();},60000);
 async function boot(){
     bootController.abort();bootController=new AbortController();notice('Загрузка опубликованных прогнозов…');
     try{groups=await catalogue();if(!groups.length){notice('Опубликованные прогнозы недоступны.');return;}
-        runControls();setGroup(groups[0]);control('run').value=groups[0].key;
+        const initial=groups.find(item=>item.selection.model===groups[0].selection.model&&item.selection.field_short_name==='t'&&item.selection.field_level_type==='surface')??groups[0];
+        setGroup(initial);
     }catch(error){notice((error as Error).name==='AbortError'?'Загрузка отменена.':'Сервис прогнозов недоступен. Откройте настройки и повторите загрузку.');}
 }
 addEventListener('pagehide',()=>{clearInterval(poll);reselectController.abort();series.clear();cancelTime();cancelUpdate();catalogueController.abort();++viewVersion;++selectionVersion;data=undefined;loader.cancel();pointController.abort();bootController.abort();cancelAnimationFrame(inertia);ownedCanvas=undefined;releaseLayer();map?.remove();});
 // Read-only numerical evidence surface, enabled solely by an explicit validation URL.
 function numericalView(){
-    if(!layer?.ready||lost)return undefined;
+    if(!layer?.ready||lost||layer.wind||timeState!=='ready'||updateBusy||timeStagingBytes||updateStagingBytes)return undefined;
     const view=layer.samples(),p=projection();
     const cases:[string,number[]][]=[['pole',[90,90]],['dateline-positive',[180,80]],['dateline-negative',[-180,80]]];
     if(mode==='laea')cases.push(['south-of-cut',[90,44.999]],['north-of-cut',[90,45.001]]);
@@ -551,9 +606,13 @@ if(validation){
     Object.assign(window,{captureWeatherEvidence:(samples=false)=>({ready:Boolean(layer?.ready&&layer.fieldVisible&&!lost&&timeState==='ready'),frame_visible:Boolean(layer?.ready&&layer.fieldVisible&&!lost),mode,selected,displayed,time_state:timeState,time_error:timeError,position,point,
         series:{key:series.key,entries:series.entries,expired:series.expired,busy:series.busy,requests:series.requests,elapsed_ms:series.elapsedMs},
         view:samples?numericalView():undefined,transfer_bytes:data?.bytes,load_ms:data?.load_ms,
-        synthetic_masks:samples&&layer?.ready&&!lost?layer.syntheticMasks():undefined,
-        managed_bytes:!lost?(layer?.checkBudget()??0)+timeStagingBytes+updateStagingBytes+SERIES_BUDGET:undefined,context_lost:lost,renderer_error:rendererError,
+        map_zoom:map?.getZoom(),view_geometry:layer?.geometry(),view_center:[...center],native_bounds:data?.metadata.grid.outer_cell_edges_wsen,source_crs:data?.metadata.source_crs,
+        synthetic_masks:samples&&layer?.ready&&!lost&&data?.metadata.grid.shape_yx.join(',')==='657,1377'?layer.syntheticMasks():undefined,
+        managed_bytes:!lost?(timeStagingBytes||updateStagingBytes?stagingBase():layer?.checkBudget()??0)+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET:undefined,context_lost:lost,renderer_error:rendererError,
         first_complete_ms:firstCompleteMs,render_frames_ms:[...frames],render_times_ms:[...renderTimes],warm_switch_ms:warmSwitchMs,
-        upload_timings:layer?.uploadTimings,screen_pick:screenPick})});
+        rendered:lastRendered,
+        catalogue_checks:catalogueChecks,catalogue_pending:Boolean(pendingGroups),
+        upload_timings:layer?.uploadTimings,decode_timings:data?.decode_ms,wind_decode_timings:data?.wind?.decode_ms,
+        portrayal_baseline:portrayalBaseline,wind:layer?.wind?.evidence(),screen_pick:screenPick})});
 }
 palette();layout();void boot();

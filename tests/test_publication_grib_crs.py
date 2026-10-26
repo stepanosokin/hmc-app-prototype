@@ -12,6 +12,61 @@ import requests
 
 @unittest.skipUnless(os.environ.get('GRIB_CRS_HTTP')=='1','requires isolated CRS publication services')
 class PublishedGribCRS(unittest.TestCase):
+    def test_new_field_followed_by_reused_field_is_published_atomically(self):
+        from test_grib_fields import field_frame
+        from decoder.storage import field_metadata
+        from publication.domain import ROOT,database
+        from publication.worker import submit,once
+        import hashlib
+        first=field_frame(2,3);new=field_frame(3,0)
+        def deliver(binary,hours):
+            request={'hours':hours,'fixture':'actual','recoverable':True,
+                     'source_profile':'grib2-fields','model':'SYNTHETIC-MIXED-REUSE'}
+            identifier=submit('2026-10-21T07:00:00Z',request)
+            directory=ROOT/identifier;directory.mkdir()
+            path=directory/'original.grib2';path.write_bytes(binary)
+            with database() as cursor:
+                cursor.execute('UPDATE app.jobs SET source_name=%s,checksum=%s,managed_source=%s WHERE id=%s',
+                    ('synthetic-mixed-reuse.grb',hashlib.sha256(binary).hexdigest(),path.relative_to(ROOT).as_posix(),identifier))
+            self.assertTrue(once(identifier))
+            with database() as cursor:
+                cursor.execute('SELECT state,selection FROM app.jobs WHERE id=%s',(identifier,))
+                job=cursor.fetchone()
+            self.assertEqual(job['state'],'published')
+            return job['selection']
+        previous=deliver(first,[1]);current=deliver(new+first,[1,2])
+        self.assertNotEqual(previous.split('.')[0],current.split('.')[0])
+        response=requests.get('http://gateway:8000/api/v1/catalogue',timeout=90)
+        self.assertEqual(response.status_code,200)
+        choices=[s for s in response.json()['selections'] if s['revision']==current.split('.')[0]]
+        expected={field_metadata(f,1,sample_inventory=False,all_fields=True)['field'] for f in (first,new)}
+        self.assertEqual({s['field'] for s in choices},expected)
+        pressure=next(s for s in choices if s['units']=='Pa')
+        capabilities=requests.get('http://gateway:8000'+pressure['wms'],params={'SERVICE':'WMS','VERSION':'1.3.0','REQUEST':'GetCapabilities'},timeout=90)
+        self.assertEqual(capabilities.status_code,200)
+        self.assertIn('Pa',capabilities.text)
+        self.assertNotIn('Температура поверхности, K',capabilities.text)
+        from test_grib_crs import section
+        updated=[field_frame(3,0,grid_section=bytes(section(1))),field_frame(2,3,grid_section=bytes(section(1)))]
+        corrected=deliver(b''.join(updated),[1,2])
+        response=requests.get('http://gateway:8000/api/v1/catalogue',timeout=90)
+        choices=[s for s in response.json()['selections'] if s['revision']==corrected.split('.')[0]]
+        self.assertEqual(len(choices),2,'A two-field grid correction must not resurrect an old batch')
+        self.assertEqual({s['field'] for s in choices},expected)
+        self.assertEqual(len({s['native_grid_sha256'] for s in choices}),1)
+        compact=requests.get('http://gateway:8000/api/v1/catalogue?view=compact',timeout=90)
+        self.assertEqual(compact.status_code,200,compact.text[:200])
+        index=compact.json()
+        retained=next(root for root in index['revisions'] if root['revision']==corrected.split('.')[0])
+        actual={}
+        for number in retained['batches']:
+            entry=index['batches'][number];template=index['templates'][entry['template']]
+            actual[retained['revision']+'.'+entry['key']]={
+                'field':template['field'],'units':template['units'],'valid_time':entry['valid_time'],
+                'native_grid_sha256':template['native_grid_sha256'],'interval':entry['interval']}
+        self.assertEqual(actual,{choice['selection']:{key:choice[key] for key in
+            ('field','units','valid_time','native_grid_sha256','interval')} for choice in choices})
+
     def test_missing_configuration_blocks_new_jobs_but_preserves_reads(self):
         import tempfile
         from unittest.mock import patch

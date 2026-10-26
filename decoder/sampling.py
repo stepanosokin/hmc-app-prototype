@@ -82,7 +82,7 @@ class ManifestSampler:
         if bool(read_values(group, 'missing', (row, column))):
             result['reason'] = 'native_nodata'
         else:
-            value = float(read_values(group, 'temperature', (row, column)))
+            value = float(read_values(group, item.get('data_variable', 'temperature'), (row, column)))
             require(math.isfinite(value), 'non-finite unmasked stored value')
             result.update(value=value, reason=None)
         return result

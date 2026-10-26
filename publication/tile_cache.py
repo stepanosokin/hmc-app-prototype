@@ -42,13 +42,13 @@ class TileCache:
             return {**self.metrics, 'bytes': self.bytes, 'budget_bytes': self.budget,
                     'entries': len(self.entries)}
 
-    def lookup(self, key: tuple, generate, *, metadata: bool = False, seconds: float = 0) -> tuple[bytes, str]:
+    def lookup(self, key: tuple, generate, *, metadata: bool = False, image: bool = False, seconds: float = 0) -> tuple[bytes, str]:
         started = time.monotonic()
-        category = 'metadata' if metadata else 'numeric'
+        category = 'image' if image else 'metadata' if metadata else 'numeric'
         outcome = 'failure'
         transferred = 0
         try:
-            payload, outcome = self._lookup(key, generate, metadata=metadata, seconds=seconds)
+            payload, outcome = self._lookup(key, generate, metadata=metadata, image=image, seconds=seconds)
             transferred = len(payload)
             return payload, outcome
         finally:
@@ -57,7 +57,7 @@ class TileCache:
                 self.metrics[category + '_bytes'] += transferred
                 self.metrics[category + '_duration_ms'] += (time.monotonic()-started)*1000
 
-    def _lookup(self, key: tuple, generate, *, metadata: bool = False, seconds: float = 0) -> tuple[bytes, str]:
+    def _lookup(self, key: tuple, generate, *, metadata: bool = False, image: bool = False, seconds: float = 0) -> tuple[bytes, str]:
         with self.lock:
             if key in self.entries:
                 self.entries.move_to_end(key)
@@ -71,8 +71,16 @@ class TileCache:
                     self.entries.move_to_end(key)
                     return self.entries[key], 'hit'
             self.fault('generation')
-            payload = generate()
-            if (not metadata and len(payload) != 258 * 258 * 5) or len(payload) > 332820:
+            category = 'image' if image else 'metadata' if metadata else 'numeric'
+            generation_started = time.monotonic()
+            try:
+                payload = generate()
+            finally:
+                with self.lock:
+                    self.metrics[category + '_generation_attempts'] += 1
+                    self.metrics[category + '_generation_duration_ms'] += (time.monotonic()-generation_started)*1000
+            valid = payload.startswith(b'\x89PNG\r\n\x1a\n') if image else metadata or len(payload) == 258 * 258 * 5
+            if not valid or len(payload) > 332820:
                 raise PublicationUnavailable('invalid numeric tile size')
             stage = 'cache'
             self.fault('cache')

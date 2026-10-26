@@ -95,22 +95,26 @@ def sample(selection: str, run: str, revision: str, field: str, valid_time: str,
                   crs=native_id, coordinate_order=['longitude', 'latitude'] if not spec or spec['template'] in (0, 1) else ['x', 'y'],
                   query_position={'lon': x, 'lat': y, 'crs': native_id},
                   spatial_selection='nearest-native-cell', temporal_selection='exact')
+    if item['metadata'].get('field_profile'):
+        result['interval']=item['metadata']['interval']
     return manifest, result
 
 
 def coverage(point: dict) -> dict:
     cell = point['cell'] or point['query_position']
     x, y = cell['lon'], cell['lat']
+    descriptor=point['source'].get('field_descriptor',{})
+    parameter=point['field'] if descriptor else 'T_G'
     return {'type': 'Coverage', 'domain': {
         'type': 'Domain', 'domainType': 'PointSeries',
         'axes': {'x': {'values': [x]}, 'y': {'values': [y]}, 't': {'values': [point['valid_time']]}},
         'referencing': [
             {'coordinates': ['x', 'y'], 'system': {'type': 'GeographicCRS' if point['coordinate_order'][0]=='longitude' else 'ProjectedCRS', 'id': point['crs']}},
             {'coordinates': ['t'], 'system': {'type': 'TemporalRS', 'calendar': 'Gregorian'}}]},
-        'parameters': {'T_G': {'type': 'Parameter', 'unit': {'symbol': 'K'},
-            'observedProperty': {'id': 'urn:hmc:field:T_G:surface:0',
-                                 'label': {'ru': 'Температура поверхности'}}}},
-        'ranges': {'T_G': {'type': 'NdArray', 'dataType': 'float', 'axisNames': ['t', 'y', 'x'],
+        'parameters': {parameter: {'type': 'Parameter', 'unit': {'symbol': point['units']},
+            'observedProperty': {'id': 'urn:hmc:field:'+point['field'],
+                                 'label': {'ru': descriptor.get('label','Температура поверхности')}}}},
+        'ranges': {parameter: {'type': 'NdArray', 'dataType': 'float', 'axisNames': ['t', 'y', 'x'],
                          'shape': [1, 1, 1], 'values': [point['value']]}}, 'selection': point}
 
 
@@ -124,7 +128,9 @@ def describe(manifest: dict, prefix: str) -> dict:
     native_id = public_id(spec) if spec else NATIVE_CRS
     base = prefix + '/ogc/collections/' + manifest['selection']
     tile_url = prefix + '/api/v1/selections/' + manifest['selection'] + '/tiles.json'
-    return {'id': manifest['selection'], 'title': 'Температура поверхности', 'module': 'meteorology',
+    descriptor=manifest['source'].get('field_descriptor',{})
+    parameter=identity['field'] if descriptor else 'T_G'
+    return {'id': manifest['selection'], 'title': descriptor.get('label','Температура поверхности'), 'module': 'meteorology',
         'identity': identity, 'storageCrs': native_id, 'crs': [native_id, CRS84],
         'source_crs': spec,
         'coordinate_order': ['longitude', 'latitude'] if not spec or spec['template'] in (0, 1) else ['x', 'y'], 'response_crs': native_id,
@@ -132,8 +138,9 @@ def describe(manifest: dict, prefix: str) -> dict:
                    'temporal': {'interval': [[identity['valid_time'], identity['valid_time']]]}},
         'dimensions': {key: [identity[key]] for key in ('model', 'run', 'revision', 'field', 'level', 'member', 'valid_time', 'native_grid_sha256')},
         'grid': grid, 'units': item['metadata']['identity']['units'],
-        'parameter_names': {'T_G': {'type': 'Parameter', 'unit': {'symbol': 'K'},
-                                  'observedProperty': {'label': {'ru': 'Температура поверхности'}}}},
+        'parameter_names': {parameter: {'type': 'Parameter', 'unit': {'symbol':item['metadata']['identity']['units']},
+                                  'observedProperty': {'label': {'ru': descriptor.get('label','Температура поверхности')}}}},
+        **({'interval':descriptor['interval'],'field_identity':descriptor['raw_identity']} if descriptor else {}),
         'method': 'nearest-native-cell', 'temporal_selection': 'exact',
         'source': manifest['source'], 'fixture': manifest.get('fixture', 'actual'),
         'links': [{'rel': 'self', 'href': base, 'type': 'application/json'},

@@ -23,10 +23,11 @@ const fixtures=`(()=>{
     window.__seriesSynthetic={mode:'gaps',held:false,released:false,calls:[],release:null};
     window.fetch=async(input,options)=>{
         const url=String(input),test=window.__seriesSynthetic;
-        if(url==='/api/v1/catalogue'){
+        if(new URL(url,location.origin).pathname==='/api/v1/catalogue'){
             const response=await original(input,options),body=await response.json();
             if(test.mode==='reselect-hold'&&!test.catalogueHeld){test.catalogueHeld=true;await new Promise(resolve=>test.releaseCatalogue=resolve);test.catalogueReleased=true;}
-            body.selections=body.selections.filter(s=>!s.valid_time.endsWith('02:00:00Z'));
+            for(const root of body.revisions)
+                root.batches=root.batches.filter(index=>!body.batches[index].valid_time.endsWith('02:00:00Z'));
             return Response.json(body);
         }
         if(!url.includes('/point?'))return original(input,options);

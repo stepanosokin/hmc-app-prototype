@@ -28,8 +28,9 @@ MAX_FRAME_BYTES = 8 * 1024 * 1024
 FIELD = 'T_G:surface:0'
 RUN = 'ICON-EU/2026-10-15T00:00:00Z'
 def field_metadata(frame: bytes, hour: int, crs_config: dict | None = None,
-                   sample_inventory: bool = True) -> dict:
-    metadata = decode_message(frame, hour, crs_config, sample_inventory)
+                   sample_inventory: bool = True, all_fields: bool = False) -> dict:
+    require(not all_fields or not sample_inventory, 'Разные профили контрольного образца и набора полей')
+    metadata = decode_message(frame, hour, crs_config, sample_inventory, all_fields)
     raw = sections(frame)
     raw_grid_hash = hashlib.sha256(raw[3]).hexdigest()
     resolved_grid_hash = hashlib.sha256(canonical({'raw_grid_sha256':raw_grid_hash,
@@ -40,6 +41,15 @@ def field_metadata(frame: bytes, hour: int, crs_config: dict | None = None,
                     source_message_sha256=hashlib.sha256(frame).hexdigest(),
                     grib_metadata_sections_hex={str(number): section.hex()
                                                 for number, section in raw.items() if number != 7})
+    if all_fields:
+        interval = metadata['interval']
+        identity = {**metadata['raw_identity'], 'second_surface_hex': raw[4][28:34].hex(),
+                    'product_template':metadata['product_template'],
+                    'statistical_process':interval['statistical_process'] if interval else None}
+        bound = max(abs(metadata['values']['min']), abs(metadata['values']['max'])) * 2**-23
+        metadata.update(field='GRIB2:' + hashlib.sha256(canonical(identity)).hexdigest(),
+                        field_profile='grib2-fields/1', field_identity=identity,
+                        data_variable='values', float32_abs_error_bound=bound)
     return metadata
 
 
@@ -80,15 +90,16 @@ def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missi
     ny, nx = values.shape
     dx, dy = metadata['grid']['spacing_degrees_xy']
     west, south, east, north = metadata['grid']['outer_cell_edges_wsen']
-    arrays = [('temperature', values, ['latitude', 'longitude'], (256, 256)),
+    variable = metadata.get('data_variable', 'temperature')
+    arrays = [(variable, values, ['latitude', 'longitude'], (256, 256)),
               ('missing', missing.astype('uint8'), ['latitude', 'longitude'], (256, 256)),
               ('longitude', west + dx / 2 + np.arange(nx) * dx, ['longitude'], (nx,)),
               ('latitude', south + dy / 2 + np.arange(ny) * dy, ['latitude'], (ny,))]
-    for variable, data, dimensions, chunks in arrays:
-        array = group.create_array(variable, data=data, chunks=chunks, fill_value=None,
+    for array_name, data, dimensions, chunks in arrays:
+        array = group.create_array(array_name, data=data, chunks=chunks, fill_value=None,
                                    compressor=Blosc(cname='zstd', clevel=5, shuffle=Blosc.BITSHUFFLE))
         array.attrs['_ARRAY_DIMENSIONS'] = dimensions
-    group['temperature'].attrs.update(units=metadata['identity']['units'], coordinates='latitude longitude')
+    group[variable].attrs.update(units=metadata['identity']['units'], coordinates='latitude longitude')
     group['missing'].attrs.update(long_name='1 = native missing; 0 = valid')
     geographic = metadata.get('source_crs', {}).get('template', 0) in (0, 1)
     group['latitude'].attrs.update(units='degrees' if geographic else 'm',
@@ -98,7 +109,7 @@ def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missi
     zarr.consolidate_metadata(str(zpath))
     stored = zarr.open_group(str(zpath), mode='r', zarr_format=2)
     # GRIB/Zarr rows scan south->north. TIFF rows scan north->south.
-    numeric = np.asarray(read_values(stored, 'temperature'), dtype='<f4')[::-1].copy()
+    numeric = np.asarray(read_values(stored, variable), dtype='<f4')[::-1].copy()
     valid = (1 - read_values(stored, 'missing'))[::-1].astype('uint8') * 255
     temporary = root / f'{name}.working.tif'
     with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True, GDAL_NUM_THREADS='1'):
@@ -109,16 +120,21 @@ def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missi
             raster.write(numeric, 1)
             raster.write_mask(valid)
             raster.update_tags(native_grid=json.dumps(metadata['grid']), units=metadata['identity']['units'],
-                               valid_time=metadata['valid_time'], field=FIELD, pipeline=PIPELINE,
+                               valid_time=metadata['valid_time'], field=metadata.get('field',FIELD), pipeline=PIPELINE,
                                point_values='Use manifest-backed Zarr; never overviews')
             raster.build_overviews([2, 4], Resampling.nearest)
         raster_copy(temporary, cpath, driver='COG', COMPRESS='DEFLATE', BLOCKSIZE=256,
                     OVERVIEWS='FORCE_USE_EXISTING', RESAMPLING='NEAREST', NUM_THREADS='1')
     temporary.unlink()
-    return {'field': FIELD, 'zarr': zpath.name, 'cog': cpath.name, 'metadata': metadata,
+    return {'field': metadata.get('field',FIELD),
+            **({'data_variable': variable} if 'field_profile' in metadata else {}),
+            'zarr': zpath.name, 'cog': cpath.name, 'metadata': metadata,
             'encoding': {'zarr_format': 2, 'zarr_dtype': '<f8', 'chunks_yx': [256, 256],
                          'codec': 'Blosc/zstd/5/bitshuffle', 'cog_dtype': 'float32',
-                         'cog_compression': 'DEFLATE', 'max_abs_error_bound_K': TOLERANCE_K,
+                         'cog_compression': 'DEFLATE',
+                         **({'max_abs_error_bound': metadata['float32_abs_error_bound'],
+                             'error_units':metadata['identity']['units']} if 'field_profile' in metadata
+                            else {'max_abs_error_bound_K': TOLERANCE_K}),
                          'overview_resampling': 'nearest', 'overviews_for_point_values': False}}
 
 
@@ -128,13 +144,14 @@ def check_field(root: Path, item: dict, baseline: np.ndarray, missing: np.ndarra
     group = zarr.open_group(str(zpath), mode='r', zarr_format=2)
     require(json.loads((zpath / '.zgroup').read_text())['zarr_format'] == 2, 'not explicit Zarr v2')
     require(dict(group.attrs)['metadata'] == metadata, 'Zarr metadata changed')
-    stored, stored_missing = read_values(group, 'temperature'), read_values(group, 'missing').astype(bool)
+    variable = item.get('data_variable', 'temperature')
+    stored, stored_missing = read_values(group, variable), read_values(group, 'missing').astype(bool)
     require(np.array_equal(stored_missing, missing), 'Zarr mask changed')
     require(np.array_equal(stored[~missing], baseline[~missing]), 'Zarr precision failed')
     with xr.open_zarr(str(zpath), consolidated=True, chunks=None, zarr_format=2) as dataset:
-        require(np.array_equal(dataset.temperature.values[~missing], baseline[~missing]), 'Xarray precision failed')
+        require(np.array_equal(dataset[variable].values[~missing], baseline[~missing]), 'Xarray precision failed')
         require(np.array_equal(dataset.missing.values.astype(bool), missing), 'Xarray mask failed')
-        require(dataset.temperature.attrs['units'] == metadata['identity']['units'], 'Xarray units changed')
+        require(dataset[variable].attrs['units'] == metadata['identity']['units'], 'Xarray units changed')
         require(np.array_equal(dataset.latitude.values, read_values(group, 'latitude'))
                 and np.array_equal(dataset.longitude.values, read_values(group, 'longitude')), 'Xarray coordinates changed')
     ny, nx = baseline.shape
@@ -155,11 +172,17 @@ def check_field(root: Path, item: dict, baseline: np.ndarray, missing: np.ndarra
         actual_missing = raster.read_masks(1)[::-1] == 0
         require(np.array_equal(actual_missing, missing), 'COG mask changed')
         error = float(np.max(np.abs(actual[~missing].astype('float64') - baseline[~missing])))
-        require(error <= TOLERANCE_K, f'COG precision failed: {error} K')
+        bound = metadata.get('float32_abs_error_bound', TOLERANCE_K)
+        require(error <= bound, f'COG precision failed: {error} {metadata["identity"]["units"]}')
         # Full arrays establish numeric placement; independent baseline centres check the affine.
         for cell in metadata['grid']['cell_centres']:
             lon, lat = raster.xy(ny - 1 - cell['row'], cell['column'])
-            require((lon, lat) == (cell['lon'], cell['lat']), 'COG cell centre failed')
+            # North-down TIFF and south-up native arrays evaluate the same
+            # affine in opposite orders. Bound only float64 roundoff, many
+            # orders below the source coordinate quantization or a cell.
+            scale = max(1.0, abs(west), abs(south), abs(east), abs(north))
+            roundoff = 8 * float(np.spacing(scale)) if metadata.get('field_profile') else 0.0
+            require(max(abs(lon-cell['lon']), abs(lat-cell['lat'])) <= roundoff, 'COG cell centre failed')
     return {'message': metadata['message'], 'valid_time': metadata['valid_time'],
             'native_crs_wkt': raster.crs.to_wkt(),
             'finite_cells': int(np.count_nonzero(~missing)), 'missing_cells': int(missing.sum()),

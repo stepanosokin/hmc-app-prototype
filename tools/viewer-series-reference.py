@@ -36,7 +36,7 @@ def main():
             key = (selection['selection'], point['lng'], point['lat'])
             if key not in edr_cache:
                 for attempt in range(3):
-                    response = requests.get('http://gateway:8000'+selection['position'], params={
+                    response = requests.get('http://gateway:8000'+selection['collection']+'/position', params={
                         'run':selection['run'], 'revision':selection['revision'],
                         'coords':f"POINT({point['lng']} {point['lat']})", 'datetime':selection['valid_time'],
                         'parameter-name':'T_G', 'crs':'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}, timeout=35)
