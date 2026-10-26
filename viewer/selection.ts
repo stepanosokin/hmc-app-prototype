@@ -41,3 +41,9 @@ export function publishedGroups(selections: Selection[],validationFixtures=false
         return group;
     });
 }
+/** A vanished group must never keep showing its previously downloaded field. */
+export function withdrawnReplacement(current:PublishedGroup,available:PublishedGroup[],validTime:number):PublishedGroup|undefined{
+    return available.find(item=>['model','run','field','level','native_grid_sha256','member'].every(
+        key=>item.selection[key as keyof Selection]===current.selection[key as keyof Selection])&&
+        item.times[(validTime-item.start)/3600000]);
+}

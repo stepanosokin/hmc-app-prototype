@@ -1,7 +1,8 @@
 param(
     [ValidatePattern('^hmc-publication-[a-z0-9-]+$')][string]$Project = 'hmc-publication-t7-check',
     [int]$Port = 8099,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [string]$Image='hmc-publication:t7'
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'process.ps1')
@@ -21,7 +22,7 @@ foreach ($t7Key in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAI
 }
 $t7Lines | Set-Content -Encoding ascii -LiteralPath $t7Environment
 $env:T4_PORT = [string]$Port
-$env:PUBLICATION_IMAGE = 'hmc-publication:t7'
+$env:PUBLICATION_IMAGE = $Image
 $env:PUBLICATION_EVIDENCE_DIR = './data/reports/t7/' + $Project
 $env:PUBLICATION_CLOCK = '2026-10-19T05:00:00Z'
 $t7Compose = @('compose','--env-file',$t7Environment,'--project-name',$Project,'--file','compose.publication.yaml')

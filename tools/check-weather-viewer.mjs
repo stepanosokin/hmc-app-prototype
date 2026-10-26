@@ -6,6 +6,7 @@ import {join,resolve,sep} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {checkNavigation} from './viewer-navigation.mjs';
 import {checkUpdates} from './viewer-updates.mjs';
+import {checkWithdrawal} from './viewer-withdrawal.mjs';
 import {checkTimeSwitch} from './viewer-time-switch.mjs';
 import {checkPointSeries} from './viewer-point-series.mjs';
 import {checkSourceSettings} from './viewer-settings.mjs';
@@ -154,6 +155,10 @@ try{
         report.gpu=await evaluate("(()=>{const gl=document.querySelector('.maplibregl-canvas').getContext('webgl2'),debug=gl.getExtension('WEBGL_debug_renderer_info');return {renderer:gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER),version:gl.getParameter(gl.VERSION),highp_precision:gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER,gl.HIGH_FLOAT).precision,max_texture_size:gl.getParameter(gl.MAX_TEXTURE_SIZE),max_array_layers:gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)};})()");
         if(android){
             await wait("document.visibilityState==='visible'",'unlocked visible Galaxy tab');
+        }
+        if(process.env.T52_WITHDRAWAL==='1'){
+            assert.ok(!android&&!disabled,'Isolated desktop withdrawal gate');
+            await checkWithdrawal({call,evaluate,wait,select,click,capture,report,directory});break;
         }
         if(process.env.T19_WORKLOAD==='1'){
             assert.ok(!android&&!disabled,'T19 desktop profile; physical Android is #51');

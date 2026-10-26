@@ -1,6 +1,15 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {publishedGroups} from './selection.ts';
+import {publishedGroups,withdrawnReplacement} from './selection.ts';
+
+test('withdrawal replacement keeps run, field, grid, member and exact time',()=>{
+    const base={model:'ICON-EU',run:'ICON-EU/2026-10-15T00:00:00Z',field:'T_G:surface:0',level:0,units:'K',state:'published',native_grid_sha256:'grid',member:null};
+    const make=(revision,extra={})=>publishedGroups([{...base,revision,selection:revision,valid_time:'2026-10-15T01:00:00Z',...extra}])[0];
+    const old=make('old'),replacement=make('replacement');
+    assert.equal(withdrawnReplacement(old,[make('wrong',{native_grid_sha256:'other'}),replacement],old.start),replacement);
+    assert.equal(withdrawnReplacement(old,[replacement],old.start+3600000),undefined);
+    assert.equal(withdrawnReplacement(old,[],old.start),undefined);
+});
 
 test('a mixed synthetic revision is excluded whole from public discovery and labelled in validation',()=>{
     const base={model:'ICON-EU',run:'ICON-EU/2026-10-15T00:00:00Z',field:'T_G:surface:0',level:0,units:'K',state:'published'};

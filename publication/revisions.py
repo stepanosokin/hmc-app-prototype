@@ -79,6 +79,8 @@ def normalize(source: Path, target: Path, hour: int, frame: bytes, fixture: str,
                                          'synthetic_fixture': request.get('fixture_label') or (None if fixture == 'actual' else fixture),
                                          'source_crs': metadata['source_crs']},
             'tools': versions(), 'fields': [item], 'assets': inventory}
+    if request.get('source_directory'):
+        body['source']['directory'] = request['source_directory']
     if metadata.get('field_profile'):
         descriptor = metadata['raw_identity']
         body['source'].update(field_profile=metadata['field_profile'], field_descriptor={
@@ -113,10 +115,13 @@ def batch_key(identity: dict) -> str:
 
 
 def latest(run: str) -> dict | None:
+    from publication.retention import snapshot
+    _, _, roots = snapshot()
+    expired = {row['root'] for row in roots if row['state'] == 'expired'}
     with database() as cursor:
-        cursor.execute('SELECT manifest_path,manifest_sha256 FROM app.revisions WHERE run=%s '
-                       'ORDER BY published_at DESC, revision DESC LIMIT 1', (run,))
-        row = cursor.fetchone()
+        cursor.execute('SELECT revision,manifest_path,manifest_sha256 FROM app.revisions WHERE run=%s '
+                       'ORDER BY published_at DESC, revision DESC', (run,))
+        row = next((row for row in cursor.fetchall() if row['revision'] not in expired), None)
     return None if row is None else load_revision(row['manifest_path'], row['manifest_sha256'])
 
 
@@ -221,6 +226,8 @@ def process(job: dict) -> None:
                         and existing['source'].get('processing_version', PIPELINE) == job['pipeline_version']
                         and existing['source'].get('source_crs') == metadata['source_crs']
                         and existing.get('fixture', 'actual') == request['fixture']
+                        and existing['source'].get('name') == job['source_name']
+                        and existing['source'].get('directory') == request.get('source_directory')
                         and not request.get('rebuild')):
                     with database() as cursor:
                         cursor.execute('UPDATE app.jobs SET selection=%s WHERE id=%s', (existing['selection'], identifier))

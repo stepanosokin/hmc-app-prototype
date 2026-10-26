@@ -70,8 +70,7 @@ Invoke-T6Compose run --rm worker submit --clock 2026-10-19T08:00:00Z --legacy-on
 Invoke-T6Check -Name legacy-publication -Arguments @('run','--rm','worker','once')
 Invoke-T6Check -Name final-types -Arguments @('run','--rm','typecheck')
 Invoke-T6Check -Name full-suite -Arguments @('run','--rm','--env','T4_HTTP=1','check')
-Invoke-T6Check -Name archived-evidence -Arguments @('run','--rm','--volume',"$((Get-Location).Path):/workspace:ro",'--workdir','/workspace',
-    '--entrypoint','python','check','tools/check_evidence.py')
+Write-Output 'Historical archive verification not performed; run tools/check-archives.ps1 separately.'
 $t6Base = (& git rev-parse HEAD).Trim()
 Invoke-T6Check -Name inputs -Arguments @('run','--rm','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python',
     'check','-m','publication.verify_recovery','--inputs','/workspace','--base-commit',$t6Base)

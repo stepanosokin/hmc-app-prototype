@@ -17,6 +17,7 @@ x-app: &app
     # Explicit historical demo clock; use a separate project/volumes for tests.
     # Operator retention configure can switch the persisted policy to wall UTC.
     PUBLICATION_CLOCK: ${PUBLICATION_CLOCK:-2026-10-19T05:00:00Z}
+    GRIB_SOURCE_DIRECTORY: ${PUBLICATION_INPUT_DIR:-./data/grib}
     TILE_CACHE_BYTES: ${TILE_CACHE_BYTES:-16777216}
     DB_USER: hmc_worker
     DB_PASSWORD: ${WORKER_PASSWORD:?generate isolated test environment first}

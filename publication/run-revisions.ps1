@@ -1,7 +1,8 @@
 param(
     [ValidatePattern('^[a-z0-9][a-z0-9-]+$')][string]$Project = 'hmc-publication-t5-check',
     [int]$Port = 8098,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [string]$Image='hmc-publication:t5'
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'process.ps1')
@@ -21,7 +22,7 @@ foreach ($t5Key in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAI
 }
 $t5Lines | Set-Content -Encoding ascii -LiteralPath $t5Environment
 $env:T4_PORT = [string]$Port
-$env:PUBLICATION_IMAGE = 'hmc-publication:t5'
+$env:PUBLICATION_IMAGE = $Image
 $env:PUBLICATION_EVIDENCE_DIR = './data/reports/t5/' + $Project
 $t5Compose = @('compose','--env-file',$t5Environment,'--project-name',$Project,'--file','compose.publication.yaml')
 function Invoke-T5Compose {
@@ -66,6 +67,5 @@ if (-not $t5Ready) { throw 'Published catalogue did not recover after restart' }
 Invoke-T5Check -Name retained-after-restart -Arguments @('run','--rm','--entrypoint','python','check',
     '-m','publication.verify_revisions')
 Invoke-T5Check -Name full-suite -Arguments @('run','--rm','--env','T4_HTTP=1','check')
-Invoke-T5Check -Name archived-evidence -Arguments @('run','--rm','--volume',"$((Get-Location).Path):/workspace:ro",'--workdir','/workspace',
-    '--entrypoint','python','check','tools/check_evidence.py')
+Write-Output 'Historical archive verification not performed; run tools/check-archives.ps1 separately.'
 Write-Output "T5 checks passed. Gateway: http://127.0.0.1:$Port ; evidence: $t5Directory"

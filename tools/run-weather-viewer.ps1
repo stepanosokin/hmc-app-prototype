@@ -70,12 +70,14 @@ try{
     Check seed @('run','--rm','worker','submit','--clock',$env:PUBLICATION_CLOCK,'--hours',$seedHours)
     Check publish @('run','--rm','worker','once')
     Check restart @('restart','api','gateway')
-    if($Navigation){
+    if($Navigation -or $Updates){
         Check overlap-seed @('run','--rm','worker','submit','--clock',$env:PUBLICATION_CLOCK,'--hours','1,3','--fixture','overlap')
         Check overlap-publish @('run','--rm','worker','once')
         Check overlap-restart @('restart','api','gateway')
-        $env:T14_NAVIGATION='1'
-        if($NavigationOnly){$env:T14_NAVIGATION_ONLY='1';$env:T13_FOCUSED='1'}
+        if($Navigation){
+            $env:T14_NAVIGATION='1'
+            if($NavigationOnly){$env:T14_NAVIGATION_ONLY='1';$env:T13_FOCUSED='1'}
+        }
     }
     $env:T13_VIEWER="http://127.0.0.1:$ViewerPort"
     if($PointSeries){$env:T27_POINT_SERIES='1'}

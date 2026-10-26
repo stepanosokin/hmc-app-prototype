@@ -7,6 +7,7 @@ Published directories are retained; collection removes only abandoned attempts.
 import hashlib
 import json
 import os
+import posixpath
 from pathlib import Path
 import shutil
 import time
@@ -104,10 +105,16 @@ def submit(clock: str, request: dict, source_name: str, delivery_sha256: str | N
            stability_seconds: float) -> str:
     from decoder.grib_crs import configuration
     request = dict(request)
+    request['source_directory'] = source_directory()
     if 'crs_configuration' not in request:
         request['crs_configuration'] = configuration()
     with processing_budget():
         return capture(clock, request, source_name, delivery_sha256, stability_seconds)
+
+
+def source_directory() -> str | None:
+    value = os.environ.get('GRIB_SOURCE_DIRECTORY')
+    return posixpath.normpath(value.replace('\\', '/')) if value else None
 
 
 def bounded_checksum(path: Path, limit: int = MAX_SOURCE_BYTES) -> str:
@@ -150,7 +157,7 @@ def capture(clock: str, request: dict, source_name: str, delivery_sha256: str | 
             if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
                 raise ValueError('delivery still changing; retry discovery')
         checksum = bounded_checksum(source,limit)
-        key = hashlib.sha256(canonical({'source': checksum, 'pipeline': PIPELINE, 'request': request,
+        key = hashlib.sha256(canonical({'source': checksum, 'source_name': source_name, 'pipeline': PIPELINE, 'request': request,
                                       'producer_sha256': delivery_sha256})).hexdigest()
         with database() as cursor:
             cursor.execute('SELECT id,error FROM app.jobs WHERE delivery_key=%s', (key,))

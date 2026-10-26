@@ -32,7 +32,7 @@ def submit(clock: str, request: dict | None = None) -> str:
     from decoder.grib_crs import configuration
     config = configuration()
     if request is not None:
-        request = {**request, 'crs_configuration': config}
+        request = {**request, 'crs_configuration': config, 'source_directory': recovery.source_directory()}
     if not clock.endswith('Z'):
         raise ValueError('explicit UTC demo clock required')
     datetime.fromisoformat(clock.replace('Z', '+00:00'))

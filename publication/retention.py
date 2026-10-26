@@ -66,6 +66,7 @@ def decisions(roots: list[dict], configuration: dict, clock) -> list[dict]:
             if grace < cutoff:
                 cutoff, reason = grace, 'superseded-grace'
             newer = [other for other in roots if other['run'] == row['run']
+                     and other.get('reason') != 'source-withdrawn'
                      and other['superseded_at'] is not None
                      and (instant(other['published_at']), other['root']) >= (instant(row['published_at']), row['root'])]
             if (len(newer) > configuration['superseded_count']
@@ -129,7 +130,7 @@ def register(cursor, root: str, manifest: dict, manifest_path: str, published_at
     # Wall publication chronology and the explicit policy clock are separate.
     # Late adoption of older rows must never supersede a newer current root.
     cursor.execute('SELECT root,superseded_at,event_clock FROM app.retention_roots '
-                   'WHERE run=%s ORDER BY published_at,root', (run,))
+                   "WHERE run=%s AND reason IS DISTINCT FROM 'source-withdrawn' ORDER BY published_at,root", (run,))
     ordered = cursor.fetchall()
     for previous, successor in zip(ordered, ordered[1:]):
         if previous['superseded_at'] is None or instant(previous['superseded_at']) > instant(successor['event_clock']):

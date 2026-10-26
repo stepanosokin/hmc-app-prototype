@@ -26,6 +26,8 @@ jobs:
         run: node --test tools/test-viewer-network.mjs
       - name: Check external archive path resolution without archive data
         run: node --test tools/test-archive-paths.mjs
+      - name: Check running stand selection for GRIB withdrawal
+        run: node --test tools/test-sync-grib.mjs
 
   windows-process:
     runs-on: windows-2022
@@ -89,6 +91,10 @@ jobs:
         run: >-
           docker run --rm --network none --entrypoint python hmc-publication:checks
           -m unittest discover -s tests -p test_publication_retention.py -v
+      - name: Check GRIB withdrawal plan boundaries
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_grib_sync.py -v
       - name: Check archive validation failures
         run: >-
           docker run --rm --network none

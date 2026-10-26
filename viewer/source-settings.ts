@@ -9,7 +9,7 @@ export interface SourceDescription {
     identity?:{revision:string;valid_time:string};
     source?:{name?:string};
 }
-type State='loading'|'ready'|'missing'|'error'|'expired';
+type State='loading'|'ready'|'missing'|'error'|'expired'|'withdrawn';
 const element=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 /** The public links always describe the requested selection, never a retained frame. */
 export class SourceSettings {
@@ -32,7 +32,8 @@ export class SourceSettings {
         element('sourceUnitsInfo').textContent='Публичные демонстрационные ссылки. WMS закреплён за расчётом и редакцией; API — за точным сроком UTC и точкой. Исходные единицы: '+fieldUnits(source.units)+'.';
         const matching=current&&description?.identity?.revision===current.revision&&description.identity.valid_time===current.valid_time?description:undefined;
         const complete=source.completeness==='complete'?'полный':source.completeness==='partial'?'неполный':'неизвестна';
-        const status={loading:'Загрузка',ready:'Срок опубликован',missing:'Срок отсутствует',error:'Ошибка загрузки',expired:'Публикация истекла'}[state];
+        const unavailable=state==='expired'||state==='withdrawn';
+        const status={loading:'Загрузка',ready:'Срок опубликован',missing:'Срок отсутствует',error:'Ошибка загрузки',expired:'Публикация истекла',withdrawn:'Публикация снята'}[state];
         const rows=[['Источник',source.model],['Поле',title+(source.wind_v?' · ряд: компонента U':'')],
             ['Расчёт',format(referenceTime(source.run))],['Выбранный срок',format(time)],
             ['Редакция',source.revision.slice(0,12)],['Доступность',status],
@@ -48,17 +49,17 @@ export class SourceSettings {
         element('metadata').replaceChildren(...nodes);
         element('linkSelection').textContent=source.model+' · '+format(referenceTime(source.run))+' · редакция '+source.revision.slice(0,12);
         let wms='',api='';
-        if(state!=='expired'&&source.wms){const url=new URL(source.wms,location.origin);url.search=new URLSearchParams({SERVICE:'WMS',VERSION:'1.3.0',REQUEST:'GetCapabilities'}).toString();wms=url.href;}
+        if(!unavailable&&source.wms){const url=new URL(source.wms,location.origin);url.search=new URLSearchParams({SERVICE:'WMS',VERSION:'1.3.0',REQUEST:'GetCapabilities'}).toString();wms=url.href;}
         // Default sample uses the published native coverage, converted to geographic coordinates.
         const sample=bounds?nativePosition(matching?.source_crs,[(bounds[0]+bounds[2])/2,(bounds[1]+bounds[3])/2],true):undefined;
         const point=position??(sample?{lng:sample[0],lat:sample[1]}:undefined);
-        if(current&&point&&state!=='expired'){
+        if(current&&point&&!unavailable){
             const url=new URL(current.point,location.origin);
             url.search=new URLSearchParams({selection:current.selection,run:current.run,revision:current.revision,
                 valid_time:current.valid_time,layer:current.field,lon:String(point.lng),lat:String(point.lat),
                 crs:'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}).toString();api=url.href;
         }
-        element('linkPoint').textContent=state==='expired'?'Публикация истекла. Перевыберите публикацию.':!current?'Срок отсутствует — запрос точки недоступен.':point?
+        element('linkPoint').textContent=unavailable?status+'. Перевыберите публикацию.':!current?'Срок отсутствует — запрос точки недоступен.':point?
             (position?'Выбранная точка: ':'Пример — центр покрытия: ')+point.lat.toFixed(4)+'° с. ш., '+point.lng.toFixed(4)+'° в. д. · '+format(time)+' · '+(source.units==='unknown'?'единицы не определены':source.units):'Для примера дождитесь загрузки покрытия или выберите точку на карте.';
         for(const [kind,url] of [['wms',wms],['api',api]]){
             const link=element<HTMLAnchorElement>(kind+'Link'),input=element<HTMLInputElement>(kind+'Url');
@@ -67,7 +68,7 @@ export class SourceSettings {
             if(url)link.href=url;else link.removeAttribute('href');link.setAttribute('aria-disabled',String(!url));
         }
         const technical=element<HTMLAnchorElement>('metadataLink');
-        if(current&&state!=='expired')technical.href=new URL(current.collection,location.origin).href;else technical.removeAttribute('href');
-        technical.hidden=!current||state==='expired';
+        if(current&&!unavailable)technical.href=new URL(current.collection,location.origin).href;else technical.removeAttribute('href');
+        technical.hidden=!current||unavailable;
     }
 }

@@ -1,4 +1,4 @@
-import {referenceTime,type Selection,type PublishedGroup} from './selection.js';
+import {referenceTime,withdrawnReplacement,type Selection,type PublishedGroup} from './selection.js';
 import {FieldLoader,json,PublicationExpired,type FieldData} from './field.js';
 import {create,clippedLine} from './geometry.js';
 import {WeatherLayer} from './weather-layer.js';
@@ -26,7 +26,7 @@ const sourceSettings=new SourceSettings();
 const fieldPicker=new FieldPicker(target=>setGroup(target,true));
 const series=new PointSeries(pointValue,seriesChanged);
 function seriesChanged(){
-    if(series.expired&&timeState!=='expired'){
+    if(series.expired&&timeState!=='expired'&&timeState!=='withdrawn'){
         cancelTime();timeState='expired';if(layer)layer.fieldVisible=false;map?.triggerRepaint();displayed=undefined;metadata=undefined;point=undefined;
         selectionDetails();notice('Публикация истекла. Перевыберите публикацию.');renderPoint('Публикация истекла');return;
     }
@@ -55,7 +55,7 @@ let dismissedPublication='',updateSerial=0,timeStagingBytes=0,updateStagingBytes
 let catalogueChecks=0;
 let timeController=new AbortController(),displayed:Selection|undefined;
 let reselectController=new AbortController();
-let timeState:'loading'|'ready'|'missing'|'error'|'expired'='missing',pointMessage='',timeError='';
+let timeState:'loading'|'ready'|'missing'|'error'|'expired'|'withdrawn'='missing',pointMessage='',timeError='';
 function cancelTime(){timeController.abort();timeController=new AbortController();loader.cancel();timeStagingBytes=0;}
 function cancelUpdate(){
     const wasBusy=updateBusy;
@@ -98,12 +98,12 @@ function selectionDetails(){
     text('reference',(displayed?'Показан расчёт: ':'Выбран расчёт: ')+timestamp(referenceTime((displayed??source).run)));
     const valid=new Date(group.start+index*3600000).toISOString();
     const shown=displayed?timestamp(displayed.valid_time):'нет поля';
-    text('valid','Показано: '+shown);text('compactTime',shown+(timeState==='loading'?' · загрузка':timeState==='error'?' · ошибка загрузки':timeState==='expired'?' · публикация истекла':''));
-    text('timeLabel',timestamp(valid)+(timeState==='loading'?' · загружается':timeState==='error'?' · ошибка загрузки':timeState==='expired'?' · публикация истекла':''));
+    text('valid','Показано: '+shown);text('compactTime',shown+(timeState==='loading'?' · загрузка':timeState==='error'?' · ошибка загрузки':timeState==='expired'?' · публикация истекла':timeState==='withdrawn'?' · публикация снята':''));
+    text('timeLabel',timestamp(valid)+(timeState==='loading'?' · загружается':timeState==='error'?' · ошибка загрузки':timeState==='expired'?' · публикация истекла':timeState==='withdrawn'?' · публикация снята':''));
     text('selectionIdentity',(displayed?'Показана редакция ':'Выбрана редакция ')+(displayed??source).revision.slice(0,12));
     text('forecastSummary','Выбор: '+(source.fixture==='overlap'?'Тестовый перекрывающийся расчёт · ':source.fixture==='correction'?'Тестовая коррекция +1 K · ':'')+source.model+' · '+timestamp(referenceTime(source.run)));
-    text('availability',timeState==='loading'?'Загрузка выбранного срока':timeState==='error'?'Ошибка загрузки срока':timeState==='expired'?'Публикация истекла':selected?'Срок опубликован':'Срок отсутствует');
-    text('retry',timeState==='expired'?'Перевыбрать публикацию':'Повторить загрузку');
+    text('availability',timeState==='loading'?'Загрузка выбранного срока':timeState==='error'?'Ошибка загрузки срока':timeState==='expired'?'Публикация истекла':timeState==='withdrawn'?'Публикация снята':selected?'Срок опубликован':'Срок отсутствует');
+    text('retry',timeState==='expired'||timeState==='withdrawn'?'Перевыбрать публикацию':'Повторить загрузку');
     sourceSettings.update(group,index,selected,position,metadata,timeState,displayed,
         timeState==='ready'?data?.metadata.grid.outer_cell_edges_wsen:undefined,timestamp);
     palette();layout();
@@ -171,6 +171,7 @@ function replaceLayer(candidate:WeatherLayer){
     map.triggerRepaint();
 }
 async function chooseTime(next:number){
+    if(timeState==='withdrawn'){notice('Публикация снята. Перевыберите публикацию в настройках.');return;}
     if(series.expired||timeState==='expired'){notice('Публикация истекла. Перевыберите публикацию в настройках.');return;}
     if(!group)return;index=Math.max(0,Math.min(group.times.length-1,next));syncTime();
     cancelTime();cancelUpdate();pointController.abort();point=undefined;
@@ -263,7 +264,7 @@ async function rebuild(fit=false){
         canvas.addEventListener('webglcontextrestored',()=>{if(ownedCanvas!==canvas)return;lost=false;ownedCanvas=undefined;releaseLayer();map.remove();map=undefined;
             if(timeState==='missing'&&data)void rebuild(true);else void chooseTime(index);});
         layer=new WeatherLayer(currentData,mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
-        layer.fieldVisible=Boolean(displayed)&&timeState!=='missing'&&timeState!=='expired';
+        layer.fieldVisible=Boolean(displayed)&&timeState!=='missing'&&timeState!=='expired'&&timeState!=='withdrawn';
         mapBaseCenter=[...layer.baseCenter];mapBaseProjection=layer.baseProjection;
         map.addLayer(layer);layer.setPalette(alternate);
         if(mode!=='mercator')layer.context=new LocalContext(map,coverage(mode==='orthographic'),mode);
@@ -357,6 +358,7 @@ function renderPoint(message=pointMessage){
     placePoint();
 }
 async function pickScreen(event:any){
+    if(timeState==='withdrawn'){notice('Публикация снята. Перевыберите публикацию в настройках.');return;}
     if(timeState==='expired'){notice('Публикация истекла. Перевыберите публикацию в настройках.');return;}
     if(!layer||lost||rendererError)return;
     let pixel=[event.point.x,event.point.y];
@@ -455,7 +457,7 @@ $('clearMobilePoint').onclick=clearPoint;
 addEventListener('keydown',event=>{if(event.key==='Escape')clearPoint();});
 control('basemap').onchange=()=>{light=control('basemap').value==='light';updateBasemap();};
 control('font').onchange=()=>{document.documentElement.style.setProperty('--page-font',control('font').value==='courier'?'"Courier New",monospace':'system-ui,"Segoe UI",sans-serif');layout();};
-$('retry').onclick=()=>timeState==='expired'?void reselectPublication():groups.length?void chooseTime(index):void boot();
+$('retry').onclick=()=>timeState==='expired'||timeState==='withdrawn'?void reselectPublication():groups.length?void chooseTime(index):void boot();
 async function reselectPublication(){
     reselectController.abort();reselectController=new AbortController();
     const owner=reselectController,version=selectionVersion,previous=group;
@@ -523,8 +525,28 @@ function updateMessage(message:string){text('updateStatus',message);$('updates')
 async function checkUpdates(manual=false){
     if(updateBusy)return;
     catalogueController.abort();catalogueController=new AbortController();const signal=catalogueController.signal;
+    const previous=group,version=selectionVersion;
     try{
         const latest=await catalogue(signal);signal.throwIfAborted();
+        if(previous!==group||version!==selectionVersion)return;
+        if(group&&!latest.some(item=>item.key===group!.key)){
+            const validTime=group.start+index*3600000;
+            const replacement=withdrawnReplacement(group,latest,validTime);
+            cancelTime();cancelUpdate();pointController.abort();reselectController.abort();
+            ++selectionVersion;++viewVersion;
+            series.clear();point=undefined;position=undefined;
+            if(layer)layer.fieldVisible=false;map?.triggerRepaint();
+            displayed=undefined;selected=undefined;metadata=undefined;data=undefined;
+            groups=latest;pendingGroups=undefined;runControls();updateActions();
+            timeState='withdrawn';selectionDetails();renderPoint('Публикация снята');
+            notice('Публикация снята');updateMessage('Публикация снята');catalogueChecks++;
+            if(replacement){
+                group=replacement;index=(validTime-replacement.start)/3600000;timeState='missing';
+                updateMessage('Снятая редакция заменена публикацией с сохранившимися данными.');
+                runControls();timeControls();void chooseTime(index);
+            }
+            return;
+        }
         const newestRevision=latest.find(sameRun);
         const changed=Boolean(newestRevision&&newestRevision.key!==group?.key)||latest.some(item=>!sameRun(item)&&referenceTime(item.selection.run)>referenceTime(group?.selection.run??''));
         pendingGroups=changed?latest:undefined;updateActions();

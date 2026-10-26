@@ -17,6 +17,17 @@ from publication.retention import decisions, policy
 
 
 class RetentionBoundaries(unittest.TestCase):
+    def test_withdrawn_originals_do_not_double_charge_replacement_budgets(self):
+        base = dict(run='ICON-EU/2026-10-15T00:00:00Z', managed_bytes=100,
+                    published_at='2026-10-19T00:00:00Z', expired_at=None,
+                    superseded_at='2026-10-19T01:00:00Z')
+        roots = [dict(base, root='a', reason='source-withdrawn', expired_at='2026-10-19T02:00:00Z'),
+                 dict(base, root='aa'),
+                 dict(base, root='b', reason='source-withdrawn', expired_at='2026-10-19T02:00:00Z'),
+                 dict(base, root='bb'), dict(base, root='c', superseded_at=None)]
+        result = decisions(roots, policy(superseded_count=2, superseded_bytes=200), '2026-10-19T03:00:00Z')
+        self.assertEqual([row['state'] for row in result], ['expired', 'eligible', 'expired', 'eligible', 'eligible'])
+
     def test_reference_time_controls_all_valid_times_and_fixed_demo_pin(self):
         roots = [{'root': 'old', 'run': 'ICON-EU/2026-10-15T00:00:00Z',
                   'published_at': '2026-10-20T00:00:00Z', 'managed_bytes': 100,
