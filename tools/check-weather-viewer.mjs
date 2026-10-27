@@ -147,7 +147,7 @@ try{
         await call('Page.navigate',{url:origin+'/?validation=1'+(process.env.T19_PORTRAYAL==='1'?'&portrayal=1':'')});
         if(disabled){
             await wait("document.getElementById('projectionStatus').textContent.includes('Режим недоступен')",'GPU unavailable reason');
-            await check('Russian unavailable renderer with explicit Mercator',"!document.getElementById('useMercator').hidden&&document.getElementById('projection').value==='mercator'");
+            await check('Russian unavailable renderer with explicit Mercator fallback',"!document.getElementById('useMercator').hidden&&document.getElementById('projection').value==='laea-rf'");
             const shot=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,'unavailable.png'),Buffer.from(shot.data,'base64'));
             continue;
         }
@@ -194,7 +194,7 @@ try{
             continue;
         }
         viewport.first_show_ms=(await capture()).first_complete_ms;
-        await check('Opening starts in Mercator',"document.getElementById('projection').value==='mercator'");
+        await check('Opening starts in LAEA - RF',"document.getElementById('projection').value==='laea-rf'");
         await check('Russian surface label and UTC',"document.querySelector('h1').textContent==='Температура поверхности'&&document.getElementById('valid').textContent.includes('UTC')");
         await check('Russian accessible map label',"document.querySelector('.maplibregl-canvas').getAttribute('aria-label').startsWith('Карта прогноза')");
         if(mobile)await check('Mobile groups initially collapsed',"['forecastPanel','navigationPanel','legendPanel','timelinePanel'].every(id=>!document.getElementById(id).open)");
@@ -210,15 +210,23 @@ try{
             await wait("window.captureWeatherEvidence().ready&&window.captureWeatherEvidence().mode==='mercator'",'Mercator after recovery');
             report.checks.push('Real WebGL context loss, projection change and restoration');
         }
-        for(const [mode,offset] of [['mercator',0],['orthographic',1],['laea',2]]){
-            if(mode!=='mercator')await select('#projection',true,offset);
+        for(const [mode,offset] of [['laea-rf',3],['mercator',0],['orthographic',1],['laea',2],['laea-rf',3]]){
+            const previous=await capture(),previousUnits=await evaluate("document.getElementById('units').value");
+            await select('#projection',true,offset);
             await wait(`window.captureWeatherEvidence().mode===${JSON.stringify(mode)}&&window.captureWeatherEvidence().ready`,'mode '+mode);
+            const retained=await capture();assert.deepEqual(retained.selected,previous.selected,'Projection keeps full forecast identity');
+            assert.deepEqual(retained.position,previous.position,'Projection keeps selected geographic point');
+            assert.equal(await evaluate("document.getElementById('units').value"),previousUnits,'Projection keeps units');
             await check('One local basemap canvas after '+mode,"document.querySelectorAll('canvas[data-role=local-basemap]').length<2");
             if(mobile)await click('#forecastPanel>summary');
             await click('#fit');
             if(mobile)await click('#navigationPanel>summary');
             await delay(200);
             const frame=await capture(true);assert.equal(frame.selected.selection,originalSelection);
+            if(mode==='laea-rf'){
+                assert.ok(frame.view.samples.some(p=>p[3]&&p[5]<45),'RF displays actual forecast south of 45N');
+                assert.equal(frame.view.synthetic_geometry.find(p=>p[0]==='south-of-45')[5],1,'RF geometry has no Arctic cut');
+            }
             viewport.views.push({...frame.view,synthetic_masks:frame.synthetic_masks});
             (viewport.measurements??=[]).push({mode,transfer_bytes:frame.transfer_bytes,managed_bytes:frame.managed_bytes,
                 load_ms:frame.load_ms,warm_switch_ms:frame.warm_switch_ms,upload_timings:frame.upload_timings});

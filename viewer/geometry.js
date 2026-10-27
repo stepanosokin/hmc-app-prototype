@@ -1,3 +1,4 @@
+import {laeaRfId,laeaRfDefinition} from './laea-rf.js';
 import * as maplibre from '/vendor/maplibre-gl.mjs';
 
 
@@ -10,6 +11,9 @@ proj4.defs('EPSG:3576', definition);
 const laea = proj4('EPSG:4326', 'EPSG:3576');
 maplibre.addProjection({name:'EPSG:3576', projection:laea, definition,
     tileMatrixSet:{origin:[-5000000,5000000],extentAtZoom0:10000000}});
+proj4.defs(laeaRfId,laeaRfDefinition);
+maplibre.addProjection({name:laeaRfId,definition:laeaRfDefinition,projection:proj4('EPSG:4326',laeaRfId),
+    tileMatrixSet:{origin:[-13000000,13000000],extentAtZoom0:26000000}});
 const land = {type:'Feature',properties:{},geometry:{type:'MultiPolygon',coordinates:window.land}};
 let map;
 export function clippedLand(center,angle) {
@@ -46,7 +50,7 @@ export async function create(type, center=[0,0], zoom=0) {
             tileMatrixSet:{origin:[-6378137,6378137],extentAtZoom0:12756274}});
         data={type:'FeatureCollection',features:[]};
         water=null;
-    } else if(type==='EPSG:3576') {
+    } else if((type==='EPSG:3576'||type===laeaRfId)) {
         data={type:'FeatureCollection',features:[]};
     }
     map = new maplibre.Map({container:'map',center,zoom,minZoom:-2,attributionControl:false,

@@ -11,7 +11,8 @@ import {SourceSettings,type SourceDescription} from './source-settings.js';
 import {FieldPicker,fieldPresentation,fieldUnits,fieldNumber} from './fields.js';
 import {compactGroups,type CompactCatalogue} from './catalogue.js';
 
-type Mode='mercator'|'orthographic'|'laea';
+import {laeaRfId,laeaRq,laeaD} from './laea-rf.js';
+type Mode='mercator'|'orthographic'|'laea'|'laea-rf';
 const $=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 const control=(id:string)=>$<HTMLSelectElement>(id);
 const text=(id:string,value:string)=>{$(id).textContent=value;};
@@ -39,7 +40,7 @@ function seriesChanged(){
 function ensureSeries(initial?:PointResult){if(group&&position)void series.load(group,position,initial);}
 const validation=new URLSearchParams(location.search).get('validation')==='1';
 const validationFixtures=validation&&new URLSearchParams(location.search).get('fixtures')==='1';
-let groups:PublishedGroup[]=[],group:PublishedGroup|undefined,index=0,mode:Mode='mercator';
+let groups:PublishedGroup[]=[],group:PublishedGroup|undefined,index=0,mode:Mode='laea-rf';
 let selected:Selection|undefined,data:FieldData|undefined,map:any,layer:WeatherLayer|undefined;
 let position:Position|undefined,point:PointResult|undefined,pointController=new AbortController();
 let center=[19.5,53],viewVersion=0,selectionVersion=0,mapWork=Promise.resolve();
@@ -153,7 +154,7 @@ async function prepareLayer(field:FieldData,owner:any,signal:AbortSignal){
         (field.wind?owner.getCanvas().width*owner.getCanvas().height*4:0);
     if((layer?stagingBase():owner.getCanvas().width*owner.getCanvas().height*28)+extra+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)
         throw Error('Превышен бюджет обновления GPU.');
-    const candidate=new WeatherLayer(field,mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
+    const candidate=new WeatherLayer(field,mode==='laea-rf'?laeaRfId:mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
     candidate.baseCenter=[...mapBaseCenter];candidate.baseProjection=mapBaseProjection;
     candidate.id='native-update-'+(++updateSerial);candidate.staged=true;
     const remove=()=>{if(owner.getLayer(candidate.id))owner.removeLayer(candidate.id);};
@@ -231,16 +232,17 @@ function coverage(raw=false){
     for(let i=0;i<=100;i++)ring.push(geographic([east,south+(north-south)*i/100]));
     for(let i=0;i<=160;i++)ring.push(geographic([east-(east-west)*i/160,north]));
     for(let i=0;i<=100;i++)ring.push(geographic([west,north-(north-south)*i/100]));
-    return !raw&&mode!=='mercator'?clippedLine(ring,mode==='laea'?[90,90]:center,mode==='laea'?45:89.99999):
+    return !raw&&mode!=='mercator'?clippedLine(ring,mode==='laea'?[90,90]:mode==='laea-rf'?[90,60]:center,mode==='laea'?45:mode==='laea-rf'?179.9999:89.99999):
         {type:'Feature',properties:{},geometry:{type:'LineString',coordinates:ring}};
 }
 function visible(p:Position){
     if(mode==='laea')return p.lat>=45;
+    if(mode==='laea-rf')return projection().forward([p.lng,p.lat]).every(Number.isFinite);
     if(mode!=='orthographic')return true;
     const rad=Math.PI/180,phi=p.lat*rad,c=center[1]*rad;
     return Math.sin(phi)*Math.sin(c)+Math.cos(phi)*Math.cos(c)*Math.cos((p.lng-center[0])*rad)>0;
 }
-function projection(){return proj4('EPSG:4326',mode==='laea'?'EPSG:3576':mode==='mercator'?'EPSG:3857':
+function projection(){return proj4('EPSG:4326',mode==='laea-rf'?laeaRfId:mode==='laea'?'EPSG:3576':mode==='mercator'?'EPSG:3857':
     `+proj=ortho +lat_0=${center[1]} +lon_0=${center[0]} +R=6378137 +units=m +no_defs`);}
 async function rebuild(fit=false){
     const version=++viewVersion;
@@ -253,7 +255,7 @@ async function rebuild(fit=false){
         if(mode==='laea')center=[center[0],Math.max(45,center[1])];
         releaseLayer();
         ownedCanvas=undefined;
-        map=await create(mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',center,zoom);
+        map=await create(mode==='laea-rf'?laeaRfId:mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',center,zoom);
         mapMode=mode;
         if(version!==viewVersion||currentData!==data){map.remove();map=undefined;return;}
         map.dragRotate.disable();map.touchZoomRotate.disableRotation();
@@ -263,7 +265,7 @@ async function rebuild(fit=false){
             ++selectionVersion;notice('Графический контекст потерян. Ожидается восстановление.');placePoint();});
         canvas.addEventListener('webglcontextrestored',()=>{if(ownedCanvas!==canvas)return;lost=false;ownedCanvas=undefined;releaseLayer();map.remove();map=undefined;
             if(timeState==='missing'&&data)void rebuild(true);else void chooseTime(index);});
-        layer=new WeatherLayer(currentData,mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
+        layer=new WeatherLayer(currentData,mode==='laea-rf'?laeaRfId:mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
         layer.fieldVisible=Boolean(displayed)&&timeState!=='missing'&&timeState!=='expired'&&timeState!=='withdrawn';
         mapBaseCenter=[...layer.baseCenter];mapBaseProjection=layer.baseProjection;
         map.addLayer(layer);layer.setPalette(alternate);
@@ -289,7 +291,7 @@ async function rebuild(fit=false){
         }
         map.on('error',()=>{notice('Ошибка карты. Повторите загрузку.');});
         text('projectionStatus',mode==='laea'?'Показано к северу от 45° с. ш.; южнее — в других видах.':mode==='orthographic'?'Ортографический глобус. Вращайте перетаскиванием.':'Всё доступное покрытие прогноза.');
-        text('compactProjection',mode==='laea'?'LAEA 3576 · ≥45° с. ш.':mode==='orthographic'?'Глобус':'Меркатор');
+        text('compactProjection',mode==='laea'?'LAEA 3576 · ≥45° с. ш.':mode==='orthographic'?'Глобус':mode==='laea-rf'?'LAEA - РФ':'Меркатор');
         if($('notice').textContent?.startsWith('Графический контекст'))notice('');
         updateBasemap();placePoint();layout();
     }).catch(error=>{if(version===viewVersion&&data)rendererFailure(error);});
@@ -316,7 +318,7 @@ function placePoint(){
     $('pointMarker').hidden=true;$('pointCard').hidden=true;$('showPoint').hidden=!position;
     if(!position||!layer||rendererError||lost)return;
     const hidden=!visible(position);
-    const message=hidden?(mode==='laea'?'Точка сохранена вне области от 45° с. ш.':'Точка сохранена за горизонтом глобуса.') : '';
+    const message=hidden?(mode==='laea'?'Точка сохранена вне области от 45° с. ш.':mode==='laea-rf'?'Точка сохранена вне доступной области проекции.':'Точка сохранена за горизонтом глобуса.') : '';
     if(message&&timeState==='ready')notice(message);
     else if($('notice').textContent?.startsWith('Точка сохранена'))notice('');
     const pixel=layer.project([position.lng,position.lat]);
@@ -370,7 +372,7 @@ async function pickScreen(event:any){
     if(!p.every(Number.isFinite)||Math.abs(p[1])>90||!visible(candidate))return;
     const projected=layer.project([candidate.lng,candidate.lat]);
     if(Math.hypot(projected.x-pixel[0],projected.y-pixel[1])>.5)return;
-    screenPick={pixel:[pixel[0]*dpr,pixel[1]*dpr],...g,center:[...center],mode:mode==='orthographic'?'hmc:orthographic':mode==='laea'?'EPSG:3576':'mercator'};
+    screenPick={pixel:[pixel[0]*dpr,pixel[1]*dpr],...g,center:[...center],mode:mode==='orthographic'?'hmc:orthographic':mode==='laea-rf'?laeaRfId:mode==='laea'?'EPSG:3576':'mercator'};
     cancelUpdate();pointController.abort();series.clear();
     position=candidate;point=undefined;pointCollapsed=false;
     renderPoint(timeState==='loading'?'Загрузка значения выбранного срока…':timeState==='missing'?'Срок отсутствует':timeState==='error'?'Не удалось загрузить выбранный срок':'');
@@ -615,8 +617,10 @@ function numericalView(){
     const view=layer.samples(),p=projection();
     const cases:[string,number[]][]=[['pole',[90,90]],['dateline-positive',[180,80]],['dateline-negative',[-180,80]]];
     if(mode==='laea')cases.push(['south-of-cut',[90,44.999]],['north-of-cut',[90,45.001]]);
+    if(mode==='laea-rf')cases.push(['projection-center',[90,60]],['south-of-45',[90,30]],['equator',[90,0]]);
     const positions=cases.map(([label,point])=>[label,...p.forward(point)]).filter(item=>item.slice(1).every(Number.isFinite));
     if(mode==='orthographic')positions.push(['horizon-inside',6378137*.9999,0],['horizon-outside',6378137*1.0001,0]);
+    if(mode==='laea-rf')positions.push(['outside-laea-ellipse',2*laeaRq*laeaD*1.001,0]);
     const dpr=view.width/map.getContainer().clientWidth;
     return {...view,synthetic_geometry:layer.positions(positions),controls:[
         ...[...document.querySelectorAll<HTMLElement>('.mapLabel')].filter(label=>!label.hidden).map(label=>{

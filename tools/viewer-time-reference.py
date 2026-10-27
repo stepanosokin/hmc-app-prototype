@@ -33,7 +33,7 @@ def main():
         assert point['valid_time'] == selection['valid_time']
         center = view['center']
         definition = (f'+proj=ortho +lat_0={center[1]} +lon_0={center[0]} +R=6378137'
-                      if view['mode'] == 'hmc:orthographic' else 'EPSG:3576' if view['mode'] == 'EPSG:3576' else 'EPSG:3857')
+                      if view['mode'] == 'hmc:orthographic' else 'EPSG:3576' if view['mode'] == 'EPSG:3576' else '+proj=laea +lat_0=60 +lon_0=90 +datum=WGS84 +units=m' if view['mode'] == 'hmc:laea-rf' else 'EPSG:3857')
         inverse = Transformer.from_crs(definition, 'EPSG:4326', always_xy=True)
         valid_count = 0
         for x, y, actual, valid, *_ in view['samples']:

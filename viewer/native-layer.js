@@ -1,4 +1,5 @@
 // One native bilinear interpolation; no intermediate Mercator raster.
+import {laeaRfId,laeaRfDefinition,laeaBeta0,laeaRq,laeaD} from './laea-rf.js';
 import {sourceShader} from './source-crs.js';
 export const nativeToWgs=lat=>Math.atan2(Math.sin(lat*Math.PI/180),(1-.0066943799901413165)*Math.cos(lat*Math.PI/180))*180/Math.PI;
 const vertex = `#version 300 es
@@ -12,6 +13,7 @@ uniform float scale;
 uniform float height;
 uniform int mode;
 uniform vec2 orthoCenter;
+uniform vec3 laeaRf;
 uniform bool numeric;
 uniform bool alternatePalette;
 uniform bool geometryOnly;
@@ -54,12 +56,26 @@ vec2 position(vec2 p){
     float e2=0.0066943799901413165,e=sqrt(e2),a=6378137.;
     float qp=1.-(1.-e2)/(2.*e)*log((1.-e)/(1.+e));
     float q=qp-dot(p/a,p/a);
-    if(abs(q)>qp)return vec2(1000.);
-    float beta=preciseAsin(clamp(q/qp,-1.,1.));
+    float lon=pi/2.+preciseAtan2(p.x,-p.y);
+    float beta;
+    if(mode==3){
+        float beta0=laeaRf.x,rq=laeaRf.y,d=laeaRf.z;
+        vec2 v=vec2(p.x/d,p.y*d);float rho=length(v);
+        if(rho>=2.*rq)return vec2(1000.);
+        if(rho<.01)return vec2(90.,60.);
+        float c=2.*preciseAsin(clamp(rho/(2.*rq),0.,1.)),sn=sin(c),cs=cos(c);
+        float up=cs*sin(beta0)+v.y*sn*cos(beta0)/rho;
+        float north=cs*cos(beta0)-v.y*sn*sin(beta0)/rho;
+        beta=preciseAtan2(up,length(vec2(north,v.x*sn/rho)));
+        lon=pi/2.+preciseAtan2(v.x*sn,rho*cos(beta0)*cs-v.y*sin(beta0)*sn);
+    }
+    else {
+        if(abs(q)>qp)return vec2(1000.);
+        beta=preciseAsin(clamp(q/qp,-1.,1.));
+    }
     float e4=e2*e2,e6=e4*e2;
     float phi=beta+(e2/3.+31.*e4/180.+517.*e6/5040.)*sin(2.*beta)
         +(23.*e4/360.+251.*e6/3780.)*sin(4.*beta)+(761.*e6/45360.)*sin(6.*beta);
-    float lon=pi/2.+preciseAtan2(p.x,-p.y);
     return vec2(lon,phi)*180./pi;
 }
 void main(){
@@ -119,7 +135,7 @@ export class NativeLayer {
         this.cacheIdentity={contract:metadata.contract,contract_sha256:metadata.contract_sha256,matrix:metadata.matrix,
             crs:metadata.crs,grid:metadata.grid,identity:metadata.identity,selection:metadata.selection,
             source_engine:metadata.engine,renderer_engine:metadata.portrayal_baseline?'cached-native-rgba8/1':'native-gpu-bilinear/1',
-            display_crs:mode,display_definition:mode==='EPSG:3576'?proj4.defs('EPSG:3576'):mode==='mercator'?proj4.defs('EPSG:3857'):
+            display_crs:mode,display_definition:mode===laeaRfId?laeaRfDefinition:mode==='EPSG:3576'?proj4.defs('EPSG:3576'):mode==='mercator'?proj4.defs('EPSG:3857'):
                 `+proj=ortho +lat_0=${center[1]} +lon_0=${center[0]} +R=6378137`};
     }
     onAdd(map,gl) {
@@ -160,8 +176,8 @@ export class NativeLayer {
     }
     geometry() {
         const dpr=this.map.getCanvas().width/this.map.getContainer().clientWidth;
-        const center=this.mode==='hmc:orthographic'?this.baseCenter:this.mode==='mercator'?[0,0]:[90,90];
-        const origin=this.map.project(center),anchor=this.mode==='hmc:orthographic'?[center[0],center[1]>80?center[1]-10:center[1]+10]:this.mode==='mercator'?[0,10]:[90,80];
+        const center=this.mode==='hmc:orthographic'?this.baseCenter:this.mode==='mercator'?[0,0]:this.mode===laeaRfId?[90,60]:[90,90];
+        const origin=this.map.project(center),anchor=this.mode==='hmc:orthographic'?[center[0],center[1]>80?center[1]-10:center[1]+10]:this.mode==='mercator'?[0,10]:this.mode===laeaRfId?[90,70]:[90,80];
         const projected=this.baseProjection.forward(anchor),pixel=this.map.project(anchor);
         return {origin:[origin.x*dpr,origin.y*dpr],scale:-(pixel.y-origin.y)*dpr/projected[1],
             width:this.map.getCanvas().width,height:this.map.getCanvas().height};
@@ -195,9 +211,10 @@ export class NativeLayer {
         gl.uniform1i(location('portrayalBaseline'),this.metadata.portrayal_baseline?1:0);
         gl.uniform2fv(location('displayRange'),this.metadata.display_range??[253.15,313.15]);
         gl.uniform2fv(location('orthoCenter'),this.center);
+        gl.uniform3fv(location('laeaRf'),[laeaBeta0,laeaRq,laeaD]);
         gl.uniform1i(location('alternatePalette'),this.alternatePalette?1:0);gl.uniform1i(location('field'),0);gl.uniform2fv(location('origin'),view.origin);
         gl.uniform1f(location('scale'),view.scale);gl.uniform1f(location('height'),view.height);
-        gl.uniform1i(location('mode'),this.mode==='hmc:orthographic'?0:this.mode==='mercator'?2:1);gl.uniform1i(location('numeric'),numeric?1:0);
+        gl.uniform1i(location('mode'),this.mode==='hmc:orthographic'?0:this.mode==='mercator'?2:this.mode===laeaRfId?3:1);gl.uniform1i(location('numeric'),numeric?1:0);
         gl.uniform1i(location('geometryOnly'),geometryOnly?1:0);
         gl.disable(gl.DEPTH_TEST);gl.disable(gl.STENCIL_TEST);
         numeric?gl.disable(gl.BLEND):gl.enable(gl.BLEND);

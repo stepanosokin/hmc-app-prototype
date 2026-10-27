@@ -39,7 +39,7 @@ def main():
         for view in viewport['views'] + viewport.get('experiments', []) + viewport.get('interaction', {}).get('views', []):
             center = view.get('center', [20, 50])
             definition = (f'+proj=ortho +lat_0={center[1]} +lon_0={center[0]} +R=6378137' if view['mode'] == 'hmc:orthographic'
-                          else 'EPSG:3857' if view['mode'] == 'mercator' else 'EPSG:3576')
+                          else 'EPSG:3857' if view['mode'] == 'mercator' else '+proj=laea +lat_0=60 +lon_0=90 +datum=WGS84 +units=m' if view['mode'] == 'hmc:laea-rf' else 'EPSG:3576')
             inverse = Transformer.from_crs(definition, 'EPSG:4326', always_xy=True)
             forward = Transformer.from_crs('EPSG:4326', definition, always_xy=True)
             for label, _, _, actual_value, actual_valid in view.get('synthetic_masks', []):
