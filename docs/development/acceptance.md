@@ -1,5 +1,11 @@
 # Before starting final acceptance
 
+In a worktree, resolve its root with `git rev-parse --show-toplevel` and resolve
+shared private inputs explicitly instead of counting parent-directory segments.
+When editing Russian text on Windows, use `apply_patch` or a UTF-8 script file:
+legacy PowerShell pipelines into native Node can replace Cyrillic with `?`.
+The projection-controls preflight checks the resulting initial UI labels.
+
 For viewer fixture changes, run `tools/check-viewer-fixtures-tests.ps1` before
 allocating services. It reads the actual runner's conditions for Navigation and
 Updates, including seed/publish/restart order, without executing runner code.

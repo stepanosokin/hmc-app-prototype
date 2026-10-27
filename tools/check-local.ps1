@@ -18,9 +18,11 @@ try {
     Invoke-Check git @('rev-parse', 'HEAD')
     Invoke-Check git @('status', '--short')
     if ($Scope -in @('All', 'Viewer')) {
-        Invoke-Check npm.cmd @('--prefix', 'viewer', 'ci', '--ignore-scripts', '--no-audit', '--no-fund')
-        Invoke-Check npm.cmd @('--prefix', 'viewer', 'run', 'check')
-        Invoke-Check npm.cmd @('--prefix', 'viewer', 'test')
+        $npmExecutable = Get-Command -Name @('npm.cmd', 'npm.exe') -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+        if (-not $npmExecutable) { throw 'npm.cmd or npm.exe is required for Viewer checks' }
+        Invoke-Check $npmExecutable.Source @('--prefix', 'viewer', 'ci', '--ignore-scripts', '--no-audit', '--no-fund')
+        Invoke-Check $npmExecutable.Source @('--prefix', 'viewer', 'run', 'check')
+        Invoke-Check $npmExecutable.Source @('--prefix', 'viewer', 'test')
         Invoke-Check node @('--test', 'tools/test-viewer-network.mjs')
         Invoke-Check node @('--test', 'tools/test-archive-paths.mjs')
         Invoke-Check node @('--test', 'tools/test-validation-summary.mjs')

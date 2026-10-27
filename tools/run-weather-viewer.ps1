@@ -32,6 +32,8 @@ Set-Location (Split-Path $PSScriptRoot -Parent)
 $directory=Join-Path (Get-Location) "data/reports/t13/$Project"
 if(Test-Path -LiteralPath $directory){throw 'Use a fresh project/report directory'}
 if((Get-FileHash data/grib/ICON_EU_T_G_2026101500.grib2 -Algorithm SHA256).Hash -ne 'dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a'){throw 'Actual sample checksum mismatch'}
+& node --test 'viewer/test-projection-controls.mjs'
+if($LASTEXITCODE -ne 0){throw 'Projection controls preflight failed; no Docker resources created'}
 foreach($kind in @('container','network','volume')){
     $arguments=@($kind,'ls','--quiet','--filter',"label=com.docker.compose.project=$Project")
     if($kind -eq 'container'){$arguments+='--all'}

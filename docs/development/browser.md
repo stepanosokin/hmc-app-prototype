@@ -1,5 +1,21 @@
 # Browser prototypes
 
+For production display-projection changes, run
+`node --test viewer/test-projection-controls.mjs` before provisioning T13.
+The service runner also executes this preflight before Docker inventory;
+the existing viewer test glob covers it in local/manual CI.
+It checks the selector, supported mode union, explicit initial mode and compact
+label, including labels damaged by shell encoding. GPU/PROJ acceptance remains separate.
+
+Projection dependencies: `viewer/geometry.js` registers the map CRS;
+`native-layer.js` implements GPU inverse geometry; `local-context.js` projects
+the basemap; `main.ts` handles coverage, visibility, fitting and picking;
+`wind.ts` projects vectors. Trace both the browser collector and its independent
+checker when adding a mode. Use `nativePointPixel` in `tools/viewer-fields.mjs`
+for test input in the current mode; an initial-Mercator assumption is obsolete.
+For a fixed custom LAEA definition in proj4js, retain explicit `x_0`/`y_0` and
+check finite coordinates before dispatching a CDP click.
+
 For the approved T22 visual baseline, start with the
 [opening instructions](../prototypes/weather-map.README.md) and
 [acceptance record](../validation/archives.md). Its existing browser runner drives

@@ -1,5 +1,16 @@
 # Service checks
 
+For `hmc-app.mjs refresh-grib` failures, begin with the displayed operation
+directory: `operation.json`, then `reload-grib.json` and the numbered worker log.
+A failed batch can contain already published files; report both outcomes before
+retrying. `status` finishing does not establish that background cleanup finished.
+Distinguish an idle collector waiting for grace from an active writer lock;
+an unfinished legacy job also does not prove a running worker. Inspect the
+project's containers/jobs/locks through its actual configuration without logging secrets.
+Changes to refresh/cleanup coordination need an interleaving check: collection
+starting between two file loads, in addition to sequential clear/load and active-writer
+tests. Verify the intended wait/reject behavior and preserved completed files.
+
 For the production T13 viewer, use the [viewer instructions](../../viewer/README.md)
 and `tools/run-weather-viewer.ps1`. Run its Node tests and TypeScript check before
 allocating Compose; the `weather-viewer` CI job runs these existing commands.

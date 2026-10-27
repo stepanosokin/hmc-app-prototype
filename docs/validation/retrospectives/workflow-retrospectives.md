@@ -1,5 +1,10 @@
 # Retrospective basis
 
+The [CLI/projection retrospective](retro-cli-projections.md) follows #60/#61:
+a cross-file projection preflight now runs before Docker, navigation names the
+rendering/reference dependencies, and CLI diagnosis distinguishes partial import
+from background cleanup. It does not change the unresolved lock-wait behavior.
+
 The [GRIB withdrawal retrospective](retro-grib-sync.md) follows #52's missing
 overlap fixture, late unavailable-state review and excessive nested report output.
 Resource-free checks now verify fixture guards/order and bounded JSON summaries
