@@ -8,7 +8,7 @@ import {spawn,spawnSync} from 'node:child_process';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 function fail(message){throw Error(message);}
-function docker(args,environment=process.env){
+export function docker(args,environment=process.env){
     const result=spawnSync('docker',args,{cwd:root,env:environment,encoding:'utf8',timeout:600000,maxBuffer:16*1024**2});
     if(result.error||result.status!==0)fail('Операция Docker не выполнена. '+(args[0]==='run'?(result.stderr??'').slice(-1600):'Проверьте доступность Docker и служб стенда.'));
     return result.stdout.trim();
@@ -27,7 +27,7 @@ export function standConfiguration(containers,project){
     if(!password)fail('В конфигурации стенда нет учётных данных оператора.');
     return {assets:assets.Name,network:networks[0],image:api.Image,db:db.Id,password};
 }
-async function runOwned(args,environment,name,owner,timeoutMs){
+export async function runOwned(args,environment,name,owner,timeoutMs){
     let child,timer,cancel;
     try{
         return await new Promise((resolve,reject)=>{

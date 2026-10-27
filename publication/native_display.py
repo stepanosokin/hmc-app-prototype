@@ -101,11 +101,15 @@ def portrayal(root: Path, item: dict, column: int, row: int) -> bytes:
     values=np.frombuffer(payload[:SIZE*SIZE*4],dtype='<f4').reshape(SIZE,SIZE)
     mask=np.frombuffer(payload[SIZE*SIZE*4:],dtype='uint8').reshape(SIZE,SIZE)
     low,high=(item['metadata']['values'][key] for key in ('min','max')) if item['metadata'].get('field_profile') else (253.15,313.15)
+    if low is None or high is None:
+        low, high = 0., 1.
     stops=np.array([[114,114,181],[82,154,189],[112,200,178],[214,214,127],[237,171,104],[201,103,97]],dtype=float)
     scale=np.clip((values-low)/max(high-low,1e-30),0,1)*5
     left=np.minimum(scale.astype(int),4);fraction=scale-left
     colors=np.rint(stops[left]*(1-fraction[...,None])+stops[left+1]*fraction[...,None]).astype('uint8')
     rgba=np.dstack((colors,mask*255));rgba[mask==0]=0
+    if item['metadata'].get('value_validity', {}).get('rule') != 'absolute-temperature-positive-kelvin':
+        rgba[values == 0] = 0
     output=io.BytesIO();Image.fromarray(rgba).save(output,format='PNG')
     return output.getvalue()
 
@@ -136,12 +140,17 @@ def metadata(root: Path, item: dict) -> bytes:
     if item['metadata'].get('field_profile'):
         extra.update(units=item['metadata']['identity']['units'],
                      encoding_max_abs_error=item['metadata']['float32_abs_error_bound'],
-                     display_range=[item['metadata']['values']['min'], item['metadata']['values']['max']],
+                     display_range=([item['metadata']['values']['min'], item['metadata']['values']['max']]
+                                    if item['metadata']['values']['finite_count'] else None),
                      interval=item['metadata']['interval'])
         if 'uv_relative_to_grid' in item['metadata']['identity']:
             extra['uv_relative_to_grid']=item['metadata']['identity']['uv_relative_to_grid']
     return canonical({**contract, 'contract_sha256': contract_hash,
         'matrix': CONTRACT['matrix_prefix'] + item['metadata']['native_grid_sha256'],
         'grid': item['metadata']['grid'], 'columns': [0, columns-1], 'rows': [0, rows-1],
-        **extra,
+        **extra, 'all_nodata': item['metadata']['values']['finite_count'] == 0,
+        'zero_transparent': item['metadata'].get('value_validity', {}).get('rule') != 'absolute-temperature-positive-kelvin',
+        'value_validity': item['metadata'].get('value_validity'),
+        'value_counts': {key: item['metadata']['values'].get(key) for key in
+                         ('finite_count', 'missing_count', 'source_missing_count', 'rejected_count')},
         'representative_blocks': probes, 'readiness_state': 'ready'})

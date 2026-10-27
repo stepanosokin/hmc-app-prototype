@@ -70,9 +70,11 @@ const panels=['forecastPanel','navigationPanel','legendPanel','timelinePanel'].m
 const timestamp=(value:string)=>new Intl.DateTimeFormat('ru-RU',{timeZone:'UTC',dateStyle:'short',timeStyle:'short'}).format(new Date(value))+' UTC';
 const degrees=(value:number)=>value.toFixed(3)+'°';
 const sourceUnits=()=>displayed?.units??selected?.units??group?.selection.units??'K';
-const unitsText=()=>sourceUnits()==='K'?(unit==='C'?'°C':'K'):fieldUnits(sourceUnits());
-const valueText=(value:number,source=sourceUnits())=>fieldNumber(value-(source==='K'&&unit==='C'?273.15:0),source)+' '+
-    (source==='K'?(unit==='C'?'°C':'K'):fieldUnits(source));
+const absoluteTemperature=()=>sourceUnits()==='K'&&(data?.metadata.zero_transparent!==undefined?
+    data.metadata.zero_transparent===false:!group||fieldPresentation(displayed??selected??group.selection).id==='temperature');
+const unitsText=()=>absoluteTemperature()?(unit==='C'?'°C':'K'):fieldUnits(sourceUnits());
+const valueText=(value:number,source=sourceUnits())=>fieldNumber(value-(source==='K'&&absoluteTemperature()&&unit==='C'?273.15:0),source)+' '+
+    (source==='K'&&absoluteTemperature()?(unit==='C'?'°C':'K'):fieldUnits(source));
 function statusLayout(){
     document.documentElement.style.setProperty('--notice-left',($('showPoint').offsetLeft+$('showPoint').offsetWidth+8)+'px');
     document.documentElement.style.setProperty('--notice-height',($('notice').hidden?0:$('notice').getBoundingClientRect().height)+'px');
@@ -404,7 +406,7 @@ function openDrawer(pointMode=false){
     $('settings').setAttribute('aria-expanded','true');layout();
 }
 function palette(){
-    const temperature=sourceUnits()==='K';control('units').disabled=!temperature;
+    const temperature=absoluteTemperature();control('units').disabled=!temperature;
     control('units').closest('label')!.hidden=!temperature;
     control('palette').options[0].textContent=temperature?'Температурная':'Стандартная';
     for(const e of document.querySelectorAll('.unit'))e.textContent=unitsText();
@@ -417,8 +419,10 @@ function palette(){
     Array.from({length:4},(_,i)=>range[0]+(range[1]-range[0])*i/3).forEach((value,i)=>ticks[i].textContent=temperature?String(Number((value-(unit==='C'?273.15:0)).toFixed(2))):fieldNumber(value,sourceUnits()));
     const ramp=document.querySelector<HTMLElement>('.ramp')!;
     const wind=Boolean((displayed??selected)?.wind_v)&&!portrayalBaseline;
-    ramp.style.display=wind?'none':'';(document.querySelector('.ticks') as HTMLElement).style.display=wind?'none':'';
+    const empty=data?.metadata.all_nodata===true;
+    ramp.style.display=wind||empty?'none':'';(document.querySelector('.ticks') as HTMLElement).style.display=wind||empty?'none':'';
     if(wind)text('legendSummary','Ветер · стрелки движутся по потоку');
+    if(empty){text('legendSummary',title+' · Нет данных');text('legendSource','Нет данных');}
     ramp.style.background=alternate?'linear-gradient(90deg,#1f2e8c,#ffcc33)':'';
     layer?.setPalette(alternate);if(position)renderPoint();
 }
@@ -629,7 +633,8 @@ function numericalView(){
     ]};
 }
 if(validation){
-    Object.assign(window,{captureWeatherEvidence:(samples=false)=>({ready:Boolean(layer?.ready&&layer.fieldVisible&&!lost&&timeState==='ready'),frame_visible:Boolean(layer?.ready&&layer.fieldVisible&&!lost),mode,selected,displayed,time_state:timeState,time_error:timeError,position,point,
+    Object.assign(window,{captureWeatherEvidence:(samples=false,colorSamples=false)=>({ready:Boolean(layer?.ready&&layer.fieldVisible&&!lost&&timeState==='ready'),frame_visible:Boolean(layer?.ready&&layer.fieldVisible&&!lost),mode,selected,displayed,time_state:timeState,time_error:timeError,position,point,
+        color_view:colorSamples&&layer?.ready&&!lost?layer.samples(layer.geometry(),false):undefined,
         series:{key:series.key,entries:series.entries,expired:series.expired,busy:series.busy,requests:series.requests,elapsed_ms:series.elapsedMs},
         view:samples?numericalView():undefined,transfer_bytes:data?.bytes,load_ms:data?.load_ms,
         map_zoom:map?.getZoom(),view_geometry:layer?.geometry(),view_center:[...center],native_bounds:data?.metadata.grid.outer_cell_edges_wsen,source_crs:data?.metadata.source_crs,

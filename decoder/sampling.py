@@ -81,6 +81,9 @@ class ManifestSampler:
                           'lon': float(read_values(group, 'longitude', column)), 'lat': float(read_values(group, 'latitude', row))}
         if bool(read_values(group, 'missing', (row, column))):
             result['reason'] = 'native_nodata'
+            if 'missing_reason' in group:
+                result['nodata_reason'] = ('source_missing' if int(read_values(group, 'missing_reason', (row, column))) == 1
+                                           else 'rejected_value')
         else:
             value = float(read_values(group, item.get('data_variable', 'temperature'), (row, column)))
             require(math.isfinite(value), 'non-finite unmasked stored value')

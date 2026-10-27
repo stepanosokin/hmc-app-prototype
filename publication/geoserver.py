@@ -78,6 +78,24 @@ def prepare(workspace: str, directory: str, valid_time: str, *, srs: str = 'EPSG
                 quantity=low+(max(high-low,abs(low)*1e-7,1e-30))*index/5
                 ET.SubElement(color_map,'{http://www.opengis.net/sld}ColorMapEntry',color=color,
                               quantity=str(quantity),label=str(quantity)+' '+portrayal['units'])
+            if portrayal.get('zero_transparent') and low <= 0 <= high:
+                # Two nearest float32 neighbours isolate zero opacity without
+                # fading other representable values or changing numerical masks.
+                import numpy as np
+                position = min(5., max(0., (0-low) / max(high-low, abs(low)*1e-7, 1e-30)*5))
+                left = min(4, int(position))
+                fraction = position-left
+                rgb = [round(int(colors[left][i:i+2],16)*(1-fraction)+int(colors[left+1][i:i+2],16)*fraction)
+                       for i in (1,3,5)]
+                color = '#' + ''.join(f'{channel:02x}' for channel in rgb)
+                for node in list(color_map):
+                    if float(node.get('quantity', '0')) == 0:
+                        color_map.remove(node)
+                for quantity, opacity in [(-float(np.nextafter(np.float32(0),np.float32(1))), '1'),
+                                           (0., '0'), (float(np.nextafter(np.float32(0),np.float32(1))), '1')]:
+                    ET.SubElement(color_map,'{http://www.opengis.net/sld}ColorMapEntry',color=color,
+                                  quantity=str(quantity),opacity=opacity,label=str(quantity)+' '+portrayal['units'])
+                color_map[:] = sorted(color_map,key=lambda node:float(node.get('quantity', '0')))
         style=ET.tostring(root,encoding='utf8')
     admin('POST', f'/workspaces/{workspace}/styles?name=raster',
           data=style,
@@ -138,8 +156,11 @@ def verify(gis: dict) -> dict:
                      'WIDTH': 64, 'HEIGHT': 64, 'FORMAT': 'image/png', 'TRANSPARENT': 'true'})
     if not image.content.startswith(b'\x89PNG'):
         raise ValueError('GIS map not PNG')
-    if Image.open(io.BytesIO(image.content)).convert('RGBA').getchannel('A').getextrema()[1] == 0:
+    visible = Image.open(io.BytesIO(image.content)).convert('RGBA').getchannel('A').getextrema()[1] != 0
+    if not visible and not gis.get('all_transparent', gis.get('all_nodata')):
         raise ValueError('GIS map contains no visible coverage')
+    if visible and gis.get('all_transparent', gis.get('all_nodata')):
+        raise ValueError('GIS renders values for an entirely missing field')
     identified_value = None
     if 'probe' in gis:
         from publication.tiles import MAP_TO_NATIVE
@@ -156,9 +177,13 @@ def verify(gis: dict) -> dict:
             'CRS':'EPSG:3857','BBOX':f'{mx-150},{my-150},{mx+150},{my+150}',
             'WIDTH':3,'HEIGHT':3,'I':1,'J':1,'FORMAT':'image/png','INFO_FORMAT':'text/plain'})
         match = re.search(r'GRAY_INDEX\s*=\s*([0-9.eE+-]+)',identified.text)
-        if match is None or abs(float(match.group(1))-probe['value']) > 0.0001:
-            raise ValueError('GIS coordinate placement/value differs from native baseline')
-        identified_value = float(match.group(1))
+        if probe['value'] is None:
+            if match is not None:
+                raise ValueError('GIS identify returned a value for NoData')
+        else:
+            if match is None or abs(float(match.group(1))-probe['value']) > 0.0001:
+                raise ValueError('GIS coordinate placement/value differs from native baseline')
+            identified_value = float(match.group(1))
     return {'granule_counts_positive_negative': observed, 'capability_times': times,
             'capability_layers': layers, 'map_bytes': len(image.content),
             **({'identified_value':identified_value,'units':gis['units']} if 'units' in gis else {'identified_value_K':identified_value})}

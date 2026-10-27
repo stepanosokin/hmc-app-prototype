@@ -1,7 +1,7 @@
 import type {Selection} from './selection.js';
 export interface NativeMetadata {
     source_crs?: {template:number;[key:string]:unknown};
-    display_range?: number[]; encoding_max_abs_error?: number;
+    display_range?: number[]|null; all_nodata?:boolean; zero_transparent?:boolean; encoding_max_abs_error?: number;
     uv_relative_to_grid?: boolean;
     portrayal_baseline?: boolean;
     contract: string; contract_sha256: string; selection: string; identity: Record<string,unknown>;
@@ -78,7 +78,8 @@ export class FieldLoader {
         const generic=metadata.contract==='hmc-native-display/3';
         const extended=generic||metadata.contract==='hmc-native-display/2';
         if((generic?metadata.contract_sha256!=='98c9e10367d9c4185647e22758c94913d8cc9d716561ff0b93f3b1dcd71db0eb'||selection.field_profile!=='grib2-fields/1'||
-            !metadata.display_range||metadata.display_range.length!==2||metadata.display_range.some(v=>!Number.isFinite(v))||metadata.display_range[0]>metadata.display_range[1]:
+            (metadata.all_nodata===true?metadata.display_range!==null:
+            !metadata.display_range||metadata.display_range.length!==2||metadata.display_range.some(v=>!Number.isFinite(v))||metadata.display_range[0]>metadata.display_range[1]):
             extended?metadata.contract_sha256!=='2d4f078f773b794f5a727a3506cacc3fa8f7a0ca58e829698c68c1da03b3ecf7':
             metadata.contract!=='hmc-native-display/1'||metadata.contract_sha256!=='3c245dada032f3cf4ee0f26e2c371e863ba0094a3c5f8de4e5f2c6af3ef4c1f0')||metadata.selection!==selection.selection||
             (!extended&&(metadata.grid.shape_yx.join(',')!=='657,1377'||metadata.columns.join(',')!=='0,5'||metadata.rows.join(',')!=='0,2'||

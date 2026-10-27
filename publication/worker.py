@@ -174,13 +174,26 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
     portrayal=None
     if item['metadata'].get('field_profile'):
         portrayal={'units':item['metadata']['identity']['units'],
-                   'range':[item['metadata']['values']['min'],item['metadata']['values']['max']]}
+                   'zero_transparent': item['metadata'].get('value_validity', {}).get('rule') != 'absolute-temperature-positive-kelvin',
+                   'range':([item['metadata']['values']['min'],item['metadata']['values']['max']]
+                            if item['metadata']['values']['finite_count'] else [0., 1.])}
     gis = geoserver.prepare(workspace, str(mosaic), item['metadata']['valid_time'], srs=gis_crs,portrayal=portrayal)
+    gis['all_nodata'] = item['metadata']['values']['finite_count'] == 0
+    gis['all_transparent'] = gis['all_nodata'] or bool(portrayal and portrayal['zero_transparent']
+        and item['metadata']['values']['min'] == item['metadata']['values']['max'] == 0)
     if portrayal:gis['units']=portrayal['units']
     if derivative:
         gis['derivative'] = derivative
     recovery.checkpoint(job, 'indexing')
-    representative = next(cell for cell in item['metadata']['grid']['cell_centres'] if cell['value'] is not None)
+    representative = next((cell for cell in item['metadata']['grid']['cell_centres'] if cell['value'] is not None), None)
+    if representative is None:
+        import zarr
+        from decoder.sampling import read_values
+        native = zarr.open_group(str(numerical.root / item['zarr']), mode='r', zarr_format=2)
+        valid_positions = np.argwhere(read_values(native, 'missing') == 0)
+        row, col = valid_positions[0] if len(valid_positions) else (0, 0)
+        representative = {'lon': float(read_values(native, 'longitude', int(col))),
+                          'lat': float(read_values(native, 'latitude', int(row)))}
     point = numerical.sample(run=numerical.manifest['run'], revision=numerical.revision,
                              field=item['field'], valid_time=item['metadata']['valid_time'],
                              lon=representative['lon'],lat=representative['lat'])
@@ -195,13 +208,14 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
         with rasterio.open(cog_path) as raster:
             import numpy as np
             valid_cells = np.argwhere(raster.read_masks(1)>0)
-            if not len(valid_cells):
+            if not len(valid_cells) and not gis['all_nodata']:
                 raise ValueError('Производный ГИС-растр не содержит данных')
-            row,col = valid_cells[len(valid_cells)//2]
+            row,col = valid_cells[len(valid_cells)//2] if len(valid_cells) else (0, 0)
             longitude,latitude = raster.xy(int(row),int(col))
             nx,ny = transform(spec,longitude,latitude)
             gis['native_probe'] = gis['probe']
-            gis['probe'] = {'lon':float(nx),'lat':float(ny),'value':float(raster.read(1)[row,col])}
+            gis['probe'] = {'lon':float(nx),'lat':float(ny),
+                            'value':float(raster.read(1)[row,col]) if len(valid_cells) else None}
     transition(identifier, 'derivatives_ready', representative_tiles=tile_checks)
     recovery.checkpoint(job, 'readiness')
     gis_checks = geoserver.verify(gis)

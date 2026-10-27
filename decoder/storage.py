@@ -46,7 +46,7 @@ def field_metadata(frame: bytes, hour: int, crs_config: dict | None = None,
         identity = {**metadata['raw_identity'], 'second_surface_hex': raw[4][28:34].hex(),
                     'product_template':metadata['product_template'],
                     'statistical_process':interval['statistical_process'] if interval else None}
-        bound = max(abs(metadata['values']['min']), abs(metadata['values']['max'])) * 2**-23
+        bound = max(abs(metadata['values']['min'] or 0), abs(metadata['values']['max'] or 0)) * 2**-23
         metadata.update(field='GRIB2:' + hashlib.sha256(canonical(identity)).hexdigest(),
                         field_profile='grib2-fields/1', field_identity=identity,
                         data_variable='values', float32_abs_error_bound=bound)
@@ -84,6 +84,9 @@ def decoded_arrays(frame: bytes, shape: list[int]) -> tuple[np.ndarray, np.ndarr
 
 def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missing: np.ndarray) -> dict:
     """Internal one-field writer; COG reads the completed Zarr, never the GRIB array."""
+    from decoder.validity import refresh
+    reasons = refresh(metadata, values, missing)
+    missing = reasons != 0
     zpath, cpath = root / f'{name}.zarr', root / f'{name}.tif'
     group = zarr.open_group(str(zpath), mode='w-', zarr_format=2)
     group.attrs.update(metadata=metadata, pipeline_version=PIPELINE)
@@ -93,6 +96,7 @@ def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missi
     variable = metadata.get('data_variable', 'temperature')
     arrays = [(variable, values, ['latitude', 'longitude'], (256, 256)),
               ('missing', missing.astype('uint8'), ['latitude', 'longitude'], (256, 256)),
+              ('missing_reason', reasons, ['latitude', 'longitude'], (256, 256)),
               ('longitude', west + dx / 2 + np.arange(nx) * dx, ['longitude'], (nx,)),
               ('latitude', south + dy / 2 + np.arange(ny) * dy, ['latitude'], (ny,))]
     for array_name, data, dimensions, chunks in arrays:
@@ -100,7 +104,8 @@ def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missi
                                    compressor=Blosc(cname='zstd', clevel=5, shuffle=Blosc.BITSHUFFLE))
         array.attrs['_ARRAY_DIMENSIONS'] = dimensions
     group[variable].attrs.update(units=metadata['identity']['units'], coordinates='latitude longitude')
-    group['missing'].attrs.update(long_name='1 = native missing; 0 = valid')
+    group['missing'].attrs.update(long_name='1 = field NoData; 0 = valid')
+    group['missing_reason'].attrs.update(long_name='0 = valid; 1 = source missing; 2 = rejected by value rule')
     geographic = metadata.get('source_crs', {}).get('template', 0) in (0, 1)
     group['latitude'].attrs.update(units='degrees' if geographic else 'm',
         standard_name='grid_latitude' if geographic else 'projection_y_coordinate')
@@ -111,10 +116,11 @@ def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missi
     # GRIB/Zarr rows scan south->north. TIFF rows scan north->south.
     numeric = np.asarray(read_values(stored, variable), dtype='<f4')[::-1].copy()
     valid = (1 - read_values(stored, 'missing'))[::-1].astype('uint8') * 255
+    numeric[valid == 0] = np.nan
     temporary = root / f'{name}.working.tif'
     with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True, GDAL_NUM_THREADS='1'):
         with rasterio.open(temporary, 'w', driver='GTiff', width=nx, height=ny, count=1,
-                           dtype='float32', crs=rasterio.crs.CRS.from_wkt(metadata['native_crs_wkt']),
+                           dtype='float32', nodata=float('nan'), crs=rasterio.crs.CRS.from_wkt(metadata['native_crs_wkt']),
                            transform=from_origin(west, north, dx, dy), tiled=True,
                            blockxsize=256, blockysize=256, compress='DEFLATE') as raster:
             raster.write(numeric, 1)
@@ -140,6 +146,9 @@ def write_field(root: Path, name: str, metadata: dict, values: np.ndarray, missi
 
 def check_field(root: Path, item: dict, baseline: np.ndarray, missing: np.ndarray) -> dict:
     metadata = item['metadata']
+    from decoder.validity import validity
+    reasons, _ = validity(baseline, missing, metadata)
+    missing = reasons != 0
     zpath = asset_path(root, item['zarr'])
     group = zarr.open_group(str(zpath), mode='r', zarr_format=2)
     require(json.loads((zpath / '.zgroup').read_text())['zarr_format'] == 2, 'not explicit Zarr v2')
@@ -147,7 +156,8 @@ def check_field(root: Path, item: dict, baseline: np.ndarray, missing: np.ndarra
     variable = item.get('data_variable', 'temperature')
     stored, stored_missing = read_values(group, variable), read_values(group, 'missing').astype(bool)
     require(np.array_equal(stored_missing, missing), 'Zarr mask changed')
-    require(np.array_equal(stored[~missing], baseline[~missing]), 'Zarr precision failed')
+    require(np.array_equal(read_values(group, 'missing_reason'), reasons), 'Zarr missing reasons changed')
+    require(np.array_equal(stored, baseline, equal_nan=True), 'Zarr source values changed')
     with xr.open_zarr(str(zpath), consolidated=True, chunks=None, zarr_format=2) as dataset:
         require(np.array_equal(dataset[variable].values[~missing], baseline[~missing]), 'Xarray precision failed')
         require(np.array_equal(dataset.missing.values.astype(bool), missing), 'Xarray mask failed')
@@ -171,7 +181,7 @@ def check_field(root: Path, item: dict, baseline: np.ndarray, missing: np.ndarra
         actual = raster.read(1)[::-1]
         actual_missing = raster.read_masks(1)[::-1] == 0
         require(np.array_equal(actual_missing, missing), 'COG mask changed')
-        error = float(np.max(np.abs(actual[~missing].astype('float64') - baseline[~missing])))
+        error = float(np.max(np.abs(actual[~missing].astype('float64') - baseline[~missing]))) if np.any(~missing) else 0.0
         bound = metadata.get('float32_abs_error_bound', TOLERANCE_K)
         require(error <= bound, f'COG precision failed: {error} {metadata["identity"]["units"]}')
         # Full arrays establish numeric placement; independent baseline centres check the affine.

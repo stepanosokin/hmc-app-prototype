@@ -19,6 +19,7 @@ uniform bool alternatePalette;
 uniform bool geometryOnly;
 uniform bool portrayalBaseline;
 uniform vec2 displayRange;
+uniform bool zeroTransparent;
 uniform vec4 nativeBounds;
 uniform vec2 nativeSpacing;
 uniform ivec2 nativeShape;
@@ -113,6 +114,7 @@ void main(){
     if((weights.x>0.&&aa.y==0.)||(weights.y>0.&&ab.y==0.)
        ||(weights.z>0.&&ba.y==0.)||(weights.w>0.&&bb.y==0.)){color=vec4(0.);return;}
     float value=dot(vec4(aa.x,ab.x,ba.x,bb.x),weights);
+    if(zeroTransparent&&value==0.&&!numeric){color=vec4(0.);return;}
     float t=clamp((value-displayRange.x)/max(displayRange.y-displayRange.x,1.e-30),0.,1.);
         vec3 stops[6]=vec3[6](vec3(114.,114.,181.),vec3(82.,154.,189.),vec3(112.,200.,178.),vec3(214.,214.,127.),vec3(237.,171.,104.),vec3(201.,103.,97.));
     float v=min(t*5.,4.99999);int index=int(floor(v));
@@ -210,6 +212,7 @@ export class NativeLayer {
         gl.uniform1i(location('nativeColumns'),this.metadata.columns[1]+1);
         gl.uniform1i(location('portrayalBaseline'),this.metadata.portrayal_baseline?1:0);
         gl.uniform2fv(location('displayRange'),this.metadata.display_range??[253.15,313.15]);
+        gl.uniform1i(location('zeroTransparent'),this.metadata.zero_transparent===true);
         gl.uniform2fv(location('orthoCenter'),this.center);
         gl.uniform3fv(location('laeaRf'),[laeaBeta0,laeaRq,laeaD]);
         gl.uniform1i(location('alternatePalette'),this.alternatePalette?1:0);gl.uniform1i(location('field'),0);gl.uniform2fv(location('origin'),view.origin);
@@ -222,7 +225,7 @@ export class NativeLayer {
         gl.bindVertexArray(null);return view;
     }
     render(gl) {this.context?.render(this.geometry(),this.center);if(this.ready)this.draw(gl,false);}
-    samples(view=this.geometry()) {
+    samples(view=this.geometry(),numeric=true) {
         if(this.metadata.portrayal_baseline)throw Error('Цветное изображение не содержит канонических чисел.');
         this.checkBudget();
         const gl=this.gl,{width,height}=view;
@@ -232,7 +235,7 @@ export class NativeLayer {
             gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,width,height,0,gl.RGBA,gl.FLOAT,null);
             gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texture,0);
             if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE)throw Error('Неполный числовой framebuffer.');
-            gl.viewport(0,0,width,height);this.draw(gl,true,view);const samples=[];
+            gl.viewport(0,0,width,height);this.draw(gl,numeric,view);const samples=[];
             const pixel=new Float32Array(4);
             for(let y=0;y<height;y+=13)for(let x=0;x<width;x+=13){
                 gl.readPixels(x,height-1-y,1,1,gl.RGBA,gl.FLOAT,pixel);

@@ -76,6 +76,7 @@ def normalize(source: Path, target: Path, hour: int, frame: bytes, fixture: str,
             'fixture': request.get('fixture_label',fixture), 'source': {'name': job['source_name'] if job else source.name, 'sha256': file_hash(source),
                                          'message_sha256': hashlib.sha256(frame).hexdigest(),
                                          'processing_version': processing_version,
+                                         'value_validity_version': metadata['value_validity']['version'],
                                          'synthetic_fixture': request.get('fixture_label') or (None if fixture == 'actual' else fixture),
                                          'source_crs': metadata['source_crs']},
             'tools': versions(), 'fields': [item], 'assets': inventory}
@@ -225,6 +226,7 @@ def process(job: dict) -> None:
                 if (existing['source'].get('message_sha256') == hashlib.sha256(frame).hexdigest()
                         and existing['source'].get('processing_version', PIPELINE) == job['pipeline_version']
                         and existing['source'].get('source_crs') == metadata['source_crs']
+                        and existing['source'].get('value_validity_version') == metadata['value_validity']['version']
                         and existing.get('fixture', 'actual') == request['fixture']
                         and existing['source'].get('name') == job['source_name']
                         and existing['source'].get('directory') == request.get('source_directory')

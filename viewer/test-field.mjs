@@ -36,3 +36,14 @@ test('all eighteen finite blocks are bounded and corrupt masks reject the whole 
 test('display addresses cannot send a browser to a third-party or organization endpoint',()=>{
     for(const url of ['https://example.org/api/v1/a','//example.org/api/v1/a','/org/api/v1/a','/api/v1/../org/a'])assert.throws(()=>localURL(url));
 });
+test('an entirely missing generic field loads without a colour range, but inconsistent metadata fails',async()=>{
+    const original=globalThis.fetch,loader=new FieldLoader();
+    const selected={...selection,field_profile:'grib2-fields/1'};
+    const empty={...metadata,contract:'hmc-native-display/3',contract_sha256:'98c9e10367d9c4185647e22758c94913d8cc9d716561ff0b93f3b1dcd71db0eb',
+        source_crs:{template:0},all_nodata:true,display_range:null,zero_transparent:false};
+    globalThis.fetch=async url=>url.endsWith('.json')?Response.json(empty):new Response(new ArrayBuffer(332820));
+    try{
+        const result=await loader.load(selected);assert.equal(result.metadata.all_nodata,true);
+        empty.all_nodata=false;await assert.rejects(loader.load(selected),/контракт/);
+    }finally{globalThis.fetch=original;loader.cancel();}
+});

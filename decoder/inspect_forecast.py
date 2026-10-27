@@ -195,7 +195,7 @@ def decode_message(frame: bytes, hour: int, crs_config: dict | None = None,
         missing = int(np.count_nonzero(mask))
         require(ec.codes_get_long(handle, 'numberOfMissing') == missing, 'decoder missing count differs from bitmap')
         finite = values[~mask]
-        require(finite.size > 0 and bool(np.all(np.isfinite(finite))), 'non-finite or absent unmasked values')
+        require(bool(np.all(np.isfinite(finite))), 'non-finite unmasked values')
         # Independently derive every centre from raw template 3.0. i varies fastest,
         # j increases northward (scanning mode 64). No reshape/reorder is applied.
         indices = np.arange(count)
@@ -215,7 +215,7 @@ def decode_message(frame: bytes, hour: int, crs_config: dict | None = None,
         centres = [{'index': index, 'row': index // ni, 'column': index % ni,
                     'lon': float(longitudes[index]), 'lat': float(latitudes[index]),
                     'value': None if mask[index] else float(values[index])} for index in positions]
-        return {
+        result = {
             'message': hour, 'identity': identity, 'raw_identity': raw_identity, 'source_crs': geometry,
             **({'product_template':product_template,'interval':interval} if all_fields else {}),
             'reference_time': reference.isoformat().replace('+00:00', 'Z'),
@@ -231,10 +231,13 @@ def decode_message(frame: bytes, hour: int, crs_config: dict | None = None,
                      'axis_names': ['grid_longitude', 'grid_latitude'] if geometry['template'] in (0, 1) else ['x', 'y'],
                      'cell_centres': centres, 'outer_cell_edges_wsen': [west, south, east, north]},
             'values': {'count': count, 'finite_count': int(finite.size), 'missing_count': missing,
-                       'bitmap_present': bool(bitmap_present), 'min': float(finite.min()), 'max': float(finite.max()),
+                       'bitmap_present': bool(bitmap_present), 'min': float(finite.min()) if finite.size else None, 'max': float(finite.max()) if finite.size else None,
                        'decoded_float64_le_sha256': hashlib.sha256(np.asarray(values, dtype='<f8').tobytes()).hexdigest(),
                        'missing_mask_uint8_sha256': hashlib.sha256(mask.astype('uint8').tobytes()).hexdigest()},
         }
+        from decoder.validity import refresh
+        refresh(result, values.reshape(nj, ni), mask.reshape(nj, ni))
+        return result
     finally:
         ec.codes_release(handle)
 

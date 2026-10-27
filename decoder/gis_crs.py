@@ -58,9 +58,10 @@ def derivative(root: Path, item: dict, target: Path) -> dict:
         output[first:first+len(rows)] = np.where(mask,values[row,col],0).astype('<f4')
         valid[first:first+len(rows)] = mask*255
     temporary = target.with_suffix('.working.tif')
+    output[valid == 0] = np.nan
     with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True):
         with rasterio.open(temporary,'w',driver='GTiff',width=width,height=height,count=1,
-                           crs='EPSG:4326',transform=affine,dtype='float32',tiled=True,
+                           crs='EPSG:4326',transform=affine,dtype='float32',nodata=float('nan'),tiled=True,
                            blockxsize=256,blockysize=256,compress='DEFLATE') as raster:
             raster.write(output,1)
             raster.write_mask(valid)

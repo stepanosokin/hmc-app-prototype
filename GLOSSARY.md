@@ -25,6 +25,10 @@ The offset from a run's reference time to a forecast's valid time.
 A spatial set of values for one meteorological quantity, model run, valid time or interval, and vertical surface or level, with a specified grid and ensemble member where applicable.
 _Avoid_: Assuming every temperature field represents air temperature at two metres.
 
+**Field NoData**:
+A field cell with no usable meteorological value, either because the source marks it missing or because an agreed rule for that quantity and its units rejects it. It represents a gap consistently across map display and numerical use.
+_Avoid_: Treating every zero as missing, or confusing a missing value with a value outside the colour scale.
+
 **Published layer**:
 A named map representation of a meteorological quantity whose available runs, times and levels can be selected.
 _Avoid_: Treating a styled map image as the underlying numerical field.

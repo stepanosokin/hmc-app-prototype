@@ -28,6 +28,8 @@ jobs:
         run: node --test tools/test-archive-paths.mjs
       - name: Check running stand selection for GRIB withdrawal
         run: node --test tools/test-sync-grib.mjs
+      - name: Check field revalidation operator arguments
+        run: node --test tools/test-revalidate-fields.mjs
       - name: Check cross-platform project command and single-line progress
         run: node --test tools/test-hmc-app.mjs
       - name: Check bounded validation report summaries
@@ -91,6 +93,10 @@ jobs:
         run: >-
           docker run --rm --network none --entrypoint python hmc-publication:checks
           -m unittest discover -s tests -p test_publication_tiles.py -v
+      - name: Check quantity-specific NoData and transparent valid zeros
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -B -m unittest discover -s tests -p test_field_nodata.py -v
       - name: Check access gateway boundaries
         run: >-
           docker run --rm --network none --entrypoint python hmc-publication:checks

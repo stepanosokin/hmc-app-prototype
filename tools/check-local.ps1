@@ -34,6 +34,7 @@ try {
         Invoke-Check node @('--test', 'tools/test-weather-check-options.mjs')
         Invoke-Check node @('--test', 'tools/test-publication-ops.mjs')
         Invoke-Check node @('--test', 'tools/test-sync-grib.mjs')
+        Invoke-Check node @('--test', 'tools/test-revalidate-fields.mjs')
         Invoke-Check node @('--test', 'tools/test-hmc-app.mjs')
     }
     if ($Scope -in @('All', 'Runtime')) {
@@ -46,6 +47,7 @@ try {
         }
         Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_grib_sync.py', '-v'))
         Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_hmc_refresh.py', '-v'))
+        Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-B', '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_field_nodata.py', '-v'))
         Invoke-Check docker @('run', '--rm', '--network', 'none', '--tmpfs', '/evidence:mode=1777', '--entrypoint', 'python', $image, '-m', 'publication.runtime')
         Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_evidence*.py', '-v'))
         Invoke-Check powershell @('-NoProfile', '-File', 'tools/check-publication-retirement.ps1', '-Image', $image)

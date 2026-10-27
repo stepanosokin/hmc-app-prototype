@@ -192,3 +192,6 @@ node hmc-app.mjs refresh-grib hmc-app-live --folder data/grib
   env-файлы. У принятого старого стенда сохраняются его исходные файлы настроек.
 
 Контракт: [ADR-0008](docs/adr/0008-hmc-app-management.md).
+
+Правила NoData, прозрачных нулей и пересчёт старых публикаций без удаления
+стенда: [инструкция](docs/field-nodata.md).

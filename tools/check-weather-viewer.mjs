@@ -13,6 +13,7 @@ import {checkSourceSettings} from './viewer-settings.mjs';
 import {measureViewer} from './viewer-workload.mjs';
 import {checkFieldGroups,nativePointPixel} from './viewer-fields.mjs';
 import {captureScalarReference} from './viewer-reference.mjs';
+import {checkFieldNoData} from './viewer-nodata.mjs';
 const directory=resolve(process.env.T13_REPORT_DIRECTORY||'data/reports/t13/browser-'+randomUUID());
 assert.ok(directory.startsWith(resolve('data/reports')+sep));
 const origin=process.env.T13_VIEWER||'http://127.0.0.1:8140';assert.match(origin,/^http:\/\/127\.0\.0\.1:\d+$/);
@@ -131,6 +132,9 @@ try{
     const sizes=android?[await evaluate('[innerWidth,innerHeight,true]')]:process.env.T19_WORKLOAD==='1'?(focused?[[1440,900,false]]:[[1440,900,false],[900,640,false]]):focused||disabled?[[1440,900,false]]:[[1440,900,false],[390,844,true],[360,740,true],[640,360,true]];
     for(const [width,height,mobile] of sizes){
         if(!android)await call('Emulation.setDeviceMetricsOverride',{width,height,mobile,deviceScaleFactor:1});
+        if(process.env.T65_NODATA==='1'){
+            await checkFieldNoData({call,evaluate,wait,click,select,origin,report,directory,width,height});continue;
+        }
         if(report.configuration.initial_load_repeats){
             assert.ok(focused,'Initial-load probes require Development scope');
             report.scope='Development initial GPU field diagnostics; not point-series acceptance';report.initial_loads=[];
