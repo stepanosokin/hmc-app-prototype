@@ -25,27 +25,29 @@ def discover(directory: Path) -> list[Path]:
     return result
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--clock',required=True)
-    parser.add_argument('--report',type=Path,required=True)
-    parser.add_argument('--all-fields',action='store_true',help='Обработать все поля GRIB2 4.0/4.8, сохраняя единицы и интервалы')
-    args = parser.parse_args()
+def ingest(clock: str, report_path: Path, all_fields: bool = False,
+           names: list[str] | None = None, stop_on_error: bool = False, hmc_refresh: bool = False) -> dict:
     # Fail the WHOLE batch before queue mutations when configuration is invalid.
     config = configuration()
     files = discover(Path('/input'))
+    if names is not None:
+        selected = {path.name: path for path in files}
+        if len(names) != len(set(names)) or any(name not in selected for name in names):
+            raise ValueError('Выбранный GRIB отсутствует или не является обычным прямым файлом')
+        files = [selected[name] for name in names]
     report: dict = {'scope':'direct GRIB2 children only; no subdirectories or proj.txt',
               'configuration':config,'files':[],'state':'passed'}
-    for path in files:
+    for index, path in enumerate(files, 1):
+        print(json.dumps({'hmc_progress': 'Загрузка GRIB', 'done': index-1, 'total': len(files)}), flush=True)
         entry: dict = {'source':path.name}
         report['files'].append(entry)
         try:
-            if path.stat().st_size>recovery.source_limit({'source_profile':'grib2-fields' if args.all_fields else 'surface-temperature-grib2'}):
+            if path.stat().st_size>recovery.source_limit({'source_profile':'grib2-fields' if all_fields else 'surface-temperature-grib2'}):
                 raise ValueError('GRIB2 превышает лимит размера исходного файла')
             frames = list(bounded_frames(path))
             if not 1<=len(frames)<=4096:
                 raise ValueError('GRIB2 должен содержать от 1 до 4096 сообщений')
-            metadata = [field_metadata(frame,index,config,sample_inventory=False,all_fields=args.all_fields) for index,frame in enumerate(frames,1)]
+            metadata = [field_metadata(frame,index,config,sample_inventory=False,all_fields=all_fields) for index,frame in enumerate(frames,1)]
             if len({(m['model'],m['reference_time']) for m in metadata})!=1:
                 raise ValueError('Один исходный файл должен содержать один расчёт модели')
             if len({(m.get('field','T_G:surface:0'),m['valid_time']) for m in metadata})!=len(metadata):
@@ -54,11 +56,13 @@ def main():
             del frames
             checksum = file_hash(path)
             request: dict = {'hours':list(range(1,len(metadata)+1)),'fixture':'actual','recoverable':True,
-                       'source_profile':'grib2-fields' if args.all_fields else 'surface-temperature-grib2',
+                       'source_profile':'grib2-fields' if all_fields else 'surface-temperature-grib2',
                        'rebuild':True,'batch':uuid.uuid4().hex,'crs_configuration':config}
+            if hmc_refresh:
+                request['hmc_refresh'] = True
             if checksum==SAMPLE_SHA256:
                 request['model']='ICON-EU'
-            job = recovery.submit(args.clock,request,path.name,checksum,0)
+            job = recovery.submit(clock,request,path.name,checksum,0)
             entry.update(job=job,sha256=checksum,source_crs_ids=sorted({s['id'] for s in specs}))
             worker.once(job)
             with database() as cursor:
@@ -76,13 +80,27 @@ def main():
         except Exception as error:
             entry.update(state='failed',error_type=type(error).__name__,error=str(error))
             report['state']='failed'
-        args.report.write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n')
+        report_path.write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n')
         print(json.dumps(entry,ensure_ascii=False),flush=True)
-    if not files:
+        print(json.dumps({'hmc_progress': 'Загрузка GRIB', 'done': index, 'total': len(files)}), flush=True)
+        if report['state'] != 'passed' and stop_on_error:
+            break
+    if not files and names is None:
         report.update(state='failed',error='В исходной папке нет файлов GRIB2')
-    args.report.write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n')
+    report_path.write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n')
     if report['state'] != 'passed':
         raise SystemExit(1)
+    return report
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--clock', required=True)
+    parser.add_argument('--report', type=Path, required=True)
+    parser.add_argument('--all-fields', action='store_true')
+    parser.add_argument('--source-name', action='append')
+    args = parser.parse_args()
+    ingest(args.clock, args.report, args.all_fields, args.source_name)
 
 
 if __name__=='__main__':main()

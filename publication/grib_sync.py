@@ -10,7 +10,7 @@ import stat
 import signal
 import sys
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from decoder.sampling import asset_path, canonical
@@ -66,14 +66,14 @@ def source_manifest(relative: str, checksum: str) -> dict:
 
 def plan_rows(names: list[str], rows: list[dict], target: str, configuration: dict,
               pending: list[dict] | None = None, source_directories: list[str] | None = None,
-              include_unlocated: bool = False) -> dict:
+              include_unlocated: bool = False, remove_all: bool = False) -> dict:
     """Resolve provenance of every eligible root, including legacy selections."""
     actions, unchecked, assumed = [], [], []
     present = set(names)
     source_directories = sorted({posixpath.normpath(value.replace('\\', '/')) for value in
                                  (source_directories or [os.environ.get('GRIB_SOURCE_DIRECTORY', 'data/grib')])})
     for row in rows:
-        if row['state'] != 'eligible':
+        if row['state'] != 'eligible' and not remove_all:
             continue
         root = row['root']
         if row['kind'] == 'revision':
@@ -86,7 +86,10 @@ def plan_rows(names: list[str], rows: list[dict], target: str, configuration: di
         else:
             entries = []
             batches = [source_manifest(row['manifest_path'], row['manifest_sha256'])]
-        sources = [direct_source(batch, source_directories, include_unlocated) for batch in batches]
+        # All supported manifests are GRIB-derived, including demo corrections.
+        # The ordinary name-based mode retains its narrower actual-source scope.
+        sources = [(batch.get('source', {}).get('name') or '(имя не записано)') if remove_all else
+                   direct_source(batch, source_directories, include_unlocated) for batch in batches]
         if not sources or None in sources:
             unchecked.append({'root': root, 'reason': 'Неизвестное происхождение или публикация вне области'})
             continue
@@ -94,21 +97,23 @@ def plan_rows(names: list[str], rows: list[dict], target: str, configuration: di
                                 if source is not None and batch.get('source', {}).get('directory') is None})
         if assumed_names:
             assumed.append({'root': root, 'sources': assumed_names})
-        missing = sorted({source for source in sources if source is not None and source not in present})
+        missing = sorted({source for source in sources if source is not None and (remove_all or source not in present)})
         if missing:
-            kept = [entry for entry, source in zip(entries, sources) if source in present]
+            kept = ([] if remove_all else
+                    [entry for entry, source in zip(entries, sources) if source in present])
             actions.append({'root': root, 'run': row['run'], 'kind': row['kind'],
                             'job_id': row['job_id'], 'missing': missing, 'keep': kept})
     body = {'version': 'grib-withdrawal/1', 'target': target, 'names': names,
             'catalogue': rows, 'policy': configuration, 'actions': actions, 'unchecked': unchecked,
             'pending': pending or [], 'source_directories': source_directories,
             'include_unlocated': include_unlocated, 'assumed': assumed,
+            'remove_all': remove_all,
             'storage_budget_bytes': recovery.MAX_STORAGE_BYTES}
     return {**body, 'id': fingerprint(body)}
 
 
 def preview(directory: Path, target: str, source_directories: list[str] | None = None,
-            include_unlocated: bool = False) -> dict:
+            include_unlocated: bool = False, remove_all: bool = False) -> dict:
     configuration, _, roots = retention.snapshot()
     with database() as cursor:
         cursor.execute('SELECT * FROM app.revisions ORDER BY published_at,revision')
@@ -126,7 +131,8 @@ def preview(directory: Path, target: str, source_directories: list[str] | None =
         rows.append({**root, **record, 'kind': 'revision' if root['root'] in modern else 'legacy'})
     # Canonical JSON-compatible snapshots retain dates and UUIDs without credentials.
     rows = json.loads(json.dumps(rows, default=str))
-    return plan_rows(input_names(directory), rows, target, configuration, pending, source_directories, include_unlocated)
+    return plan_rows([] if remove_all else input_names(directory), rows, target, configuration, pending,
+                     source_directories, include_unlocated, remove_all)
 
 
 def validate_plan(saved: dict, current: dict) -> None:
@@ -135,7 +141,7 @@ def validate_plan(saved: dict, current: dict) -> None:
 
 
 def apply(saved: dict, directory: Path, target: str, source_directories: list[str] | None = None,
-          include_unlocated: bool = False) -> dict:
+          include_unlocated: bool = False, remove_all: bool = False, operational_cleanup: bool = False) -> dict:
     """Prepare immutable leftovers, then expose all changes in one DB commit."""
     prepared: list[tuple[dict, dict, str, str]] = []
     created: list[Path] = []
@@ -145,7 +151,7 @@ def apply(saved: dict, directory: Path, target: str, source_directories: list[st
         if not recovery.lock(guard):
             raise RuntimeError('Идёт публикация или очистка: повторите синхронизацию позже')
         try:
-            current = preview(directory, target, source_directories, include_unlocated)
+            current = preview(directory, target, source_directories, include_unlocated, remove_all)
             validate_plan(saved, current)
             missing = {name for action in current['actions'] for name in action['missing']}
             if any(job['source_name'] in missing for job in current['pending']):
@@ -182,13 +188,15 @@ def apply(saved: dict, directory: Path, target: str, source_directories: list[st
                     os.close(descriptor)
                 prepared.append((action, manifest, relative, checksum))
             # Revalidate after potentially expensive asset verification as well.
-            validate_plan(saved, preview(directory, target, source_directories, include_unlocated))
+            validate_plan(saved, preview(directory, target, source_directories, include_unlocated, remove_all))
             visibility_attempted = True
             with database_transaction():
                 with database() as cursor:
                     cursor.execute("SET LOCAL lock_timeout = '110s'")
                     cursor.execute('SELECT pg_advisory_xact_lock(16002)')
-                    validate_plan(saved, preview(directory, target, source_directories, include_unlocated))
+                    validate_plan(saved, preview(directory, target, source_directories, include_unlocated, remove_all))
+                    if operational_cleanup:
+                        cursor.execute('ALTER TABLE app.retention_roots ADD COLUMN IF NOT EXISTS cleanup_after timestamptz')
                     for action, manifest, relative, checksum in prepared:
                         original = rows[action['root']]
                         cursor.execute('INSERT INTO app.revisions VALUES(%s,%s,%s,%s,%s,%s)',
@@ -221,6 +229,10 @@ def apply(saved: dict, directory: Path, target: str, source_directories: list[st
                     for action in current['actions']:
                         cursor.execute('UPDATE app.retention_roots SET expired_at=%s,delete_after=%s,reason=%s '
                                        'WHERE root=%s', (clock, deadline, 'source-withdrawn', action['root']))
+                        if operational_cleanup:
+                            cursor.execute('UPDATE app.retention_roots SET cleanup_after=COALESCE(cleanup_after,%s) WHERE root=%s',
+                                           (datetime.now(timezone.utc) + timedelta(seconds=configuration['reader_grace_seconds']),
+                                            action['root']))
             created.clear()  # Published manifests now belong to retention.
             return {'state': 'applied', 'plan': saved['id'],
                     'withdrawn': [action['root'] for action in current['actions']],

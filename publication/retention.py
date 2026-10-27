@@ -91,6 +91,7 @@ def migrate() -> None:
                        'expired_at timestamptz, delete_after timestamptz, reason text)')
         cursor.execute('INSERT INTO app.retention_policy VALUES(true,%s) ON CONFLICT DO NOTHING',
                        (json.dumps(policy(clock=os.environ.get('PUBLICATION_CLOCK'))),))
+        cursor.execute('ALTER TABLE app.retention_roots ADD COLUMN IF NOT EXISTS cleanup_after timestamptz')
         cursor.execute('GRANT SELECT ON app.retention_policy,app.retention_roots TO hmc_api')
         cursor.execute('SELECT * FROM app.revisions ORDER BY published_at,revision')
         revisions = cursor.fetchall()
@@ -197,6 +198,13 @@ def inventory(paths: list[Path]) -> dict:
     return {'logical_bytes': sum(categories.values()), 'files': len(files), 'categories': categories}
 
 
+def cleanup_protected(row: dict, policy_now) -> bool:
+    """Operational withdrawal uses a durable wall deadline, even in a pinned demo."""
+    if row.get('cleanup_after') is not None and row.get('reason') == 'source-withdrawn':
+        return instant(row['cleanup_after']) > datetime.now(timezone.utc)
+    return row['delete_after'] is not None and instant(row['delete_after']) > instant(policy_now)
+
+
 def collect(*, apply: bool = False) -> dict:
     from publication import recovery, geoserver
     from publication.revisions import load_revision
@@ -217,8 +225,7 @@ def collect(*, apply: bool = False) -> dict:
                         cursor.execute('UPDATE app.retention_roots SET expired_at=%s,delete_after=%s,reason=%s '
                                        'WHERE root=%s AND expired_at IS NULL',
                                        (row['expired_at'], row['delete_after'], row['reason'], row['root']))
-        retained = {row['root'] for row in rows if row['state'] == 'eligible'
-                    or (row['delete_after'] is not None and instant(row['delete_after']) > now)}
+        retained = {row['root'] for row in rows if row['state'] == 'eligible' or cleanup_protected(row, now)}
         with database() as cursor:
             cursor.execute('SELECT * FROM app.revisions')
             revisions = cursor.fetchall()

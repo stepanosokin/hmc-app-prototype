@@ -28,6 +28,8 @@ jobs:
         run: node --test tools/test-archive-paths.mjs
       - name: Check running stand selection for GRIB withdrawal
         run: node --test tools/test-sync-grib.mjs
+      - name: Check cross-platform project command and single-line progress
+        run: node --test tools/test-hmc-app.mjs
       - name: Check bounded validation report summaries
         run: node --test tools/test-validation-summary.mjs
 
@@ -41,9 +43,11 @@ jobs:
       - name: Check publication process exit handling
         shell: powershell
         run: ./tools/check-publication-process.ps1
-      - name: Check refresh_grib stage ordering and failure stops
-        shell: powershell
-        run: ./tools/check-refresh-grib.ps1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '26.10.0'
+      - name: Check cross-platform project command and single-line progress
+        run: node --test tools/test-hmc-app.mjs
       - name: Check documentation links and administrator command syntax
         shell: powershell
         run: ./tools/check-documentation.ps1
@@ -103,6 +107,10 @@ jobs:
         run: >-
           docker run --rm --network none --entrypoint python hmc-publication:checks
           -m unittest discover -s tests -p test_grib_sync.py -v
+      - name: Check incremental GRIB and wall-clock cleanup boundaries
+        run: >-
+          docker run --rm --network none --entrypoint python hmc-publication:checks
+          -m unittest discover -s tests -p test_hmc_refresh.py -v
       - name: Check archive validation failures
         run: >-
           docker run --rm --network none

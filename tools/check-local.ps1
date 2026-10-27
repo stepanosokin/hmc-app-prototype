@@ -26,12 +26,13 @@ try {
         Invoke-Check node @('--test', 'tools/test-validation-summary.mjs')
     }
     if ($Scope -in @('All', 'Windows')) {
-        foreach ($script in @('check-publication-process', 'check-documentation', 'check-documentation-tests', 'check-native-display-inputs', 'check-viewer-fixtures-tests', 'check-refresh-grib')) {
+        foreach ($script in @('check-publication-process', 'check-documentation', 'check-documentation-tests', 'check-native-display-inputs', 'check-viewer-fixtures-tests')) {
             Invoke-Check powershell @('-NoProfile', '-File', "tools/$script.ps1")
         }
         Invoke-Check node @('--test', 'tools/test-weather-check-options.mjs')
         Invoke-Check node @('--test', 'tools/test-publication-ops.mjs')
         Invoke-Check node @('--test', 'tools/test-sync-grib.mjs')
+        Invoke-Check node @('--test', 'tools/test-hmc-app.mjs')
     }
     if ($Scope -in @('All', 'Runtime')) {
         Invoke-Check docker @('build', '-f', 'Dockerfile.publication', '-t', $image, '.')
@@ -42,6 +43,7 @@ try {
             Invoke-Check docker @('run', '--rm', '--network', 'none', '--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tests', '-p', "test_publication_$test.py", '-v')
         }
         Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_grib_sync.py', '-v'))
+        Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_hmc_refresh.py', '-v'))
         Invoke-Check docker @('run', '--rm', '--network', 'none', '--tmpfs', '/evidence:mode=1777', '--entrypoint', 'python', $image, '-m', 'publication.runtime')
         Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_evidence*.py', '-v'))
         Invoke-Check powershell @('-NoProfile', '-File', 'tools/check-publication-retirement.ps1', '-Image', $image)

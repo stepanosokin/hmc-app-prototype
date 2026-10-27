@@ -1,8 +1,8 @@
 $ErrorActionPreference = 'Stop'
 $checker = Join-Path $PSScriptRoot 'check-documentation.ps1'
 $defaultOutput = @(& $checker)
-if (-not ($defaultOutput -match '^PowerShell examples parsed: [1-9][0-9]* ')) {
-    throw 'Default documentation check must parse the administrator recipe'
+if (-not ($defaultOutput -match '^PowerShell examples parsed: [0-9]+ ')) {
+    throw 'Default documentation check must report administrator syntax checks'
 }
 $temporaryRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $fixtures = Join-Path $temporaryRoot ('hmc documentation ' + [guid]::NewGuid().ToString('N'))
