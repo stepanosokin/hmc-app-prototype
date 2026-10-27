@@ -9,7 +9,7 @@ const files=[];
 async function walk(path){for(const entry of await readdir(path,{withFileTypes:true})){
     if(['node_modules','__pycache__'].includes(entry.name))continue;
     const child=path+'/'+entry.name;
-    if(entry.isDirectory())await walk(child);else if(/\.(?:py|ps1|json|sql|sh|sld|js|ts|mjs|html|css|lock|txt|md)$/.test(child))files.push(child);
+    if(entry.isDirectory())await walk(child);else if(/\.(?:py|ps1|json|sql|sh|sld|js|ts|mjs|html|css|lock|txt|md|png)$/.test(child))files.push(child);
 }}
 for(const path of ['config','decoder','publication','tests','trials','tools','viewer','data/viewer'])await walk(path);
 files.push('AGENTS.md','.gitattributes','.github/workflows/checks.yml','docs/development-workflow.md','docs/prototypes/assets/land.js','docs/prototypes/forecast-interaction.prototype.html','docs/prototypes/weather-map.prototype.html');

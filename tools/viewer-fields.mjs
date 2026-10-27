@@ -35,6 +35,32 @@ export async function checkFieldGroups({call,evaluate,wait,click,select,capture,
         const scene={width,height,mobile_emulation:width<700,groups:[]};report.field_controls.push(scene);
         const names=await evaluate("[...document.querySelectorAll('#fieldButtons>button')].map(b=>b.textContent)");
         for(const required of ['Температура','Давление','Влажность','Ветер'])assert.ok(names.includes(required),required);
+        scene.icon_visuals=[];
+        const ids=await evaluate("[...document.querySelectorAll('#fieldButtons>button')].map(b=>b.id)");
+        for(const basemap of ['dark','light'])for(const font of ['system','courier']){
+            await select('#basemap',true,basemap==='dark'?0:1);await select('#font',true,font==='system'?0:1);
+            for(const groupId of ids){
+                await click('#'+groupId);
+                const visual=await evaluate(`(async()=>{
+                    const menu=document.querySelector('#fieldMenu'),rail=document.querySelector('#fieldButtons');
+                    await Promise.all([...document.querySelectorAll('#fieldGroups img')].map(i=>i.decode()));
+                    const rect=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+                    return {menu:rect(menu),menu_background:getComputedStyle(menu).backgroundColor,rail:rect(rail),groups:[...rail.children].map(b=>({label:b.getAttribute('aria-label'),background:getComputedStyle(b).backgroundColor,rect:rect(b),icon:!!b.querySelector('.fieldIcon')})),
+                        options:[...menu.querySelectorAll('.fieldOption')].map(b=>({label:b.getAttribute('aria-label'),level:b.querySelector('.fieldLevel').textContent,background:getComputedStyle(b).backgroundColor,rect:rect(b),icon:!!b.querySelector('.fieldIcon')})),
+                        scroll:document.documentElement.scrollWidth,projection:document.querySelector('label[for=projection]').textContent,accessibleProjection:document.querySelector('#projection').getAttribute('aria-label')};})()`);
+                assert.equal(visual.projection,'Проекция');assert.equal(visual.accessibleProjection,'Проекция');
+                assert.ok(visual.menu.left>=0&&visual.menu.right<=width&&visual.menu.top>=0&&visual.menu.bottom<=height,'Icon menu fits viewport');
+                assert.match(visual.menu_background,/0\.1\)$/,'Nested group menu also has alpha 0.10');
+                assert.ok(visual.scroll<=width&&visual.rail.width<=54,'Compact icon rail without horizontal overflow');
+                assert.ok(visual.groups.every(g=>g.label&&g.icon&&g.rect.height>=44&&/0\.1\)$/.test(g.background)),'Every group has a name, icon, 44px target and alpha 0.10');
+                assert.ok(visual.options.length&&visual.options.every(o=>o.label&&o.level&&o.icon&&o.rect.width>=44&&/0\.1\)$/.test(o.background)),'Every field has an icon, Russian name, level, usable target and alpha 0.10');
+                const shot=await call('Page.captureScreenshot',{format:'png'}),name=`icons-${width}-${height}-${basemap}-${font}-${groupId}.png`;
+                await writeFile(join(directory,name),Buffer.from(shot.data,'base64'));
+                scene.icon_visuals.push({basemap,font,group:groupId,screenshot:name,...visual});
+                await click('#'+groupId);
+            }
+        }
+        await select('#basemap',true,0);await select('#font',true,0);
         const pixel=await nativePointPixel(evaluate);
         assert.ok(pixel,'An unobstructed point inside the published native footprint');
         await call('Input.dispatchMouseEvent',{type:'mousePressed',...pixel,button:'left',clickCount:1});
@@ -96,6 +122,14 @@ export async function checkFieldGroups({call,evaluate,wait,click,select,capture,
         await click('#field-group-temperature');
         await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape'});await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape'});
         assert.equal(await evaluate("document.getElementById('fieldMenu').hidden&&document.activeElement.id==='field-group-temperature'"),true,'Escape closes menu and restores focus');
+        await evaluate("document.querySelector('#field-group-wind').focus()");
+        const enter=async()=>{await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r'});await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});};
+        await enter();await wait("!document.querySelector('#fieldMenu').hidden",'keyboard opens field group');
+        const focusedLabel=await evaluate("(()=>{const b=document.querySelector('#fieldMenu .fieldOption[aria-pressed=true]');b.focus();return {label:b.getAttribute('aria-label'),preview:document.querySelector('.fieldPreview').textContent};})()");
+        assert.equal(focusedLabel.preview,focusedLabel.label,'Keyboard focus exposes the full Russian field name');
+        await enter();await wait("document.querySelector('#fieldMenu').hidden&&window.captureWeatherEvidence().ready",'keyboard selects field');
+        assert.equal(await evaluate("document.activeElement.id"),'field-group-wind','Keyboard selection restores group focus');
+        scene.keyboard=focusedLabel;
         const options=await evaluate("[...document.querySelector('#run').options].map(o=>JSON.parse(o.value)[3])");
         assert.ok(options.every(field=>field===(scene.groups.at(-1).selected.field)),'Run control contains only the selected field');
         scene.heap=await call('Runtime.getHeapUsage');

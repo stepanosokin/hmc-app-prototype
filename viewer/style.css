@@ -30,18 +30,27 @@ main{position:fixed;overflow:hidden}
 .selection{left:16px;top:124px;width:248px;padding:10px}
 h1{font-size:16px;margin:0 0 8px;font-weight:600}h2{font-size:16px;margin:5px 0 9px}
 .selection button{margin-top:8px;width:100%}.selection small{margin-top:5px;font-size:9px}
-.fieldGroups{position:absolute;right:16px;top:16px;width:128px;z-index:7}
+.srOnly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.fieldGroups{position:absolute;right:16px;top:16px;width:54px;z-index:7}
 #fieldButtons{display:grid;gap:5px;overflow:auto;padding:3px;scrollbar-width:thin}
-#fieldButtons>button{min-height:36px;width:100%;padding:7px 8px;color:inherit;background:rgba(22,44,58,.82);backdrop-filter:blur(6px);text-align:left}
-#fieldButtons>button::after{content:'‹';float:right;margin-left:5px;color:var(--muted)}
-#fieldButtons>button[aria-pressed=true]{background:rgba(0,117,177,.75);border-color:var(--accent)}
-.fieldMenu{position:fixed;width:min(290px,calc(100vw - 148px));padding:12px;overflow:auto;background:rgba(22,44,58,.95);z-index:8}
+#fieldButtons>button{height:48px;min-height:48px;width:100%;padding:8px;display:grid;place-items:center;color:inherit;background:rgba(22,44,58,.10);backdrop-filter:blur(6px)}
+#fieldButtons>button[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+#fieldButtons>button[aria-expanded=true]{outline:2px solid var(--sky);outline-offset:0}
+.fieldIcon{display:block;width:28px;height:28px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 1px 1px #07141e60)}
+.fieldGlyph{font-size:28px;line-height:28px;font-weight:700;color:var(--sky);filter:none}
+.fieldHint{position:fixed;z-index:9;padding:6px 9px;background:rgba(22,44,58,.96);pointer-events:none;max-width:220px}
+.fieldMenu{position:fixed;width:min(310px,calc(100vw - 88px));padding:12px;overflow:auto;background:rgba(22,44,58,.10);z-index:8;text-shadow:0 1px 2px #07141e,0 0 3px #07141e}
 .fieldMenu h2{padding-right:65px;margin:0 0 14px}.fieldMenu h3{font-size:11px;color:var(--muted);margin:14px 0 5px;font-weight:500}
 .fieldMenuClose{position:absolute;right:10px;top:10px;font-size:10px}
-.fieldOption{display:block;width:100%;margin:4px 0;padding:8px;text-align:left;min-height:40px}
-.fieldOption span{display:block}.fieldOption small{margin-top:3px}.fieldOption[aria-pressed=true]{background:rgba(0,117,177,.35)}
-.basemapLight #fieldButtons>button,.basemapLight .fieldMenu{background:rgba(239,245,246,.96)}
-.basemapLight #fieldButtons>button[aria-pressed=true]{background:#c3e6f5}
+.fieldPreview{margin:0 0 8px;font-size:10px;color:var(--muted);overflow-wrap:anywhere;min-height:28px}
+.fieldGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:5px}
+.fieldOption{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;min-width:0;width:100%;padding:7px 4px;text-align:center;min-height:78px;overflow-wrap:anywhere;background:rgba(22,44,58,.10)}
+.fieldVariant{font-size:10px;font-weight:600;line-height:1.2}.fieldVariant:empty{display:none}
+.fieldLevel{font-size:10px;line-height:1.3}.fieldOption small{font-size:9px;line-height:1.2}.fieldOption[aria-pressed=true]{box-shadow:inset 0 0 0 1px var(--sky)}
+.basemapLight #fieldButtons>button{background:rgba(239,245,246,.10)}
+.basemapLight .fieldOption{background:rgba(239,245,246,.10)}
+.basemapLight .fieldMenu{background:rgba(239,245,246,.10);text-shadow:0 1px 2px #fff,0 0 3px #fff}
+.basemapLight .fieldHint{background:rgba(239,245,246,.96)}
 .forecastControls{display:contents}.widgetToggle{display:none}
 .projectionControl{left:16px;top:280px;width:248px;padding:7px 9px;z-index:3}
 .projectionControl label{display:block;font-size:10px;color:var(--muted);margin-bottom:3px}
@@ -109,8 +118,8 @@ dl{font-size:11px}dt{color:var(--muted);margin-top:6px}dd{margin:2px 0;overflow-
   body{font-size:11px}.brand{left:10px;top:10px;padding:6px 8px;gap:7px}.brand strong{font-size:14px}.brand small{font-size:9px}.symbol{width:25px;height:25px;font-size:9px}
   .model{left:10px;top:66px;width:min(248px,calc(100% - 72px));padding:4px 8px}.model select{width:130px;padding:3px 6px}
   .selection{left:10px;top:108px;width:min(248px,calc(100% - 72px));padding:8px 9px}h1{font-size:14px;margin:0 0 5px}.selection small{font-size:9px}.selection button{padding:4px 6px;margin-top:6px}
-  .fieldGroups{right:10px;top:66px;width:94px}#fieldButtons{gap:4px;padding:2px}#fieldButtons>button{min-height:32px;font-size:10px;padding:6px}
-  .fieldMenu{width:calc(100vw - 126px);padding:10px}.fieldMenu h2{font-size:14px}.fieldOption{font-size:11px}
+  .fieldGroups{right:10px;top:66px;width:48px}#fieldButtons{gap:4px;padding:2px}#fieldButtons>button{height:44px;min-height:44px;padding:7px}
+  .fieldMenu{width:min(310px,calc(100vw - 78px));padding:10px}.fieldMenu h2{font-size:14px}.fieldOption{font-size:11px}
   .projectionControl label{font-size:10px}.projectionControl small{overflow-wrap:anywhere}.projectionControl button{font-size:10px;padding:4px}
   .navigation{left:10px;bottom:200px;gap:4px}.navigation button{font-size:10px;min-width:30px;min-height:30px;padding:5px 7px}
   .legend{right:10px;bottom:200px;width:155px;padding:7px}.legend small{font-size:8px}.legend .ramp{margin-top:5px;height:8px}.ticks{font-size:9px}

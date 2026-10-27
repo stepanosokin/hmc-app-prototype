@@ -94,7 +94,7 @@ function selectionDetails(){
     control('model').value=source.model;
     const title=fieldPresentation(displayed??source).label;
     document.querySelector('#forecastPanel h1')!.textContent=title;
-    fieldPicker.update(groups,group);
+    fieldPicker.update(groups,group,group.start+index*3600000);
     $('legendPanel').setAttribute('aria-label','Шкала выбранного поля');
     text('reference',(displayed?'Показан расчёт: ':'Выбран расчёт: ')+timestamp(referenceTime((displayed??source).run)));
     const valid=new Date(group.start+index*3600000).toISOString();

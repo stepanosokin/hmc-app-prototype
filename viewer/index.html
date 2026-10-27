@@ -11,7 +11,7 @@
   <details id="forecastPanel" class="forecastControls" open><summary class="panel widgetToggle"><span id="forecastSummary">Загрузка прогноза…</span><small id="compactProjection">LAEA - РФ</small></summary><div class="widgetBody">
   <section class="panel model" aria-label="Выбор модели данных"><label for="model">Модель</label><select id="model" aria-label="Модель данных" title="Опубликованная модель"><option value="" disabled selected>Загрузка моделей…</option></select></section>
   <section class="panel selection" aria-label="Выбранный прогноз"><h1>Поле прогноза</h1><div id="reference"></div><div id="valid"></div><small id="selectionIdentity"></small><button id="settings" aria-expanded="false" aria-controls="drawer">Источник и настройки</button></section>
-  <section class="panel projectionControl" aria-label="Проекция карты"><label for="projection">Вид карты</label><select id="projection" aria-label="Вид карты" aria-describedby="projectionStatus"><option value="mercator">Меркатор</option><option value="orthographic">Глобус</option><option value="laea">LAEA — Арктика (EPSG:3576)</option><option value="laea-rf" selected>LAEA - РФ</option></select><small id="projectionStatus" role="status"></small><button id="useMercator" hidden>Перейти в Меркатор</button></section>
+  <section class="panel projectionControl" aria-label="Проекция карты"><label for="projection">Проекция</label><select id="projection" aria-label="Проекция" aria-describedby="projectionStatus"><option value="mercator">Меркатор</option><option value="orthographic">Глобус</option><option value="laea">LAEA — Арктика (EPSG:3576)</option><option value="laea-rf" selected>LAEA - РФ</option></select><small id="projectionStatus" role="status"></small><button id="useMercator" hidden>Перейти в Меркатор</button></section>
   </div></details>
   <aside id="fieldGroups" class="fieldGroups" aria-label="Поля выбранной модели"><nav id="fieldButtons" aria-label="Группы показателей"></nav><section id="fieldMenu" class="panel fieldMenu" aria-label="Показатели и уровни" hidden></section></aside>
   <details id="navigationPanel" class="navigation" aria-label="Навигация по карте" open><summary class="panel widgetToggle">Карта</summary><div class="widgetBody"><button id="fit">К области данных</button><div><button id="zoomIn" aria-label="Приблизить">+</button><button id="zoomOut" aria-label="Отдалить">−</button><button id="west" aria-label="Сдвинуть карту к западу">←</button><button id="east" aria-label="Сдвинуть карту к востоку">→</button></div></div></details>
@@ -42,6 +42,7 @@
       <button id="retry">Повторить загрузку</button><button id="refresh">Проверить обновления</button>
       <small>Подложка: Natural Earth 1:110m, общественное достояние. Береговая линия без государственных границ; подписи городов добавлены для ориентации. Все ресурсы локальные.</small>
       <small>Лицензии: <a href="/vendor/MapLibre.LICENSE.txt">MapLibre</a> · <a href="/vendor/proj4.LICENSE.md">proj4js</a> · <a href="/vendor/d3-geo.LICENSE.txt">D3 Geo</a> · <a href="/vendor/d3-array.LICENSE.txt">D3 Array</a></small>
+      <small>Иконки: <a href="https://www.flaticon.com/authors/magnific" target="_blank" rel="noopener noreferrer">Magnific / Flaticon</a> · Basic Straight Flat.</small>
     </div>
   </section>
   <section id="updates" class="panel updates" aria-label="Обновления публикации" hidden>
