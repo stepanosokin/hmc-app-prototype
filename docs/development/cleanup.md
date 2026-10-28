@@ -25,6 +25,15 @@ named/anonymous-volume removal and preservation of unrelated resources.
 CI invokes the same check with `-Image hmc-publication:checks`; it requires no
 private source sample. Reuse this check for cleanup regressions.
 
+For nested CLI-operation reports on Windows, keep their archive root separate
+from the service report tree. Retirement adds its own project/archive prefix;
+a path usable by Node can exceed PowerShell Copy-Item's limit after that copy.
+The revisions CLI fixture demonstrates this layout in
+[check-hmc-revisions-service.mjs](../../tools/check-hmc-revisions-service.mjs).
+If copying already failed, preserve that partial archive, copy the reports
+with the verified Node archive helper, then shorten only the task's report
+layout and retry retirement. Removal still requires a successful receipt.
+
 Before publishing a frozen-input archive, compare its complete input manifest
 with the copied files, not just the retirement receipt. Retirement selects report
 extensions; T13's initial copies retained 24 of 172 inputs. Copy any missing

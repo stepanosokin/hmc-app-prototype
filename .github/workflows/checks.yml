@@ -67,6 +67,9 @@ jobs:
       - name: Check mandatory NoData preflight before services
         shell: powershell
         run: ./tools/check-field-nodata-preflight-tests.ps1
+      - name: Check retention Development discovery and lifecycle sequence without services
+        shell: powershell
+        run: ./tools/check-retention-preflight-tests.ps1
       - name: Check mockup scenario selection without browser resources
         run: node --test tools/test-weather-check-options.mjs
       - name: Reject corrupted recovery bundles without service resources

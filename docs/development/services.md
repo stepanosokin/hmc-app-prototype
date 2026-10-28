@@ -11,6 +11,11 @@ Changes to refresh/cleanup coordination need an interleaving check: collection
 starting between two file loads, in addition to sequential clear/load and active-writer
 tests. Verify the intended wait/reject behavior and preserved completed files.
 
+For catalogue identity checks, use `/api/v1/catalogue?view=compact`, the map's
+normal catalogue. Test expanded catalogue performance separately when its
+contract changes. Correlate a gateway timeout with the API request ID and
+duration before changing timeouts or attributing it to service failure.
+
 For the production T13 viewer, use the [viewer instructions](../../viewer/README.md)
 and `tools/run-weather-viewer.ps1`. Run its Node tests and TypeScript check before
 allocating Compose; the `weather-viewer` CI job runs these existing commands.
@@ -151,6 +156,20 @@ seven-/30-day cleanup, warm-cache expiry and expiry after restart. The CI
 retention-boundary tests supplement this gate; they do not establish real-service
 retention behavior. Select T5/T6 regressions using the change categories above.
 
+For a new retention lifecycle, use T7 `-Development` before freezing the full
+gate. It runs one-off cleanup followed by the ordinary lifecycle: standalone
+success does not establish shared-fixture compatibility. Keep recoverable
+delivery identities distinct when a scenario deliberately removes the earlier
+publication, and establish the next scenario's initial catalogue and managed
+assets. The runner's resource-free
+[selection guard](../../tools/check-retention-preflight.ps1) checks discovery
+and both selectors before Docker; its negative fixtures run in Windows/CI.
+
+For CLI input evidence, include `hmc-app.mjs` and its `.mjs` dependencies in
+`Get-T7CliInventory`. The backend inventory in `verify_recovery --inputs`
+does not capture these suffixes. Verify every declared copied input against
+its original hash; a complete report archive alone is not that comparison.
+
 PowerShell wrappers with declared parameters can interpret short native options
 as their own parameters. Use long Compose options and pass embedded Python
 `-c` commands through the wrapper's explicit argument array, as the publication
@@ -161,6 +180,11 @@ success message does not establish a successful native exit. For launcher-only
 refactors, run its Windows check and a read-only Compose command through it.
 Changes to startup ordering or service/publication behavior require the full T5
 runner.
+
+For a direct PowerShell script invocation, use its exceptions/success status.
+`$LASTEXITCODE` belongs to native child processes and can remain empty or stale
+after `& ./check.ps1`. Use `Invoke-CheckedProcess` with `powershell -File` when
+a recorded native exit code is required.
 
 For a PowerShell script's array parameter, invoke it in the current PowerShell
 with an actual array, for example:

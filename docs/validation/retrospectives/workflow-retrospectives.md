@@ -1,5 +1,10 @@
 # Retrospective basis
 
+The [GRIB revisions retrospective](retro-grib-revisions.md) follows #70:
+T7 Development now checks both adjacent lifecycle scenarios, guarded before
+Docker and in Windows/CI. Service and cleanup references cover delivery-key
+isolation, CLI input capture, Windows archive paths and catalogue selection.
+
 The [NoData retrospective](retro-field-nodata.md) follows #65: mandatory
 type/unit preflight now precedes freeze/services, process output can be bounded,
 NoData summaries retain coverage and verified evidence copying is reusable.

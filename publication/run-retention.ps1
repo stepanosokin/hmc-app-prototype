@@ -12,6 +12,7 @@ if ($RevisionsCli -and $Project -notmatch '^hmc-publication-t7-revisions-[a-z0-9
 }
 . (Join-Path $PSScriptRoot 'process.ps1')
 Set-Location (Split-Path $PSScriptRoot -Parent)
+& (Join-Path $PSScriptRoot '../tools/check-retention-preflight.ps1')
 $t7Volumes = @(& docker volume ls --filter "label=com.docker.compose.project=$Project" --quiet)
 if ($LASTEXITCODE -ne 0) { throw 'Docker Desktop is unavailable' }
 if ($t7Volumes.Count) { throw 'Use a fresh Compose project; existing volumes are preserved.' }
@@ -84,12 +85,13 @@ try {
     }
     if ($Development) {
         Invoke-T7Check -Name development -Arguments @('run','--rm','--env','T7_HTTP=1','--entrypoint','python','check',
-            '-m','unittest','discover','-s','tests','-p','test_publication_retention.py','-k','test_01_one_off_keep_latest','-v')
+            '-m','unittest','discover','-s','tests','-p','test_publication_retention.py',
+            '-k','test_01_one_off_keep_latest','-k','test_policy_cleanup_and_warm_cache_expiry','-v')
         if ($RevisionsCli) {
             Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-hmc-revisions-service.mjs',$Project,$t7Environment,$t7Directory,[string]$Port) -ReportDirectory $t7Directory -Name operator
         }
         if ((Get-T7CliInventory) -ne $t7CliInputs) { throw 'CLI inputs changed during Development' }
-        @{status='passed';scope='Development only: one-off keep-latest and optional operator CLI'} |
+        @{status='passed';scope='Development only: one-off keep-latest followed by ordinary lifecycle; optional operator CLI'} |
             ConvertTo-Json | Set-Content -Encoding ascii (Join-Path $t7Directory 'gate.json')
         return
     }
