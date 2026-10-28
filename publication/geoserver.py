@@ -78,7 +78,7 @@ def prepare(workspace: str, directory: str, valid_time: str, *, srs: str = 'EPSG
                 quantity=low+(max(high-low,abs(low)*1e-7,1e-30))*index/5
                 ET.SubElement(color_map,'{http://www.opengis.net/sld}ColorMapEntry',color=color,
                               quantity=str(quantity),label=str(quantity)+' '+portrayal['units'])
-            if portrayal.get('zero_transparent') and low <= 0 <= high:
+            if portrayal.get('zero_transparent'):
                 # Two nearest float32 neighbours isolate zero opacity without
                 # fading other representable values or changing numerical masks.
                 import numpy as np
@@ -96,7 +96,7 @@ def prepare(workspace: str, directory: str, valid_time: str, *, srs: str = 'EPSG
                     ET.SubElement(color_map,'{http://www.opengis.net/sld}ColorMapEntry',color=color,
                                   quantity=str(quantity),opacity=opacity,label=str(quantity)+' '+portrayal['units'])
                 color_map[:] = sorted(color_map,key=lambda node:float(node.get('quantity', '0')))
-        style=ET.tostring(root,encoding='utf8')
+        style=ET.tostring(root,encoding='utf-8')
     admin('POST', f'/workspaces/{workspace}/styles?name=raster',
           data=style,
           headers={'Content-Type': 'application/vnd.ogc.sld+xml'})

@@ -45,5 +45,9 @@ test('an entirely missing generic field loads without a colour range, but incons
     try{
         const result=await loader.load(selected);assert.equal(result.metadata.all_nodata,true);
         empty.all_nodata=false;await assert.rejects(loader.load(selected),/контракт/);
+        empty.all_transparent=true;empty.zero_transparent=true;
+        const transparent=await loader.load(selected);
+        assert.equal(transparent.metadata.all_nodata,false);
+        assert.equal(transparent.metadata.display_range,null);
     }finally{globalThis.fetch=original;loader.cancel();}
 });

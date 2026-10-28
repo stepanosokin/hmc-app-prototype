@@ -33,6 +33,10 @@ _Avoid_: Treating every zero as missing, or confusing a missing value with a val
 A named map representation of a meteorological quantity whose available runs, times and levels can be selected.
 _Avoid_: Treating a styled map image as the underlying numerical field.
 
+**Colour-scale range**:
+The bounds used to assign colours to visible field values. Values deliberately hidden by a portrayal rule can remain valid numerical data while being excluded from these bounds.
+_Avoid_: Equating colour-scale bounds with the minimum and maximum of all valid numerical values.
+
 **Source-grid CRS**:
 The coordinate reference system that gives geographic meaning to a field's native grid, including the shape of the Earth and any rotation of the grid axes.
 _Avoid_: Equating native-grid coordinates with WGS84 coordinates or the web-map display projection.

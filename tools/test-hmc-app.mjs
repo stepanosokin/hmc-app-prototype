@@ -12,6 +12,12 @@ test('all agreed commands and scoped options', () => {
     assert.equal(parse(['refresh-grib', 'live', '--remove-all', '--yes']).options['--remove-all'], true);
     assert.equal(parse(['--help']).help, true);
 });
+
+test('Compose processing uses the current read-only decoder independently of the saved image', () => {
+    const compose = fs.readFileSync(path.join(root, 'compose.publication.yaml'), 'utf8');
+    assert.match(compose.split('services:')[0], /\.\/decoder:\/app\/decoder:ro/);
+    assert.match(compose.split('  api:')[1].split('  gateway:')[0], /\.\/decoder:\/app\/decoder:ro/);
+});
 test('README and ADMIN examples use supported common commands', () => {
     let count = 0;
     for (const document of ['README.md', 'ADMIN.md']) {

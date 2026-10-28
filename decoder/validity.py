@@ -3,7 +3,7 @@ import hashlib
 
 import numpy as np
 
-VERSION = 'field-validity/1'
+VERSION = 'field-validity/2'
 # Explicit GRIB2 absolute-temperature quantities. Never infer from K alone:
 # temperature anomalies/deviations also use K and may legitimately be zero.
 # GRIB2 table 4.2-0-0 (NCEP/WMO); difference/depression/anomaly are excluded.
@@ -40,6 +40,8 @@ def refresh(metadata: dict, values: np.ndarray, source_missing: np.ndarray) -> n
     reason, report = validity(values, source_missing, metadata)
     metadata['values'] = {**metadata.get('values', {}), **report.pop('statistics')}
     metadata['value_validity'] = report
+    from decoder.portrayal import describe
+    metadata['portrayal'] = describe(metadata, values, reason != 0)
     for cell in metadata['grid']['cell_centres']:
         row, col = cell['row'], cell['column']
         cell['value'] = None if reason[row, col] else float(values[row, col])

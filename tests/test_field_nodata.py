@@ -32,6 +32,29 @@ def temperature_frame(values, category=0, number=0, bitmap=False):
 
 
 class FieldNoData(unittest.TestCase):
+    def test_portrayal_range_excludes_zero_without_changing_statistics(self):
+        from decoder.validity import refresh
+        for category, number, short, hidden in [
+            (3, 0, 'sp', True), (1, 0, 'q', True), (2, 22, 'max_i10fg', True),
+            (1, 8, 'tp', True), (6, 1, 'ccl', True), (1, 11, 'sde', True),
+            (19, 0, 'vis', True), (191, 192, 'unknown', True),
+            (2, 99, 'unknown', True),
+            (2, 2, '10u', False), (2, 3, '10v', False), (2, 0, 'wdir', False),
+            (0, 0, 't', False)]:
+            with self.subTest(short=short):
+                metadata = field_metadata(temperature_frame([1] * 12, category, number), 1,
+                                          sample_inventory=False, all_fields=True)
+                metadata['identity'].update(shortName=short, units='degC' if short == 't' else 'unknown')
+                values = np.array([[-0., 0., 1e-12, 4.]] * 3)
+                reasons = refresh(metadata, values, np.zeros(values.shape, dtype=bool))
+                self.assertFalse(reasons.any())
+                self.assertEqual(metadata['values']['min'], 0)
+                self.assertEqual(metadata['values']['finite_count'], 12)
+                self.assertEqual(metadata['portrayal']['zero_transparent'], hidden)
+                self.assertEqual(metadata['portrayal']['display_range'], [1e-12 if hidden else 0., 4.])
+                refresh(metadata, -values, np.zeros(values.shape, dtype=bool))
+                self.assertEqual(metadata['portrayal']['display_range'], [-4., -1e-12 if hidden else 0.])
+
     def test_revalidation_cli_has_no_ingestion_deadline(self):
         from publication import revalidate
         with tempfile.TemporaryDirectory() as directory:
@@ -151,8 +174,23 @@ class FieldNoData(unittest.TestCase):
             description = json.loads(describe(root, item))
             self.assertTrue(description['zero_transparent'])
             self.assertFalse(description['all_nodata'])
+            self.assertTrue(description['all_transparent'])
+            self.assertIsNone(description['display_range'])
             image = Image.open(io.BytesIO(portrayal(root, item, 0, 0))).convert('RGBA')
             self.assertEqual(image.getchannel('A').getextrema(), (0, 0))
+
+    def test_wind_zero_is_visible_and_keeps_range(self):
+        binary = temperature_frame([0] * 12, 2, 2)
+        metadata = field_metadata(binary, 1, sample_inventory=False, all_fields=True)
+        values, missing = decoded_arrays(binary, [3, 4])
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            item = write_field(root, 'wind', metadata, values, missing)
+            description = json.loads(describe(root, item))
+            self.assertFalse(description['zero_transparent'])
+            self.assertEqual(description['display_range'], [0, 0])
+            image = Image.open(io.BytesIO(portrayal(root, item, 0, 0))).convert('RGBA')
+            self.assertEqual(image.getchannel('A').getextrema(), (0, 255))
 
     def test_source_only_missing_field_is_accepted(self):
         metadata = field_metadata(temperature_frame([9999] * 12, bitmap=True), 1,
@@ -164,6 +202,34 @@ class FieldNoData(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('T65_HTTP') == '1', 'requires isolated publication services')
 class PublishedNoData(unittest.TestCase):
+    def test_pressure_zero_is_numerical_but_not_in_colour_range(self):
+        from publication.domain import resolve, sampler
+        selection, batch = self.seed([0, 100000, 101000, 102000] * 3, category=3, number=0)
+        published = resolve(selection)
+        numerical = sampler(published)
+        item = numerical.manifest['fields'][0]
+        self.assertEqual(item['metadata']['values']['min'], 0)
+        description = json.loads(describe(numerical.root, item))
+        self.assertEqual(description['display_range'], [100000, 102000])
+        self.assertFalse(description['all_transparent'])
+        from publication import geoserver
+        from decoder.grib_crs import transform
+        grid = item['metadata']['grid']
+        west, south, _, _ = grid['outer_cell_edges_wsen']
+        dx, dy = grid['spacing_degrees_xy']
+        cell = {'lon': west + dx / 2, 'lat': south + 1.5 * dy, 'value': 0}
+        gis = {**published['gis'], 'probe': cell}
+        self.assertEqual(geoserver.verify(gis)['identified_value'], 0)
+        lon, lat = transform(item['metadata']['source_crs'], cell['lon'], cell['lat'], inverse=True)
+        self.assertEqual(self.point(selection, batch, lon, lat).json()['value'], 0)
+        from pyproj import Transformer
+        mx, my = Transformer.from_crs('EPSG:4326', 'EPSG:3857', always_xy=True).transform(lon, lat)
+        image = geoserver.wms(gis, {'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetMap',
+            'LAYERS': gis['layer'], 'STYLES': '', 'TIME': gis['valid_time'], 'CRS': 'EPSG:3857',
+            'BBOX': f'{mx-150},{my-150},{mx+150},{my+150}', 'WIDTH': 3, 'HEIGHT': 3,
+            'FORMAT': 'image/png', 'TRANSPARENT': 'true'})
+        self.assertEqual(Image.open(io.BytesIO(image.content)).convert('RGBA').getchannel('A').getextrema(), (0, 0))
+
     def seed(self, values, legacy=False, category=0, number=0):
         import uuid
         from publication import revisions, worker

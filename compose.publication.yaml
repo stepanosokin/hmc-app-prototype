@@ -29,6 +29,7 @@ x-app: &app
     - ${PUBLICATION_INPUT_DIR:-./data/grib}:/input:ro
     - ${PUBLICATION_EVIDENCE_DIR:-./data/reports/t4}:/evidence
     - ./publication:/app/publication:ro
+    - ./decoder:/app/decoder:ro
     - ./tests:/app/tests:ro
     - ./config:/app/config:ro
 services:
@@ -99,6 +100,7 @@ services:
     volumes:
       - assets:/assets:ro
       - ./publication:/app/publication:ro
+      - ./decoder:/app/decoder:ro
     entrypoint: ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--threads=4", "--timeout=90", "publication.api:create_app()"]
   gateway:
     <<: *app

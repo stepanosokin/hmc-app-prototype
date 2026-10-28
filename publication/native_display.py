@@ -100,7 +100,9 @@ def portrayal(root: Path, item: dict, column: int, row: int) -> bytes:
     payload=render(root,item,column,row)
     values=np.frombuffer(payload[:SIZE*SIZE*4],dtype='<f4').reshape(SIZE,SIZE)
     mask=np.frombuffer(payload[SIZE*SIZE*4:],dtype='uint8').reshape(SIZE,SIZE)
-    low,high=(item['metadata']['values'][key] for key in ('min','max')) if item['metadata'].get('field_profile') else (253.15,313.15)
+    from decoder.portrayal import policy
+    appearance = policy(item['metadata'])
+    low,high=(appearance['display_range'] or [0., 1.]) if item['metadata'].get('field_profile') else (253.15,313.15)
     if low is None or high is None:
         low, high = 0., 1.
     stops=np.array([[114,114,181],[82,154,189],[112,200,178],[214,214,127],[237,171,104],[201,103,97]],dtype=float)
@@ -108,13 +110,15 @@ def portrayal(root: Path, item: dict, column: int, row: int) -> bytes:
     left=np.minimum(scale.astype(int),4);fraction=scale-left
     colors=np.rint(stops[left]*(1-fraction[...,None])+stops[left+1]*fraction[...,None]).astype('uint8')
     rgba=np.dstack((colors,mask*255));rgba[mask==0]=0
-    if item['metadata'].get('value_validity', {}).get('rule') != 'absolute-temperature-positive-kelvin':
+    if appearance['zero_transparent']:
         rgba[values == 0] = 0
     output=io.BytesIO();Image.fromarray(rgba).save(output,format='PNG')
     return output.getvalue()
 
 
 def metadata(root: Path, item: dict) -> bytes:
+    from decoder.portrayal import policy
+    appearance = policy(item['metadata'])
     contract, contract_hash, _ = profile(item['metadata'].get('source_crs'),item['metadata'].get('field_profile'))
     height, width = item['metadata']['grid']['shape_yx']
     columns, rows = (width+BLOCK-1)//BLOCK, (height+BLOCK-1)//BLOCK
@@ -140,8 +144,7 @@ def metadata(root: Path, item: dict) -> bytes:
     if item['metadata'].get('field_profile'):
         extra.update(units=item['metadata']['identity']['units'],
                      encoding_max_abs_error=item['metadata']['float32_abs_error_bound'],
-                     display_range=([item['metadata']['values']['min'], item['metadata']['values']['max']]
-                                    if item['metadata']['values']['finite_count'] else None),
+                     display_range=appearance['display_range'],
                      interval=item['metadata']['interval'])
         if 'uv_relative_to_grid' in item['metadata']['identity']:
             extra['uv_relative_to_grid']=item['metadata']['identity']['uv_relative_to_grid']
@@ -149,7 +152,8 @@ def metadata(root: Path, item: dict) -> bytes:
         'matrix': CONTRACT['matrix_prefix'] + item['metadata']['native_grid_sha256'],
         'grid': item['metadata']['grid'], 'columns': [0, columns-1], 'rows': [0, rows-1],
         **extra, 'all_nodata': item['metadata']['values']['finite_count'] == 0,
-        'zero_transparent': item['metadata'].get('value_validity', {}).get('rule') != 'absolute-temperature-positive-kelvin',
+        'all_transparent': appearance['visible_count'] == 0,
+        'zero_transparent': appearance['zero_transparent'],
         'value_validity': item['metadata'].get('value_validity'),
         'value_counts': {key: item['metadata']['values'].get(key) for key in
                          ('finite_count', 'missing_count', 'source_missing_count', 'rejected_count')},

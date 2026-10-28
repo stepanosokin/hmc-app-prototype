@@ -70,8 +70,7 @@ const panels=['forecastPanel','navigationPanel','legendPanel','timelinePanel'].m
 const timestamp=(value:string)=>new Intl.DateTimeFormat('ru-RU',{timeZone:'UTC',dateStyle:'short',timeStyle:'short'}).format(new Date(value))+' UTC';
 const degrees=(value:number)=>value.toFixed(3)+'°';
 const sourceUnits=()=>displayed?.units??selected?.units??group?.selection.units??'K';
-const absoluteTemperature=()=>sourceUnits()==='K'&&(data?.metadata.zero_transparent!==undefined?
-    data.metadata.zero_transparent===false:!group||fieldPresentation(displayed??selected??group.selection).id==='temperature');
+const absoluteTemperature=()=>sourceUnits()==='K'&&(!group||fieldPresentation(displayed??selected??group.selection).id==='temperature');
 const unitsText=()=>absoluteTemperature()?(unit==='C'?'°C':'K'):fieldUnits(sourceUnits());
 const valueText=(value:number,source=sourceUnits())=>fieldNumber(value-(source==='K'&&absoluteTemperature()&&unit==='C'?273.15:0),source)+' '+
     (source==='K'&&absoluteTemperature()?(unit==='C'?'°C':'K'):fieldUnits(source));
@@ -420,9 +419,11 @@ function palette(){
     const ramp=document.querySelector<HTMLElement>('.ramp')!;
     const wind=Boolean((displayed??selected)?.wind_v)&&!portrayalBaseline;
     const empty=data?.metadata.all_nodata===true;
-    ramp.style.display=wind||empty?'none':'';(document.querySelector('.ticks') as HTMLElement).style.display=wind||empty?'none':'';
+    const transparent=data?.metadata.all_transparent===true;
+    ramp.style.display=wind||empty||transparent?'none':'';(document.querySelector('.ticks') as HTMLElement).style.display=wind||empty||transparent?'none':'';
     if(wind)text('legendSummary','Ветер · стрелки движутся по потоку');
     if(empty){text('legendSummary',title+' · Нет данных');text('legendSource','Нет данных');}
+    else if(transparent)text('legendSummary',title+' · Нет значений для цветовой шкалы');
     ramp.style.background=alternate?'linear-gradient(90deg,#1f2e8c,#ffcc33)':'';
     layer?.setPalette(alternate);if(position)renderPoint();
 }
