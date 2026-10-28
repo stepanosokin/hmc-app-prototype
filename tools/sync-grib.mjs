@@ -28,6 +28,7 @@ export function standConfiguration(containers,project){
     return {assets:assets.Name,network:networks[0],image:api.Image,db:db.Id,password};
 }
 export async function runOwned(args,environment,name,owner,timeoutMs){
+    // null permits long catalogue revalidation; cancellation and cleanup remain active.
     let child,timer,cancel;
     try{
         return await new Promise((resolve,reject)=>{
@@ -37,7 +38,7 @@ export async function runOwned(args,environment,name,owner,timeoutMs){
             child.stderr.on('data',chunk=>{stderr=(stderr+chunk).slice(-1600);});
             cancel=()=>{timedOut=true;child.kill();};
             process.once('SIGINT',cancel);process.once('SIGTERM',cancel);
-            timer=setTimeout(cancel,timeoutMs);
+            if(timeoutMs!==null)timer=setTimeout(cancel,timeoutMs);
             child.once('error',reject);
             child.once('close',code=>code===0&&!timedOut?resolve(stdout.trim()):reject(Error(
                 timedOut?'Операция прервана; проверьте каталог перед повторным просмотром.':'Операция не выполнена. '+stderr)));

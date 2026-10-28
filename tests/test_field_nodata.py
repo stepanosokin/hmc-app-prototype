@@ -32,6 +32,24 @@ def temperature_frame(values, category=0, number=0, bitmap=False):
 
 
 class FieldNoData(unittest.TestCase):
+    def test_revalidation_cli_has_no_ingestion_deadline(self):
+        from publication import revalidate
+        with tempfile.TemporaryDirectory() as directory:
+            plan = Path(directory) / 'plan.json'
+            plan.write_text('{"actions": []}', encoding='utf-8')
+            for failure in (None, RuntimeError('preparation failed')):
+                with self.subTest(failure=failure), \
+                     patch('sys.argv', ['revalidate', 'apply', '--target', 'test', '--plan', str(plan)]), \
+                     patch.object(revalidate, 'apply', return_value={'state': 'unchanged'}, side_effect=failure), \
+                     patch.object(revalidate.signal, 'signal'), \
+                     patch.object(revalidate.signal, 'alarm') as alarm, patch('builtins.print'):
+                    if failure:
+                        with self.assertRaisesRegex(RuntimeError, 'preparation failed'):
+                            revalidate.main()
+                    else:
+                        revalidate.main()
+                    alarm.assert_not_called()
+
     def test_revalidation_normalizes_utc_before_creating_a_job(self):
         from publication import revalidate
         @contextmanager

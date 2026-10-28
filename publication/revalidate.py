@@ -185,8 +185,9 @@ def main():
                 json.dump(result, stream, ensure_ascii=False, indent=2)
             print(f'План сохранён. Редакций для пересчёта: {len(result["actions"])}')
     else:
-        with recovery.processing_budget():
-            result = apply(json.loads(args.plan.read_bytes()), args.target)
+        # A whole catalogue may take much longer than one ingestion attempt.
+        # SIGINT/SIGTERM still interrupt preparation before atomic publication.
+        result = apply(json.loads(args.plan.read_bytes()), args.target)
         print(json.dumps(result, ensure_ascii=False))
 
 

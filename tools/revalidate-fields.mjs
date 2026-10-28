@@ -58,7 +58,7 @@ async function main(){
         '--mount',`type=bind,source=${path.join(root,'tests/fixtures/publication/tile-engine')},target=/evidence,readonly`,
         '--mount',`type=bind,source=${path.dirname(plan)},target=/plan`,
         '--entrypoint','python',stand.image,'-B','-m','publication.revalidate',operation,'--target',target,'--plan','/plan/'+path.basename(plan)];
-    console.log(await runOwned(args,environment,name,owner,operation==='apply'?660000:120000));
+    console.log(await runOwned(args,environment,name,owner,operation==='apply'?null:120000));
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     try{await main();}catch(error){console.error('Пересчёт остановлен: '+error.message);process.exitCode=1;}
