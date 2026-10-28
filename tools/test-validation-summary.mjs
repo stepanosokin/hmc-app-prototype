@@ -6,6 +6,18 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {summarizeReport,renderSummary,MAX_OUTPUT_BYTES} from './validation-summary.mjs';
 
+test('NoData cases retain coverage counts without nested field or GPU data',()=>{
+    const nodata=[];
+    for(const [width,height] of [[1440,900],[390,844],[360,740],[640,360]])for(const kind of ['empty','zero','mixed'])
+        nodata.push({kind,width,height,state:{raster:'private-nodata-marker'.repeat(100000)},metadata:{password:'secret'}});
+    const output=renderSummary({status:'passed',nodata});
+    assert.ok(Buffer.byteLength(output)<=MAX_OUTPUT_BYTES);assert.ok(!output.includes('private-nodata-marker'));assert.ok(!output.includes('secret'));
+    assert.deepEqual(JSON.parse(output).nodata,{cases:12,kinds:['empty','zero','mixed'],viewports:['1440x900','390x844','360x740','640x360']});
+    const large=renderSummary({nodata:Array.from({length:100},(_,i)=>({kind:'Authorization: Bearer hidden-'+i,width:i,height:200}))});
+    assert.ok(Buffer.byteLength(large)<=MAX_OUTPUT_BYTES);assert.ok(!large.includes('hidden-'));
+    assert.equal(JSON.parse(large).nodata.viewports.length,8);
+});
+
 test('browser failure remains readable while enormous nested metadata is excluded',()=>{
     const nested={metadata:{raster:'private-raster-marker'.repeat(100000)}};
     const result=renderSummary({status:'failed',failure:'Control is visible: #latestRun',failure_dom:'large-dom-marker'.repeat(100000),

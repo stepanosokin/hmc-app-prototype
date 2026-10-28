@@ -47,6 +47,12 @@ export function summarizeReport(report){
     result.cleanup=fields(report.cleanup,['page_released','browser_stopped','profile_removed','browser_processes_remaining',
         'adb_forward_removed','adb_reverse_removed','ui_dump_removed','user_chrome_retained']);
     if(report.cleanup?.errors)result.cleanup.errors=samples(report.cleanup.errors);
+    if(Array.isArray(report.nodata)){
+        result.nodata={cases:report.nodata.length,
+            kinds:[...new Set(report.nodata.map(item=>text(item?.kind,32)).filter(Boolean))].slice(0,8),
+            viewports:[...new Set(report.nodata.filter(item=>Number.isSafeInteger(item?.width)&&Number.isSafeInteger(item?.height))
+                .map(item=>item.width+'x'+item.height))].slice(0,8)};
+    }
     if(Array.isArray(report.viewports))result.viewports=report.viewports.slice(0,8).map(view=>fields(view,['width','height','mobile_emulation','physical_mobile']));
     if(report.failure_state)result.failure_state={...fields(report.failure_state,['ready','frame_visible','time_state','catalogue_pending','catalogue_checks']),selected:identity(report.failure_state.selected)};
     if(report.updates)result.updates={races:count(report.updates.races),failures:samples(report.updates.failures),new_run:identity(report.updates.new_run)};

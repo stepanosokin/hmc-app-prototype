@@ -25,10 +25,11 @@ try {
         Invoke-Check $npmExecutable.Source @('--prefix', 'viewer', 'test')
         Invoke-Check node @('--test', 'tools/test-viewer-network.mjs')
         Invoke-Check node @('--test', 'tools/test-archive-paths.mjs')
+        Invoke-Check node @('--test', 'tools/test-archive-validation.mjs')
         Invoke-Check node @('--test', 'tools/test-validation-summary.mjs')
     }
     if ($Scope -in @('All', 'Windows')) {
-        foreach ($script in @('check-publication-process', 'check-documentation', 'check-documentation-tests', 'check-native-display-inputs', 'check-viewer-fixtures-tests')) {
+        foreach ($script in @('check-publication-process', 'check-documentation', 'check-documentation-tests', 'check-native-display-inputs', 'check-viewer-fixtures-tests', 'check-field-nodata-preflight-tests')) {
             Invoke-Check powershell @('-NoProfile', '-File', "tools/$script.ps1")
         }
         Invoke-Check node @('--test', 'tools/test-weather-check-options.mjs')

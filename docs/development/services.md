@@ -196,6 +196,13 @@ Git; a whole-repository archive also copies historical evidence.
 
 ## Review of recovery, retention and budgets
 
+For operator commands, follow both pinned demo clocks and the ordinary policy
+clock (`clock=None`) through job creation. Exercise accepted UTC representations
+at that boundary and resolve the completed job's selection through the public
+contract. Finish these focused cases before freezing expensive acceptance.
+For NoData changes, distinguish source missingness, value rejection and portrayal
+transparency across statistics, point/series, native blocks/tiles and GIS Identify.
+
 For publication withdrawal reviews, trace provenance from submission to batch
 reuse: the source directory belongs to the captured delivery, not the later
 worker environment. Follow a historical replacement through catalogue ordering,

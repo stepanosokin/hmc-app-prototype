@@ -26,6 +26,8 @@ jobs:
         run: node --test tools/test-viewer-network.mjs
       - name: Check external archive path resolution without archive data
         run: node --test tools/test-archive-paths.mjs
+      - name: Check verified evidence copies without historical archives
+        run: node --test tools/test-archive-validation.mjs
       - name: Check running stand selection for GRIB withdrawal
         run: node --test tools/test-sync-grib.mjs
       - name: Check field revalidation operator arguments
@@ -62,6 +64,9 @@ jobs:
       - name: Check viewer fixture preparation without Compose
         shell: powershell
         run: ./tools/check-viewer-fixtures-tests.ps1
+      - name: Check mandatory NoData preflight before services
+        shell: powershell
+        run: ./tools/check-field-nodata-preflight-tests.ps1
       - name: Check mockup scenario selection without browser resources
         run: node --test tools/test-weather-check-options.mjs
       - name: Reject corrupted recovery bundles without service resources

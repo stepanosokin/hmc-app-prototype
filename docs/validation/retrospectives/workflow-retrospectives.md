@@ -1,5 +1,11 @@
 # Retrospective basis
 
+The [NoData retrospective](retro-field-nodata.md) follows #65: mandatory
+type/unit preflight now precedes freeze/services, process output can be bounded,
+NoData summaries retain coverage and verified evidence copying is reusable.
+Acceptance distinguishes implementation capability from applying a correction
+to a named stand; operator review includes ordinary UTC clocks and job results.
+
 The [CLI/projection retrospective](retro-cli-projections.md) follows #60/#61:
 a cross-file projection preflight now runs before Docker, navigation names the
 rendering/reference dependencies, and CLI diagnosis distinguishes partial import

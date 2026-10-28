@@ -2,6 +2,11 @@
 
 In a worktree, resolve its root with `git rev-parse --show-toplevel` and resolve
 shared private inputs explicitly instead of counting parent-directory segments.
+Define the delivery target in acceptance: implementation, an isolated stand or
+an explicitly named live stand. Preserve the user's requested outcome when
+writing criteria: a verified command's existence establishes capability;
+correcting existing live data requires evidence of applying it to that stand.
+Record an outstanding live application separately from completed implementation.
 When editing Russian text on Windows, use `apply_patch` or a UTF-8 script file:
 legacy PowerShell pipelines into native Node can replace Cyrillic with `?`.
 The projection-controls preflight checks the resulting initial UI labels.
@@ -16,6 +21,9 @@ For JSON/JSONL diagnostics, start with
 12 KiB and selects failures, selection identity, counts and cleanup. Read a
 specific raw field only when the summary leaves a diagnostic question open;
 complete reports remain in their archive. A summary is not an acceptance check.
+NoData summaries retain case counts, kinds and viewport coverage. For long
+child checks, use `Invoke-CheckedProcess -OutputMode Summary`: complete stdout
+and stderr stay in their files, and the console shows paths, lengths and exit.
 
 For PowerShell runner edits, run `powershell -NoProfile -File tools/check-powershell.ps1`
 before allocating services. It parses runtime scripts without executing them;
@@ -30,6 +38,9 @@ Resolve the invocation from the existing `typecheck` service in
 [Compose](../../compose.publication.yaml) and the full-source check in
 [the checks workflow](../../.github/workflows/checks.yml); use its flags and
 source directories rather than assuming a project-specific mypy config exists.
+The NoData runner enforces full-source mypy and its short unit suite before
+freezing inputs or starting Compose. `tools/check-field-nodata-preflight-tests.ps1`
+checks this order without executing the runner or allocating services.
 In PowerShell, expand a bind source in double quotes, for example
 `"$((Get-Location).Path):/workspace:ro"`. Read UTF-8 repository text with
 `Get-Content -Encoding UTF8` to preserve Russian diagnostics in tool output.
