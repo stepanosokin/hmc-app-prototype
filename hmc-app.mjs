@@ -10,8 +10,9 @@ import {createInterface} from 'node:readline/promises';
 
 export const root = path.dirname(fileURLToPath(import.meta.url));
 const stateRoot = path.join(root, 'data/live/hmc-app/projects');
-const modes = ['deploy', 'remove', 'stop', 'start', 'status', 'refresh-grib'];
-const bools = ['--dry-run', '--yes', '--remove-all', '--include-unlocated'];
+const modes = ['deploy', 'remove', 'stop', 'start', 'status', 'refresh-grib', 'revisions'];
+const revisionModes = ['--report', '--collect-view', '--collect-apply', '--keep-latest'];
+const bools = ['--dry-run', '--yes', '--remove-all', '--include-unlocated', ...revisionModes];
 const values = ['--folder', '--viewer-port', '--api-port', '--storage-budget-bytes'];
 const services = ['db', 'geoserver', 'api', 'gateway', 'viewer'];
 const budgetDefault = 64 * 1024 ** 3;
@@ -37,9 +38,15 @@ export function parse(args) {
         else fail('Неизвестный параметр или отсутствует значение: ' + flag);
     }
     const allowed = mode === 'deploy' ? ['--viewer-port', '--api-port'] :
-        mode === 'remove' ? ['--dry-run', '--yes'] : mode === 'refresh-grib' ?
+        mode === 'remove' ? ['--dry-run', '--yes'] : mode === 'revisions' ? [...revisionModes, '--dry-run', '--yes'] : mode === 'refresh-grib' ?
         ['--folder', '--dry-run', '--yes', '--remove-all', '--include-unlocated', '--storage-budget-bytes'] : [];
     for (const flag of Object.keys(options)) if (!allowed.includes(flag)) fail('Параметр недоступен для этого режима: ' + flag);
+    if (mode === 'revisions') {
+        if (revisionModes.filter(flag => options[flag]).length !== 1) fail('Укажите один режим: --report, --collect-view, --collect-apply или --keep-latest.');
+        if ((options['--report'] || options['--collect-view']) && (options['--yes'] || options['--dry-run']))
+            fail('--report и --collect-view уже выполняют только просмотр.');
+        if (options['--yes'] && options['--dry-run']) fail('--yes и --dry-run нельзя использовать вместе.');
+    }
     if (options['--remove-all'] && (options['--folder'] || options['--include-unlocated']))
         fail('--remove-all не использует --folder и --include-unlocated.');
     for (const flag of ['--viewer-port', '--api-port', '--storage-budget-bytes']) {
@@ -334,6 +341,29 @@ export class Operator {
         await this.ready(state);
         return {state: 'deployed', viewer: `http://127.0.0.1:${viewerPort}`, api: `http://127.0.0.1:${apiPort}`};
     }
+    async revisions({state, containers}) {
+        for (const service of ['db', 'geoserver', 'api', 'gateway'])
+            if (!containers.some(item => item.Config.Labels['com.docker.compose.service'] === service && item.State.Running))
+                fail('Служба ' + service + ' остановлена. Выполните start.');
+        const target = createHash('sha256').update(JSON.stringify({project: this.project,
+            db: containers.find(item => item.Config.Labels['com.docker.compose.service'] === 'db').Id})).digest('hex');
+        const args = ['--target', target, ...(this.options['--keep-latest'] ? ['--keep-latest'] : [])];
+        await this.worker(state, ['-m', 'publication.retention', 'report', ...args, '--output', '/evidence/revisions-plan.json']);
+        const plan = read(path.join(this.report, 'revisions-plan.json'));
+        this.progress.stop();
+        console.log('Редакций: ' + plan.roots.length + '; выбрано для очистки: ' + plan.selected.length + '.');
+        console.log('Управляемые данные: ' + plan.storage.logical_bytes + ' байт; можно освободить сейчас: ' + plan.reclaimable.logical_bytes + ' байт.');
+        for (const row of plan.roots) console.log(`${plan.selected.includes(row.root) ? 'Очистить' : 'Сохранить'}: ${row.run}; ${row.root}; по плану ${row.state === 'eligible' ? 'доступна' : 'недоступна'}; срок ${row.expires_at}.`);
+        if (this.options['--report']) return {state: 'observed'};
+        if (this.options['--collect-view']) return {state: 'planned'};
+        if (!await this.confirm()) return {state: this.options['--dry-run'] ? 'planned' : 'cancelled'};
+        await this.worker(state, ['-m', 'publication.retention', 'collect', ...args, '--apply',
+            '--expected', plan.fingerprint, '--output', '/evidence/revisions-result.json']);
+        const result = read(path.join(this.report, 'revisions-result.json'));
+        console.log('Удалено файлов/каталогов: ' + result.removed.length + '.');
+        console.log('Используемые данные и защитная задержка сохранены. Для завершения отложенного удаления повторите очистку после защитного интервала.');
+        return {state: 'collected', selected: result.selected.length, removed: result.removed.length};
+    }
     async refresh(configuration) {
         const {state, containers, file} = configuration;
         for (const service of ['db', 'geoserver', 'api', 'gateway'])
@@ -412,6 +442,7 @@ export class Operator {
             else {
                 const configuration = await this.configuration();
                 if (this.mode === 'refresh-grib') Object.assign(receipt, await this.refresh(configuration));
+                if (this.mode === 'revisions') Object.assign(receipt, await this.revisions(configuration));
                 if (this.mode === 'remove') Object.assign(receipt, await this.removal(configuration));
                 if (this.mode === 'status') {
                     this.progress.stop();
@@ -457,7 +488,7 @@ export class Operator {
         }
         console.log(({unchanged: 'Изменений нет.', planned: 'Предварительный просмотр завершён.', cancelled: 'Операция отменена.',
             completed: 'Обновление завершено. В карте нажмите «Проверить обновления».', deployed: 'Проект развёрнут без данных GRIB.',
-            removed: 'Проект удалён.', started: 'Проект запущен.', stopped: 'Проект остановлен.'})[receipt.state] || 'Готово.');
+            collected: 'Очистка редакций выполнена.', removed: 'Проект удалён.', started: 'Проект запущен.', stopped: 'Проект остановлен.'})[receipt.state] || 'Готово.');
         return receipt;
     }
 }
@@ -490,6 +521,13 @@ deploy        Создать и запустить стенд без GRIB. --vie
 remove        Удалить стенд, настройки и тома; сохранить исходники и отчёты.
 stop / start  Остановить / запустить ранее развёрнутый стенд.
 status        Показать состояние, адреса и каталог GRIB.
+revisions     Управление редакциями без загрузки GRIB; выберите один режим:
+  --report                Редакции, сроки хранения и объём данных.
+  --collect-view          Предварительный просмотр очистки по политике хранения.
+  --collect-apply         Применить очистку по политике хранения.
+  --keep-latest           Разово очистить предыдущие редакции каждого расчёта.
+  --dry-run               Только просмотр для --collect-apply / --keep-latest.
+  --yes                   Применить без подтверждения.
 refresh-grib  Снять отсутствующие, загрузить новые, пропустить опубликованные файлы.
   --folder ПАПКА           Исходный каталог; по умолчанию привязанный либо data/grib.
   --remove-all             Только удалить все GRIB-публикации; исходники сохранить.

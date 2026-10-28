@@ -13,10 +13,33 @@ from pathlib import Path
 
 import requests
 
-from publication.retention import decisions, policy
+from publication.retention import decisions, policy, previous_roots, cleanup_protected
 
 
 class RetentionBoundaries(unittest.TestCase):
+    def test_keep_latest_selects_per_run_without_reviving_expired_or_withdrawn(self):
+        def root(name, run, date, state='eligible', reason=None):
+            return dict(root=name, run=run, published_at=date, state=state, reason=reason)
+        rows = [root('a', 'ICON/00', '2026-10-19T00:00:00Z'),
+                root('b', 'ICON/00', '2026-10-19T01:00:00Z'),
+                root('c', 'ICON/06', '2026-10-19T02:00:00Z'),
+                root('d', 'ENA/00', '2026-10-19T03:00:00Z'),
+                root('e', 'ICON/00', '2026-10-19T04:00:00Z', 'expired', 'source-withdrawn'),
+                root('f', 'ICON/06', '2026-10-19T01:00:00Z', 'expired', 'reference-time'),
+                root('g', 'ICON/06', '2026-10-19T00:00:00Z', 'expired', 'revision-pruned'),
+                root('h', 'OLD/00', '2026-10-19T00:00:00Z', 'expired', 'reference-time')]
+        self.assertEqual(previous_roots(rows), {'a', 'e', 'f', 'g'})
+        self.assertEqual(previous_roots(list(reversed(rows))), {'a', 'e', 'f', 'g'})
+        self.assertEqual(previous_roots([]), set())
+
+    def test_operational_pruning_grace_uses_wall_time_even_with_pinned_clock(self):
+        from datetime import datetime, timedelta, timezone
+        row = dict(reason='revision-pruned', delete_after='2026-10-19T05:02:00Z',
+                   cleanup_after=(datetime.now(timezone.utc) + timedelta(seconds=30)).isoformat())
+        self.assertTrue(cleanup_protected(row, '2027-01-01T00:00:00Z'))
+        row['cleanup_after'] = (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()
+        self.assertFalse(cleanup_protected(row, '2026-10-19T05:00:00Z'))
+
     def test_withdrawn_originals_do_not_double_charge_replacement_budgets(self):
         base = dict(run='ICON-EU/2026-10-15T00:00:00Z', managed_bytes=100,
                     published_at='2026-10-19T00:00:00Z', expired_at=None,
@@ -113,10 +136,11 @@ class RetentionGateway(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         return response.json()['selections']
 
-    def publish(self, hours, fixture='actual'):
+    def publish(self, hours, fixture='actual', *, rebuild=False):
         job = self.command('publication.worker', 'submit', '--recoverable', '--clock', '2026-10-19T05:00:00Z',
                            '--hours', hours, '--fixture', fixture, '--delivery-sha256',
-                           'dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a')
+                           'dddfd6c63ba73e5e7337c21e105f16417003429f8179a44ca58bb110cb43736a',
+                           *(['--rebuild'] if rebuild else []))
         self.command('publication.worker', 'once')
         status = requests.get(self.base + '/api/v1/jobs/' + job, timeout=90).json()
         self.assertEqual(status['state'], 'published', status)
@@ -167,10 +191,81 @@ class RetentionGateway(unittest.TestCase):
             'fixture': 'pre-T7 T4 and T5 workers; current additive migration',
             'report': report}, default=str, indent=2))
 
+    def test_01_one_off_keep_latest_preserves_policy_and_shared_latest(self):
+        from publication import retention
+        from decoder.sampling import file_hash
+        source = Path('/input/ICON_EU_T_G_2026101500.grib2')
+        source_hash = file_hash(source)
+        original, _, _ = retention.snapshot()
+        try:
+            self.configure(reader_grace_seconds=2, superseded_grace_seconds=2592000, superseded_count=1)
+            # Separate delivery identities from the ordinary lifecycle test:
+            # resubmitting a completed recoverable job returns its original ID,
+            # even after this scenario deliberately withdraws its publication.
+            old = self.publish('1', rebuild=True)
+            late = self.publish('24', rebuild=True)
+            planned = retention.collect(keep_latest=True, target='isolated-test')
+            self.read(old)
+            latest = self.publish('1', 'correction', rebuild=True)
+            # Persist ordinary superseded-budget expiry first. Operational
+            # pruning must finish its reader grace using wall time, without
+            # resurrecting or moving the original expiry timestamp.
+            retention.collect(apply=True)
+            before = retention.snapshot()
+            old_expiry = next(row['expired_at'] for row in before[2] if row['root'] == old['revision'])
+            self.assertIsNotNone(old_expiry)
+            with self.assertRaisesRegex(ValueError, 'новый просмотр'):
+                retention.collect(apply=True, keep_latest=True, target='isolated-test', expected=planned['fingerprint'])
+            self.assertEqual(retention.snapshot(), before, 'stale apply must not persist expiry')
+            planned = retention.collect(keep_latest=True, target='isolated-test')
+            self.assertIn(old['revision'], planned['selected'])
+            self.assertNotIn(latest['revision'], planned['selected'])
+            self.assertEqual(retention.snapshot(), before, 'preview must not persist expiry')
+            applied = retention.collect(apply=True, keep_latest=True, target='isolated-test', expected=planned['fingerprint'])
+            self.assertEqual(next(row['expired_at'] for row in applied['roots'] if row['root'] == old['revision']), old_expiry)
+            self.assertEqual(applied['removed'], [], 'reader grace protects physical files')
+            self.read(old, 410)
+            self.read(latest)
+            time.sleep(2.1)  # Wall grace progresses while the demo policy clock stays pinned.
+            swept = retention.collect(apply=True, keep_latest=True, target='isolated-test')
+            self.assertTrue(swept['removed'])
+            self.read(old, 410)
+            self.read(latest)
+            retained24 = next(item for item in self.catalogue() if item['revision'] == latest['revision']
+                              and item['valid_time'] == late['valid_time'])
+            self.read(retained24)
+            self.assertEqual(retention.snapshot()[0], before[0])
+            self.assertEqual(retention.collect(apply=True, keep_latest=True)['removed'], [])
+            # Ordinary wall policy clock is a separate operator boundary. Pin
+            # only this historical fixture, never rewind shared/live clocks.
+            wall_policy = {**before[0], 'clock': None, 'demo_runs': [latest['run']], 'reader_grace_seconds': 0}
+            retention.configure(wall_policy)
+            wall_latest = self.publish('2', rebuild=True)
+            wall_plan = retention.collect(keep_latest=True)
+            retention.collect(apply=True, keep_latest=True, expected=wall_plan['fingerprint'])
+            self.read(latest, 410)
+            self.read(wall_latest)
+            self.assertEqual(retention.snapshot()[0], wall_policy)
+            self.assertEqual(file_hash(source), source_hash)
+            Path('/evidence/t7-keep-latest.json').write_text(json.dumps({
+                'status': 'passed', 'preview': planned, 'applied': applied, 'swept': swept,
+                'policy_unchanged': True, 'source_sha256': source_hash,
+                'latest': latest['selection'], 'shared_valid_time': retained24['valid_time']}, default=str, indent=2))
+        finally:
+            retention.configure(original)
+
     def test_policy_cleanup_and_warm_cache_expiry(self):
         from decoder.sampling import file_hash
         source = Path('/input/ICON_EU_T_G_2026101500.grib2')
         source_before = file_hash(source)
+        # This lifecycle starts with its own empty fixture. Previous scenarios
+        # intentionally leave a usable latest revision with shared batches;
+        # replacing those batches here can otherwise collect their unrelated
+        # managed originals during an assertion about this scenario's grace.
+        self.configure(clock='2027-01-01T00:00:00Z', reader_grace_seconds=0)
+        time.sleep(2.1)  # Finish the preceding one-off scenario's wall grace.
+        self.collect(True)
+        self.assertEqual(self.catalogue(), [])
         self.configure()
         old = self.publish('1')
         late = self.publish('24')

@@ -6,6 +6,7 @@ renew a deadline; restarting services or changing policy cannot undo a tombstone
 """
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -200,12 +201,30 @@ def inventory(paths: list[Path]) -> dict:
 
 def cleanup_protected(row: dict, policy_now) -> bool:
     """Operational withdrawal uses a durable wall deadline, even in a pinned demo."""
-    if row.get('cleanup_after') is not None and row.get('reason') == 'source-withdrawn':
+    if row.get('cleanup_after') is not None and row.get('reason') in ('source-withdrawn', 'revision-pruned'):
         return instant(row['cleanup_after']) > datetime.now(timezone.utc)
     return row['delete_after'] is not None and instant(row['delete_after']) > instant(policy_now)
 
 
-def collect(*, apply: bool = False) -> dict:
+def previous_roots(rows: list[dict]) -> set[str]:
+    """Keep the latest available root per run, including cleanup of older expired roots.
+
+    A wholly expired run has no available latest and belongs to ordinary
+    collection. Already started operational pruning can still finish.
+    """
+    latest: dict[str, dict] = {}
+    for row in rows:
+        if row['state'] == 'eligible':
+            current = latest.get(row['run'])
+            if current is None or (instant(row['published_at']), row['root']) > (instant(current['published_at']), current['root']):
+                latest[row['run']] = row
+    return {row['root'] for row in rows
+            if (row['run'] in latest and row['root'] != latest[row['run']]['root'])
+            or row.get('reason') == 'revision-pruned'}
+
+
+def collect(*, apply: bool = False, keep_latest: bool = False, expected: str | None = None,
+            target: str = '') -> dict:
     from publication import recovery, geoserver
     from publication.revisions import load_revision
     with database() as guard:
@@ -214,18 +233,31 @@ def collect(*, apply: bool = False) -> dict:
         migrate()
         configuration, clock, rows = snapshot()
         now = instant(clock)
+        # Stable identity is checked before any expiry mutation. Wall-clock
+        # movement alone is harmless; a changed eligibility decision is not.
+        identity = {'target': target, 'keep_latest': keep_latest, 'policy': configuration,
+                    'roots': sorted(rows, key=lambda row: row['root'])}
+        fingerprint = hashlib.sha256(json.dumps(identity, sort_keys=True, default=str).encode()).hexdigest()
+        selected = previous_roots(rows) if keep_latest else {row['root'] for row in rows if row['state'] == 'expired'}
+        wall = datetime.now(timezone.utc)
+        updates = []
         # Persist expiry before considering physical removal. Keep roots as
         # tombstones even after manifest rows/files are removed.
         for row in rows:
-            if row['state'] == 'expired' and row['expired_at'] is None:
-                row['expired_at'] = row['expires_at']
-                row['delete_after'] = (now + timedelta(seconds=configuration['reader_grace_seconds'])).isoformat()
-                if apply:
-                    with database() as cursor:
-                        cursor.execute('UPDATE app.retention_roots SET expired_at=%s,delete_after=%s,reason=%s '
-                                       'WHERE root=%s AND expired_at IS NULL',
-                                       (row['expired_at'], row['delete_after'], row['reason'], row['root']))
-        retained = {row['root'] for row in rows if row['state'] == 'eligible' or cleanup_protected(row, now)}
+            if row['root'] not in selected:
+                continue
+            operational = (keep_latest and row.get('reason') not in ('source-withdrawn', 'revision-pruned')
+                           and (row['expired_at'] is None or cleanup_protected(row, now)))
+            if operational:
+                if row['state'] == 'eligible':
+                    row['expires_at'] = now.isoformat()
+                row.update(state='expired', reason='revision-pruned',
+                           cleanup_after=(wall + timedelta(seconds=configuration['reader_grace_seconds'])).isoformat())
+            if operational or row['expired_at'] is None:
+                row['expired_at'] = row['expired_at'] or row['expires_at']
+                row['delete_after'] = row['delete_after'] or (now + timedelta(seconds=configuration['reader_grace_seconds'])).isoformat()
+                updates.append(row)
+        retained = {row['root'] for row in rows if row['root'] not in selected or cleanup_protected(row, now)}
         with database() as cursor:
             cursor.execute('SELECT * FROM app.revisions')
             revisions = cursor.fetchall()
@@ -252,7 +284,18 @@ def collect(*, apply: bool = False) -> dict:
         protected = [Path(relative).parts for relative in roots]
         candidates: list[Path] = []
         originals: list[Path] = []
+        selected_jobs: set[str] = set()
+        # Include batch directories referenced by selected revision manifests.
+        # Other roots remain graph anchors, even when ordinary policy expired.
+        if keep_latest:
+            selected_jobs = {Path(row['manifest_path']).parts[0] for row in rows if row['root'] in selected}
+            for row in revisions:
+                if row['revision'] in selected:
+                    manifest = load_revision(row['manifest_path'], row['manifest_sha256'])
+                    selected_jobs.update(Path(batch['manifest_path']).parts[0] for batch in manifest['batches'])
         for job in jobs:
+            if keep_latest and str(job['id']) not in selected_jobs:
+                continue
             directory = ROOT / str(job['id'])
             if directory.is_symlink():
                 raise ValueError('refuse symlinked managed job')
@@ -297,7 +340,18 @@ def collect(*, apply: bool = False) -> dict:
             path.resolve().relative_to(ROOT.resolve())
             if path.is_symlink() or any(child.is_symlink() for child in path.rglob('*')):
                 raise ValueError('refuse symlinks in managed cleanup')
+        graph = {'roots': fingerprint,
+                 'jobs': sorted([(str(job['id']), job['state'], str(job['manifest_path']),
+                                  str(job['managed_source']), job['retryable']) for job in jobs]),
+                 'revisions': sorted((row['revision'], row['manifest_sha256']) for row in revisions),
+                 'legacy': sorted((row['selection'], row['manifest_sha256']) for row in legacy),
+                 'candidates': sorted(path.relative_to(ROOT).as_posix() for path in candidates)}
+        fingerprint = hashlib.sha256(json.dumps(graph, sort_keys=True).encode()).hexdigest()
+        if expected is not None and fingerprint != expected:
+            raise ValueError('Состав редакций или политика изменились. Выполните новый просмотр.')
         report: dict = {'apply': apply, 'clock': clock, 'policy': configuration,
+                  'fingerprint': fingerprint, 'keep_latest': keep_latest, 'target': target,
+                  'selected': sorted(selected),
                   'roots': rows, 'storage': inventory([ROOT]), 'reclaimable': inventory(candidates),
                   'candidates': [path.relative_to(ROOT).as_posix() for path in candidates],
                   'removed': [], 'reader_lock': 'exclusive queued drain; 110 second timeout',
@@ -305,6 +359,11 @@ def collect(*, apply: bool = False) -> dict:
                                    'maximum_bytes_per_process': int(os.environ.get('TILE_CACHE_BYTES', 16777216))},
                   'source_mount': '/input is read-only and outside managed cleanup'}
         if apply:
+            with database() as cursor:
+                for row in updates:
+                    cursor.execute('UPDATE app.retention_roots SET expired_at=%s,delete_after=%s,reason=%s,cleanup_after=%s '
+                                   'WHERE root=%s',
+                                   (row['expired_at'], row['delete_after'], row['reason'], row.get('cleanup_after'), row['root']))
             with database(timeout=120) as deletion:
                 deletion.execute("SET LOCAL lock_timeout = '110s'")
                 # PostgreSQL queues later shared readers behind this writer.
@@ -313,8 +372,8 @@ def collect(*, apply: bool = False) -> dict:
                 deletion.execute('SELECT pg_advisory_xact_lock(16002)')
                 # Drop GIS/index before files; failure preserves manifests for
                 # idempotent retry. Tombstones already prevent all new reads.
-                for target in candidates:
-                    for record in target.rglob('workspace.json'):
+                for candidate in candidates:
+                    for record in candidate.rglob('workspace.json'):
                         geoserver.discard_staging(json.loads(record.read_bytes())['workspace'])
                 # Commit pruning before unlink: crashes cannot leave a database
                 # root referencing a partially deleted manifest. Retained graph
@@ -324,12 +383,12 @@ def collect(*, apply: bool = False) -> dict:
                         pruning.execute('DELETE FROM app.revisions WHERE revision=%s', (revision,))
                     for selection in expired_legacy:
                         pruning.execute('DELETE FROM app.catalogue WHERE selection=%s', (selection,))
-                for target in candidates:
-                    if target.is_dir():
-                        shutil.rmtree(target)
+                for candidate in candidates:
+                    if candidate.is_dir():
+                        shutil.rmtree(candidate)
                     else:
-                        target.unlink(missing_ok=True)
-                    report['removed'].append(target.relative_to(ROOT).as_posix())
+                        candidate.unlink(missing_ok=True)
+                    report['removed'].append(candidate.relative_to(ROOT).as_posix())
         return report
 
 
@@ -344,6 +403,10 @@ def main() -> None:
     parser.add_argument('--clock', help='Explicit isolated demo/test clock; omit for wall UTC')
     parser.add_argument('--demo-run', action='append', default=[])
     parser.add_argument('--apply', action='store_true')
+    parser.add_argument('--keep-latest', action='store_true')
+    parser.add_argument('--expected')
+    parser.add_argument('--target', default='')
+    parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     if args.command == 'configure':
         result = configure(policy(days=args.days, reader_grace_seconds=args.reader_grace_seconds,
@@ -351,7 +414,10 @@ def main() -> None:
                                   superseded_count=args.superseded_count, superseded_bytes=args.superseded_bytes,
                                   clock=args.clock, demo_runs=args.demo_run))
     else:
-        result = collect(apply=args.apply if args.command == 'collect' else False)
+        result = collect(apply=args.apply if args.command == 'collect' else False,
+                         keep_latest=args.keep_latest, expected=args.expected, target=args.target)
+    if args.output:
+        args.output.write_text(json.dumps(result, default=str, indent=2)+'\n')
     print(json.dumps(result, default=str, indent=2))
 
 

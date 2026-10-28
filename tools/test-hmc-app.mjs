@@ -34,6 +34,58 @@ test('reject malformed, ambiguous and out-of-scope commands before Docker', () =
         ['refresh-grib', 'live', '--yes', '--yes'], ['refresh-grib', 'live', '--storage-budget-bytes', '1e9'],
         ['deploy', 'live', '--api-port', '65536'], ['refresh-grib', 'live', '--folder']]) assert.throws(() => parse(args));
 });
+
+test('revision modes are explicit, exclusive and independently previewable', () => {
+    for (const mode of ['--report', '--collect-view', '--collect-apply', '--keep-latest'])
+        assert.equal(parse(['revisions', 'live', mode]).options[mode], true);
+    assert.equal(parse(['revisions', 'live', '--keep-latest', '--dry-run']).options['--dry-run'], true);
+    assert.equal(parse(['revisions', 'live', '--collect-apply', '--yes']).options['--yes'], true);
+    for (const flags of [[], ['--report', '--collect-view'], ['--report', '--yes'], ['--collect-view', '--dry-run'],
+        ['--keep-latest', '--yes', '--dry-run'], ['--keep-latest', '--folder', 'data/grib']])
+        assert.throws(() => parse(['revisions', 'live', ...flags]));
+});
+
+test('revision command previews before confirmation and pins apply to that plan', async () => {
+    for (const mode of ['--report', '--collect-view', '--collect-apply', '--keep-latest']) {
+        const operator = new Operator(parse(['revisions', 'live', mode]));
+        const report = fs.mkdtempSync(path.join(os.tmpdir(), 'hmc-revisions-'));
+        operator.report = report;
+        const calls = [];
+        const plan = {fingerprint: 'frozen-plan', roots: [], selected: [], storage: {logical_bytes: 0}, reclaimable: {logical_bytes: 0}};
+        operator.worker = async (_state, args) => {
+            calls.push(args);
+            fs.writeFileSync(path.join(report, args.includes('--apply') ? 'revisions-result.json' : 'revisions-plan.json'),
+                JSON.stringify({...plan, removed: []}));
+        };
+        operator.confirm = async () => { calls.push('confirm'); return true; };
+        const containers = ['db', 'geoserver', 'api', 'gateway'].map(service => ({Id: service, State: {Running: true},
+            Config: {Labels: {'com.docker.compose.service': service}}}));
+        try {
+            await operator.revisions({state: {}, containers});
+            assert.equal(calls[0][2], 'report');
+            assert.equal(calls[0].includes('--keep-latest'), mode === '--keep-latest');
+            if (['--collect-apply', '--keep-latest'].includes(mode)) {
+                assert.equal(calls[1], 'confirm');
+                assert.equal(calls[2][calls[2].indexOf('--expected') + 1], 'frozen-plan');
+            } else assert.equal(calls.length, 1);
+            calls.length = 0;
+            operator.options = {'--keep-latest': true, '--dry-run': true};
+            operator.confirm = Operator.prototype.confirm;
+            assert.equal((await operator.revisions({state: {}, containers})).state, 'planned');
+            assert.equal(calls.length, 1);
+            calls.length = 0;
+            operator.options = {'--keep-latest': true};
+            operator.confirm = async () => false;
+            assert.equal((await operator.revisions({state: {}, containers})).state, 'cancelled');
+            assert.equal(calls.length, 1);
+            await assert.rejects(operator.revisions({state: {}, containers: []}), /остановлена/);
+        } finally {
+            for (const name of fs.readdirSync(report)) fs.unlinkSync(path.join(report, name));
+            fs.rmdirSync(report);
+            process.removeListener('SIGINT', operator.signal); process.removeListener('SIGTERM', operator.signal);
+        }
+    }
+});
 test('TTY progress replaces a single line, including changing stages', () => {
     let text = '';
     const stream = {isTTY: true, write: value => {text += value;}};

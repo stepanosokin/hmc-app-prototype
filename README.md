@@ -33,11 +33,13 @@ Building a self-hosted weather map and external GIS/API service using organizati
 ```text
 node hmc-app.mjs deploy hmc-app-live
 node hmc-app.mjs refresh-grib hmc-app-live --folder data/grib
+node hmc-app.mjs revisions hmc-app-live --report
 ```
 
 `deploy` создаёт стенд без GRIB. `refresh-grib` показывает план, снимает
 публикации отсутствующих файлов и загружает только новые. Уже опубликованные
 имена пропускаются; изменение содержимого под прежним именем не проверяется.
+`revisions` показывает редакции и управляет их очисткой отдельно от загрузки.
 Доступны также `start`, `stop`, `status`, `remove` и
 `refresh-grib --remove-all` для очистки всех GRIB-публикаций без удаления
 исходных файлов. Краткие команды, системные требования и переход со старых

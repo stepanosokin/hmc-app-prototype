@@ -341,6 +341,16 @@ container (override its entrypoint to `python`). Start the worker once on an
 existing project to apply additive retention metadata/backfill. Policy lives in
 PostgreSQL and applies to every API process; API credentials have SELECT only.
 
+For routine administration use `node hmc-app.mjs revisions <project>` with
+`--report`, `--collect-view`, `--collect-apply` or `--keep-latest`; see
+[the operator commands](../ADMIN.md#управлять-редакциями-grib). The last mode
+is one-off previous-revision cleanup, not a policy replacement or ordinary
+run-expiry sweep. It preserves each run's latest available revision, shared
+batches and reader protection; it cannot resurrect expired publications.
+Its durable physical grace uses wall time even with a pinned policy clock.
+Preview/apply bind the same target, policy and publication/job graph; a changed
+plan aborts before persisting expiry. Repeat after grace for physical removal.
+
 ```powershell
 # With the same environment file/project arguments as the isolated stack:
 docker compose --env-file <environment.env> --project-name <project> --file compose.publication.yaml run --rm --entrypoint python worker -m publication.retention configure --days 7

@@ -2,9 +2,14 @@ param(
     [ValidatePattern('^hmc-publication-[a-z0-9-]+$')][string]$Project = 'hmc-publication-t7-check',
     [int]$Port = 8099,
     [switch]$SkipBuild,
-    [string]$Image='hmc-publication:t7'
+    [string]$Image='hmc-publication:t7',
+    [switch]$Development,
+    [switch]$RevisionsCli
 )
 $ErrorActionPreference = 'Stop'
+if ($RevisionsCli -and $Project -notmatch '^hmc-publication-t7-revisions-[a-z0-9-]+$') {
+    throw 'Revisions CLI checks require a fresh hmc-publication-t7-revisions-* project.'
+}
 . (Join-Path $PSScriptRoot 'process.ps1')
 Set-Location (Split-Path $PSScriptRoot -Parent)
 $t7Volumes = @(& docker volume ls --filter "label=com.docker.compose.project=$Project" --quiet)
@@ -45,7 +50,20 @@ function Get-T7LegacyInventory {
             })
     } | ConvertTo-Json -Depth 10 -Compress
 }
+function Get-T7CliInventory {
+    @('hmc-app.mjs','tools/test-hmc-app.mjs','tools/check-hmc-revisions-service.mjs') | ForEach-Object {
+        @{path=$_;sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $_).Hash;bytes=(Get-Item -LiteralPath $_).Length}
+    } | ConvertTo-Json -Compress
+}
 try {
+    $t7CliInputs = Get-T7CliInventory
+    $t7CliInputs | Set-Content -Encoding ascii (Join-Path $t7Directory 'cli-inputs.json')
+    foreach ($t7Input in ($t7CliInputs | ConvertFrom-Json)) {
+        $t7Frozen = Join-Path $t7Directory ('frozen-cli/' + $t7Input.path)
+        New-Item -ItemType Directory -Force (Split-Path $t7Frozen -Parent) | Out-Null
+        Copy-Item -LiteralPath $t7Input.path -Destination $t7Frozen
+        if ((Get-FileHash -Algorithm SHA256 -LiteralPath $t7Frozen).Hash -ne $t7Input.sha256) { throw 'CLI snapshot differs' }
+    }
     foreach ($t7Evidence in @('selection.json','browser.json','comparison.json','geoserver-numeric.json')) {
         Copy-Item -LiteralPath (Join-Path 'tests/fixtures/publication/tile-engine' $t7Evidence) -Destination $t7Directory
     }
@@ -63,6 +81,17 @@ try {
     if ($t7Catalogue.selections.Count -ne 0) { throw 'Fresh project catalogue is not empty' }
     if (-not (Test-Path -LiteralPath 'data/grib/ICON_EU_T_G_2026101500.grib2' -PathType Leaf)) {
         throw 'Required private actual sample is missing: data/grib/ICON_EU_T_G_2026101500.grib2; actual-sample M2/A9 gate is blocked.'
+    }
+    if ($Development) {
+        Invoke-T7Check -Name development -Arguments @('run','--rm','--env','T7_HTTP=1','--entrypoint','python','check',
+            '-m','unittest','discover','-s','tests','-p','test_publication_retention.py','-k','test_01_one_off_keep_latest','-v')
+        if ($RevisionsCli) {
+            Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-hmc-revisions-service.mjs',$Project,$t7Environment,$t7Directory,[string]$Port) -ReportDirectory $t7Directory -Name operator
+        }
+        if ((Get-T7CliInventory) -ne $t7CliInputs) { throw 'CLI inputs changed during Development' }
+        @{status='passed';scope='Development only: one-off keep-latest and optional operator CLI'} |
+            ConvertTo-Json | Set-Content -Encoding ascii (Join-Path $t7Directory 'gate.json')
+        return
     }
     $t7Legacy = Join-Path $t7Directory 'legacy-source'
     New-Item -ItemType Directory -Force $t7Legacy | Out-Null
@@ -82,11 +111,15 @@ try {
     Invoke-T7Compose restart db api gateway geoserver
     Invoke-T7Check -Name restart-readiness -Arguments @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions','--ready-only')
     Invoke-T7Check -Name restart-expiry -Arguments @('run','--rm','--entrypoint','python','check','-m','publication.verify_retention')
+    if ($RevisionsCli) {
+        Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-hmc-revisions-service.mjs',$Project,$t7Environment,$t7Directory,[string]$Port) -ReportDirectory $t7Directory -Name operator
+    }
     Invoke-T7Check -Name inputs-end -Arguments @('run','--rm','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python',
         'check','-m','publication.verify_recovery','--inputs','/workspace','--base-commit',$t7Base)
     if ((Get-FileHash -Algorithm SHA256 (Join-Path $t7Directory 'inputs-start.json')).Hash -ne
         (Get-FileHash -Algorithm SHA256 (Join-Path $t7Directory 'inputs.json')).Hash) { throw 'Validation inputs changed during the run' }
     if ((Get-T7LegacyInventory) -ne $t7LegacyInputs) { throw 'Upgrade fixture inputs changed during the run' }
+    if ((Get-T7CliInventory) -ne $t7CliInputs) { throw 'CLI inputs changed during acceptance' }
     @{status='passed';scope='T7 local actual-sample retention; M2 also requires current T5/T6 regressions'} |
         ConvertTo-Json | Set-Content -Encoding ascii (Join-Path $t7Directory 'gate.json')
 } catch {
