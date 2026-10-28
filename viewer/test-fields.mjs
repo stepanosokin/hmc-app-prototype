@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {fieldPresentation,modelFields,fieldUnits,fieldNumber,fieldTile,fieldAtTime} from './fields.ts';
+import {fieldPresentation,modelFields,fieldUnits,fieldNumber,legendNumber,fieldTile,fieldAtTime} from './fields.ts';
 const group=(field,short,levelType,level=0,extra={})=>({key:field+':'+(extra.revision??'r1'),selection:{
     field,field_short_name:short,field_level_type:levelType,level,model:'ENA',run:'ENA/2026-10-21',revision:'r1',...extra},times:[],start:0});
 test('temperature variants keep their actual surface and height, including 5 m',()=>{
@@ -30,6 +30,15 @@ test('small moisture and rain values remain nonzero in source units',()=>{
     assert.equal(fieldNumber(.003,'kg kg**-1'),'0,003');
     assert.match(fieldNumber(.000000123,'kg m**-2 s**-1'),/1,23/);
     assert.equal(fieldNumber(280.125,'K'),'280.13');
+});
+test('specific humidity rounds only legend labels to three significant digits in kg/kg',()=>{
+    for(const short of ['q','2sh']){
+        const source=group('q',short,'surface',0,{units:'kg kg**-1'}).selection;
+        assert.equal(legendNumber(.02025938,source),'0,0203');
+        assert.equal(legendNumber(.000157356,source),'0,000157');
+        assert.equal(legendNumber(1e-12,source),'0,000000000001');
+        assert.equal(fieldNumber(.02025938,source.units),'0,0202594');
+    }
 });
 test('cloud layers show both real pressure bounds, including the surface',()=>{
     const pressure=value=>({type:100,scale_factor:0,scaled_value:value,value});

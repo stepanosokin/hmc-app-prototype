@@ -8,7 +8,7 @@ import {LocalContext} from './local-context.js';
 import {PointSeries,pointValue,SERIES_BUDGET,type PointResult,type Position} from './series.js';
 import {PointChart} from './point-chart.js';
 import {SourceSettings,type SourceDescription} from './source-settings.js';
-import {FieldPicker,fieldPresentation,fieldUnits,fieldNumber} from './fields.js';
+import {FieldPicker,fieldPresentation,fieldUnits,fieldNumber,legendNumber} from './fields.js';
 import {compactGroups,type CompactCatalogue} from './catalogue.js';
 
 import {laeaRfId,laeaRq,laeaD} from './laea-rf.js';
@@ -415,7 +415,7 @@ function palette(){
     text('legendSource',source?.wind_v?'Ряд точки: компонента U ветра':source?source.model+' · числовые данные':'Публикация не выбрана');
     const range=data?.metadata.display_range??[253.15,313.15];
     const ticks=document.querySelectorAll('.ticks span');
-    Array.from({length:4},(_,i)=>range[0]+(range[1]-range[0])*i/3).forEach((value,i)=>ticks[i].textContent=temperature?String(Number((value-(unit==='C'?273.15:0)).toFixed(2))):fieldNumber(value,sourceUnits()));
+    Array.from({length:4},(_,i)=>range[0]+(range[1]-range[0])*i/3).forEach((value,i)=>ticks[i].textContent=temperature?String(Number((value-(unit==='C'?273.15:0)).toFixed(2))):source?legendNumber(value,source):fieldNumber(value,sourceUnits()));
     const ramp=document.querySelector<HTMLElement>('.ramp')!;
     const wind=Boolean((displayed??selected)?.wind_v)&&!portrayalBaseline;
     const empty=data?.metadata.all_nodata===true;

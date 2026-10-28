@@ -39,6 +39,12 @@ export function fieldNumber(value:number,units:string){
         notation:magnitude>0&&(magnitude<.0001||magnitude>=1e8)?'scientific':'standard'}).format(value);
 }
 
+export function legendNumber(value:number,source:Selection){
+    if(source.units==='kg kg**-1'&&['q','2sh'].includes(source.field_short_name??''))
+        return new Intl.NumberFormat('ru-RU',{maximumSignificantDigits:3,useGrouping:false}).format(value);
+    return fieldNumber(value,source.units??'unknown');
+}
+
 export function fieldPresentation(source:Selection){
     if(source.field==='T_G:surface:0')return {id:'temperature',group:'Температура',section:'Основные показатели',label:'Температура поверхности'};
     const kind=kinds[source.field_short_name??''];

@@ -3,22 +3,43 @@ import hashlib
 
 import numpy as np
 
-VERSION = 'field-validity/2'
+VERSION = 'field-validity/3'
 # Explicit GRIB2 absolute-temperature quantities. Never infer from K alone:
 # temperature anomalies/deviations also use K and may legitimately be zero.
 # GRIB2 table 4.2-0-0 (NCEP/WMO); difference/depression/anomaly are excluded.
 ABSOLUTE_TEMPERATURES = {0, 1, 2, 3, 4, 5, 6, 12, 13, 15, 17, 18, 21, 27, 32}
 
 
+def rejection_rule(metadata: dict) -> str | None:
+    raw, identity = metadata['raw_identity'], metadata['identity']
+    quantity = (raw['discipline'], raw['parameterCategory'], raw['parameterNumber'])
+    units, surface, level = identity['units'], identity['typeOfLevel'], identity['level']
+    ordinary_statistic = not metadata.get('interval') or metadata['interval']['statistical_process'] in (0, 2, 3)
+    if (units == 'K' and ordinary_statistic
+            and ((quantity[:2] == (0, 0) and quantity[2] in ABSOLUTE_TEMPERATURES)
+                 or quantity in ((2, 0, 2), (2, 3, 18)))):
+        return 'absolute-temperature-positive-kelvin'
+    if quantity == (0, 3, 0) and units == 'Pa' and surface == 'surface':
+        return 'surface-pressure-nonzero'
+    if quantity == (0, 3, 1) and units == 'Pa' and surface == 'meanSea':
+        return 'mean-sea-pressure-nonzero'
+    if quantity == (0, 1, 1) and units == '%':
+        return 'relative-humidity-nonzero'
+    if (quantity == (0, 1, 0) and units == 'kg kg**-1'
+            and (surface == 'surface' or (surface == 'heightAboveGround' and level == 2))):
+        return 'specific-humidity-surface-or-2m-nonzero'
+    if quantity == (0, 2, 22) and units == 'm s**-1':
+        return 'wind-gust-nonzero'
+    if quantity == (0, 19, 0) and units == 'm':
+        return 'visibility-nonzero'
+    return None
+
+
 def validity(values: np.ndarray, source_missing: np.ndarray, metadata: dict) -> tuple[np.ndarray, dict]:
     source_missing = np.asarray(source_missing, dtype=bool)
-    raw, identity = metadata['raw_identity'], metadata['identity']
-    absolute = (((raw['discipline'] == 0 and raw['parameterCategory'] == 0
-                  and raw['parameterNumber'] in ABSOLUTE_TEMPERATURES)
-                 or (raw['discipline'], raw['parameterCategory'], raw['parameterNumber']) == (2, 0, 2))
-                and identity['units'] == 'K'
-                and (not metadata.get('interval') or metadata['interval']['statistical_process'] in (0, 2, 3)))
-    rejected = (~source_missing & (values <= 0)) if absolute else np.zeros(values.shape, dtype=bool)
+    rule = rejection_rule(metadata)
+    rejected = (~source_missing & ((values <= 0) if rule == 'absolute-temperature-positive-kelvin'
+                                 else (values == 0))) if rule else np.zeros(values.shape, dtype=bool)
     reason = np.where(source_missing, 1, np.where(rejected, 2, 0)).astype('uint8')
     missing = reason != 0
     valid = values[~missing]
@@ -31,7 +52,7 @@ def validity(values: np.ndarray, source_missing: np.ndarray, metadata: dict) -> 
                   'max': float(valid.max()) if valid.size else None,
                   'decoded_float64_le_sha256': hashlib.sha256(np.asarray(values, dtype='<f8').tobytes()).hexdigest(),
                   'missing_mask_uint8_sha256': hashlib.sha256(missing.astype('uint8').tobytes()).hexdigest()}
-    return reason, {'version': VERSION, 'rule': 'absolute-temperature-positive-kelvin' if absolute else None,
+    return reason, {'version': VERSION, 'rule': rule,
                     'statistics': statistics}
 
 

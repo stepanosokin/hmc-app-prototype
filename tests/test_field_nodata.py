@@ -19,9 +19,11 @@ from publication.native_display import render, metadata as describe, portrayal, 
 from test_grib_fields import field_frame
 
 
-def temperature_frame(values, category=0, number=0, bitmap=False):
+def temperature_frame(values, category=0, number=0, bitmap=False, **keys):
     handle = ec.codes_new_from_message(field_frame(category, number))
     try:
+        for key, value in keys.items():
+            ec.codes_set(handle, key, value)
         if bitmap:
             ec.codes_set(handle, 'bitmapPresent', 1)
             ec.codes_set(handle, 'missingValue', 9999)
@@ -32,6 +34,52 @@ def temperature_frame(values, category=0, number=0, bitmap=False):
 
 
 class FieldNoData(unittest.TestCase):
+    def test_selected_zero_rules_and_source_missing_are_distinct(self):
+        from decoder.validity import refresh
+        # Every agreed quantity, including the actual soil code from live.
+        cases = [
+            (2, 3, 18, 'K', 'surface', 0),
+            (0, 3, 0, 'Pa', 'surface', 0),
+            (0, 3, 1, 'Pa', 'meanSea', 0),
+            (0, 1, 1, '%', 'heightAboveGround', 2),
+            (0, 1, 0, 'kg kg**-1', 'surface', 0),
+            (0, 1, 0, 'kg kg**-1', 'heightAboveGround', 2),
+            (0, 2, 22, 'm s**-1', 'heightAboveGround', 10),
+            (0, 19, 0, 'm', 'surface', 0)]
+        for discipline, category, number, units, surface, level in cases:
+            with self.subTest(quantity=(discipline, category, number), surface=surface):
+                metadata = field_metadata(temperature_frame([1] * 12), 1, sample_inventory=False, all_fields=True)
+                metadata['raw_identity'].update(discipline=discipline, parameterCategory=category, parameterNumber=number)
+                metadata['identity'].update(units=units, typeOfLevel=surface, level=level)
+                values = np.array([[0., -0., 1e-12, -1e-12], [3., 4., 5., 6.], [7., 8., 9., 0.]])
+                missing = np.zeros((3, 4), dtype=bool)
+                missing[2, 3] = True
+                reasons = refresh(metadata, values, missing)
+                np.testing.assert_array_equal(reasons[0], [2, 2, 0, 2 if units == 'K' else 0])
+                self.assertEqual(reasons[2, 3], 1)
+                self.assertEqual(metadata['values']['source_missing_count'], 1)
+                self.assertEqual(metadata['values']['rejected_count'], 3 if units == 'K' else 2)
+
+    def test_zero_rules_do_not_leak_to_other_levels_units_or_quantities(self):
+        from decoder.validity import validity
+        for category, number, units, surface, level in [
+            (1, 0, 'kg kg**-1', 'heightAboveGround', 5),
+            (1, 0, 'kg kg**-1', 'isobaricInhPa', 850),
+            (1, 0, '%', 'surface', 0),
+            (3, 0, 'Pa', 'isobaricInhPa', 850),
+            (3, 1, 'Pa', 'surface', 0),
+            (2, 2, 'm s**-1', 'heightAboveGround', 10),
+            (1, 8, 'kg m**-2', 'surface', 0),
+            (1, 11, 'm', 'surface', 0),
+            (6, 1, '%', 'surface', 0),
+            (191, 192, 'unknown', 'surface', 0)]:
+            with self.subTest(quantity=(category, number), surface=surface, units=units):
+                metadata = field_metadata(temperature_frame([0] * 12), 1, sample_inventory=False, all_fields=True)
+                metadata['raw_identity'].update(parameterCategory=category, parameterNumber=number)
+                metadata['identity'].update(units=units, typeOfLevel=surface, level=level)
+                reasons, _ = validity(np.zeros((3, 4)), np.zeros((3, 4), dtype=bool), metadata)
+                self.assertFalse(reasons.any())
+
     def test_portrayal_range_excludes_zero_without_changing_statistics(self):
         from decoder.validity import refresh
         for category, number, short, hidden in [
@@ -202,13 +250,17 @@ class FieldNoData(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('T65_HTTP') == '1', 'requires isolated publication services')
 class PublishedNoData(unittest.TestCase):
-    def test_pressure_zero_is_numerical_but_not_in_colour_range(self):
+    def test_pressure_zero_is_nodata_in_every_product(self):
         from publication.domain import resolve, sampler
         selection, batch = self.seed([0, 100000, 101000, 102000] * 3, category=3, number=0)
         published = resolve(selection)
         numerical = sampler(published)
         item = numerical.manifest['fields'][0]
-        self.assertEqual(item['metadata']['values']['min'], 0)
+        self.assertEqual(item['metadata']['values']['min'], 100000)
+        self.assertEqual(item['metadata']['values']['rejected_count'], 3)
+        import rasterio
+        with rasterio.open(numerical.root / item['cog']) as raster:
+            self.assertEqual(int((raster.read_masks(1) == 0).sum()), 3)
         description = json.loads(describe(numerical.root, item))
         self.assertEqual(description['display_range'], [100000, 102000])
         self.assertFalse(description['all_transparent'])
@@ -217,11 +269,13 @@ class PublishedNoData(unittest.TestCase):
         grid = item['metadata']['grid']
         west, south, _, _ = grid['outer_cell_edges_wsen']
         dx, dy = grid['spacing_degrees_xy']
-        cell = {'lon': west + dx / 2, 'lat': south + 1.5 * dy, 'value': 0}
+        cell = {'lon': west + dx / 2, 'lat': south + 1.5 * dy, 'value': None}
         gis = {**published['gis'], 'probe': cell}
-        self.assertEqual(geoserver.verify(gis)['identified_value'], 0)
+        self.assertIsNone(geoserver.verify(gis)['identified_value'])
         lon, lat = transform(item['metadata']['source_crs'], cell['lon'], cell['lat'], inverse=True)
-        self.assertEqual(self.point(selection, batch, lon, lat).json()['value'], 0)
+        point = self.point(selection, batch, lon, lat).json()
+        self.assertIsNone(point['value'])
+        self.assertEqual(point['nodata_reason'], 'rejected_value')
         from pyproj import Transformer
         mx, my = Transformer.from_crs('EPSG:4326', 'EPSG:3857', always_xy=True).transform(lon, lat)
         image = geoserver.wms(gis, {'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetMap',
@@ -230,12 +284,22 @@ class PublishedNoData(unittest.TestCase):
             'FORMAT': 'image/png', 'TRANSPARENT': 'true'})
         self.assertEqual(Image.open(io.BytesIO(image.content)).convert('RGBA').getchannel('A').getextrema(), (0, 0))
 
-    def seed(self, values, legacy=False, category=0, number=0):
+    def test_specific_humidity_keeps_precision_and_rejects_zero(self):
+        from publication.domain import resolve, sampler
+        for surface, level in [('surface', 0), ('heightAboveGround', 2)]:
+            selection, _ = self.seed([0, .000157356, .01012345, .02025938] * 3,
+                                     category=1, number=0, typeOfLevel=surface, level=level)
+            item = sampler(resolve(selection)).manifest['fields'][0]
+            self.assertEqual(item['metadata']['identity']['units'], 'kg kg**-1')
+            self.assertEqual(item['metadata']['values']['rejected_count'], 3)
+            self.assertGreater(item['metadata']['values']['min'], 0)
+
+    def seed(self, values, legacy=False, category=0, number=0, **keys):
         import uuid
         from publication import revisions, worker
         from publication.domain import ROOT, database
         from decoder.validity import validity
-        binary = temperature_frame(values, category, number)
+        binary = temperature_frame(values, category, number, **keys)
         source = Path('/evidence') / ('nodata-' + uuid.uuid4().hex + '.grib2')
         source.write_bytes(binary)
         identifier = worker.submit('2026-10-19T06:00:00Z', {'source_profile': 'grib2-fields', 'fixture': 'actual'})
