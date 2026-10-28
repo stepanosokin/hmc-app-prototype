@@ -17,13 +17,13 @@ test('field groups isolate the model and prefer the current exact revision',()=>
     assert.equal(options[0].target,current);
     assert.equal(options[1].label,'Давление на уровне моря');
 });
-test('one paired wind entry represents U/V and unknown indicators stay explicit',()=>{
+test('U/V are independent overlays while unknown indicators stay explicit',()=>{
     const u=group('u','10u','heightAboveGround',10,{wind_axis:'u',wind_v:{field:'v'}});
     const v=group('v','10v','heightAboveGround',10,{wind_axis:'v'});
     const unknown=group('unknown','unknown','surface',0,{field_label:'Поле GRIB 0.6.1'});
     const options=modelFields([u,v,unknown],u);
-    assert.equal(options.length,2);assert.equal(options[0].label,'Ветер на высоте 10 м');
-    assert.equal(options[1].id,'other');assert.match(options[1].label,/GRIB 0\.6\.1/);
+    assert.equal(options.length,1);
+    assert.equal(options[0].id,'other');assert.match(options[0].label,/GRIB 0\.6\.1/);
     assert.equal(fieldUnits('m s**-1'),'м/с');assert.equal(fieldUnits('unknown'),'единицы не определены');
 });
 test('small moisture and rain values remain nonzero in source units',()=>{

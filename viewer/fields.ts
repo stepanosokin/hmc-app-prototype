@@ -15,7 +15,7 @@ const kinds:Record<string,[string,string,string,string]>={
     '2r':['humidity','Влажность','Относительная влажность','Относительная влажность'],
     '10u':['wind','Ветер','Ветер','Скорость и направление'],
     '10v':['wind','Ветер','Компонента V ветра','Компоненты'],
-    max_i10fg:['wind','Ветер','Максимальные порывы ветра','Порывы'],
+    max_i10fg:['wind','Порывы ветра','Максимальные порывы ветра','Порывы'],
     tp:['precipitation','Осадки','Суммарные осадки','Количество осадков'],
     cp:['precipitation','Осадки','Конвективные осадки','Количество осадков'],
     lsp:['precipitation','Осадки','Крупномасштабные осадки','Количество осадков'],
@@ -75,8 +75,7 @@ export function modelFields(groups:PublishedGroup[],current:PublishedGroup){
     const fields=new Map<string,PublishedGroup>();
     for(const candidate of groups){
         const s=candidate.selection;
-        if(s.model!==current.selection.model)continue;
-        if(s.wind_axis==='v'&&groups.some(g=>g.selection.model===s.model&&g.selection.wind_v?.field===s.field))continue;
+        if(s.model!==current.selection.model||s.wind_axis==='u'||s.wind_axis==='v')continue;
         const previous=fields.get(s.field);
         const priority=(g:PublishedGroup)=>g.selection.run===current.selection.run?(g.selection.revision===current.selection.revision?2:1):0;
         if(!previous||priority(candidate)>priority(previous))fields.set(s.field,candidate);
@@ -206,7 +205,7 @@ export class FieldPicker {
     }
     layout(){
         const rail=this.buttons.getBoundingClientRect(),timeline=document.getElementById('timelinePanel')!.getBoundingClientRect();
-        const legend=document.getElementById('legendPanel')!.getBoundingClientRect();
+        const legend=(document.getElementById('legendDock')??document.getElementById('legendPanel'))!.getBoundingClientRect();
         const bottom=Math.min(timeline.top-10,legend.right>rail.left&&legend.top>rail.top?legend.top-10:timeline.top-10);
         this.buttons.style.maxHeight=Math.max(40,bottom-rail.top)+'px';
         if(!this.open)return;

@@ -1,0 +1,5665 @@
+{
+  "scope": "Synthetic rotated poles and mixed/axis/calm physical components; not actual forecast values",
+  "reference": "PROJ inverse ob_tran, analytic zero-translation sphere/WGS84 latitude, WGS84 geodesic axis azimuths and 1m forward geodesics",
+  "pyproj_version": "3.8.0",
+  "proj_version": "9.8.1",
+  "specs": [
+    {
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0,
+          "earth_radius_m": 6371229,
+          "geocentric_translation_m": [
+            0,
+            0,
+            0
+          ],
+          "prime_meridian_degrees": 0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "datum_mode": "explicit-geocentric",
+      "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+      "defaults_used": [
+        "coordinate_height_m",
+        "geocentric_translation_m",
+        "prime_meridian_degrees"
+      ],
+      "earth_shape_code": 6,
+      "grid": {
+        "outer_edges_wsen": [
+          -60.03,
+          -30.03,
+          59.97,
+          29.97
+        ],
+        "scanning_mode": 64,
+        "shape_yx": [
+          1000,
+          2000
+        ],
+        "spacing_xy": [
+          0.06,
+          0.06
+        ],
+        "units": "degrees"
+      },
+      "prime_meridian_degrees": 0,
+      "proj": "+proj=ob_tran +o_proj=longlat +o_lon_p=0 +o_lat_p=25 +lon_0=90 +a=6371229 +b=6371229 +pm=0",
+      "rotation": {
+        "south_lat": -25,
+        "south_lon": 90,
+        "angle": 0
+      },
+      "schema": "hmc-grib-crs/1",
+      "semi_major_m": 6371229,
+      "semi_minor_m": 6371229,
+      "template": 1
+    },
+    {
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0,
+          "earth_radius_m": 6371229,
+          "geocentric_translation_m": [
+            0,
+            0,
+            0
+          ],
+          "prime_meridian_degrees": 0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "datum_mode": "explicit-geocentric",
+      "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+      "defaults_used": [
+        "coordinate_height_m",
+        "geocentric_translation_m",
+        "prime_meridian_degrees"
+      ],
+      "earth_shape_code": 6,
+      "grid": {
+        "outer_edges_wsen": [
+          -60.03,
+          -30.03,
+          59.97,
+          29.97
+        ],
+        "scanning_mode": 64,
+        "shape_yx": [
+          1000,
+          2000
+        ],
+        "spacing_xy": [
+          0.06,
+          0.06
+        ],
+        "units": "degrees"
+      },
+      "prime_meridian_degrees": 0,
+      "proj": "+proj=ob_tran +o_proj=longlat +o_lon_p=-20 +o_lat_p=35 +lon_0=15 +a=6371229 +b=6371229 +pm=0",
+      "rotation": {
+        "south_lat": -35,
+        "south_lon": 15,
+        "angle": 20
+      },
+      "schema": "hmc-grib-crs/1",
+      "semi_major_m": 6371229,
+      "semi_minor_m": 6371229,
+      "template": 1
+    },
+    {
+      "configuration": {
+        "sha256": "290fa05a5d240c3b5d6af4f0452c1a7940fe10ed4e45b6245242c6b24b0312e7",
+        "values": {
+          "coordinate_height_m": 0,
+          "earth_radius_m": 6371229,
+          "geocentric_translation_m": [
+            0,
+            0,
+            0
+          ],
+          "prime_meridian_degrees": 0,
+          "schema": "hmc-grib-crs-defaults/1"
+        }
+      },
+      "datum_mode": "explicit-geocentric",
+      "datum_operation": "explicit geocentric translation prototype assumption; not producer-confirmed",
+      "defaults_used": [
+        "coordinate_height_m",
+        "geocentric_translation_m",
+        "prime_meridian_degrees"
+      ],
+      "earth_shape_code": 6,
+      "grid": {
+        "outer_edges_wsen": [
+          -60.03,
+          -30.03,
+          59.97,
+          29.97
+        ],
+        "scanning_mode": 64,
+        "shape_yx": [
+          1000,
+          2000
+        ],
+        "spacing_xy": [
+          0.06,
+          0.06
+        ],
+        "units": "degrees"
+      },
+      "prime_meridian_degrees": 0,
+      "proj": "+proj=ob_tran +o_proj=longlat +o_lon_p=-7 +o_lat_p=60 +lon_0=155 +a=6371229 +b=6371229 +pm=0",
+      "rotation": {
+        "south_lat": -60,
+        "south_lon": 155,
+        "angle": 7
+      },
+      "schema": "hmc-grib-crs/1",
+      "semi_major_m": 6371229,
+      "semi_minor_m": 6371229,
+      "template": 1
+    }
+  ],
+  "cases": [
+    {
+      "spec": 0,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          46.441002152749874,
+          44.585269802731645
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.999999999999997,
+              7.70693278806569e-08
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.7719323495704707,
+              0.6357046859089625
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.7954201510082465,
+              0.6060583993065506
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          46.441002152749874,
+          44.585269802731645
+        ],
+        "east": 3.8659503322201627,
+        "north": 3.170871808952045,
+        "speed": 5.0,
+        "direction": 230.64122471055072,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.7721274581148617,
+              -0.6354676926682289
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9986284123063749,
+              -0.052357369437824944
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9980721910195883,
+              -0.06206368916974121
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          46.441002152749874,
+          44.585269802731645
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.5190183666498813,
+              -0.8547630871066493
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.5497503556761357,
+              -0.8353290049040332
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          46.441002152749874,
+          44.585269802731645
+        ],
+        "east": -3.1708504348951627,
+        "north": 3.8659678632297445,
+        "speed": 5.0,
+        "direction": 140.6415414866002,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.6328758333007772,
+              -0.7742533045611409
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.08425983263665905,
+              -0.9964438170835535
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.07791379147078609,
+              -0.9969601000534809
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          46.441002152749874,
+          44.585269802731645
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.598689310233604,
+              0.8009813417377533
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.04655669455015373,
+              0.9989156491879401
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.03735208225205048,
+              0.9993021674906124
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          46.441002152749874,
+          44.585269802731645
+        ],
+        "east": 4.8562634348989455,
+        "north": -1.1902543639338186,
+        "speed": 5.0,
+        "direction": 283.77152980149606,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9710642491887916,
+              0.23881839114148676
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.6071440272843308,
+              0.7945918009474826
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.6321075135341749,
+              0.774880694903185
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          46.441002152749874,
+          44.585269802731645
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9612755650442744,
+              -0.27558898390322306
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.5789967726481987,
+              -0.8153298334189484
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.6033891027249741,
+              -0.7974469203105311
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          46.441002152749874,
+          44.585269802731645
+        ],
+        "east": -6.680680395764795,
+        "north": -2.892837612041842,
+        "speed": 7.280109889280518,
+        "direction": 66.58664451890355,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.917166224225028,
+              0.3985048520919232
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.9658870546503793,
+              -0.2589636995001717
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.9729565653816485,
+              -0.2309881422946771
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          46.441002152749874,
+          44.585269802731645
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          46.441002152749874,
+          44.585269802731645
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          90.0,
+          65.14708743951726
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9999999999999855,
+              1.7034890825708103e-07
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              1.0,
+              8.521836521976964e-09
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.9999999999999998,
+              -2.4102101284350796e-08
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              1.0,
+              6.977263928762918e-09
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          90.0,
+          65.14708743951726
+        ],
+        "east": 5.0,
+        "north": 0.0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9999999999999855,
+              1.7034890825708103e-07
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              1.0,
+              8.521836521976964e-09
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.9999999999999998,
+              -2.4102101284350796e-08
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              1.0,
+              6.977263928762918e-09
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          90.0,
+          65.14708743951726
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          90.0,
+          65.14708743951726
+        ],
+        "east": -3.061616997868383e-16,
+        "north": 5.0,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          90.0,
+          65.14708743951726
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5995430204867421,
+              0.8003425307864339
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.6010945368966664,
+              0.799177926192273
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.6181547344993538,
+              0.7860564383147265
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.600842101457458,
+              0.7993677308449384
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          90.0,
+          65.14708743951726
+        ],
+        "east": 3.0000000000000004,
+        "north": -4.0,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5995430204867421,
+              0.8003425307864339
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.6010945368966664,
+              0.799177926192273
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.6181547344993538,
+              0.7860564383147265
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.600842101457458,
+              0.7993677308449384
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          90.0,
+          65.14708743951726
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9614375613909036,
+              -0.2750233000069493
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.9617302964311492,
+              -0.273997877594798
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.9648220274626566,
+              -0.2629038898967621
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.9616827943564283,
+              -0.2741645546725754
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          90.0,
+          65.14708743951726
+        ],
+        "east": -7.0,
+        "north": 2.0,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9614375613909036,
+              -0.2750233000069493
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.9617302964311492,
+              -0.273997877594798
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.9648220274626566,
+              -0.2629038898967621
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.9616827943564283,
+              -0.2741645546725754
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          90.0,
+          65.14708743951726
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": true,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          90.0,
+          65.14708743951726
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": true,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          155.71965056195685,
+          68.88050112407718
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9999999999999796,
+              2.0193030754256014e-07
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.4619743573560822,
+              -0.8868932817117485
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.4112017334820397,
+              -0.9115443677525332
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.47799140803148904,
+              -0.8783645108086247
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          155.71965056195685,
+          68.88050112407718
+        ],
+        "east": 2.5908025614362122,
+        "north": -4.276416968404223,
+        "speed": 5.0,
+        "direction": 328.7910570087316,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.517828949562374,
+              0.8554841781091735
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9995075900299091,
+              0.03137797750976073
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.9907418667308887,
+              -0.1357591746682114
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9999999611261629,
+              -0.000278832697036401
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          155.71965056195685,
+          68.88050112407718
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.8565321766212599,
+              -0.5160936256266364
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.9115443588401954,
+              -0.4112017532387443
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.8637568203898617,
+              -0.5039088759190458
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          155.71965056195685,
+          68.88050112407718
+        ],
+        "east": 4.276411087213317,
+        "north": 2.590812268991911,
+        "speed": 5.0,
+        "direction": 238.7909269460278,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.8550813667033593,
+              -0.5184938344056899
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.09447953558794657,
+              -0.9955268039360295
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.10571743470329248,
+              -0.9943962107730275
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.06175228363751146,
+              -0.9980915065591692
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          155.71965056195685,
+          68.88050112407718
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.599664051639646,
+              0.8002518510888457
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9976711667375922,
+              -0.06820735341919956
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.972234847225818,
+              -0.23400726877554562
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9950405222944602,
+              -0.09947039253952927
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          155.71965056195685,
+          68.88050112407718
+        ],
+        "east": -1.866645298993233,
+        "north": -4.6384949420848205,
+        "speed": 5.0,
+        "direction": 21.92107612277701,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.37304806040699595,
+              0.9278120200916662
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.6366246605619679,
+              0.7711738076233912
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.6834335326690597,
+              0.7300127440144379
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.6305563157315951,
+              0.7761435000636138
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          155.71965056195685,
+          68.88050112407718
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9614604856924465,
+              -0.2749431476724688
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.7133226926131487,
+              0.7008357412426448
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.6389870063021331,
+              0.7692175282564988
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.7128868484425865,
+              0.7012790752030154
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          155.71965056195685,
+          68.88050112407718
+        ],
+        "east": -1.9165580019027957,
+        "north": 7.023304451989986,
+        "speed": 7.280109889280518,
+        "direction": 164.73644309356825,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.26304532847265066,
+              -0.9647834757958468
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.9555041943077778,
+              -0.2949775155164277
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.9889836406966179,
+              -0.14802485748840608
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.9628797513431061,
+              -0.26993070305809647
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          155.71965056195685,
+          68.88050112407718
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": true,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          155.71965056195685,
+          68.88050112407718
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": true,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          145.0612242687817,
+          20.241885418950393
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9999999999999996,
+              2.884710625454827e-08
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.6278660277478755,
+              -0.7783214318005794
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.708782340465715,
+              -0.7054272420625273
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          145.0612242687817,
+          20.241885418950393
+        ],
+        "east": 3.061399512293337,
+        "north": -3.9532054115780673,
+        "speed": 5.0,
+        "direction": 322.24546204888276,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.6100150584528377,
+              0.7923898210229489
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9916568630551847,
+              0.12890564749284825
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9817367325460843,
+              0.19024454780554972
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          145.0612242687817,
+          20.241885418950393
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.40478124078889755,
+              -0.9144135536535974
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.5428873430382357,
+              -0.8398055327091416
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          145.0612242687817,
+          20.241885418950393
+        ],
+        "east": 3.9531984014544124,
+        "north": 3.0614085644909075,
+        "speed": 5.0,
+        "direction": 232.24533085074808,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.7888818798011694,
+              -0.6145448557439671
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.2793494572861704,
+              -0.9601895025014188
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.2527791218818002,
+              -0.9675240129013161
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          145.0612242687817,
+          20.241885418950393
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.597728025286628,
+              0.8016989508456076
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9879328741154233,
+              0.15488265313468474
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9778449881253692,
+              0.2093303112262927
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          145.0612242687817,
+          20.241885418950393
+        ],
+        "east": -1.3257175566617732,
+        "north": -4.821044799621628,
+        "speed": 5.0,
+        "direction": 15.375480436252737,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.26368878218861386,
+              0.9646078094997395
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.15048433395166536,
+              0.9886123938304251
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.2923739742348743,
+              0.9563040621005983
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          145.0612242687817,
+          20.241885418950393
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.961092442237818,
+              -0.2762269311152451
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.7794637388477275,
+              0.6264473480042211
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.8644867349294285,
+              0.5026556327457757
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          145.0612242687817,
+          20.241885418950393
+        ],
+        "east": -2.7046783206689002,
+        "north": 6.759046913707854,
+        "speed": 7.280109889280518,
+        "direction": 158.1908480480259,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.3696251591844316,
+              -0.9291809520743974
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.8190078800620899,
+              -0.5737822691545995
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.8553818130675466,
+              -0.51799802497044
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          145.0612242687817,
+          20.241885418950393
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 0,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          145.0612242687817,
+          20.241885418950393
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          1.2436518406176686,
+          44.20768355302349
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9999999999999971,
+              7.622917684880861e-08
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.025059849484293538,
+              0.9996859526590461
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.14423400814631007,
+              0.9895436073736469
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          1.2436518406176686,
+          44.20768355302349
+        ],
+        "east": 4.901216989947942,
+        "north": 0.988975236012324,
+        "speed": 5.0,
+        "direction": 258.59195107255545,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9801104066748288,
+              -0.19845299374839778
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.20175110281024328,
+              0.9794368241570512
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.3331273270928419,
+              0.9428818504690706
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          1.2436518406176686,
+          44.20768355302349
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.8824951545267543,
+              -0.47032148817250513
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.937384154248958,
+              -0.34829721124775853
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          1.2436518406176686,
+          44.20768355302349
+        ],
+        "east": -0.9889645279176917,
+        "north": 4.9012191506318645,
+        "speed": 5.0,
+        "direction": 168.59207625136207,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.1971369116816995,
+              -0.9803759677045342
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.7855870449676075,
+              -0.6187511573961394
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.8524403671007739,
+              -0.5228244643636122
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          1.2436518406176686,
+          44.20768355302349
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5986723139251019,
+              0.8009940452584926
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.5557066432199471,
+              0.8313784497334643
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.5924041677606113,
+              0.8056409262319396
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          1.2436518406176686,
+          44.20768355302349
+        ],
+        "east": 3.731905729937784,
+        "north": -3.3275936685324936,
+        "speed": 5.0,
+        "direction": 311.72213354116604,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.7452369730549172,
+              0.6667997105517853
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.4489461525376243,
+              0.8935588129058233
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.4550499945881876,
+              0.8904658906579692
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          1.2436518406176686,
+          44.20768355302349
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.961272334106615,
+              -0.2756002534128375
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.18022474487590387,
+              -0.9836254578519282
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.10342610814882137,
+              -0.9946371399425964
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          1.2436518406176686,
+          44.20768355302349
+        ],
+        "east": -7.25729378536901,
+        "north": 0.5759226622076481,
+        "speed": 7.280109889280518,
+        "direction": 94.53735642090473,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9968443325299885,
+              -0.07938121127093958
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.03772981354934558,
+              -0.9992879770964582
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.07149867082963325,
+              -0.9974406950137917
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          1.2436518406176686,
+          44.20768355302349
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          1.2436518406176686,
+          44.20768355302349
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          47.39768976003237,
+          50.52052899725835
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9999999999999954,
+              9.493132990064805e-08
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.7822346684724099,
+              0.6229838869825279
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.7360698204723202,
+              0.6769056207403262
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.7987343070103637,
+              0.6016838927582108
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          47.39768976003237,
+          50.52052899725835
+        ],
+        "east": 4.492685302568602,
+        "north": -2.1944882711201874,
+        "speed": 5.0,
+        "direction": 296.0335682756819,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.8980651965369836,
+              0.43986236798456496
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.4389417845903442,
+              0.8985155033390598
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.4066616150538485,
+              0.9135788585786098
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.45787796685750515,
+              0.8890150546905476
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          47.39768976003237,
+          50.52052899725835
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.5420835608535479,
+              -0.8403245879137048
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.6769056497549321,
+              -0.7360697937898644
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.5623961447851574,
+              -0.8268679316135027
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          47.39768976003237,
+          50.52052899725835
+        ],
+        "east": 2.1944689952662912,
+        "north": 4.492694717963257,
+        "speed": 5.0,
+        "direction": 206.03332244855554,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.4379303105039793,
+              -0.8990089227265146
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.8593194024787973,
+              -0.5114393067837891
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.9481545669709489,
+              -0.3178095611087438
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.8701619934137388,
+              -0.4927657711511914
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          47.39768976003237,
+          50.52052899725835
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5989550954221513,
+              0.8007826132402237
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.022488218580069864,
+              0.9997471080353746
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.04109621695119462,
+              0.9991551936272465
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.02290879791432422,
+              0.9997375590514346
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          47.39768976003237,
+          50.52052899725835
+        ],
+        "east": 0.9400340493896719,
+        "north": -4.910838623492738,
+        "speed": 5.0,
+        "direction": 349.1635133005479,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.18751396274699045,
+              0.9822619374560537
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.3827864289645042,
+              0.9238368631964209
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.5062044259761505,
+              0.8624135197932348
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.40073893023985957,
+              0.9161922886546323
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          47.39768976003237,
+          50.52052899725835
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9613260606240841,
+              -0.2754127904890766
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.5824992545309445,
+              -0.8128312361560018
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.5474410285537401,
+              -0.8368442628446603
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.6032240236094822,
+              -0.7975718007429717
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          47.39768976003237,
+          50.52052899725835
+        ],
+        "east": -5.411965691908217,
+        "north": 4.86935594813199,
+        "speed": 7.280109889280518,
+        "direction": 131.97894562349583,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.7424850742423048,
+              -0.6698626086947973
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.19705883348562725,
+              -0.9803916646653438
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.15360670304350874,
+              -0.9881320664668785
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.20672495020026155,
+              -0.978399097998715
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          47.39768976003237,
+          50.52052899725835
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": true,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          47.39768976003237,
+          50.52052899725835
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": true,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          86.11448009773942,
+          49.178947548142716
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9999999999999958,
+              9.149620832575956e-08
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9982745916860141,
+              0.05871830714625409
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.9977014389276366,
+              0.06776310767462901
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9983740828749594,
+              0.05700167228760567
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          86.11448009773942,
+          49.178947548142716
+        ],
+        "east": 2.9839508557571466,
+        "north": -4.011986701177634,
+        "speed": 5.0,
+        "direction": 323.35964517151007,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5956850290055056,
+              0.8032181187066874
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.557958203137551,
+              0.8298690520506928
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.5929512060845976,
+              0.8052383915355881
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.5551218308271284,
+              0.8317690502411935
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          86.11448009773942,
+          49.178947548142716
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.052217310562518875,
+              -0.9986357456438346
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.06776314841831836,
+              -0.997701436160356
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.053812813525280695,
+              -0.9985510408088779
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          86.11448009773942,
+          49.178947548142716
+        ],
+        "east": 4.011970909644081,
+        "north": 2.9839720876994895,
+        "speed": 5.0,
+        "direction": 233.35934195438304,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.801571270288194,
+              -0.5978992378725458
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.8386400716673815,
+              -0.5446859922870508
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.8722837307072957,
+              -0.4890000952386023
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.8366829616382836,
+              -0.5476875219540707
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          86.11448009773942,
+          49.178947548142716
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5988955253044992,
+              0.8008271659791817
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.5612710904317216,
+              0.8276320215201838
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              0.5962667036492528,
+              0.8027864087783587
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.5584472347438008,
+              0.8295400448483499
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          86.11448009773942,
+          49.178947548142716
+        ],
+        "east": -1.4192026091703824,
+        "north": -4.7943575121306905,
+        "speed": 5.0,
+        "direction": 16.48955346681259,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.28309081152338134,
+              0.9590931093647965
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.337807944034302,
+              0.941215062006191
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.38279875038245975,
+              0.9238317577923089
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.33742189480485435,
+              0.9413535281212376
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          86.11448009773942,
+          49.178947548142716
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9613147487835609,
+              -0.2754522713124709
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.9451574135832356,
+              -0.3266151612351276
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.9511881002126883,
+              -0.3086117269543993
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.9451000754820372,
+              -0.32678103880710013
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          86.11448009773942,
+          49.178947548142716
+        ],
+        "east": -2.5727392377134355,
+        "north": 6.810360696375023,
+        "speed": 7.280109889280518,
+        "direction": 159.30501818794153,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.3525043781757532,
+              -0.935810164171626
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.30790335526962387,
+              -0.9514176390070281
+            ]
+          },
+          "laea": {
+            "visible": true,
+            "direction": [
+              -0.33188230855207596,
+              -0.9433208008255435
+            ]
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.3047921964720057,
+              -0.9524188768445165
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          86.11448009773942,
+          49.178947548142716
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": true,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          86.11448009773942,
+          49.178947548142716
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": true,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          80.1863600713412,
+          0.17601999194153103
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              1.0,
+              2.437434377921941e-10
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9889652312533489,
+              0.14814780245420484
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9923647184124875,
+              0.12333801380800766
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          80.1863600713412,
+          0.17601999194153103
+        ],
+        "east": 3.0575040882644733,
+        "north": -3.9562189967500574,
+        "speed": 5.0,
+        "direction": 322.3018988581117,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.6089283218571289,
+              0.7932252510102418
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.7752297608775749,
+              0.6316793631659166
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.645728247596348,
+              0.76356730564905
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          80.1863600713412,
+          0.17601999194153103
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.0010418195519811227,
+              -0.9999994573058633
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.06616106450228139,
+              -0.9978089564360128
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          80.1863600713412,
+          0.17601999194153103
+        ],
+        "east": 3.9562189960944636,
+        "north": 3.057504089112771,
+        "speed": 5.0,
+        "direction": 232.30189884582632,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.7892506244675925,
+              -0.6140712106730908
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9708320811722253,
+              -0.23976044329039312
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9137850510501483,
+              -0.4061980803466187
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          80.1863600713412,
+          0.17601999194153103
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5974200729048832,
+              0.801928460955417
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.7675574399986764,
+              0.6409801684160582
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.6348537532744966,
+              0.772632326500312
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          80.1863600713412,
+          0.17601999194153103
+        ],
+        "east": -1.3304727437799517,
+        "north": -4.819734668844193,
+        "speed": 5.0,
+        "direction": 15.432001204405044,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.2644381816384308,
+              0.964402637953547
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.5054383960801966,
+              0.8628626934616411
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.41089808485892465,
+              0.9116812841444469
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          80.1863600713412,
+          0.17601999194153103
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9610336089637708,
+              -0.27643155109732026
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.9587275167672723,
+              -0.2843264823987726
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.9450513799347661,
+              -0.32692183971615335
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          80.1863600713412,
+          0.17601999194153103
+        ],
+        "east": -2.698018124979663,
+        "north": 6.761708230712207,
+        "speed": 7.280109889280518,
+        "direction": 158.2472947581074,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.36845816236093193,
+              -0.9296443312308235
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.5707424255442092,
+              -0.8211291516466291
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.39628615498555775,
+              -0.918127051865243
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          80.1863600713412,
+          0.17601999194153103
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 1,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          80.1863600713412,
+          0.17601999194153103
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          131.18657289083492,
+          17.74184184028342
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9999999999999998,
+              2.484451089475635e-08
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.7970101012508345,
+              -0.6039659746245102
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.8426618502416889,
+              -0.5384431317671841
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          131.18657289083492,
+          17.74184184028342
+        ],
+        "east": 4.893815578095342,
+        "north": 1.024972725291434,
+        "speed": 5.0,
+        "direction": 258.1708202781476,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9785109919759161,
+              -0.20619466186666618
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.7060094366064913,
+              -0.7082024254565814
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.7365097414999855,
+              -0.6764269366869008
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          131.18657289083492,
+          17.74184184028342
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.2850280942987226,
+              -0.9585191628029346
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.3977693937018251,
+              -0.9174854273687852
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          131.18657289083492,
+          17.74184184028342
+        ],
+        "east": -1.0249690144438373,
+        "north": 4.893816355302887,
+        "speed": 5.0,
+        "direction": 168.17086372397947,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.2038000491904997,
+              -0.9790125330913542
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.5405769922820983,
+              -0.8412945473585576
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.6048532638174331,
+              -0.7963369445463389
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          131.18657289083492,
+          17.74184184028342
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5976589352520438,
+              0.801750458131078
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9502366789269553,
+              0.3115288975711087
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9258358776525648,
+              0.3779258229485054
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          131.18657289083492,
+          17.74184184028342
+        ],
+        "east": 3.756265925584201,
+        "north": -3.300070650197517,
+        "speed": 5.0,
+        "direction": 311.30095043763816,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.7492543034838004,
+              0.6622824085773419
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9996032563578724,
+              0.02816611224038065
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.989475987978447,
+              0.14469716380798978
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          131.18657289083492,
+          17.74184184028342
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9610792510647922,
+              -0.27627282380418494
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.9069601759147049,
+              0.421216380622558
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.9503028683379822,
+              0.3113269317431493
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          131.18657289083492,
+          17.74184184028342
+        ],
+        "east": -7.261330869544686,
+        "north": 0.5225648313820982,
+        "speed": 7.280109889280518,
+        "direction": 94.11621945799746,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9973889920660738,
+              -0.07221633129300621
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.8270262753166436,
+              0.5621632680421934
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.8748024923221731,
+              0.484479720346388
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          131.18657289083492,
+          17.74184184028342
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        -30,
+        -10
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          131.18657289083492,
+          17.74184184028342
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          163.06957804995628,
+          29.9198268711967
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.999999999999999,
+              4.524087924485471e-08
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.33160626494776135,
+              -0.9434178740342983
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.44999392636563423,
+              -0.8930316154728454
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          163.06957804995628,
+          29.9198268711967
+        ],
+        "east": 4.987668882664181,
+        "north": -0.35094033239774614,
+        "speed": 5.0,
+        "direction": 274.02478920230425,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9975088317253468,
+              0.0705416942661138
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.3808432027201902,
+              -0.9246396351778504
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.5062495867759936,
+              -0.8623870105058029
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          163.06957804995628,
+          29.9198268711967
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.6491389866309577,
+              -0.760669820642132
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.7644367907732985,
+              -0.6446986838145556
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          163.06957804995628,
+          29.9198268711967
+        ],
+        "east": 0.3509373978186306,
+        "north": 4.987669089144977,
+        "speed": 5.0,
+        "direction": 184.02475549136665,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.06983566003195102,
+              -0.9975585098568914
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.5949181918138274,
+              -0.8037862558223834
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.7155756519507919,
+              -0.6985352434453105
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          163.06957804995628,
+          29.9198268711967
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5980603949421183,
+              0.8014510365591136
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9964004564090219,
+              -0.08477104734455627
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9974567722249149,
+              -0.07127403133438127
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          163.06957804995628,
+          29.9198268711967
+        ],
+        "east": 2.711850645473455,
+        "north": -4.20069828441001,
+        "speed": 5.0,
+        "direction": 327.1548699814615,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5404374307808688,
+              0.8413842067753432
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.999174958318674,
+              0.04061283871974535
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.999823698491995,
+              0.018776898939603687
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          163.06957804995628,
+          29.9198268711967
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9611558457858925,
+              -0.2760062320158831
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.5397360829043323,
+              0.8418342834614706
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.6695173518183415,
+              0.7427964159944198
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          163.06957804995628,
+          29.9198268711967
+        ],
+        "east": -6.842360413178841,
+        "north": 2.4863837145869274,
+        "speed": 7.280109889280518,
+        "direction": 109.97018255900316,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9393145571075548,
+              -0.34305708388814526
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.5977582362516085,
+              0.8016764253695915
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.722134156142623,
+              0.6917530343498189
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          163.06957804995628,
+          29.9198268711967
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        0,
+        0
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          163.06957804995628,
+          29.9198268711967
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          -169.5505171946197,
+          41.069773224035664
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9999999999999977,
+              6.820555691176e-08
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.20828760051199618,
+              -0.9780676231595417
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.06379378012489341,
+              -0.9979631023326347
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          -169.5505171946197,
+          41.069773224035664
+        ],
+        "east": 4.769343949426999,
+        "north": -1.5011190132911083,
+        "speed": 5.0,
+        "direction": 287.4710457214673,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.9535389697644444,
+              0.3012697016637454
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.02973233118719275,
+              -0.9995578965133411
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.2236783314868065,
+              -0.9746630207529565
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          -169.5505171946197,
+          41.069773224035664
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.9207516099748868,
+              -0.39014929543529114
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.9793321875680513,
+              -0.20225841488841792
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          -169.5505171946197,
+          41.069773224035664
+        ],
+        "east": 1.5011039096074796,
+        "north": 4.769348703183815,
+        "speed": 5.0,
+        "direction": 197.47086427577898,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.2991778847074886,
+              -0.9541973555307899
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.7925892344928833,
+              -0.6097559391805751
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.8770432167991138,
+              -0.4804114859853609
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          -169.5505171946197,
+          41.069773224035664
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.5985316087501666,
+              0.8010991906917254
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.8153544263756357,
+              -0.5789621398586078
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.8298742781801582,
+              -0.5579504300696984
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          -169.5505171946197,
+          41.069773224035664
+        ],
+        "east": 1.6607207175506888,
+        "north": -4.716143201631809,
+        "speed": 5.0,
+        "direction": 340.6010319504214,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.33101577861110976,
+              0.9436252192001232
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              0.9990807104009486,
+              -0.04286880106482891
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9816948023813202,
+              -0.19046079643197036
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          -169.5505171946197,
+          41.069773224035664
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9612455761915709,
+              -0.2756935658518979
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.005087506750611659,
+              0.9999870585537908
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.19699363988049623,
+              0.9804047663320663
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          -169.5505171946197,
+          41.069773224035664
+        ],
+        "east": -6.07663488213199,
+        "north": 4.009302746021648,
+        "speed": 7.280109889280518,
+        "direction": 123.41642792831152,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.8337201253972107,
+              -0.5521872440646007
+            ]
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": [
+              -0.3451799394746735,
+              0.9385365253330639
+            ]
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.5116865094461673,
+              0.859172227234329
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          -169.5505171946197,
+          41.069773224035664
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        20,
+        15
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          -169.5505171946197,
+          41.069773224035664
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": true,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          -148.68681880864742,
+          -4.365884362887792
+        ],
+        "east": 5,
+        "north": 0,
+        "speed": 5.0,
+        "direction": 270.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              1.0,
+              -5.9200680601112064e-09
+            ]
+          },
+          "orthographic": {
+            "visible": false,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.2755148927371731,
+              -0.9612968032194968
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 5,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          -148.68681880864742,
+          -4.365884362887792
+        ],
+        "east": 4.483246504063772,
+        "north": -2.2137074747581176,
+        "speed": 5.0,
+        "direction": 296.27893056116295,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.8954700104472207,
+              0.4451218489241508
+            ]
+          },
+          "orthographic": {
+            "visible": false,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.024166494231390168,
+              -0.9997079476309889
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          -148.68681880864742,
+          -4.365884362887792
+        ],
+        "east": 0,
+        "north": 5,
+        "speed": 5.0,
+        "direction": 180.0,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.0,
+              -1.0
+            ]
+          },
+          "orthographic": {
+            "visible": false,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.8596654964580784,
+              -0.5108573521047587
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 5,
+      "expected": {
+        "geographic": [
+          -148.68681880864742,
+          -4.365884362887792
+        ],
+        "east": 2.2137070149092177,
+        "north": 4.483246731124857,
+        "speed": 5.0,
+        "direction": 206.2789246843055,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.44036758119540415,
+              -0.8978175724678757
+            ]
+          },
+          "orthographic": {
+            "visible": false,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.6414298001143828,
+              -0.7671817330497533
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          -148.68681880864742,
+          -4.365884362887792
+        ],
+        "east": 3,
+        "north": -4,
+        "speed": 5.0,
+        "direction": 323.13010235415595,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.597434957583484,
+              0.8019173719637334
+            ]
+          },
+          "orthographic": {
+            "visible": false,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.6025027420473872,
+              -0.7981168121430469
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 3,
+      "v": -4,
+      "expected": {
+        "geographic": [
+          -148.68681880864742,
+          -4.365884362887792
+        ],
+        "east": 0.9189822452658597,
+        "north": -4.914821627779193,
+        "speed": 5.0,
+        "direction": 349.4090291541302,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              0.18261405599395097,
+              0.9831846757112511
+            ]
+          },
+          "orthographic": {
+            "visible": false,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.9642528609626915,
+              0.2649838110626086
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          -148.68681880864742,
+          -4.365884362887792
+        ],
+        "east": -7,
+        "north": 2,
+        "speed": 7.280109889280518,
+        "direction": 105.94539590092286,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.9610364516498379,
+              -0.2764216681092288
+            ]
+          },
+          "orthographic": {
+            "visible": false,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              0.14436995546017262,
+              0.9895237824127461
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": -7,
+      "v": 2,
+      "expected": {
+        "geographic": [
+          -148.68681880864742,
+          -4.365884362887792
+        ],
+        "east": -5.391062153659632,
+        "north": 4.892489024553735,
+        "speed": 7.280109889280518,
+        "direction": 132.22432601854936,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": [
+              -0.7382811099615425,
+              -0.6744931450162803
+            ]
+          },
+          "orthographic": {
+            "visible": false,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": [
+              -0.2748833267490034,
+              0.96147759031368
+            ]
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": false,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          -148.68681880864742,
+          -4.365884362887792
+        ],
+        "east": 0,
+        "north": 0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": false,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    },
+    {
+      "spec": 2,
+      "xy": [
+        55,
+        -20
+      ],
+      "grid_relative": true,
+      "u": 0,
+      "v": 0,
+      "expected": {
+        "geographic": [
+          -148.68681880864742,
+          -4.365884362887792
+        ],
+        "east": 0.0,
+        "north": 0.0,
+        "speed": 0.0,
+        "direction": null,
+        "screens": {
+          "mercator": {
+            "visible": true,
+            "direction": null
+          },
+          "orthographic": {
+            "visible": false,
+            "direction": null
+          },
+          "laea": {
+            "visible": false,
+            "direction": null
+          },
+          "laea-rf": {
+            "visible": true,
+            "direction": null
+          }
+        }
+      }
+    }
+  ]
+}

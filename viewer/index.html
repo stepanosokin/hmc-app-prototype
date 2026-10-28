@@ -19,7 +19,13 @@
   <div id="pointMarker" hidden aria-hidden="true"></div>
   <button id="showPoint" class="panel pointRecall" aria-controls="drawer" hidden>Выбранная точка</button>
   <section id="pointCard" class="panel point" hidden aria-label="Значение выбранной точки"><button id="closePoint" aria-label="Закрыть значение точки" title="Закрыть">×</button><div id="pointContent"></div></section>
+  <div id="legendDock" class="legendDock">
+  <section id="windPanel" class="panel windPanel" aria-label="Скорость и направление ветра">
+    <div class="windControls"><button id="windToggle" aria-label="Скорость и направление ветра" title="Скорость и направление ветра" aria-pressed="true"><img class="fieldIcon" src="/vendor/field-icons/wind.png" alt=""></button><label for="windLevel">Скорость и направление ветра<select id="windLevel"><option value="">Выберите уровень ветра</option></select></label></div>
+    <small id="windStatus" role="status" aria-live="polite">Загрузка доступных уровней…</small><button id="windRetry" hidden>Повторить загрузку ветра</button>
+  </section>
   <details id="legendPanel" class="panel legend" aria-label="Шкала выбранного поля" open><summary class="widgetToggle"><span id="legendSummary">Поле прогноза</span></summary><div class="widgetBody"><div><span id="legendTitle">Поле прогноза</span> <b class="unit">°C</b></div><div class="ramp"></div><div class="ticks"><span>−20</span><span>0</span><span>20</span><span>40</span></div><small id="legendSource">Числовые данные</small></div></details>
+  </div>
   <section id="drawer" class="panel drawer" aria-label="Подробности и настройки" hidden>
     <nav class="sheetTabs" aria-label="Содержимое панели"><button id="sheetSettings">Настройки</button><button id="sheetPoint" hidden>Точка</button></nav>
     <button id="closeDrawer" aria-label="Свернуть панель">Свернуть ⌄</button><button id="clearMobilePoint" aria-label="Закрыть значение точки">Удалить выбранную точку ×</button><div id="mobilePoint"></div>

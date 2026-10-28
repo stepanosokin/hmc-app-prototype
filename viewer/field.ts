@@ -89,6 +89,8 @@ export class FieldLoader {
             ['model','run','revision','field','level','valid_time','native_grid_sha256','member'].some(key=>metadata.identity[key]!==selection[key as keyof Selection]))
             throw Error('Несогласованный числовой контракт или выборка.');
         const columns=metadata.columns[1]+1,rows=metadata.rows[1]+1,count=columns*rows;
+        if(selection.wind_axis&&metadata.uv_relative_to_grid!==selection.uv_relative_to_grid)
+            throw Error('Ориентация компонент ветра не совпадает с каталогом.');
         if(!Number.isSafeInteger(count)||count<1||count>(extended?64:18)||metadata.columns[0]!==0||metadata.rows[0]!==0||
             metadata.grid.shape_yx.length!==2||metadata.grid.shape_yx.some(x=>!Number.isSafeInteger(x)||x<1)||
             Math.ceil(metadata.grid.shape_yx[1]/256)!==columns||Math.ceil(metadata.grid.shape_yx[0]/256)!==rows||

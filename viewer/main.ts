@@ -10,6 +10,7 @@ import {PointChart} from './point-chart.js';
 import {SourceSettings,type SourceDescription} from './source-settings.js';
 import {FieldPicker,fieldPresentation,fieldUnits,fieldNumber,legendNumber} from './fields.js';
 import {compactGroups,type CompactCatalogue} from './catalogue.js';
+import {WindOverlay} from './wind-overlay.js';
 
 import {laeaRfId,laeaRq,laeaD} from './laea-rf.js';
 type Mode='mercator'|'orthographic'|'laea'|'laea-rf';
@@ -29,7 +30,7 @@ const series=new PointSeries(pointValue,seriesChanged);
 function seriesChanged(){
     if(series.expired&&timeState!=='expired'&&timeState!=='withdrawn'){
         cancelTime();timeState='expired';if(layer)layer.fieldVisible=false;map?.triggerRepaint();displayed=undefined;metadata=undefined;point=undefined;
-        selectionDetails();notice('Публикация истекла. Перевыберите публикацию.');renderPoint('Публикация истекла');return;
+        selectionDetails();syncWind();notice('Публикация истекла. Перевыберите публикацию.');renderPoint('Публикация истекла');return;
     }
     if(position&&selected&&timeState==='ready'){
         const entry=series.entries[index];point=entry?.result;
@@ -57,11 +58,22 @@ let catalogueChecks=0;
 let timeController=new AbortController(),displayed:Selection|undefined;
 let reselectController=new AbortController();
 let timeState:'loading'|'ready'|'missing'|'error'|'expired'|'withdrawn'='missing',pointMessage='',timeError='';
+const wind=new WindOverlay(()=>{wind.points(position);if(position)renderPoint();fieldPicker.layout();},bytes=>{
+    const base=stagingBase();
+    if(base+bytes+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)
+        throw Error('Превышен общий бюджет числовых ресурсов.');
+});
+function syncWind(){
+    const available=timeState==='ready'||timeState==='missing';
+    const eligible=timeState!=='expired'&&timeState!=='withdrawn';
+    wind.update(groups,eligible?group?.selection:undefined,(group?.start??0)+index*3600000,available);
+    wind.visible(available&&!lost);
+}
 function cancelTime(){timeController.abort();timeController=new AbortController();loader.cancel();timeStagingBytes=0;}
 function cancelUpdate(){
     const wasBusy=updateBusy;
     updateController.abort();updateController=new AbortController();updateLoader.cancel();updateBusy=false;updateStagingBytes=0;
-    if(wasBusy)updateMessage('Обновление отменено. Текущая выборка сохранена.');
+    if(wasBusy){updateMessage('Обновление отменено. Текущая выборка сохранена.');queueMicrotask(()=>{if(timeState==='ready')syncWind();});}
 }
 let firstCompleteMs:number|undefined,lastFrame:number|undefined;const frames:number[]=[];
 let lastRendered:{selection:string;mode:string;at:number}|undefined;
@@ -126,7 +138,7 @@ function setGroup(newGroup:PublishedGroup,preservePoint=false){
     if(preservePoint){let distance=Infinity;group.times.forEach((item,i)=>{const delta=Math.abs(group!.start+i*3600000-time);if(item&&delta<distance){distance=delta;index=i;}});}
     timeState='missing';runControls();timeControls();ensureSeries();void chooseTime(index);
 }
-function clearPoint(){reselectController.abort();series.clear();cancelUpdate();pointController.abort();point=undefined;position=undefined;pointCollapsed=false;
+function clearPoint(){reselectController.abort();series.clear();wind.clearPoints();cancelUpdate();pointController.abort();point=undefined;position=undefined;pointCollapsed=false;
     $('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');placePoint();if(group)selectionDetails();}
 function releaseLayer(){
     const previous=layer;layer=undefined;
@@ -148,7 +160,7 @@ function stagingBase(){
     // checkBudget reserves a full RGBA32F readback texture (16 bytes/pixel).
     // Readback is forbidden while staging; the old display and its arrays stay.
     const canvas=map?.getCanvas();
-    return layer?layer.checkBudget()-(canvas?canvas.width*canvas.height*16:0):0;
+    return (layer?layer.checkBudget()-(canvas?canvas.width*canvas.height*16:0):0)+wind.bytes();
 }
 async function prepareLayer(field:FieldData,owner:any,signal:AbortSignal){
     const extra=field.blocks.reduce((n,b)=>n+b.byteLength,0)+(field.wind?.blocks.reduce((n,b)=>n+b.byteLength,0)??0)+(field.wind?2*1024**2:258*258*8+258*258*field.blocks.length*8)+
@@ -176,16 +188,17 @@ async function chooseTime(next:number){
     if(timeState==='withdrawn'){notice('Публикация снята. Перевыберите публикацию в настройках.');return;}
     if(series.expired||timeState==='expired'){notice('Публикация истекла. Перевыберите публикацию в настройках.');return;}
     if(!group)return;index=Math.max(0,Math.min(group.times.length-1,next));syncTime();
-    cancelTime();cancelUpdate();pointController.abort();point=undefined;
+    cancelTime();cancelUpdate();pointController.abort();point=undefined;wind.releaseFrame();wind.visible(false);
     const version=++selectionVersion;++viewVersion;
     selected=group.times[index]??undefined;
     timeState=selected?'loading':'missing';timeError='';
+    syncWind();
     renderPoint(selected?'Загрузка значения выбранного срока…':'Срок отсутствует');
     if(!selected){
         // Keep the geographic context, including the local context owned by the layer.
         if(layer)layer.fieldVisible=false;map?.triggerRepaint();
         displayed=undefined;metadata=undefined;
-        selectionDetails();notice('В выбранной редакции этот срок отсутствует. Слой и значение точки скрыты.');return;
+        selectionDetails();syncWind();notice('В выбранной редакции этот срок отсутствует. Слой и значение точки скрыты.');return;
     }
     selectionDetails();
     notice('Загрузка числового поля…');
@@ -211,13 +224,13 @@ async function chooseTime(next:number){
             signal.throwIfAborted();if(version!==selectionVersion||owner!==map)return;
             replaceLayer(candidate);data=field;metadata=description;
         }
-        displayed=current;timeState='ready';if(layer)layer.fieldVisible=true;map?.triggerRepaint();selectionDetails();notice('');renderPoint('');
+        displayed=current;timeState='ready';timeStagingBytes=0;if(layer)layer.fieldVisible=true;map?.triggerRepaint();selectionDetails();syncWind();notice('');renderPoint('');
         if(position)void refreshPoint(current,position);
     }catch(error){if(version===selectionVersion&&!transaction.signal.aborted){
         timeError=String(error);
         timeState=error instanceof PublicationExpired?'expired':'error';
         if(timeState==='expired'){series.expire();if(layer)layer.fieldVisible=false;map?.triggerRepaint();displayed=undefined;metadata=undefined;}
-        selectionDetails();renderPoint(timeState==='expired'?'Публикация истекла':'Не удалось загрузить выбранный срок');
+        selectionDetails();syncWind();renderPoint(timeState==='expired'?'Публикация истекла':'Не удалось загрузить выбранный срок');
         notice(timeState==='expired'?'Публикация истекла. Проверьте обновления.':
             'Не удалось загрузить выбранный срок. '+(displayed?'Сохранено поле: '+timestamp(displayed.valid_time)+'. ':'')+'Повторите загрузку.');
     }}finally{
@@ -254,7 +267,7 @@ async function rebuild(fit=false){
         const scale=layer?.geometry().scale,zoom=map?.getZoom()??0;
         if(map&&mapMode!=='orthographic'){const c=map.getCenter();center=[c.lng,c.lat];}
         if(mode==='laea')center=[center[0],Math.max(45,center[1])];
-        releaseLayer();
+        wind.unmount();releaseLayer();
         ownedCanvas=undefined;
         map=await create(mode==='laea-rf'?laeaRfId:mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',center,zoom);
         mapMode=mode;
@@ -263,13 +276,14 @@ async function rebuild(fit=false){
         const canvas=map.getCanvas();
         ownedCanvas=canvas;
         canvas.addEventListener('webglcontextlost',(event:Event)=>{if(ownedCanvas!==canvas)return;event.preventDefault();lost=true;cancelTime();cancelUpdate();loader.cancel();
-            ++selectionVersion;notice('Графический контекст потерян. Ожидается восстановление.');placePoint();});
+            ++selectionVersion;wind.visible(false);notice('Графический контекст потерян. Ожидается восстановление.');placePoint();});
         canvas.addEventListener('webglcontextrestored',()=>{if(ownedCanvas!==canvas)return;lost=false;ownedCanvas=undefined;releaseLayer();map.remove();map=undefined;
             if(timeState==='missing'&&data)void rebuild(true);else void chooseTime(index);});
         layer=new WeatherLayer(currentData,mode==='laea-rf'?laeaRfId:mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
         layer.fieldVisible=Boolean(displayed)&&timeState!=='missing'&&timeState!=='expired'&&timeState!=='withdrawn';
         mapBaseCenter=[...layer.baseCenter];mapBaseProjection=layer.baseProjection;
         map.addLayer(layer);layer.setPalette(alternate);
+        wind.mount(map,()=>layer);
         if(mode!=='mercator')layer.context=new LocalContext(map,coverage(mode==='orthographic'),mode);
         else{map.addSource('coverage',{type:'geojson',data:coverage()});map.addLayer({id:'coverage',source:'coverage',type:'line',paint:{'line-color':'#fff','line-width':1}});}
         rendererError='';$('useMercator').hidden=true;
@@ -332,6 +346,7 @@ function placePoint(){
 }
 function renderPoint(message=pointMessage){
     pointMessage=message;
+    wind.points(position);
     if(group)sourceSettings.update(group,index,selected,position,metadata,timeState,displayed,
         timeState==='ready'?data?.metadata.grid.outer_cell_edges_wsen:undefined,timestamp);
     $('sheetPoint').hidden=!position;$('clearMobilePoint').hidden=!position;
@@ -355,6 +370,7 @@ function renderPoint(message=pointMessage){
             'Выборка: '+point.selection+'. Редакция: '+point.revision+'. Источник: '+JSON.stringify(point.source):'');
         if(position){
             let chart=charts.get(id);if(!chart){chart=new PointChart(next=>void chooseTime(next));charts.set(id,chart);}
+            chart.setWind(wind.entries,wind.enabled,wind.levelLabel,wind.state==='ready'?'':wind.status);
             chart.update(series,index,valueText);if(chart.element.parentElement!==container)container.append(chart.element);
         }
     }
@@ -454,7 +470,7 @@ control('time').onchange=()=>void chooseTime(Number(control('time').value));
 $<HTMLInputElement>('timeRange').oninput=event=>void chooseTime(Number((event.target as HTMLInputElement).value));
 $('previous').onclick=()=>void chooseTime(index-1);$('next').onclick=()=>void chooseTime(index+1);
 control('run').onchange=()=>{const found=groups.find(item=>item.key===control('run').value);if(found)setGroup(found);};
-control('model').onchange=()=>{const found=groups.find(item=>item.selection.model===control('model').value);if(found){control('run').value=found.key;setGroup(found);}};
+control('model').onchange=()=>{const found=groups.find(item=>item.selection.model===control('model').value&&!item.selection.wind_axis);if(found){control('run').value=found.key;setGroup(found);}};
 $('settings').onclick=()=>openDrawer();
 $('sheetSettings').onclick=()=>openDrawer();$('sheetPoint').onclick=()=>openDrawer(true);
 $('closeDrawer').onclick=()=>{$('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');pointCollapsed=true;layout();};
@@ -545,7 +561,7 @@ async function checkUpdates(manual=false){
             if(layer)layer.fieldVisible=false;map?.triggerRepaint();
             displayed=undefined;selected=undefined;metadata=undefined;data=undefined;
             groups=latest;pendingGroups=undefined;runControls();updateActions();
-            timeState='withdrawn';selectionDetails();renderPoint('Публикация снята');
+            timeState='withdrawn';selectionDetails();syncWind();renderPoint('Публикация снята');
             notice('Публикация снята');updateMessage('Публикация снята');catalogueChecks++;
             if(replacement){
                 group=replacement;index=(validTime-replacement.start)/3600000;timeState='missing';
@@ -572,6 +588,7 @@ async function acceptPublication(newRun=false){
     const current=target.times[targetIndex];
     if(!current){updateMessage('Выбранный срок отсутствует в новой редакции. Текущая выборка сохранена.');return;}
     cancelUpdate();catalogueController.abort();updateController=new AbortController();updateBusy=true;
+    wind.releaseFrame();
     const transaction=updateController;
     const signal=AbortSignal.any([transaction.signal,AbortSignal.timeout(30000)]),owner=map;
     const oldSelection=selected,oldPosition=position;
@@ -590,7 +607,7 @@ async function acceptPublication(newRun=false){
         pointController.abort();replaceLayer(candidate);
         data=field;metadata=description;selected=current;displayed=current;timeState='ready';group=target;index=targetIndex;
         if(mode!=='mercator'&&!candidate.context)candidate.context=new LocalContext(map,coverage(mode==='orthographic'),mode);
-        groups=catalogueSnapshot;pendingGroups=undefined;runControls();timeControls();selectionDetails();
+        groups=catalogueSnapshot;pendingGroups=undefined;updateStagingBytes=0;runControls();timeControls();selectionDetails();syncWind();
         series.clear();point=nextPoint;if(newRun){position=undefined;pointCollapsed=false;}
         ensureSeries(nextPoint);
         candidate.setPalette(alternate);renderPoint('');updateActions();
@@ -600,7 +617,7 @@ async function acceptPublication(newRun=false){
     }finally{
         signal.removeEventListener('abort',abortField);
         if(candidate&&candidate!==layer&&owner.getLayer(candidate.id))owner.removeLayer(candidate.id);
-        if(transaction===updateController){updateBusy=false;updateLoader.cancel();updateStagingBytes=0;}
+        if(transaction===updateController){updateBusy=false;updateLoader.cancel();updateStagingBytes=0;syncWind();}
     }
 }
 $('refresh').onclick=()=>void checkUpdates(true);
@@ -611,14 +628,16 @@ const poll=setInterval(()=>{if(!document.hidden)void checkUpdates();},60000);
 async function boot(){
     bootController.abort();bootController=new AbortController();notice('Загрузка опубликованных прогнозов…');
     try{groups=await catalogue();if(!groups.length){notice('Опубликованные прогнозы недоступны.');return;}
-        const initial=groups.find(item=>item.selection.model===groups[0].selection.model&&item.selection.field_short_name==='t'&&item.selection.field_level_type==='surface')??groups[0];
+        const initial=groups.find(item=>item.selection.model===groups[0].selection.model&&item.selection.field_short_name==='t'&&item.selection.field_level_type==='surface')??groups.find(item=>!item.selection.wind_axis)??groups[0];
         setGroup(initial);
     }catch(error){notice((error as Error).name==='AbortError'?'Загрузка отменена.':'Сервис прогнозов недоступен. Откройте настройки и повторите загрузку.');}
 }
-addEventListener('pagehide',()=>{clearInterval(poll);reselectController.abort();series.clear();cancelTime();cancelUpdate();catalogueController.abort();++viewVersion;++selectionVersion;data=undefined;loader.cancel();pointController.abort();bootController.abort();cancelAnimationFrame(inertia);ownedCanvas=undefined;releaseLayer();map?.remove();});
+addEventListener('pagehide',()=>{clearInterval(poll);wind.dispose();reselectController.abort();series.clear();cancelTime();cancelUpdate();catalogueController.abort();++viewVersion;++selectionVersion;data=undefined;loader.cancel();pointController.abort();bootController.abort();cancelAnimationFrame(inertia);ownedCanvas=undefined;releaseLayer();map?.remove();});
 // Read-only numerical evidence surface, enabled solely by an explicit validation URL.
 function numericalView(){
     if(!layer?.ready||lost||layer.wind||timeState!=='ready'||updateBusy||timeStagingBytes||updateStagingBytes)return undefined;
+    const canvas=map.getCanvas();
+    if(stagingBase()+canvas.width*canvas.height*16+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)return undefined;
     const view=layer.samples(),p=projection();
     const cases:[string,number[]][]=[['pole',[90,90]],['dateline-positive',[180,80]],['dateline-negative',[-180,80]]];
     if(mode==='laea')cases.push(['south-of-cut',[90,44.999]],['north-of-cut',[90,45.001]]);
@@ -640,11 +659,11 @@ if(validation){
         view:samples?numericalView():undefined,transfer_bytes:data?.bytes,load_ms:data?.load_ms,
         map_zoom:map?.getZoom(),view_geometry:layer?.geometry(),view_center:[...center],native_bounds:data?.metadata.grid.outer_cell_edges_wsen,source_crs:data?.metadata.source_crs,
         synthetic_masks:samples&&layer?.ready&&!lost&&data?.metadata.grid.shape_yx.join(',')==='657,1377'?layer.syntheticMasks():undefined,
-        managed_bytes:!lost?(timeStagingBytes||updateStagingBytes?stagingBase():layer?.checkBudget()??0)+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET:undefined,context_lost:lost,renderer_error:rendererError,
+        managed_bytes:!lost?stagingBase()+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET:undefined,context_lost:lost,renderer_error:rendererError,
         first_complete_ms:firstCompleteMs,render_frames_ms:[...frames],render_times_ms:[...renderTimes],warm_switch_ms:warmSwitchMs,
         rendered:lastRendered,
         catalogue_checks:catalogueChecks,catalogue_pending:Boolean(pendingGroups),
         upload_timings:layer?.uploadTimings,decode_timings:data?.decode_ms,wind_decode_timings:data?.wind?.decode_ms,
-        portrayal_baseline:portrayalBaseline,wind:layer?.wind?.evidence(),screen_pick:screenPick})});
+        portrayal_baseline:portrayalBaseline,wind:wind.evidence().arrows,wind_overlay:wind.evidence(),screen_pick:screenPick})});
 }
 palette();layout();void boot();

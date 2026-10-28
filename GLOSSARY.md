@@ -55,7 +55,19 @@ _Avoid_: Treating display values as canonical native-cell samples or equating a 
 A sequence of forecast values for one geographic point and field over the valid times of one model run and publication revision. Missing values remain explicit gaps; this series does not represent historical observations.
 _Avoid_: Mixing model runs or publication revisions, or calling earlier forecast times observations.
 
+**Wind direction**:
+The geographic direction from which the wind blows. The direction of airflow is the opposite direction and is the direction indicated by map arrows.
+_Avoid_: Confusing the meteorological wind direction with the direction in which air moves or with the orientation of the map on screen.
+
+**Wind barb**:
+A traditional wind symbol whose shaft points toward the direction from which the wind blows, with feathers and pennants indicating speed in knots. Exact point-forecast speed remains available separately in metres per second.
+_Avoid_: Reading the shaft as an arrow pointing in the direction of airflow.
+
 ## Product scope
+
+**Wind overlay**:
+A representation of wind speed and direction that can be enabled independently of the selected meteorological field, allowing both to be viewed together.
+_Avoid_: Treating the wind overlay as an alternative to the selected field.
 
 **Web-map display projection**:
 The representation of a published field and its geographic context on the web map. Choosing it changes the view while preserving the selected forecast and the meaning of its native-cell values.
