@@ -55,10 +55,9 @@ export class PointChart {
         if(changed||!this.element.isConnected)this.preview=selected;
         const entries=series.entries,values=entries.flatMap(e=>e.result?.value!=null?[e.result.value]:[]);
         const low=Math.min(...values),high=Math.max(...values),span=Math.max(1e-30,Math.abs(low)*1e-6,high-low);
-        this.width=this.windEnabled?Math.max(264,entries.length*28+24):264;
         const offset=this.windEnabled?50:0;
         this.svg.setAttribute('viewBox',`0 0 ${this.width} ${110+offset}`);
-        this.svg.style.width=this.width+'px';this.svg.style.height=(110+offset)+'px';
+        const windScale=Math.min(1,(this.width-24)/Math.max(1,entries.length-1)/24);
         const x=(i:number)=>12+i/Math.max(1,entries.length-1)*(this.width-24);
         const y=(v:number)=>88+offset-(v-low)/span*68;
         const nodes:Element[]=[];let path='';
@@ -66,9 +65,9 @@ export class PointChart {
             const wind=this.windEntries.get(entry.time);
             if(wind?.state==='value'&&wind.speed!==undefined){
                 const barb=windBarb(wind.speed);
-                if(wind.direction===null||barb.calm)nodes.push(svgElement('circle',{cx:x(i),cy:27,r:3,fill:'none',stroke:'currentColor'}));
+                if(wind.direction===null||barb.calm)nodes.push(svgElement('circle',{cx:x(i),cy:27,r:3*windScale,fill:'none',stroke:'currentColor'}));
                 else{
-                    const g=svgElement('g',{transform:`translate(${x(i)} 27) rotate(${wind.direction})`});
+                    const g=svgElement('g',{transform:`translate(${x(i)} 27) rotate(${wind.direction}) scale(${windScale})`});
                     const symbol=svgElement('g',{transform:barb.transform});
                     symbol.append(svgElement('path',{d:barb.shaft+barb.feathers,fill:'none',stroke:'currentColor','stroke-width':1.1,'vector-effect':'non-scaling-stroke'}),svgElement('path',{d:barb.pennants,fill:'currentColor'}));g.append(symbol);
                     const title=svgElement('title',{});title.textContent=entry.time+' · '+windDescription({speed:wind.speed,direction:wind.direction??null});g.append(title);nodes.push(g);
@@ -83,13 +82,13 @@ export class PointChart {
             path=next;
         }
         nodes.push(svgElement('line',{x1:x(selected),x2:x(selected),y1:8,y2:94+offset,class:'nowLine'}));
-        const ticks:readonly (readonly [number,string])[]=this.windEnabled?entries.map((_,i)=>[i,'middle'] as const):[[0,'start'],[entries.length-1,'end']];
+        const tickCount=Math.min(9,entries.length);
+        const ticks:readonly (readonly [number,string])[]=this.windEnabled?Array.from({length:tickCount},(_,i)=>[Math.round(i/Math.max(1,tickCount-1)*(entries.length-1)),'middle'] as const):[[0,'start'],[entries.length-1,'end']];
         for(const [i,anchor] of ticks){
             if(!entries[i])continue;
             const label=svgElement('text',{x:x(i),y:108+offset,'text-anchor':anchor});label.textContent=entries[i].time.slice(11,this.windEnabled?13:16)+(this.windEnabled?'':' UTC');nodes.push(label);
         }
         this.svg.replaceChildren(...nodes);
-        if(changed&&this.windEnabled)this.plot.scrollLeft=Math.max(0,x(selected)-this.plot.clientWidth/2);
         const successes=entries.filter(e=>e.result).length,errors=entries.filter(e=>e.state==='error').length;
         this.status.textContent=series.expired?'Публикация истекла. Перевыберите публикацию.':
             series.busy?`Загрузка ряда: ${successes} из ${entries.filter(e=>e.selection).length}`:

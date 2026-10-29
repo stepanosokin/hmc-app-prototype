@@ -26,6 +26,27 @@ async function windFixtures(origin){
             return p.x>=.6&&p.x<=264-.6&&p.y>=.6&&p.y<=49.4;
         }));
     }));chart.element.remove();
+    const css=document.createElement('link');css.rel='stylesheet';css.href=origin+'/style.css';
+    await new Promise((resolve,reject)=>{css.onload=resolve;css.onerror=reject;document.head.append(css);});
+    let chosen=-1;
+    const responsive=new PointChart(index=>{chosen=index;});document.body.append(responsive.element);
+    for(const count of [9,25])for(const width of [240,264,320])for(const enabled of [true,false]){
+        responsive.element.style.width=width+'px';
+        const entries=Array.from({length:count},(_,i)=>({time:new Date(Date.UTC(2026,9,28,i)).toISOString(),state:'value',result:{value:i,units:'Pa'}}));
+        responsive.setWind(new Map(entries.map(e=>[e.time,{time:e.time,state:'value',speed:12,direction:270}])),enabled,'synthetic','');
+        responsive.update({key:'responsive-'+count,entries},0,String);
+        const plot=responsive.element.querySelector('.pointPlot');
+        expect('No horizontal chart overflow: '+count+' times, '+width+'px, wind '+enabled,plot.clientWidth>0&&plot.scrollWidth<=plot.clientWidth);
+        expect('Entire forecast remains rendered: '+count+' times, '+width+'px, wind '+enabled,responsive.element.querySelectorAll('.seriesValue,.selectedValue').length===count);
+        expect('Every wind symbol remains rendered: '+count+' times, '+width+'px, wind '+enabled,responsive.element.querySelectorAll('g[transform^="translate"]').length===(enabled?count:0));
+        const range=responsive.element.querySelector('input');range.value=String(count-1);range.dispatchEvent(new Event('input'));
+        range.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
+        expect('Last time remains selectable by keyboard: '+count+' times, '+width+'px, wind '+enabled,chosen===count-1);
+        const graph=responsive.element.querySelector('svg'),rect=graph.getBoundingClientRect();
+        graph.dispatchEvent(new MouseEvent('click',{clientX:rect.right-rect.width*12/264,clientY:rect.top+rect.height/2}));
+        expect('Last time remains selectable on fitted chart: '+count+' times, '+width+'px, wind '+enabled,chosen===count-1);
+    }
+    responsive.element.remove();css.remove();
     const reference=await(await fetch(origin+'/wind-reference.json')).json();
     const {earthComponents,screenVelocity}=await import(origin+'/build/wind.js');
     const {nativePosition}=await import(origin+'/build/source-crs.js');

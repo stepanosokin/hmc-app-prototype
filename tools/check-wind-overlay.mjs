@@ -118,6 +118,7 @@ try{
         await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...pixel});await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...pixel});
         await wait("captureWeatherEvidence().wind_overlay.point_entries.some(e=>e.state==='value')&&!captureWeatherEvidence().wind_overlay.point_entries.some(e=>e.state==='loading')",'U/V point series');
         await check(width+' scalar chart with wind flags',"document.querySelector('.realPointChart .pointPlot svg g title')?.textContent.includes('м/с')&&document.querySelector('.realPointChart .forecastLine')!==null");
+        await check(width+' entire popup chart fits without horizontal scrolling',"(()=>{const plots=[...document.querySelectorAll('.realPointChart .pointPlot')].filter(e=>e.getClientRects().length);return plots.length>0&&plots.every(e=>e.clientWidth>0&&e.scrollWidth<=e.clientWidth);})()");
         await check(width+' barb and exact-value units explicit',"document.querySelector('.realPointChart>small').textContent.includes('в узлах')&&document.querySelector('.realPointChart>small').title.includes('м/с')");
         await capture(width+'-point');
         if(width!==1440){
