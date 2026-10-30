@@ -57,6 +57,9 @@ interface Geometry {width:number;height:number;origin:number[];scale:number}
 interface Arrow {x:number;y:number;dx:number;dy:number;valid:boolean;age:number}
 type WindProjection={forward:(xy:number[])=>number[];inverse:(xy:number[])=>number[]};
 
+const PARTICLE_LIFETIME_SECONDS=1.7;
+const PARTICLE_PLACEMENT_ATTEMPTS=8;
+
 export function screenVelocity(p:number[],wind:{east:number;north:number},projection:WindProjection){
     const speed=Math.hypot(wind.east,wind.north);
     if(speed<.05||Math.abs(p[1])>89.9)return;
@@ -96,7 +99,7 @@ export class WindArrows {
         if(canvas.width!==view.width||canvas.height!==view.height){canvas.width=view.width;canvas.height=view.height;}
         const ctx=canvas.getContext('2d');if(!ctx)return;
         const css=canvas.getBoundingClientRect(),count=Math.min(8192,Math.max(1,Math.round(css.width*css.height/(1440*900)*2400)));
-        if(count!==this.arrows.length)this.arrows=Array.from({length:count},(_,i)=>({x:(i*.61803398875)%1,y:(i*.41421356237+.1)%1,dx:0,dy:0,valid:false,age:i/count}));
+        if(count!==this.arrows.length)this.arrows=Array.from({length:count},()=>({x:Math.random(),y:Math.random(),dx:0,dy:0,valid:false,age:Math.random()}));
         const key=JSON.stringify([view.width,view.height,view.origin,view.scale,center,mode]);
         const moved=key!==this.viewKey;this.viewKey=key;
         if(moved){this.viewChanges++;ctx.clearRect(0,0,canvas.width,canvas.height);for(const arrow of this.arrows)arrow.valid=false;}
@@ -109,15 +112,30 @@ export class WindArrows {
             return Math.sin(p[1]*rad)*Math.sin(center[1]*rad)+Math.cos(p[1]*rad)*Math.cos(center[1]*rad)*Math.cos((p[0]-center[0])*rad)>0;
         };
         this.display={projection,center:[...center],mode,visible};
-        // Stagger the bounded source sampling; draw every actual map frame.
-        for(let i=0;i<(moved?this.arrows.length:Math.ceil(this.arrows.length/8));i++){
-            const arrow=this.arrows[this.cursor++%this.arrows.length],p=geographic(arrow.x,arrow.y);arrow.valid=false;
-            if(!visible(p))continue;
+        const updateVelocity=(arrow:Arrow)=>{
+            arrow.valid=false;
+            const p=geographic(arrow.x,arrow.y);
+            if(!visible(p))return false;
             const xy=nativePosition(this.field.metadata.source_crs,p);
             const wind=earthWind(this.field,xy,p,q=>nativePosition(this.field.metadata.source_crs,q,true));
-            if(!wind)continue;
-            const velocity=screenVelocity(p,wind,projection);if(!velocity)continue;
+            if(!wind)return false;
+            const velocity=screenVelocity(p,wind,projection);if(!velocity)return false;
             arrow.dx=velocity.dx;arrow.dy=velocity.dy;arrow.valid=true;
+            return true;
+        };
+        const respawn=(arrow:Arrow,age=0)=>{
+            arrow.age=age;
+            // Independent uniform coordinates avoid lattice patterns and bands.
+            // Reject gaps and the hidden hemisphere with bounded retries.
+            for(let attempt=0;attempt<PARTICLE_PLACEMENT_ATTEMPTS;attempt++){
+                arrow.x=Math.random();arrow.y=Math.random();
+                if(updateVelocity(arrow))return;
+            }
+        };
+        // Stagger the bounded source sampling; draw every actual map frame.
+        for(let i=0;i<(moved?this.arrows.length:Math.ceil(this.arrows.length/8));i++){
+            const arrow=this.arrows[this.cursor++%this.arrows.length];
+            if(!updateVelocity(arrow))respawn(arrow,moved?Math.random():0);
         }
         if(paused&&!moved&&this.frames>1)return;
         this.paints++;
@@ -125,19 +143,19 @@ export class WindArrows {
         ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();
         const dpr=canvas.width/canvas.getBoundingClientRect().width;
         for(const arrow of this.arrows){
-            arrow.age+=dt*.3;
-            if(arrow.age>1||arrow.x<0||arrow.x>1||arrow.y<0||arrow.y>1){arrow.x=(arrow.x+.381966)%1;arrow.y=(arrow.y+.618034)%1;arrow.age=0;arrow.valid=false;}
+            arrow.age+=dt/PARTICLE_LIFETIME_SECONDS;
+            if(arrow.age>1||arrow.x<0||arrow.x>1||arrow.y<0||arrow.y>1)respawn(arrow);
             if(!arrow.valid)continue;
             const previousX=arrow.x*view.width,previousY=arrow.y*view.height;
             arrow.x+=arrow.dx*dt*dpr/view.width;arrow.y+=arrow.dy*dt*dpr/view.height;
             const p=geographic(arrow.x,arrow.y);
-            if(!visible(p)||!sampleWind(this.field,nativePosition(this.field.metadata.source_crs,p)))continue;
+            if(!visible(p)||!sampleWind(this.field,nativePosition(this.field.metadata.source_crs,p))){arrow.valid=false;continue;}
             const x=arrow.x*view.width,y=arrow.y*view.height,length=Math.hypot(arrow.dx,arrow.dy);
             const dx=arrow.dx/length,dy=arrow.dy/length;
-            ctx.globalAlpha=Math.min(1,arrow.age*5,(1-arrow.age)*5)*.9;
+            ctx.globalAlpha=Math.min(1,arrow.age*5,(1-arrow.age)*5)*.65;
             // Particles have no arrowheads; motion and fading trails show airflow.
             ctx.beginPath();ctx.moveTo(dt?previousX:x-dx*3*dpr,dt?previousY:y-dy*3*dpr);ctx.lineTo(x,y);
-            ctx.lineCap='round';ctx.strokeStyle='#eef6ff';ctx.lineWidth=dpr;ctx.stroke();
+            ctx.lineCap='round';ctx.strokeStyle='#eef6ff';ctx.lineWidth=.65*dpr;ctx.stroke();
         }
         ctx.globalAlpha=1;
     }
@@ -151,7 +169,7 @@ export class WindArrows {
                 earth,display_visible:this.display?.visible(geographic),
                 screen:earth&&this.display?.visible(geographic)?screenVelocity(geographic,earth,this.display.projection):undefined};
         }));
-        return {style:'particles-with-trails',trail_decay_seconds:1.25,frames:this.frames,paints:this.paints,view_changes:this.viewChanges,arrows:this.arrows.length,visible:this.arrows.filter(a=>a.valid).length,vectors,
+        return {style:'particles-with-trails',particle_lifetime_seconds:PARTICLE_LIFETIME_SECONDS,placement_attempts:PARTICLE_PLACEMENT_ATTEMPTS,trail_decay_seconds:1.25,frames:this.frames,paints:this.paints,view_changes:this.viewChanges,arrows:this.arrows.length,visible:this.arrows.filter(a=>a.valid).length,vectors,
             identity:this.field.metadata.identity,display_mode:this.display?.mode,display_center:this.display?.center,
             orientation:this.field.metadata.uv_relative_to_grid?'grid':'geographic',scope:'U/V directions; display-speed animation, not forecast trajectories'};
     }

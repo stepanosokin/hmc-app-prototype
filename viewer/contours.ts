@@ -15,7 +15,7 @@ function at(points:Points,distance:number,quantum=1){
 }
 /** One bounded, cancellable native-cell worker; no raster pixels or extra HTTP requests. */
 export class ContourOverlay {
-    enabled=true;
+    enabled=false;
     private field:FieldData|undefined;
     private selection:Selection|undefined;
     private map:any;
