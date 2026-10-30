@@ -77,6 +77,7 @@ def normalize(source: Path, target: Path, hour: int, frame: bytes, fixture: str,
                                          'message_sha256': hashlib.sha256(frame).hexdigest(),
                                          'processing_version': processing_version,
                                          'value_validity_version': metadata['value_validity']['version'],
+                                         'portrayal_version': 'earth-palette/1',
                                          'synthetic_fixture': request.get('fixture_label') or (None if fixture == 'actual' else fixture),
                                          'source_crs': metadata['source_crs']},
             'tools': versions(), 'fields': [item], 'assets': inventory}
@@ -227,6 +228,7 @@ def process(job: dict) -> None:
                         and existing['source'].get('processing_version', PIPELINE) == job['pipeline_version']
                         and existing['source'].get('source_crs') == metadata['source_crs']
                         and existing['source'].get('value_validity_version') == metadata['value_validity']['version']
+                        and existing['source'].get('portrayal_version') == 'earth-palette/1'
                         and existing.get('fixture', 'actual') == request['fixture']
                         and existing['source'].get('name') == job['source_name']
                         and existing['source'].get('directory') == request.get('source_directory')
@@ -268,6 +270,8 @@ def process(job: dict) -> None:
     if published != len(hours):
         raise ValueError('requested source times unavailable')
     if pending:
+        from publication.wind_speed import add
+        pending = add(job, pending, attempt)
         revision = commit_revision(job, directory, run, latest(run), pending, key, hour, source, checksum)
         transition(identifier, 'validated', revision=revision, published_times=published)
     transition(identifier, 'published', published_times=published)

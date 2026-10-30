@@ -25,6 +25,10 @@ The offset from a run's reference time to a forecast's valid time.
 A spatial set of values for one meteorological quantity, model run, valid time or interval, and vertical surface or level, with a specified grid and ensemble member where applicable.
 _Avoid_: Assuming every temperature field represents air temperature at two metres.
 
+**Derived field**:
+A field calculated from other fields with compatible forecast identities and a stated calculation rule. Its provenance identifies the input fields separately from the calculated result.
+_Avoid_: Presenting a calculated wind speed as an original U or V component.
+
 **Field NoData**:
 A field cell with no usable meteorological value, either because the source marks it missing or because an agreed rule for that quantity and its units rejects it. It represents a gap consistently across map display and numerical use.
 _Avoid_: Treating every zero as missing, or confusing a missing value with a value outside the colour scale.
@@ -36,6 +40,10 @@ _Avoid_: Treating a styled map image as the underlying numerical field.
 **Colour-scale range**:
 The bounds used to assign colours to visible field values. Values deliberately hidden by a portrayal rule can remain valid numerical data while being excluded from these bounds.
 _Avoid_: Equating colour-scale bounds with the minimum and maximum of all valid numerical values.
+
+**Physical colour scale**:
+A mapping from values of a specified meteorological quantity in specified units to colours, with fixed thresholds across model runs and valid times.
+_Avoid_: Treating a scale for one quantity or accumulation interval as interchangeable with a related quantity or interval.
 
 **Source-grid CRS**:
 The coordinate reference system that gives geographic meaning to a field's native grid, including the shape of the Earth and any rotation of the grid axes.
@@ -56,8 +64,12 @@ A sequence of forecast values for one geographic point and field over the valid 
 _Avoid_: Mixing model runs or publication revisions, or calling earlier forecast times observations.
 
 **Wind direction**:
-The geographic direction from which the wind blows. The direction of airflow is the opposite direction and is the direction indicated by map arrows.
+The geographic direction from which the wind blows. The direction of airflow is the opposite direction and is indicated by the movement of wind particles on the map.
 _Avoid_: Confusing the meteorological wind direction with the direction in which air moves or with the orientation of the map on screen.
+
+**Wind particle**:
+A moving mark that depicts local airflow in the selected wind field; its fading trail shows its recent movement through that field.
+_Avoid_: Treating the trail as the forecast path of an air parcel over successive forecast times.
 
 **Wind barb**:
 A traditional wind symbol whose shaft points toward the direction from which the wind blows, with feathers and pennants indicating speed in knots. Exact point-forecast speed remains available separately in metres per second.

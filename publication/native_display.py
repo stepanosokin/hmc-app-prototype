@@ -109,6 +109,10 @@ def portrayal(root: Path, item: dict, column: int, row: int) -> bytes:
     scale=np.clip((values-low)/max(high-low,1e-30),0,1)*5
     left=np.minimum(scale.astype(int),4);fraction=scale-left
     colors=np.rint(stops[left]*(1-fraction[...,None])+stops[left+1]*fraction[...,None]).astype('uint8')
+    from decoder.palettes import select, rgb
+    palette = select(item['metadata'])
+    if palette:
+        colors = rgb(values, palette)
     rgba=np.dstack((colors,mask*255));rgba[mask==0]=0
     if appearance['zero_transparent']:
         rgba[values == 0] = 0
@@ -148,6 +152,12 @@ def metadata(root: Path, item: dict) -> bytes:
                      interval=item['metadata']['interval'])
         if 'uv_relative_to_grid' in item['metadata']['identity']:
             extra['uv_relative_to_grid']=item['metadata']['identity']['uv_relative_to_grid']
+    from decoder.palettes import select
+    extra['palette'] = select(item['metadata'])
+    if 'uv_relative_to_grid' in item['metadata']['identity']:
+        from decoder.palettes import catalogue, scale
+        extra['wind_palette'] = {'id': 'wind', 'version': 'earth-palette/1',
+                                 'source_sha256': catalogue()['source']['sha256'], **scale('wind')}
     return canonical({**contract, 'contract_sha256': contract_hash,
         'matrix': CONTRACT['matrix_prefix'] + item['metadata']['native_grid_sha256'],
         'grid': item['metadata']['grid'], 'columns': [0, columns-1], 'rows': [0, rows-1],

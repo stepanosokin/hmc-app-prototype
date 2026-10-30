@@ -40,6 +40,7 @@ def links(manifest: dict) -> dict:
     prefix = request.headers.get('X-Publication-Prefix', '')
     descriptor = manifest['source'].get('field_descriptor',{})
     return {'selection': selection, **identity, 'units': descriptor.get('units','K'), 'state': 'published',
+            **({key:manifest['source'][key] for key in ('derived','derived_from')} if manifest['source'].get('derived') else {}),
             **({'field_label':descriptor['label'],'field_profile':manifest['source']['field_profile'],
                 'display_blocks':descriptor['display_blocks'],'interval':descriptor['interval'],
                 'field_short_name':descriptor.get('short_name'),'field_level_type':descriptor['level_type'],
@@ -552,7 +553,20 @@ def create_app() -> Flask:
             raise ValueError('unsupported scoped operation')
         if set(params) - allowed:
             raise ValueError('unsupported WMS option')
-        result = geoserver.wms(gis, params, seconds=max(0.05, min(20, g.deadline-time.time())))
+        physical = None
+        if operation == 'GetLegendGraphic':
+            from decoder.palettes import select as select_palette
+            physical = select_palette(sampler(manifest).manifest['fields'][0]['metadata'])
+        if physical:
+            from publication.palette_legend import render as render_legend
+            import requests
+            result = requests.Response()
+            result.status_code = 200
+            result._content = render_legend(physical, manifest['source']['field_descriptor']['units'],
+                                           int(params.get('WIDTH', '256')), int(params.get('HEIGHT', '72')))
+            result.headers['Content-Type'] = 'image/png'
+        else:
+            result = geoserver.wms(gis, params, seconds=max(0.05, min(20, g.deadline-time.time())))
         payload = result.content
         if operation == 'GetCapabilities':
             root = ET.fromstring(payload)

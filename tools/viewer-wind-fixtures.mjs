@@ -8,7 +8,7 @@ export async function checkWindFixtures(evaluate,origin){
 }
 
 async function windFixtures(origin){
-    document.body.innerHTML='<button id="windToggle"></button><select id="windLevel"></select><small id="windStatus"></small><button id="windRetry"></button>';
+    document.body.innerHTML='<button id="windToggle"></button><button id="windPause"></button><select id="windLevel"></select><small id="windStatus"></small><button id="windRetry"></button>';
     const {WindOverlay}=await import(origin+'/build/wind-overlay.js');
     const {windVariant}=await import(origin+'/build/wind-values.js');
     const {PointChart}=await import(origin+'/build/point-chart.js');

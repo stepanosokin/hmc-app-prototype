@@ -1,5 +1,8 @@
 import type {Selection} from './selection.js';
+import {sameWindInterval} from './wind-identity.js';
 export interface NativeMetadata {
+    palette?: {id:string;version:string;range:number[];colors:number[];source_sha256:string}|null;
+    wind_palette?: NativeMetadata['palette'];
     source_crs?: {template:number;[key:string]:unknown};
     display_range?: number[]|null; all_nodata?:boolean; all_transparent?:boolean; zero_transparent?:boolean; encoding_max_abs_error?: number;
     uv_relative_to_grid?: boolean;
@@ -138,6 +141,7 @@ export class FieldLoader {
         signal.throwIfAborted();
         let wind:FieldData|undefined;
         if(selection.wind_v&&!this.baseline){
+            if(!sameWindInterval(selection,selection.wind_v))throw Error('Интервалы компонент ветра не совпадают.');
             this.secondary=new FieldLoader();
             wind=await this.secondary.load(selection.wind_v);
             signal.throwIfAborted();

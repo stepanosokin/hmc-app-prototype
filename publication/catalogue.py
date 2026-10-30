@@ -11,7 +11,7 @@ from publication.native_display import profile
 MAX_BYTES=4*1024**2
 IDENTITY_KEYS=('model','run','field','level','valid_time','native_grid_sha256','member')
 DISCOVERY_KEYS=IDENTITY_KEYS+('units','fixture','native_version','field_profile','field_label','field_short_name',
-    'field_level_type','field_surfaces','display_blocks','interval','wind_axis','wind_pair','uv_relative_to_grid')
+    'field_level_type','field_surfaces','display_blocks','interval','wind_axis','wind_pair','uv_relative_to_grid','derived')
 _legacy_cache: OrderedDict=OrderedDict()
 _lock=Lock()
 
@@ -22,6 +22,8 @@ def discovery(batch:dict) -> dict:
         'units':descriptor.get('units','K'),'fixture':batch.get('fixture','actual'),
         'native_version':profile(batch['source'].get('source_crs'),batch['source'].get('field_profile'))[2]}
     if descriptor:
+        if batch['source'].get('derived'):
+            result['derived'] = batch['source']['derived']
         result.update(field_profile=batch['source']['field_profile'],field_label=descriptor['label'],
             field_short_name=descriptor.get('short_name'),field_level_type=descriptor['level_type'],
             display_blocks=descriptor['display_blocks'],interval=descriptor['interval'])

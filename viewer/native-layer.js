@@ -1,6 +1,7 @@
 // One native bilinear interpolation; no intermediate Mercator raster.
 import {laeaRfId,laeaRfDefinition,laeaBeta0,laeaRq,laeaD} from './laea-rf.js';
 import {sourceShader} from './source-crs.js';
+import {paletteThresholds} from './palettes.js';
 export const nativeToWgs=lat=>Math.atan2(Math.sin(lat*Math.PI/180),(1-.0066943799901413165)*Math.cos(lat*Math.PI/180))*180/Math.PI;
 const vertex = `#version 300 es
 void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.-1.,0,1);}`;
@@ -16,6 +17,10 @@ uniform vec2 orthoCenter;
 uniform vec3 laeaRf;
 uniform bool numeric;
 uniform bool alternatePalette;
+uniform sampler2D physicalPalette;
+uniform sampler2D physicalThresholds;
+uniform bool hasPhysicalPalette;
+uniform vec2 paletteRange;
 uniform bool geometryOnly;
 uniform bool portrayalBaseline;
 uniform vec2 displayRange;
@@ -119,6 +124,15 @@ void main(){
         vec3 stops[6]=vec3[6](vec3(114.,114.,181.),vec3(82.,154.,189.),vec3(112.,200.,178.),vec3(214.,214.,127.),vec3(237.,171.,104.),vec3(201.,103.,97.));
     float v=min(t*5.,4.99999);int index=int(floor(v));
     vec3 rgb=alternatePalette?mix(vec3(.12,.18,.55),vec3(1.,.8,.2),t):mix(stops[index],stops[index+1],fract(v))/255.;
+    if(hasPhysicalPalette&&!alternatePalette){
+        float s=clamp((value-paletteRange.x)/(paletteRange.y-paletteRange.x),0.,1.);
+        int count=textureSize(physicalPalette,0).x;
+        int i=int(floor(s*float(count-1)));
+        // Correct the approximate range normalization at physical boundaries.
+        if(i>0&&value<texelFetch(physicalThresholds,ivec2(i,0),0).r)i--;
+        else if(i<count-1&&value>=texelFetch(physicalThresholds,ivec2(i+1,0),0).r)i++;
+        rgb=texelFetch(physicalPalette,ivec2(i,0),0).rgb;
+    }
     color=numeric?vec4(value,1.,geo):vec4(rgb*.80,.80);
 }`;
 
@@ -139,6 +153,7 @@ export class NativeLayer {
             source_engine:metadata.engine,renderer_engine:metadata.portrayal_baseline?'cached-native-rgba8/1':'native-gpu-bilinear/1',
             display_crs:mode,display_definition:mode===laeaRfId?laeaRfDefinition:mode==='EPSG:3576'?proj4.defs('EPSG:3576'):mode==='mercator'?proj4.defs('EPSG:3857'):
                 `+proj=ortho +lat_0=${center[1]} +lon_0=${center[0]} +R=6378137`};
+        this.cacheIdentity.palette=metadata.palette?{id:metadata.palette.id,version:metadata.palette.version,source_sha256:metadata.palette.source_sha256}:null;
     }
     onAdd(map,gl) {
         this.map=map;this.gl=gl;
@@ -149,6 +164,19 @@ export class NativeLayer {
         gl.linkProgram(this.program);for(const s of shaders)gl.deleteShader(s);
         if(!gl.getProgramParameter(this.program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(this.program));
         this.vao=gl.createVertexArray();this.texture=gl.createTexture();
+        this.paletteTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D,this.paletteTexture);
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+        const colors=new Uint8Array(this.metadata.palette?.colors??[0,0,0,255]);
+        gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,colors.length/4,1,0,gl.RGBA,gl.UNSIGNED_BYTE,colors);
+        this.paletteThresholdTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D,this.paletteThresholdTexture);
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+        const thresholds=this.metadata.palette?paletteThresholds(this.metadata.palette.range,colors.length/4):new Float32Array([0]);
+        gl.texImage2D(gl.TEXTURE_2D,0,gl.R32F,thresholds.length,1,0,gl.RED,gl.FLOAT,thresholds);
+        gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY,this.texture);
         gl.texParameteri(gl.TEXTURE_2D_ARRAY,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D_ARRAY,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
@@ -197,8 +225,8 @@ export class NativeLayer {
         const gl=this.gl,width=this.map.getCanvas().width,height=this.map.getCanvas().height;
         const maximum=gl.getParameter(gl.MAX_TEXTURE_SIZE);
         const perCell=this.metadata.portrayal_baseline?4:8;
-        const bytes=(this.metadata.portrayal_baseline?258*258*4:332820)*this.blockCount+258*258*perCell+258*258*this.blockCount*perCell+width*height*(this.context?28:24);
-        if(width>maximum||height>maximum||258>maximum||gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)<this.blockCount
+        const bytes=(this.metadata.portrayal_baseline?258*258*4:332820)*this.blockCount+258*258*perCell+258*258*this.blockCount*perCell+width*height*(this.context?28:24)+(this.metadata.palette?.colors.length??0)*10;
+        if(width>maximum||height>maximum||258>maximum||(this.metadata.palette?.colors.length??0)/4>maximum||gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)<this.blockCount
             ||bytes>128*1024**2)throw Error('Размер вида превышает бюджет числовых ресурсов.');
         return bytes;
     }
@@ -216,6 +244,11 @@ export class NativeLayer {
         gl.uniform2fv(location('orthoCenter'),this.center);
         gl.uniform3fv(location('laeaRf'),[laeaBeta0,laeaRq,laeaD]);
         gl.uniform1i(location('alternatePalette'),this.alternatePalette?1:0);gl.uniform1i(location('field'),0);gl.uniform2fv(location('origin'),view.origin);
+        gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,this.paletteTexture);gl.activeTexture(gl.TEXTURE0);
+        gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,this.paletteThresholdTexture);gl.activeTexture(gl.TEXTURE0);
+        gl.uniform1i(location('physicalThresholds'),2);
+        gl.uniform1i(location('physicalPalette'),1);gl.uniform1i(location('hasPhysicalPalette'),Boolean(this.metadata.palette));
+        gl.uniform2fv(location('paletteRange'),this.metadata.palette?.range??[0,1]);
         gl.uniform1f(location('scale'),view.scale);gl.uniform1f(location('height'),view.height);
         gl.uniform1i(location('mode'),this.mode==='hmc:orthographic'?0:this.mode==='mercator'?2:this.mode===laeaRfId?3:1);gl.uniform1i(location('numeric'),numeric?1:0);
         gl.uniform1i(location('geometryOnly'),geometryOnly?1:0);
@@ -290,5 +323,5 @@ export class NativeLayer {
                 .map(sample=>sample.slice(0,5));
         } finally {upload(original);}
     }
-    onRemove(map,gl) {this.context?.remove();gl.deleteTexture(this.texture);gl.deleteProgram(this.program);gl.deleteVertexArray(this.vao);}
+    onRemove(map,gl) {this.context?.remove();gl.deleteTexture(this.texture);gl.deleteTexture(this.paletteTexture);gl.deleteTexture(this.paletteThresholdTexture);gl.deleteProgram(this.program);gl.deleteVertexArray(this.vao);}
 }

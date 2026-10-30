@@ -9,6 +9,9 @@ export interface WindEntry {time:string;state:'loading'|'missing'|'value'|'error
 /** Independent overlay owns one U/V pair and a compact, pinned point series. */
 export class WindOverlay {
     enabled=true;
+    paused=false;
+    private resumeOnReady=false;
+    private selectionKey='';
     level:string|undefined;
     levelLabel='';
     status='';
@@ -48,17 +51,23 @@ export class WindOverlay {
                 this.arrows.remove();this.arrows=undefined;this.field=undefined;this.state='error';this.status=this.failureStatus(error);this.ui();return;
             }
         }
-        this.arrows.draw(host.geometry(),host.projection,host.center,host.mode);
-        if(!document.hidden)this.map?.triggerRepaint();
+        if(this.resumeOnReady&&this.state==='ready'&&this.allowFrame){this.paused=false;this.resumeOnReady=false;this.ui();}
+        this.arrows.draw(host.geometry(),host.projection,host.center,host.mode,this.paused);
+        if(!document.hidden&&!this.paused)this.map?.triggerRepaint();
     };
     constructor(private changed:()=>void,private admit:(bytes:number)=>void){
+        document.getElementById('windPause')!.onclick=()=>{
+            this.paused=!this.paused;this.resumeOnReady=false;this.ui();this.map?.triggerRepaint();
+        };
         document.getElementById('windToggle')!.onclick=()=>{this.enabled=!this.enabled;this.refresh();};
         (document.getElementById('windLevel') as HTMLSelectElement).onchange=e=>{
+            if(this.paused)this.resumeOnReady=true;
             this.level=(e.target as HTMLSelectElement).value||undefined;this.initialized=true;this.levelLabel='';this.refresh();
         };
         document.getElementById('windRetry')!.onclick=()=>{this.key='';this.pointKey='';this.refresh();};
     }
     mount(map:any,host:()=>any){
+        if(this.paused)this.resumeOnReady=true;
         this.unmount();this.map=map;this.host=host;map.on('render',this.frame);
         if(this.field){this.arrows=new WindArrows(this.field);this.arrows.attach(map.getCanvasContainer());}
         map.triggerRepaint();
@@ -66,6 +75,7 @@ export class WindOverlay {
     unmount(){this.map?.off('render',this.frame);this.arrows?.remove();this.arrows=undefined;this.map=undefined;this.host=undefined;}
     visible(shown:boolean){this.shown=shown;if(!shown)this.arrows?.clear();else this.map?.triggerRepaint();}
     releaseFrame(){
+        if(this.paused)this.resumeOnReady=true;
         this.serial++;this.loader.cancel();this.reservation=0;this.key='';this.canvasSize='';
         this.arrows?.remove();this.arrows=undefined;this.field=undefined;
         this.state='missing';
@@ -74,6 +84,9 @@ export class WindOverlay {
     bytes(){const canvas=this.map?.getCanvas();return this.reservation+(this.field?this.field.blocks.reduce((n,b)=>n+b.byteLength,0)+
         (this.arrows?.bytes(canvas?.width??0,canvas?.height??0)??this.field.wind!.blocks.reduce((n,b)=>n+b.byteLength,0))+2*1024**2:0);}
     update(groups:PublishedGroup[],source:Selection|undefined,time:number,allowFrame=true){
+        const key=source?.selection+'|'+time;
+        if(key!==this.selectionKey&&this.paused)this.resumeOnReady=true;
+        this.selectionKey=key;
         this.groups=groups;this.source=source;this.time=time;this.allowFrame=allowFrame;this.refresh();
     }
     private refresh(){
@@ -116,7 +129,7 @@ export class WindOverlay {
                 const field=await this.loader.load(current);
                 if(serial!==this.serial)return;
                 this.reservation=0;this.field=field;this.canvasSize='';this.admit(0);this.state='ready';
-                this.status=field.metadata.all_nodata||field.wind?.metadata.all_nodata?'Нет данных ветра · '+this.levelLabel:'Ветер · '+this.levelLabel+' · стрелки по потоку';
+                this.status=field.metadata.all_nodata||field.wind?.metadata.all_nodata?'Нет данных ветра · '+this.levelLabel:'Ветер · '+this.levelLabel+' · частицы по потоку';
                 if(this.map){this.arrows=new WindArrows(field);this.arrows.attach(this.map.getCanvasContainer());this.map.triggerRepaint();}
                 this.ui();
             }catch(error){if(serial!==this.serial)return;
@@ -127,6 +140,9 @@ export class WindOverlay {
         })();
     }
     private ui(){
+        const pause=document.getElementById('windPause') as HTMLButtonElement;
+        pause.textContent=this.paused?'Продолжить':'Пауза';pause.setAttribute('aria-pressed',String(this.paused));
+        pause.disabled=!this.enabled||this.state!=='ready';
         const message=document.getElementById('windStatus')!;
         if(message.textContent!==this.status)message.textContent=this.status;
         document.getElementById('windRetry')!.hidden=this.state!=='error'&&![...this.entries.values()].some(e=>e.state==='error');
@@ -175,7 +191,7 @@ export class WindOverlay {
             }
         })();
     }
-    evidence(){return {enabled:this.enabled,level:this.level,label:this.levelLabel,state:this.state,status:this.status,
+    evidence(){return {enabled:this.enabled,paused:this.paused,resume_pending:this.resumeOnReady,level:this.level,label:this.levelLabel,state:this.state,status:this.status,
         selection:this.key,bytes:this.bytes(),failure:this.failure,point_entries:[...this.entries.values()],arrows:this.arrows?.evidence()};}
     dispose(){this.serial++;this.loader.cancel();this.clearPoints();this.unmount();this.field=undefined;this.reservation=0;}
 }

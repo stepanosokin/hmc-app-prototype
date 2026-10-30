@@ -68,6 +68,9 @@ def prepare(workspace: str, directory: str, valid_time: str, *, srs: str = 'EPSG
     if portrayal:
         import xml.etree.ElementTree as ET
         root=ET.fromstring(style)
+        if portrayal.get('palette'):
+            for opacity_node in root.findall('.//{*}Opacity'):
+                opacity_node.text='1'
         for title in root.findall('.//{*}Title'):
             title.text='Поле GRIB · '+portrayal['units']
         colors=['#7272b5','#529abd','#70c8b2','#d6d67f','#edab68','#c96761']
@@ -78,6 +81,12 @@ def prepare(workspace: str, directory: str, valid_time: str, *, srs: str = 'EPSG
                 quantity=low+(max(high-low,abs(low)*1e-7,1e-30))*index/5
                 ET.SubElement(color_map,'{http://www.opengis.net/sld}ColorMapEntry',color=color,
                               quantity=str(quantity),label=str(quantity)+' '+portrayal['units'])
+            if portrayal.get('palette'):
+                from decoder.palettes import entries
+                color_map.clear();color_map.set('type','ramp');color_map.set('extended','false')
+                for quantity, color in entries(portrayal['palette']):
+                    ET.SubElement(color_map,'{http://www.opengis.net/sld}ColorMapEntry',color=color,
+                                  quantity=str(quantity),opacity='0.8',label='')
             if portrayal.get('zero_transparent'):
                 # Two nearest float32 neighbours isolate zero opacity without
                 # fading other representable values or changing numerical masks.
@@ -88,11 +97,15 @@ def prepare(workspace: str, directory: str, valid_time: str, *, srs: str = 'EPSG
                 rgb = [round(int(colors[left][i:i+2],16)*(1-fraction)+int(colors[left+1][i:i+2],16)*fraction)
                        for i in (1,3,5)]
                 color = '#' + ''.join(f'{channel:02x}' for channel in rgb)
+                if portrayal.get('palette'):
+                    from decoder.palettes import rgb as palette_rgb
+                    color = '#' + ''.join(f'{int(c):02x}' for c in palette_rgb(np.asarray([0.]), portrayal['palette'])[0])
                 for node in list(color_map):
                     if float(node.get('quantity', '0')) == 0:
                         color_map.remove(node)
-                for quantity, opacity in [(-float(np.nextafter(np.float32(0),np.float32(1))), '1'),
-                                           (0., '0'), (float(np.nextafter(np.float32(0),np.float32(1))), '1')]:
+                visible_opacity = '0.8' if portrayal.get('palette') else '1'
+                for quantity, opacity in [(-float(np.nextafter(np.float32(0),np.float32(1))), visible_opacity),
+                                           (0., '0'), (float(np.nextafter(np.float32(0),np.float32(1))), visible_opacity)]:
                     ET.SubElement(color_map,'{http://www.opengis.net/sld}ColorMapEntry',color=color,
                                   quantity=str(quantity),opacity=opacity,label=str(quantity)+' '+portrayal['units'])
                 color_map[:] = sorted(color_map,key=lambda node:float(node.get('quantity', '0')))

@@ -30,7 +30,7 @@ export class SourceSettings {
         const source=group.selection,time=new Date(group.start+index*3600000).toISOString();
         const units=displaySpec(source,temperatureUnit).unit;
         const title=fieldPresentation(source).label;
-        element('sourceDescription').textContent=source.model+' · '+title+'. '+(source.wind_v?'Карта: движущиеся стрелки по U/V. Ряд точки: компонента U ветра.':'Значение точки — ближайшая нативная ячейка; отображение — билинейная интерполяция.');
+        element('sourceDescription').textContent=source.model+' · '+title+'. '+(source.wind_v?'Карта: частицы по потоку U/V и цветная скорость ветра. Ряд точки: компонента U ветра.':'Значение точки — ближайшая нативная ячейка; отображение — билинейная интерполяция.');
         element('sourceUnitsInfo').textContent='Публичные демонстрационные ссылки. WMS закреплён за расчётом и редакцией; API — за точным сроком UTC и точкой. Единицы отображения: '+units+'.';
         const matching=current&&description?.identity?.revision===current.revision&&description.identity.valid_time===current.valid_time?description:undefined;
         const complete=source.completeness==='complete'?'полный':source.completeness==='partial'?'неполный':'неизвестна';

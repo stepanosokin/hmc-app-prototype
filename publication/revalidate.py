@@ -14,6 +14,7 @@ import zarr
 from decoder.sampling import ManifestSampler, asset_path, canonical, file_hash, read_values
 from decoder.storage import write_field, check_field
 from decoder.validity import VERSION
+from decoder.palettes import VERSION as PORTRAYAL_VERSION
 from publication import grib_sync, recovery, retention, revisions, worker
 from publication.domain import ROOT, database, database_transaction, load_manifest, sampler, write_once
 
@@ -32,12 +33,16 @@ def preview(target: str) -> dict:
             entries = [{'key': revisions.batch_key(batch['identity']),
                         'field': batch['identity']['field'], 'valid_time': batch['identity']['valid_time'],
                         'manifest_path': row['manifest_path'], 'manifest_sha256': row['manifest_sha256']}]
-        if any(grib_sync.source_manifest(entry['manifest_path'], entry['manifest_sha256'])
-               ['source'].get('value_validity_version') != VERSION for entry in entries):
+        if any(needs_rebuild(grib_sync.source_manifest(entry['manifest_path'], entry['manifest_sha256'])) for entry in entries):
             actions.append({'root': row['root'], 'entries': entries})
-    body = {'version': 'field-revalidation/1', 'rule_version': VERSION, 'target': target,
+    body = {'version': 'field-revalidation/1', 'rule_version': VERSION, 'portrayal_version': PORTRAYAL_VERSION, 'target': target,
             'catalogue': rows, 'policy': snapshot['policy'], 'actions': actions}
     return {**body, 'id': grib_sync.fingerprint(body)}
+
+
+def needs_rebuild(batch: dict) -> bool:
+    return (batch['source'].get('value_validity_version') != VERSION
+            or batch['source'].get('portrayal_version') != PORTRAYAL_VERSION)
 
 
 def rebuild(job: dict, batch: dict, directory: Path) -> tuple[dict, str, str]:
@@ -60,6 +65,7 @@ def rebuild(job: dict, batch: dict, directory: Path) -> tuple[dict, str, str]:
     body = {key: value for key, value in original.manifest.items() if key not in ('revision', 'fields', 'assets')}
     body.update(fields=[replacement], assets=inventory,
                 source={**original.manifest['source'], 'value_validity_version': VERSION,
+                        'portrayal_version': PORTRAYAL_VERSION,
                         'revalidated_from': batch.get('batch_selection', batch['selection'])})
     revision = hashlib.sha256(canonical(body)).hexdigest()
     write_once(target / 'manifest.json', {**body, 'revision': revision})
@@ -83,8 +89,9 @@ def apply(saved: dict, target: str) -> dict:
             job = cursor.fetchone()
         attempt = ROOT / identifier / uuid.uuid4().hex
         attempt.mkdir(parents=True)
-        prepared = []
+        prepared: list[tuple[str, dict, str, str, dict]] = []
         converted: dict[tuple[str, str], dict] = {}
+        speed_cache: dict = {}
         rows = {row['root']: row for row in saved['catalogue']}
         try:
             for action in saved['actions']:
@@ -93,7 +100,7 @@ def apply(saved: dict, target: str) -> dict:
                     reference = (entry['manifest_path'], entry['manifest_sha256'])
                     if reference not in converted:
                         batch = load_manifest(*reference)
-                        if batch['source'].get('value_validity_version') == VERSION:
+                        if not needs_rebuild(batch):
                             converted[reference] = {**entry, '_assets': batch['assets']}
                         else:
                             recovery.reserve(sum(asset['bytes'] for asset in batch['assets'].values()) * 2)
@@ -108,6 +115,11 @@ def apply(saved: dict, target: str) -> dict:
                     converted_entry = converted[reference]
                     entries.append({key: value for key, value in converted_entry.items() if key != '_assets'})
                     assets.update(converted_entry['_assets'])
+                from publication.wind_speed import add
+                with_speed = add(job, {entry['key']: entry for entry in entries}, attempt / f'root-{len(prepared):05d}', speed_cache)
+                entries = list(with_speed.values())
+                for entry in entries:
+                    assets.update(load_manifest(entry['manifest_path'], entry['manifest_sha256'])['assets'])
                 row = rows[action['root']]
                 body = {'schema_version': 2, 'pipeline_version': revisions.PIPELINE, 'run': row['run'],
                         'parent': action['root'], 'job': identifier, 'hour': 0, 'clock': clock,

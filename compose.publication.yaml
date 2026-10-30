@@ -101,6 +101,7 @@ services:
       - assets:/assets:ro
       - ./publication:/app/publication:ro
       - ./decoder:/app/decoder:ro
+      - ./config:/app/config:ro
     entrypoint: ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--threads=4", "--timeout=90", "publication.api:create_app()"]
   gateway:
     <<: *app

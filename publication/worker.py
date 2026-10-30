@@ -178,6 +178,11 @@ def publish_batch(job: dict, attempt: Path, numerical: ManifestSampler, *, commi
         portrayal={'units':item['metadata']['identity']['units'],
                    'zero_transparent': appearance['zero_transparent'],
                    'range': appearance['display_range'] or [0., 1.]}
+    from decoder.palettes import select
+    physical_palette = select(item['metadata'])
+    if physical_palette:
+        portrayal = {**(portrayal or {'units': item['metadata']['identity']['units'], 'zero_transparent': False}),
+                     'range': physical_palette['range'], 'palette': physical_palette}
     gis = geoserver.prepare(workspace, str(mosaic), item['metadata']['valid_time'], srs=gis_crs,portrayal=portrayal)
     gis['all_nodata'] = item['metadata']['values']['finite_count'] == 0
     gis['all_transparent'] = gis['all_nodata'] or bool(portrayal and portrayal['zero_transparent']

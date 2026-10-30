@@ -1,7 +1,16 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {sampleWind,earthWind} from './wind.ts';
-import {publishedGroups} from './selection.ts';
+import {publishedGroups,sameWindInterval} from './selection.ts';
+
+test('wind pairing compares the entire averaging interval, independent of key order',()=>{
+    const interval={start:'2026-10-30T00:00:00Z',end:'2026-10-30T06:00:00Z',statistical_process:0,time_increment:1};
+    assert.ok(sameWindInterval({interval},{interval:{time_increment:1,statistical_process:0,end:interval.end,start:interval.start}}));
+    assert.ok(sameWindInterval({},{interval:null}));
+    assert.ok(!sameWindInterval({interval},{interval:{...interval,start:'2026-10-30T03:00:00Z'}}));
+    assert.ok(!sameWindInterval({interval},{interval:{...interval,time_increment:2}}));
+    assert.ok(!sameWindInterval({interval},{}));
+});
 
 function component(values){
     const bytes=new ArrayBuffer(332820),data=new Float32Array(bytes,0,258*258),mask=new Uint8Array(bytes,258*258*4);

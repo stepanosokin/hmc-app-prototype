@@ -172,8 +172,8 @@ function stagingBase(){
     return (layer?layer.checkBudget()-(canvas?canvas.width*canvas.height*16:0):0)+wind.bytes()+contours.bytes();
 }
 async function prepareLayer(field:FieldData,owner:any,signal:AbortSignal){
-    const extra=field.blocks.reduce((n,b)=>n+b.byteLength,0)+(field.wind?.blocks.reduce((n,b)=>n+b.byteLength,0)??0)+(field.wind?2*1024**2:258*258*8+258*258*field.blocks.length*8)+
-        (field.wind?owner.getCanvas().width*owner.getCanvas().height*4:0);
+    const extra=field.blocks.reduce((n,b)=>n+b.byteLength,0)+(field.wind?.blocks.reduce((n,b)=>n+b.byteLength,0)??0)+
+        (field.wind?field.blocks.reduce((n,b)=>n+b.byteLength,0):0)+258*258*8+258*258*field.blocks.length*8;
     if((layer?stagingBase():owner.getCanvas().width*owner.getCanvas().height*28)+extra+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)
         throw Error('Превышен бюджет обновления GPU.');
     const candidate=new WeatherLayer(field,mode==='laea-rf'?laeaRfId:mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
@@ -440,18 +440,26 @@ function palette(){
     text('legendSummary',title+' · '+unitsText());text('legendTitle',title);
     const source=displayed??selected??group?.selection;
     text('legendSource',source?.wind_v?'Ряд точки: компонента U ветра':source?source.model+' · числовые данные':'Публикация не выбрана');
-    const range=data?.metadata.display_range??[253.15,313.15];
+    const physical=layer?.metadata.palette??data?.metadata.palette;
+    const range=(!alternate&&physical?physical.range:layer?.metadata.display_range??data?.metadata.display_range)??[253.15,313.15];
     const ticks=document.querySelectorAll('.ticks span');
     Array.from({length:4},(_,i)=>range[0]+(range[1]-range[0])*i/3).forEach((value,i)=>ticks[i].textContent=temperature?String(Number((value-(unit==='C'?273.15:0)).toFixed(2))):source?legendNumber(value,source):fieldNumber(value,sourceUnits()));
     const ramp=document.querySelector<HTMLElement>('.ramp')!;
     const wind=Boolean((displayed??selected)?.wind_v)&&!portrayalBaseline;
     const empty=data?.metadata.all_nodata===true;
     const transparent=data?.metadata.all_transparent===true;
-    ramp.style.display=wind||empty||transparent?'none':'';(document.querySelector('.ticks') as HTMLElement).style.display=wind||empty||transparent?'none':'';
-    if(wind)text('legendSummary','Ветер · стрелки движутся по потоку');
+    ramp.style.display=empty||transparent?'none':'';(document.querySelector('.ticks') as HTMLElement).style.display=empty||transparent?'none':'';
+    if(wind)text('legendSummary','Скорость ветра · м/с');
     if(empty){text('legendSummary',title+' · Нет данных');text('legendSource','Нет данных');}
     else if(transparent)text('legendSummary',title+' · Нет значений для цветовой шкалы');
     ramp.style.background=alternate?'linear-gradient(90deg,#1f2e8c,#ffcc33)':'';
+    if(!alternate&&physical){
+        const colors=physical.colors,n=colors.length/4;
+        ramp.style.background='linear-gradient(90deg,'+Array.from({length:n},(_,i)=>{
+            const j=i*4,color=`rgb(${colors[j]} ${colors[j+1]} ${colors[j+2]})`;
+            return `${color} ${i/(n-1)*100}%,${color} ${Math.min(1,(i+1)/(n-1))*100}%`;
+        }).join(',')+')';
+    }
     layer?.setPalette(alternate);if(position)renderPoint();
 }
 function updateBasemap(){

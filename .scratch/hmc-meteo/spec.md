@@ -1,6 +1,6 @@
 # Hydrometcenter meteorology prototype — specification
 
-Version: 0.8 · 2026-10-29 · **Accepted implementation handoff.**
+Version: 0.9 · 2026-10-30 · **Accepted implementation handoff.**
 
 The user accepted revision 0.2, milestones M1–M5 and acceptance criteria A1–A12 on 2026-10-19, then requested this browser-delivery amendment and the corresponding specification/ticket updates. Revision 0.3 preserves those IDs and extends their obligations to numeric display tiles and browser GPU rendering. Acceptance records scope agreement, not completion of the new gates.
 
@@ -308,6 +308,29 @@ of original numbers with explicit undefined/contradictory-unit legend notes;
 do not silently convert contradictory accumulated rain-rate fields to mm/h.
 This extends A2/A3/A5/A8/A11/A12, preserving existing IDs and completion states.
 Implementation and scientific/real-browser evidence are required before closure.
+
+### 9.5. Earth wind particles and physical colour scales — v0.9
+
+Confirmed Q1–Q14 and implementation authorization on 2026-10-30, [#77](https://github.com/stepanosokin/hmc-app-prototype/issues/77),
+[accepted requirements](../../docs/design/earth-wind-palettes-discussion.md).
+Replace A1 map arrows with thin moving particles and fading trails in all four
+display projections; preserve point-forecast wind barbs and exact selection.
+Add pause: the picture remains still until Continue, or until a changed field,
+valid time, wind level or projection has finished loading and rendering, after
+which motion resumes automatically. No timer resumes an otherwise unchanged view.
+
+Use the current earth site's palettes with fixed physical thresholds for equivalent
+quantities, surfaces and accumulation intervals, converting units without changing
+source numbers. Keep existing scales for fields without an equivalent; retain
+NoData and transparent-zero rules. Clamp out-of-scale colours to their endpoints.
+Browser contrast remains optional; WMS offers only the standard colours. Browser
+and WMS legends reflect the same physical scales. Show scalar wind-speed colour
+fill and add a separately identified WMS/native speed derivative from matched U/V;
+preserve component fields and numerical sampling semantics.
+
+Update existing publications and the named hmc-app-live stand after validation.
+This explicitly expands the earlier deferral of wind particles, replaces the A1
+map design and leaves unrelated milestone IDs and historical acceptance unchanged.
 
 ## 10. Retention and operations
 

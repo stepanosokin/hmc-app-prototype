@@ -2,6 +2,7 @@ import {NativeLayer} from './native-layer.js';
 import type {FieldData} from './field.js';
 import {LocalContext} from './local-context.js';
 import {WindArrows} from './wind.js';
+import {windSpeed} from './wind-speed.js';
 
 /** MapLibre custom layer over the accepted one-pass native-cell GPU kernel. */
 export class WeatherLayer extends NativeLayer {
@@ -14,11 +15,13 @@ export class WeatherLayer extends NativeLayer {
     private pendingUploads: {index:number;bytes:ArrayBuffer}[]=[];
     private uploadFrame=0;
     private uploaded=0;
+    private retainedWindBytes=0;
     wind:WindArrows|undefined;
     private hideWind=()=>this.wind?.clear();
     constructor(data: FieldData,mode: string,projection: unknown,center: number[]){
-        super(data.blocks,mode,projection,data.metadata,center);
-        if(data.wind)this.wind=new WindArrows(data);
+        const scalar=windSpeed(data);
+        super(scalar.blocks,mode,projection,scalar.metadata,center);
+        if(data.wind)this.retainedWindBytes=data.blocks.reduce((n,b)=>n+b.byteLength,0)+data.wind.blocks.reduce((n,b)=>n+b.byteLength,0);
         Object.assign(this.cacheIdentity,{encoding:data.metadata.encoding,units:data.metadata.units,stored_size:data.metadata.stored_size});
     }
     onAdd(map: any,gl: WebGL2RenderingContext){
@@ -65,7 +68,7 @@ export class WeatherLayer extends NativeLayer {
     checkBudget(){
         const canvas=this.map.getCanvas();
         const base=this.wind?this.blocks.reduce((n:number,b:ArrayBuffer)=>n+b.byteLength,0)+2*1024**2+canvas.width*canvas.height*(this.context?28:24):super.checkBudget();
-        const total=base+(this.wind?.bytes(canvas.width,canvas.height)??0);
+        const total=base+(this.wind?.bytes(canvas.width,canvas.height)??0)+this.retainedWindBytes;
         if(total>128*1024**2)throw Error('Ветер превышает общий бюджет числовых ресурсов.');
         return total;
     }

@@ -8,6 +8,7 @@ import {resolve,join,dirname,sep,extname} from 'node:path';
 import {createHash,randomUUID} from 'node:crypto';
 import {nativePointPixel} from './viewer-fields.mjs';
 import {checkWindFixtures} from './viewer-wind-fixtures.mjs';
+import {checkPaletteFixtures} from './viewer-palette-fixtures.mjs';
 
 const directory=resolve(process.argv[2]),browser=process.argv[3]??'chrome';
 const direct=process.argv[4]==='--direct-smoke';
@@ -23,7 +24,7 @@ const sha=b=>createHash('sha256').update(b).digest('hex');
 const freeze=async(source,target)=>{const bytes=await readFile(source);report.inputs[source]=sha(bytes);await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes);};
 for(const entry of await readdir('viewer',{withFileTypes:true}))if(entry.isFile()&&/\.(?:ts|js|json|css|html|mjs)$/.test(entry.name))
     await freeze('viewer/'+entry.name,join(directory,'inputs/viewer',entry.name));
-for(const path of ['tools/check-wind-overlay.mjs','tools/viewer-fields.mjs','tools/viewer-wind-fixtures.mjs'])await freeze(path,join(directory,'inputs',path));
+for(const path of ['tools/check-wind-overlay.mjs','tools/viewer-fields.mjs','tools/viewer-wind-fixtures.mjs','tools/viewer-palette-fixtures.mjs','config/earth-palettes.json'])await freeze(path,join(directory,'inputs',path));
 await freeze('tests/fixtures/wind/rotated-reference.json',join(directory,'inputs/tests/fixtures/wind/rotated-reference.json'));
 const build=join(directory,'site/build');
 const profile=join(directory,'profile'),pause=ms=>new Promise(r=>setTimeout(r,ms));
@@ -59,7 +60,7 @@ try{
             report.requests.push({path:req.url,status:value.status,bytes:value.bytes.length,sha256:sha(value.bytes),cache_hit:cacheHit,...(value.status!==200?{error:value.bytes.toString('utf8').slice(0,512)}:{})});
             res.writeHead(value.status,{'Content-Type':value.type});res.end(value.bytes);return;
         }
-        let path=url.pathname==='/wind-reference.json'?join(directory,'inputs/tests/fixtures/wind/rotated-reference.json'):
+        let path=url.pathname==='/earth-palette-reference.json'?join(directory,'inputs/config/earth-palettes.json'):url.pathname==='/wind-reference.json'?join(directory,'inputs/tests/fixtures/wind/rotated-reference.json'):
             url.pathname==='/'?join(directory,'inputs/viewer/index.html'):url.pathname==='/style.css'?join(directory,'inputs/viewer/style.css'):
             /^\/[a-z-]+\.mjs$/.test(url.pathname)?join(directory,'inputs/viewer',url.pathname.slice(1)):
             url.pathname==='/land.js'?resolve('docs/prototypes/assets/land.js'):url.pathname.startsWith('/build/')?resolve(build,'.'+url.pathname.slice(6)):
@@ -96,20 +97,39 @@ try{
         await check(width+' default enabled and exact identity',"(()=>{const s=captureWeatherEvidence(),w=s.wind.identity;return s.wind_overlay.enabled&&['model','run','revision','valid_time','member'].every(k=>w[k]===s.displayed[k]);})()");
         await check(width+' controls above legend',"document.getElementById('windPanel').getBoundingClientRect().bottom<=document.getElementById('legendPanel').getBoundingClientRect().top");
         await check(width+' managed memory bounded','captureWeatherEvidence().managed_bytes<=128*1024**2');
-        await check(width+' adaptive density uses approved desktop reference',`captureWeatherEvidence().wind.arrows===Math.round(${width}*${height}/(1440*900)*768)`);
+        await check(width+' adaptive particle density',`captureWeatherEvidence().wind.arrows===Math.round(${width}*${height}/(1440*900)*2400)`);
+        await check(width+' particles with trails',"captureWeatherEvidence().wind.style==='particles-with-trails'");
+        let lastGeometry='',stable=0;
+        for(let i=0;i<100&&stable<5;i++){
+            const geometry=JSON.stringify((await snapshot()).view_geometry);
+            stable=geometry===lastGeometry?stable+1:0;lastGeometry=geometry;await pause(100);
+        }
+        assert.equal(stable,5,'Initial camera settled before checking frozen wind pixels');
+        await click('#windPause');await check(width+' pause enabled','captureWeatherEvidence().wind_overlay.paused');
+        const ink="(()=>{const c=document.querySelector('.windArrows');return c.getContext('2d').getImageData(0,0,c.width,c.height).data;})()";
+        await pause(100);await evaluate('globalThis.__pausedInk='+ink);const pausedStart=await snapshot();await pause(400);const pausedEnd=await snapshot();
+        report.pause_diagnostics={start:pausedStart.wind,end:pausedEnd.wind,start_geometry:pausedStart.view_geometry,end_geometry:pausedEnd.view_geometry};
+        assert.equal(pausedEnd.wind.paints,pausedStart.wind.paints,'No wind paint operations while paused');
+        const delta=await evaluate(`(()=>{const a=globalThis.__pausedInk,b=${ink};let delta=0;for(let i=0;i<a.length;i+=4){delta=Math.max(delta,Math.abs(a[i+3]-b[i+3]));for(let c=0;c<3;c++)delta=Math.max(delta,Math.abs(a[i+c]*a[i+3]/255-b[i+c]*b[i+3]/255));}delete globalThis.__pausedInk;return delta;})()`);
+        report.pause_diagnostics.maximum_premultiplied_readback_delta=delta;
+        assert.ok(delta<=1.01,'Paused image unchanged within one premultiplied RGB/alpha count');
+        await click('#windPause');await check(width+' resume button','!captureWeatherEvidence().wind_overlay.paused');
+        await pause(1250);
         await capture(width+'-initial');
         const before=(await snapshot()).displayed.selection;
         await click('#windToggle');await check(width+' toggle independent',`!captureWeatherEvidence().wind_overlay.enabled&&captureWeatherEvidence().displayed.selection===${JSON.stringify(before)}`);
         await click('#windToggle');await wait("captureWeatherEvidence().wind_overlay.state==='ready'&&captureWeatherEvidence().wind?.visible>0",'wind on');
         if(width===1440&&!direct){
             for(const mode of ['mercator','orthographic','laea','laea-rf']){
+                await click('#windPause');
                 await select('#projection',mode);await wait(`captureWeatherEvidence().ready&&captureWeatherEvidence().mode===${JSON.stringify(mode)}&&captureWeatherEvidence().wind?.visible>0`,'mode '+mode);
+                await wait('!captureWeatherEvidence().wind_overlay.paused','automatic resume '+mode);
                 await check(mode+' same selection and wind',`captureWeatherEvidence().displayed.selection===${JSON.stringify(before)}&&captureWeatherEvidence().wind.identity.valid_time===captureWeatherEvidence().displayed.valid_time`);
                 await capture('projection-'+mode);
             }
             for(const [steps,label] of [[2,'region'],[2,'city']]){
                 for(let i=0;i<steps;i++){await click('#zoomIn');await pause(350);}
-                await check('Stable CSS density at '+label,'captureWeatherEvidence().wind.arrows===768&&captureWeatherEvidence().wind.visible>0');
+                await check('Stable CSS density at '+label,'captureWeatherEvidence().wind.arrows===2400&&captureWeatherEvidence().wind.visible>0');
                 await capture('zoom-'+label);
             }
             await click('#fit');await pause(350);
@@ -152,7 +172,7 @@ try{
             }
         }
     }
-    if(!direct)report.synthetic=await checkWindFixtures(evaluate,origin);
+    if(!direct){report.palettes=await checkPaletteFixtures(evaluate,origin);report.synthetic=await checkWindFixtures(evaluate,origin);}
     assert.deepEqual(report.errors,[]);report.status='passed';
 }catch(error){report.status='failed';report.failure=String(error.stack??error);process.exitCode=1;
     if(call)try{report.failure_state=(await call('Runtime.evaluate',{expression:'window.captureWeatherEvidence?.()',returnByValue:true})).result.value;report.failure_dom=(await call('Runtime.evaluate',{expression:'document.body.innerText',returnByValue:true})).result.value;const r=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,'failure.png'),Buffer.from(r.data,'base64'));}catch{}
