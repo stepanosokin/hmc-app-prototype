@@ -1,4 +1,5 @@
 import type {Selection,PublishedGroup} from './selection.js';
+import {displaySpec,displayNumber} from './display-units.js';
 
 const kinds:Record<string,[string,string,string,string]>={
     T_G:['temperature','Температура','Температура','Основные показатели'],
@@ -40,9 +41,7 @@ export function fieldNumber(value:number,units:string){
 }
 
 export function legendNumber(value:number,source:Selection){
-    if(source.units==='kg kg**-1'&&['q','2sh'].includes(source.field_short_name??''))
-        return new Intl.NumberFormat('ru-RU',{maximumSignificantDigits:3,useGrouping:false}).format(value);
-    return fieldNumber(value,source.units??'unknown');
+    return displayNumber(value,source,'C',true);
 }
 
 export function fieldPresentation(source:Selection){
@@ -105,7 +104,7 @@ export function fieldTile(source:Selection){
     const icon=presentation.id==='other'?(short==='vis'?'visibility':'other'):presentation.id;
     const variant=variants[short]??(presentation.id==='other'&&short!=='vis'?(source.field_label??'Другое').replace(/^Поле GRIB /,'GRIB '):'');
     return {icon,variant,level,interval,
-        label:[presentation.label,interval,fieldUnits(source.units)].filter(Boolean).join(' · ')};
+        label:[presentation.label,interval,displaySpec(source).unit].filter(Boolean).join(' · ')};
 }
 
 /** Match the nearest available time used when switching to another field. */
@@ -196,7 +195,7 @@ export class FieldPicker {
             const variant=document.createElement('b');variant.className='fieldVariant';variant.textContent=tile.variant;
             const level=document.createElement('span');level.className='fieldLevel';level.textContent=tile.level;
             const interval=document.createElement('small');interval.textContent=tile.interval;
-            const units=document.createElement('small');units.textContent=fieldUnits(field.target.selection.units);
+            const units=document.createElement('small');units.textContent=displaySpec(field.target.selection).unit;
             button.append(fieldIcon(tile.icon),label,variant,level,...(tile.interval?[interval]:[]),units);
             button.onfocus=button.onpointerenter=()=>{preview.textContent=tile.label;};
             button.onclick=()=>{this.close(true);this.choose(field.target);};grid!.append(button);

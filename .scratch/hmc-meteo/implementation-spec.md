@@ -1,11 +1,13 @@
 # Hydrometcenter meteorology prototype — implementation specification
 
-Updated 2026-10-21 to bilingual specification v0.7: stable time navigation and real forecast point series are added in section 9.3, with new unverified implementation requirements; the T26 timing/dragging targets were withdrawn on 2026-10-22. The v0.6 web-map display projection requirements are added in specification section 9.2 / T23 #35 / T24 #36. The v0.5 user-confirmed Windy visual concept is assigned to T22 / #34 for an interactive desktop/phone mockup, followed by production viewer work in #25/#27. Optional TLS using organization-provided certificates remains assigned to T21 / #33. The accepted v0.3 browser amendment remains: numeric browser tiles and GPU scalar rendering replace primary browser colour-image delivery. Preserve milestone IDs M1–M5 and acceptance IDs A1–A12. Scope agreement does not establish completion of TLS or other implementation gates.
+Updated 2026-10-29 to bilingual specification v0.8: native browser isolines and display-unit rules are specified in section 9.4 and implementation issue #74.
+
+Historical v0.7 update (2026-10-21): stable time navigation and real forecast point series are added in section 9.3, with new unverified implementation requirements; the T26 timing/dragging targets were withdrawn on 2026-10-22. The v0.6 web-map display projection requirements are added in specification section 9.2 / T23 #35 / T24 #36. The v0.5 user-confirmed Windy visual concept is assigned to T22 / #34 for an interactive desktop/phone mockup, followed by production viewer work in #25/#27. Optional TLS using organization-provided certificates remains assigned to T21 / #33. The accepted v0.3 browser amendment remains: numeric browser tiles and GPU scalar rendering replace primary browser colour-image delivery. Preserve milestone IDs M1–M5 and acceptance IDs A1–A12. Scope agreement does not establish completion of TLS or other implementation gates.
 
 Source of truth:
 
-- [Current specification v0.7 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.md)
-- [Текущая спецификация v0.7 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.ru.md)
+- [Current specification v0.8 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.md)
+- [Текущая спецификация v0.8 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/main/.scratch/hmc-meteo/spec.ru.md)
 - [Accepted specification v0.2 — English](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/.scratch/hmc-meteo/spec.md)
 - [Согласованная спецификация v0.2 — русский](https://github.com/stepanosokin/hmc-app-prototype/blob/25ae9044c6d9d0c3804285d0b8b05541c5b944ec/.scratch/hmc-meteo/spec.ru.md)
 - [Completed wayfinder map](https://github.com/stepanosokin/hmc-app-prototype/issues/1) and [explicit handoff acceptance](https://github.com/stepanosokin/hmc-app-prototype/issues/7#issuecomment-6263046933)
@@ -310,3 +312,8 @@ The owner explicitly approved [`hmc-native-display/1`](https://github.com/stepan
 ## Scope correction — 2026-10-22
 
 The owner cancelled T26 / #40 (not planned). T25 / #39 retains immediate atomic ready-grid replacement without map recreation or animation, loading/error states and stale-response rejection. Intermediate frames while dragging and the 100 ms / p95 100 ms / cold 3 s targets are withdrawn. The shared 128 MiB budget and T27 / #41 remain. General workload evidence remains in #31 and final handoff in #32. No implementation completion is claimed.
+
+
+### Native field isolines and display units — 2026-10-29 (specification section 9.4)
+
+User-confirmed implementation: [#74](https://github.com/stepanosokin/hmc-app-prototype/issues/74). Build contours in a bounded browser worker from Zarr native-cell values and numeric masks delivered through the native display contract, independently of raster colour/interpolation. Preserve canonical API/GIS units and native data. Show pressure in hPa throughout the UI and the agreed other display-unit conversions. The [accepted requirements and all 29 interval triples](https://github.com/stepanosokin/hmc-app-prototype/blob/main/docs/design/field-contours-discussion.md) fix >6000/>2000/<=2000 km scale classes, black/dark and #707070/light lines, inline labels with tops towards increasing values (including upside-down text), at most seven labels, hiding lines shorter than 60 screen px and total simplification/smoothing displacement <=1 px. The global toggle starts enabled on each page opening without persistence. Four diagnostic fields use original-number intervals and explicit unit warnings, without silent rate conversion. Preserve identity/cancellation, 128 MiB shared memory, local runtime resources and scientific/real-browser gates; measurements do not imply a new SLA. This adds requirements, not completion. Existing M1–M5/A1–A12, historical tickets, milestones and unrelated acceptance remain unchanged.

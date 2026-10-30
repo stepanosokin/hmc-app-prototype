@@ -1,6 +1,6 @@
 # Hydrometcenter meteorology prototype — specification
 
-Version: 0.7 · 2026-10-21 · **Accepted implementation handoff.**
+Version: 0.8 · 2026-10-29 · **Accepted implementation handoff.**
 
 The user accepted revision 0.2, milestones M1–M5 and acceptance criteria A1–A12 on 2026-10-19, then requested this browser-delivery amendment and the corresponding specification/ticket updates. Revision 0.3 preserves those IDs and extends their obligations to numeric display tiles and browser GPU rendering. Acceptance records scope agreement, not completion of the new gates.
 
@@ -275,6 +275,39 @@ New requirements remain unchecked until actual implementation and validation:
 - [ ] The real canonical forecast graph covers the pinned series, gaps, partial failure and reuse/invalidation.
 - [ ] Graph selection, tooltips, keyboard/touch and phone layout agree with map/slider state.
 - [ ] Reproducible desktop/physical Android evidence verifies all three projections and the memory bound.
+
+### 9.4. Native field contours and display units — v0.8
+
+The owner approved implementation on 2026-10-29 in [#74](https://github.com/stepanosokin/hmc-app-prototype/issues/74).
+The [accepted requirements and normative 29-field interval table](../../docs/design/field-contours-discussion.md)
+fix every small/medium/large-scale interval, including custom surface-pressure
+25/20/5 hPa and visibility 20000/10000/5000 m. Width classes are >6000 km,
+>2000 and <=6000 km, and <=2000 km, consistently evaluated across all four views.
+
+Build contours in a bounded background browser worker from native Zarr-cell
+values and numerical NoData masks delivered through the numerical service,
+under the declared native encoding error. Do not extract geometry from raster
+pixels, palette, transparency or screen-resampled values. Preserve valid zeros,
+block seams, selection identity, cancellation and the shared 128 MiB resource budget.
+Cache bounded results; local runtime dependencies and real-field performance
+measurements are required. No new latency SLA is implied.
+
+Overlay black contours in dark mode and #707070 grey in light mode; break lines
+under labels and orient the top of each label towards increasing values even
+when upside down. Place at most seven labels in the visible map. Hide components
+shorter than 60 screen pixels; total simplification and smoothing displacement
+is <=1 screen pixel. Do not smooth the numerical field. State the interval in
+the legend. The global toggle starts enabled on every page opening, hides lines
+and labels together, and is not persisted. Manual in-app interval entry is out
+of this agreed scope; custom design settings were supplied in chat.
+
+Display pressure in hPa throughout the UI, specific humidity in g/kg, snow depth
+in cm and unambiguous precipitation rates in mm/h. Keep source, Zarr, numerical
+API and GIS units unchanged. Four diagnostic fields use the selected intervals
+of original numbers with explicit undefined/contradictory-unit legend notes;
+do not silently convert contradictory accumulated rain-rate fields to mm/h.
+This extends A2/A3/A5/A8/A11/A12, preserving existing IDs and completion states.
+Implementation and scientific/real-browser evidence are required before closure.
 
 ## 10. Retention and operations
 

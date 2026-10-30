@@ -31,12 +31,12 @@ test('small moisture and rain values remain nonzero in source units',()=>{
     assert.match(fieldNumber(.000000123,'kg m**-2 s**-1'),/1,23/);
     assert.equal(fieldNumber(280.125,'K'),'280.13');
 });
-test('specific humidity rounds only legend labels to three significant digits in kg/kg',()=>{
+test('specific humidity legend converts to g/kg with three significant digits, preserving source formatting',()=>{
     for(const short of ['q','2sh']){
         const source=group('q',short,'surface',0,{units:'kg kg**-1'}).selection;
-        assert.equal(legendNumber(.02025938,source),'0,0203');
-        assert.equal(legendNumber(.000157356,source),'0,000157');
-        assert.equal(legendNumber(1e-12,source),'0,000000000001');
+        assert.equal(legendNumber(.02025938,source),'20,3');
+        assert.equal(legendNumber(.000157356,source),'0,157');
+        assert.equal(legendNumber(1e-12,source),'0,000000001');
         assert.equal(fieldNumber(.02025938,source.units),'0,0202594');
     }
 });

@@ -73,6 +73,14 @@ _Avoid_: Treating the wind overlay as an alternative to the selected field.
 The representation of a published field and its geographic context on the web map. Choosing it changes the view while preserving the selected forecast and the meaning of its native-cell values.
 _Avoid_: Treating a display choice as a change to the source grid or the external numerical/GIS contract.
 
+**Field isoline**:
+A line joining equal display values of the selected meteorological field at its selected valid time and vertical surface or level. An isobar is a pressure-field isoline.
+_Avoid_: Confusing field isolines with geographic grid lines or wind trajectories.
+
+**Field-isoline interval**:
+The constant difference between consecutive isoline values for a field in its displayed units and map-scale class.
+_Avoid_: Equating the interval with colour-scale divisions or the number of labels on the map.
+
 **Module**:
 A subject-area capability of the system, such as meteorology, hydrology or long-term forecasting.
 _Avoid_: Treating every model or display layer as a separate module.

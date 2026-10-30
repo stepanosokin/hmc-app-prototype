@@ -1,7 +1,8 @@
 import {referenceTime,type Selection,type PublishedGroup} from './selection.js';
 import {nativeToWgs} from './native-layer.js';
 import {nativePosition} from './source-crs.js';
-import {fieldPresentation,fieldUnits} from './fields.js';
+import {fieldPresentation} from './fields.js';
+import {displaySpec} from './display-units.js';
 import type {Position} from './series.js';
 
 export interface SourceDescription {
@@ -25,11 +26,12 @@ export class SourceSettings {
     }
     update(group:PublishedGroup,index:number,current:Selection|undefined,position:Position|undefined,
         description:SourceDescription|undefined,state:State,shown:Selection|undefined,
-        bounds:number[]|undefined,format:(time:string)=>string){
+        bounds:number[]|undefined,format:(time:string)=>string,temperatureUnit='C'){
         const source=group.selection,time=new Date(group.start+index*3600000).toISOString();
+        const units=displaySpec(source,temperatureUnit).unit;
         const title=fieldPresentation(source).label;
         element('sourceDescription').textContent=source.model+' · '+title+'. '+(source.wind_v?'Карта: движущиеся стрелки по U/V. Ряд точки: компонента U ветра.':'Значение точки — ближайшая нативная ячейка; отображение — билинейная интерполяция.');
-        element('sourceUnitsInfo').textContent='Публичные демонстрационные ссылки. WMS закреплён за расчётом и редакцией; API — за точным сроком UTC и точкой. Исходные единицы: '+fieldUnits(source.units)+'.';
+        element('sourceUnitsInfo').textContent='Публичные демонстрационные ссылки. WMS закреплён за расчётом и редакцией; API — за точным сроком UTC и точкой. Единицы отображения: '+units+'.';
         const matching=current&&description?.identity?.revision===current.revision&&description.identity.valid_time===current.valid_time?description:undefined;
         const complete=source.completeness==='complete'?'полный':source.completeness==='partial'?'неполный':'неизвестна';
         const unavailable=state==='expired'||state==='withdrawn';
@@ -39,7 +41,7 @@ export class SourceSettings {
             ['Редакция',source.revision.slice(0,12)],['Доступность',status],
             ['Полнота',complete],['Опубликовано сроков',String(group.times.filter(Boolean).length)],
             ['Возраст расчёта',Math.max(0,Math.floor((Date.now()-Date.parse(referenceTime(source.run)))/3600000))+' ч'],
-            ['Числовой метод','Ближайшая нативная ячейка · точный срок · '+(source.units==='unknown'?'единицы не определены':source.units)]];
+            ['Числовой метод','Ближайшая нативная ячейка · точный срок · '+units]];
         if(current?.interval)rows.push(['Интервал',format(current.interval.start)+' — '+format(current.interval.end)+' · код статистической операции '+current.interval.statistical_process]);
         if(matching?.source?.name)rows.push(['Файл источника',matching.source.name]);
         if(shown&&shown.selection!==current?.selection)rows.push(['Показан прежний кадр',
@@ -60,7 +62,7 @@ export class SourceSettings {
                 crs:'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}).toString();api=url.href;
         }
         element('linkPoint').textContent=unavailable?status+'. Перевыберите публикацию.':!current?'Срок отсутствует — запрос точки недоступен.':point?
-            (position?'Выбранная точка: ':'Пример — центр покрытия: ')+point.lat.toFixed(4)+'° с. ш., '+point.lng.toFixed(4)+'° в. д. · '+format(time)+' · '+(source.units==='unknown'?'единицы не определены':source.units):'Для примера дождитесь загрузки покрытия или выберите точку на карте.';
+            (position?'Выбранная точка: ':'Пример — центр покрытия: ')+point.lat.toFixed(4)+'° с. ш., '+point.lng.toFixed(4)+'° в. д. · '+format(time)+' · '+units:'Для примера дождитесь загрузки покрытия или выберите точку на карте.';
         for(const [kind,url] of [['wms',wms],['api',api]]){
             const link=element<HTMLAnchorElement>(kind+'Link'),input=element<HTMLInputElement>(kind+'Url');
             if(input.value!==url)element('copyStatus').textContent='';

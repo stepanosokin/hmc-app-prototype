@@ -10,6 +10,8 @@
 
 ## Архивные записи
 
+- [Изолинии нативных полей и единицы давления — №74](contours-74.md)
+
 - `cancel-t26/validation.md`
 - `crs-planning-readback.json`
 - `grib-crs-metadata/README.md`
