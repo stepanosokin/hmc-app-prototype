@@ -36,6 +36,8 @@ jobs:
         run: node --test tools/test-hmc-app.mjs
       - name: Check bounded validation report summaries
         run: node --test tools/test-validation-summary.mjs
+      - name: Check read-only live viewer build comparison
+        run: node --test tools/test-viewer-runtime.mjs
 
   windows-process:
     runs-on: windows-2022

@@ -27,6 +27,7 @@ try {
         Invoke-Check node @('--test', 'tools/test-archive-paths.mjs')
         Invoke-Check node @('--test', 'tools/test-archive-validation.mjs')
         Invoke-Check node @('--test', 'tools/test-validation-summary.mjs')
+        Invoke-Check node @('--test', 'tools/test-viewer-runtime.mjs')
     }
     if ($Scope -in @('All', 'Windows')) {
         foreach ($script in @('check-publication-process', 'check-documentation', 'check-documentation-tests', 'check-native-display-inputs', 'check-viewer-fixtures-tests', 'check-field-nodata-preflight-tests', 'check-retention-preflight-tests')) {

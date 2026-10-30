@@ -33,7 +33,7 @@ when a change crosses boundaries. Ticket-specific acceptance criteria still appl
 | Change | During development | Final acceptance |
 | --- | --- | --- |
 | Documentation only | Documentation link check on changed files | Link check; verify recorded hashes when completing existing evidence |
-| Viewer fixture preflight / report-summary tooling | Resource-free fixture/summary regressions | Same regressions, PowerShell syntax and local/CI wiring; unchanged application runners do not require service/browser gates |
+| Viewer fixture preflight / read-only build comparison / report-summary tooling | Resource-free fixture/summary/build regressions | Same regressions, PowerShell syntax and local/CI wiring; compare served modules for the build probe; unchanged application runners do not require service/browser gates |
 | Service-runner test selection only | Resource-free selection guard and negative fixtures | Same guard, Windows/CI wiring and the affected Development sequence on a fresh stand; unchanged publication/runtime paths do not require repeating T5 or the full retention gate |
 | Evidence copy helper | Synthetic copy, escape, overwrite and corruption checks | Entire helper test file plus a new verified archive; preserve historical archives |
 | Mockup CSS / layout | Affected scenario and viewport, selected screenshots | Complete mockup matrix in Chrome and Edge; visually inspect smallest portrait/landscape, both fonts and basemaps |

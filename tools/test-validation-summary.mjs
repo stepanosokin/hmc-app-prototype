@@ -6,6 +6,17 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {summarizeReport,renderSummary,MAX_OUTPUT_BYTES} from './validation-summary.mjs';
 
+test('live summary distinguishes missing runtime from throttled field loading without response URLs',()=>{
+    const missing=JSON.parse(renderSummary({state:{ready:true,canvas:false,contours:null}}));
+    assert.equal(missing.state.contours,null);assert.equal(missing.state.ready,true);
+    const result=renderSummary({state:{ready:false,canvas:false,contours:{state:'missing',message:'Нет поля',curves:0,metadata:'secret'}},
+        viewport:{width:640,height:360},responses:Array(1000).fill({status:429,path:'/private-selection',body:'private-body'}).concat([{status:404},{status:200}])});
+    const summary=JSON.parse(result);assert.deepEqual(summary.http_failures,{'404':1,'429':1000});
+    assert.equal(summary.state.contours.state,'missing');assert.equal(summary.viewport.width,640);
+    assert.ok(!/private|secret/.test(result));assert.ok(Buffer.byteLength(result)<MAX_OUTPUT_BYTES);
+    assert.equal(summarizeReport({status:'passed',contour_ink_pixels:123,state:{ready:true,contours:{state:'ready',curves:92}}}).contour_ink_pixels,123);
+});
+
 test('NoData cases retain coverage counts without nested field or GPU data',()=>{
     const nodata=[];
     for(const [width,height] of [[1440,900],[390,844],[360,740],[640,360]])for(const kind of ['empty','zero','mixed'])

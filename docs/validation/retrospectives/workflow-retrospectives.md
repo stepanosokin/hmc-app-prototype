@@ -1,5 +1,11 @@
 # Retrospective basis
 
+The [live isoline retrospective](retro-contour-live.md) follows #75:
+a read-only TypeScript/HTTP comparison detects stale served JavaScript before
+browser allocation; local Viewer/manual CI exercise its failure cases.
+Browser guidance covers sequential shared-stand probes, and bounded summaries
+retain isoline state and HTTP status counts without full response graphs.
+
 The [GRIB revisions retrospective](retro-grib-revisions.md) follows #70:
 T7 Development now checks both adjacent lifecycle scenarios, guarded before
 Docker and in Windows/CI. Service and cleanup references cover delivery-key

@@ -1,5 +1,18 @@
 # Browser prototypes
 
+For a missing feature on a named running viewer, first run
+`node tools/check-viewer-runtime.mjs http://127.0.0.1:8140` with that stand's port.
+It compiles current sources into memory and compares all served module bytes,
+including workers, without changing the stand. A frozen fixture's browser pass
+does not establish which JavaScript the running stand serves. For an approved
+update, follow [the administrator procedure](../../ADMIN.md#обновление-кода-просмотрщика),
+then use `tools/check-live-contours.mjs` for the actual isoline regression.
+Run browser probes against a shared live stand sequentially: concurrent field
+loads can exhaust request limits. Keep HTTP 429 attempts and repeat after the
+budget recovers; retain the stand's limits. Start diagnostics with
+`node tools/validation-summary.mjs <report>` to distinguish missing runtime from
+an unloaded field and read HTTP status counts without dumping response URLs.
+
 For production display-projection changes, run
 `node --test viewer/test-projection-controls.mjs` before provisioning T13.
 The service runner also executes this preflight before Docker inventory;

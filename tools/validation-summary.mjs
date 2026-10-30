@@ -44,6 +44,19 @@ export function summarizeReport(report){
     result.browser=fields(report.browser,['product','protocolVersion']);
     result.counts=Object.fromEntries(['checks','errors','requests','responses','files','inputs'].filter(key=>Array.isArray(report[key])).map(key=>[key,report[key].length]));
     result.errors=samples(report.errors);
+    if(report.state&&typeof report.state==='object'){
+        result.state=fields(report.state,['ready','field','mode','button','canvas']);
+        if(report.state.contours===null)result.state.contours=null;
+        else if(report.state.contours)result.state.contours=fields(report.state.contours,['state','message','enabled','worker_active','curves']);
+    }
+    if(report.viewport)result.viewport=fields(report.viewport,['width','height','scope']);
+    if(Number.isSafeInteger(report.contour_ink_pixels))result.contour_ink_pixels=report.contour_ink_pixels;
+    if(Array.isArray(report.responses)){
+        const statuses=new Map();
+        for(const response of report.responses)if(Number.isInteger(response?.status)&&response.status>=400&&response.status<=599)
+            statuses.set(response.status,(statuses.get(response.status)??0)+1);
+        result.http_failures=Object.fromEntries([...statuses].sort((a,b)=>a[0]-b[0]));
+    }
     result.cleanup=fields(report.cleanup,['page_released','browser_stopped','profile_removed','browser_processes_remaining',
         'adb_forward_removed','adb_reverse_removed','ui_dump_removed','user_chrome_retained']);
     if(report.cleanup?.errors)result.cleanup.errors=samples(report.cleanup.errors);
