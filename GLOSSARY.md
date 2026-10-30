@@ -77,6 +77,10 @@ _Avoid_: Reading the shaft as an arrow pointing in the direction of airflow.
 
 ## Product scope
 
+**Coastline**:
+The boundary between land and the sea along mainland and island shores, used as a geographic reference on the weather map.
+_Avoid_: Including national borders or inland lake shores, or confusing the coastline with field isolines.
+
 **Wind overlay**:
 A representation of wind speed and direction that can be enabled independently of the selected meteorological field, allowing both to be viewed together.
 _Avoid_: Treating the wind overlay as an alternative to the selected field.

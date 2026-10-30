@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import {spawn,execFileSync} from 'node:child_process';
 import {readFile,writeFile,mkdir,rm} from 'node:fs/promises';
 import {resolve,join,sep} from 'node:path';
+import {checkCoastline} from './live-coastline.mjs';
 
 const directory=resolve(process.argv[2]),origin=process.env.HMC_CONTOUR_LIVE_ORIGIN??'http://127.0.0.1:8140';
 const browser=process.argv[3]??'chrome',size=process.argv[4]??'1440x900';
+const coastline=process.argv.includes('--coastline');
 assert.ok(['chrome','edge'].includes(browser));assert.match(size,/^\d+x\d+$/);
 const [width,height]=size.split('x').map(Number);
 assert.ok(directory.startsWith(resolve('data/reports/contour-live')+sep));
@@ -34,12 +36,14 @@ try{
  let state;
  for(let i=0;i<600;i++){
   state=await evaluate("(()=>{const s=window.captureWeatherEvidence?.(),c=s?.contours;return {ready:s?.ready??false,field:s?.displayed?.field_short_name,mode:s?.mode,button:Boolean(document.getElementById('contourToggle')),canvas:Boolean(document.querySelector('.fieldContours')),contours:c?{state:c.state,message:c.message,enabled:c.enabled,worker_active:c.worker_active,curves:c.curves}:null};})()");
-  if(state.ready&&(!state.button||!state.contours||['ready','empty','error'].includes(state.contours.state)))break;
+  if(state.ready&&(coastline||!state.button||!state.contours||['ready','empty','error'].includes(state.contours.state)))break;
   await pause(100);
  }
  report.elapsed_ms=performance.now()-start;report.state=state;
  const screenshot=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,'live.png'),Buffer.from(screenshot.data,'base64'));
  assert.equal(state.ready,true,'Underlying live raster must be ready');
+ if(coastline)report.coastline=await checkCoastline({evaluate,call,directory});
+ else{
  assert.equal(state.button,true,'Live viewer has no isoline control');
  assert.ok(state.contours,'Live viewer has no isoline runtime');
  assert.equal(state.contours.state,'ready','Live isolines did not become ready');
@@ -55,6 +59,7 @@ try{
   assert.equal(await evaluate('captureWeatherEvidence().displayed.selection'),selection);
   await click('#contourToggle');await pause(200);
   assert.equal(await evaluate('captureWeatherEvidence().contours.enabled'),true);report.toggle='off/on passed; raster selection retained';
+ }
  }
  report.status='passed';
 }catch(error){report.status='failed';report.failure=String(error.message??error);process.exitCode=1;}

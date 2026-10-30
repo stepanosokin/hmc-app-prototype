@@ -13,6 +13,7 @@ import {displaySpec,displayNumber} from './display-units.js';
 import {ContourOverlay} from './contours.js';
 import {compactGroups,type CompactCatalogue} from './catalogue.js';
 import {WindOverlay} from './wind-overlay.js';
+import {CoastlineOverlay} from './coastline.js';
 
 import {laeaRfId,laeaRq,laeaD} from './laea-rf.js';
 type Mode='mercator'|'orthographic'|'laea'|'laea-rf';
@@ -60,10 +61,12 @@ let catalogueChecks=0;
 let timeController=new AbortController(),displayed:Selection|undefined;
 let reselectController=new AbortController();
 let timeState:'loading'|'ready'|'missing'|'error'|'expired'|'withdrawn'='missing',pointMessage='',timeError='';
-const contours=new ContourOverlay(bytes=>{
+function admitOverlay(bytes:number){
     if(stagingBase()+bytes+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)
-        throw Error('Превышен общий бюджет ресурсов изолиний.');
-},()=>unit);
+        throw Error('Превышен общий бюджет ресурсов карты.');
+}
+const contours=new ContourOverlay(admitOverlay,()=>unit);
+const coastline=new CoastlineOverlay(admitOverlay,rendererFailure);
 const wind=new WindOverlay(()=>{wind.points(position);if(position)renderPoint();fieldPicker.layout();},bytes=>{
     const base=stagingBase();
     if(base+bytes+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)
@@ -149,6 +152,7 @@ function setGroup(newGroup:PublishedGroup,preservePoint=false){
 function clearPoint(){reselectController.abort();series.clear();wind.clearPoints();cancelUpdate();pointController.abort();point=undefined;position=undefined;pointCollapsed=false;
     $('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');placePoint();if(group)selectionDetails();}
 function releaseLayer(){
+    coastline.unmount();
     contours.unmount();
     const previous=layer;layer=undefined;
     previous?.context?.remove();
@@ -169,7 +173,7 @@ function stagingBase(){
     // checkBudget reserves a full RGBA32F readback texture (16 bytes/pixel).
     // Readback is forbidden while staging; the old display and its arrays stay.
     const canvas=map?.getCanvas();
-    return (layer?layer.checkBudget()-(canvas?canvas.width*canvas.height*16:0):0)+wind.bytes()+contours.bytes();
+    return (layer?layer.checkBudget()-(canvas?canvas.width*canvas.height*16:0):0)+wind.bytes()+contours.bytes()+coastline.bytes();
 }
 async function prepareLayer(field:FieldData,owner:any,signal:AbortSignal){
     const extra=field.blocks.reduce((n,b)=>n+b.byteLength,0)+(field.wind?.blocks.reduce((n,b)=>n+b.byteLength,0)??0)+
@@ -191,6 +195,7 @@ function replaceLayer(candidate:WeatherLayer){
     if(layer){candidate.context=layer.context;layer.context=undefined;}
     if(mode==='orthographic')candidate.setCenter(center,projection());
     releaseLayer();layer=candidate;candidate.staged=false;candidate.setPalette(alternate);
+    coastline.mount(map,()=>layer!);
     contours.mount(map,()=>lost?undefined:layer);
     map.triggerRepaint();
 }
@@ -293,6 +298,7 @@ async function rebuild(fit=false){
         layer.fieldVisible=Boolean(displayed)&&timeState!=='missing'&&timeState!=='expired'&&timeState!=='withdrawn';
         mapBaseCenter=[...layer.baseCenter];mapBaseProjection=layer.baseProjection;
         map.addLayer(layer);layer.setPalette(alternate);
+        coastline.mount(map,()=>layer!);
         wind.mount(map,()=>layer);
         contours.mount(map,()=>lost?undefined:layer);
         if(mode!=='mercator')layer.context=new LocalContext(map,coverage(mode==='orthographic'),mode);
@@ -463,6 +469,7 @@ function palette(){
     layer?.setPalette(alternate);if(position)renderPoint();
 }
 function updateBasemap(){
+    coastline.theme(light);
     document.body.classList.toggle('basemapLight',light);
     if(!map)return;
     if(layer?.context){layer.context.last=undefined;
