@@ -1,5 +1,7 @@
 # Before starting final acceptance
 
+For explicit user exclusions, see [check deferrals](#explicit-check-deferrals).
+
 In a worktree, resolve its root with `git rev-parse --show-toplevel` and resolve
 shared private inputs explicitly instead of counting parent-directory segments.
 Define the delivery target in acceptance: implementation, an isolated stand or
@@ -156,3 +158,13 @@ An unexplained failed acceptance gate remains a failed attempt after a successfu
 repeat. Reproduce its reader/worker overlap in a focused run and distinguish
 the gateway's admission/accounting failure from an upstream service failure.
 Use status/body provenance as a clue, then confirm the cause from service logs.
+
+## Explicit check deferrals
+
+When the user explicitly excludes tests, record the excluded scope and proceed
+with the authorized edits, build and deployment. A later request for commit/push
+authorizes publication; it does not itself revoke that exclusion. Report build
+diagnostics, deployment readback and untested behavior separately. Keep ticket
+criteria requiring omitted checks unverified and distinguish a new follow-up
+from the accepted inputs of a previously closed ticket. Archive the operational
+receipt without presenting it as browser or scientific acceptance.

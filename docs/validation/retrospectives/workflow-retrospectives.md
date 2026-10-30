@@ -1,5 +1,14 @@
 # Retrospective basis
 
+The [earth wind follow-up retrospective](retro-earth-wind.md) records visible
+particle bands after a placement change, repeated server rebuilds for viewer
+edits and an explicit no-tests instruction. Browser review now distinguishes
+placement/age patterns from U/V correctness; the administrator procedure names
+the viewer build boundary, and acceptance records user exclusions separately.
+A seeded distribution regression remains deferred; local Viewer/manual CI
+already runs the existing wind tests. Third-party skills and live services
+are unchanged by this retrospective.
+
 The [live isoline retrospective](retro-contour-live.md) follows #75:
 a read-only TypeScript/HTTP comparison detects stale served JavaScript before
 browser allocation; local Viewer/manual CI exercise its failure cases.

@@ -20,6 +20,28 @@ the existing viewer test glob covers it in local/manual CI.
 It checks the selector, supported mode union, explicit initial mode and compact
 label, including labels damaged by shell encoding. GPU/PROJ acceptance remains separate.
 
+## Wind particles
+
+For particle placement, lifetime, opacity or density changes, inspect
+`viewer/wind.ts` and distinguish particle lifetime from trail decay. Review
+initial placement, respawn and initial age together: shared coordinate/index
+sequences can form bands, and correlated ages can turn them into visible waves.
+Describe uniformity as equal birth probability per valid screen area; wind
+advection can still change local density. Compare a named reference site's
+current animation code separately from its palettes or historical repository.
+
+When checks are authorized, inspect several animation frames after initial load,
+respawn and a view change, including partial coverage and NoData. Review spatial
+patterns on a constant-wind fixture as well as actual data; correct U/V direction,
+particle counts and successful compilation do not establish spatial uniformity.
+Use the existing Viewer test entry point for a future deterministic distribution
+regression with a fixed random seed and positive/negative placement controls.
+Such a regression is still deferred; existing wind tests cover sampling, pairing,
+values and rotation. Follow [explicit check deferrals](acceptance.md#explicit-check-deferrals)
+when the user requests no tests.
+
+## Other browser changes
+
 Projection dependencies: `viewer/geometry.js` registers the map CRS;
 `native-layer.js` implements GPU inverse geometry; `local-context.js` projects
 the basemap; `main.ts` handles coverage, visibility, fitting and picking;

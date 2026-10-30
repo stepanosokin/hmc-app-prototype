@@ -29,6 +29,8 @@ change-specific actual-sample, browser, QGIS or physical-device gates below.
 Start with the affected row. Development checks give feedback while editing;
 final acceptance establishes ticket completion after review fixes. Combine rows
 when a change crosses boundaries. Ticket-specific acceptance criteria still apply.
+For explicit user exclusions, follow [check deferrals](development/acceptance.md#explicit-check-deferrals).
+For particle appearance changes, start with [wind-particle review](development/browser.md#wind-particles).
 
 | Change | During development | Final acceptance |
 | --- | --- | --- |
