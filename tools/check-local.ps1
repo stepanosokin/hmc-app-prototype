@@ -50,6 +50,7 @@ try {
         Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_grib_sync.py', '-v'))
         Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_hmc_refresh.py', '-v'))
         Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-B', '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_field_nodata.py', '-v'))
+        Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-B', '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_display_pyramid.py', '-v'))
         Invoke-Check docker @('run', '--rm', '--network', 'none', '--tmpfs', '/evidence:mode=1777', '--entrypoint', 'python', $image, '-m', 'publication.runtime')
         Invoke-Check docker ($mounted + @('--entrypoint', 'python', $image, '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_evidence*.py', '-v'))
         Invoke-Check powershell @('-NoProfile', '-File', 'tools/check-publication-retirement.ps1', '-Image', $image)

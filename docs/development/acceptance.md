@@ -27,6 +27,10 @@ NoData summaries retain case counts, kinds and viewport coverage. For long
 child checks, use `Invoke-CheckedProcess -OutputMode Summary`: complete stdout
 and stderr stay in their files, and the console shows paths, lengths and exit.
 
+For live probes, distinguish the initial `state` from a later `failure_state`.
+The summary also extracts a map state serialized inside `failure`; inspect its
+time/renderer errors and HTTP status counts before reading the raw state graph.
+
 For PowerShell runner edits, run `powershell -NoProfile -File tools/check-powershell.ps1`
 before allocating services. It parses runtime scripts without executing them;
 the existing Windows process check includes this guard and its valid/invalid

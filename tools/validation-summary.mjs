@@ -31,6 +31,23 @@ function identity(value){
 const count=value=>Array.isArray(value)?value.length:undefined;
 const processRecord=row=>({...fields(row,['check']),native_exit_code:typeof row?.native_exit_code==='number'&&Number.isFinite(row.native_exit_code)?row.native_exit_code:null});
 
+function embeddedFailureState(value){
+    // Older live runners serialize the late map state into Error.message.
+    if(typeof value!=='string'||value.length>1024**2||!value.trimStart().startsWith('{'))return;
+    try{
+        const state=JSON.parse(value);
+        if(state&&typeof state==='object'&&!Array.isArray(state)&&
+            (typeof state.ready==='boolean'||typeof state.time_state==='string'))return state;
+    }catch{}
+}
+function failureState(value){
+    const result={...fields(value,['ready','frame_visible','time_state','time_error','renderer_error','mode','catalogue_pending','catalogue_checks']),
+        selected:identity(value.selected)};
+    if(value.contours)result.contours=fields(value.contours,['state','message','failure','enabled','worker_active','curves']);
+    if(value.wind_overlay)result.wind_overlay=fields(value.wind_overlay,['state','status','failure','enabled','paused']);
+    return result;
+}
+
 /** Keep diagnostics useful without materializing nested raster/metadata graphs. */
 export function summarizeReport(report){
     if(Array.isArray(report)){
@@ -67,7 +84,10 @@ export function summarizeReport(report){
                 .map(item=>item.width+'x'+item.height))].slice(0,8)};
     }
     if(Array.isArray(report.viewports))result.viewports=report.viewports.slice(0,8).map(view=>fields(view,['width','height','mobile_emulation','physical_mobile']));
-    if(report.failure_state)result.failure_state={...fields(report.failure_state,['ready','frame_visible','time_state','catalogue_pending','catalogue_checks']),selected:identity(report.failure_state.selected)};
+    const embedded=report.failure_state?undefined:embeddedFailureState(report.failure);
+    const failed=report.failure_state??embedded;
+    if(failed&&typeof failed==='object'&&!Array.isArray(failed))result.failure_state=failureState(failed);
+    if(embedded)result.failure='Состояние карты при ошибке (JSON)';
     if(report.updates)result.updates={races:count(report.updates.races),failures:samples(report.updates.failures),new_run:identity(report.updates.new_run)};
     if(report.withdrawal)result.withdrawal={checks:samples(report.withdrawal.checks,8),operations:count(report.withdrawal.operations)};
     return result;

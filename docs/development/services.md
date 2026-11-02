@@ -139,6 +139,12 @@ It includes killed workers, real GIS failures, managed-source recovery, staging
 collection, cold/warm numeric tiles and retained readers after service restart.
 Its fault markers are enabled only in the explicitly isolated T6 API stack.
 
+For warm-cache assertions through the gateway, observe cache-counter deltas at
+the isolated API's `/ops/diagnostics` or request-correlated usage records. The
+gateway intentionally omits `X-HMC-Cache` from public response headers; a repeated
+200 response alone does not prove a cache hit. The pyramid HTTP regression in
+`tests/test_publication_display_pyramid.py` demonstrates this boundary.
+
 For full-stack backup/restore (T18), use
 `powershell -NoProfile -File publication/run-stack-restore.ps1 -Project hmc-publication-t18-<fresh-name>`.
 It includes the complete T6 gate (and its full suite), then T8 policy probes,

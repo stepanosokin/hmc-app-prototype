@@ -107,6 +107,12 @@ jobs:
         run: >-
           docker run --rm --network none --entrypoint python hmc-publication:checks
           -B -m unittest discover -s tests -p test_field_nodata.py -v
+      - name: Check display pyramid means, masks and halos without private samples
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks
+          -B -m unittest discover -s tests -p test_display_pyramid.py -v
       - name: Check access gateway boundaries
         run: >-
           docker run --rm --network none --entrypoint python hmc-publication:checks

@@ -29,6 +29,31 @@ test('NoData cases retain coverage counts without nested field or GPU data',()=>
     assert.equal(JSON.parse(large).nodata.viewports.length,8);
 });
 
+test('late JSON map failure is distinct from the successful initial state',()=>{
+    const output=renderSummary({status:'failed',state:{ready:true,field:'t',contours:{state:'ready'}},
+        failure:JSON.stringify({ready:false,frame_visible:true,time_state:'error',time_error:'Сервис данных недоступен',mode:'laea-rf',
+            selected:{selection:'later-time',field:'tp',metadata:'private-selection-data'},
+            contours:{state:'ready',curves:8,grid:'private-grid'},wind_overlay:{state:'missing',point_entries:['private-points']},
+            raster:'private-raster'.repeat(10000),password:'secret-password'}),responses:[{status:429,path:'/private-url'}]});
+    const summary=JSON.parse(output);
+    assert.equal(summary.state.ready,true);assert.equal(summary.failure_state.ready,false);
+    assert.equal(summary.failure_state.time_state,'error');assert.equal(summary.failure_state.time_error,'Сервис данных недоступен');
+    assert.equal(summary.failure_state.selected.selection,'later-time');assert.equal(summary.failure_state.wind_overlay.state,'missing');
+    assert.equal(summary.failure_state.contours.curves,8);assert.deepEqual(summary.http_failures,{'429':1});
+    assert.ok(!/private-|secret-password/.test(output));assert.ok(Buffer.byteLength(output)<MAX_OUTPUT_BYTES);
+});
+
+test('embedded failure parsing is bounded and explicit failure state takes precedence',()=>{
+    const embedded=JSON.stringify({ready:false,time_state:'error',time_error:'Authorization: Bearer hidden password=hidden-password'});
+    const output=renderSummary({failure:embedded});assert.ok(!output.includes('hidden'));assert.ok(output.includes('<REDACTED>'));
+    const explicit=summarizeReport({failure:embedded,failure_state:{ready:true,time_state:'missing'}});
+    assert.equal(explicit.failure_state.time_state,'missing');
+    for(const value of ['plain failure','{"ready":false,','null','[]','{"message":"ordinary JSON error"}',
+        JSON.stringify({ready:false,padding:'x'.repeat(1024**2)})]){
+        const result=summarizeReport({failure:value});assert.equal(result.failure_state,undefined);assert.ok(Buffer.byteLength(renderSummary({failure:value}))<MAX_OUTPUT_BYTES);
+    }
+});
+
 test('browser failure remains readable while enormous nested metadata is excluded',()=>{
     const nested={metadata:{raster:'private-raster-marker'.repeat(100000)}};
     const result=renderSummary({status:'failed',failure:'Control is visible: #latestRun',failure_dom:'large-dom-marker'.repeat(100000),

@@ -13,6 +13,15 @@ Successful tests on a candidate configuration establish only that configuration.
 Reuse verified immutable samplers while checking catalogue eligibility on each
 request; compare numerical/GIS identity and placement through the gateway.
 
+For derived display grids, review every consumer that converts a canonical cell
+index into a position: point-series wind rotation needs the source grid's spacing
+and origin, even when particles use a coarser display grid. Verify the coordinate
+conversion as well as the unchanged scalar values, especially on rotated grids.
+The autonomous surface invariants run in `npm --prefix viewer test`; the existing
+`tests/test_display_pyramid.py` mean/mask/halo checks run in local Runtime/manual CI.
+The actual-source replay in `tools/check-contour-surface.mjs` remains a separate
+acceptance check with explicitly selected historical inputs.
+
 For cached numerical readers, exercise loss of an expected array and an expected
 chunk after warming the sampler. Consolidated Zarr metadata can survive missing
 files and return fill values as apparent success. Use the verified manifest's

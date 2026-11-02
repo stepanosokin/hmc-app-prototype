@@ -1,5 +1,11 @@
 # Retrospective basis
 
+The [display pyramid retrospective](retro-pyramid-live.md) follows #79–#81:
+surface invariants now run in the ordinary viewer suite, and the existing
+Python pyramid checks are wired into local Runtime/manual CI. Bounded summaries
+recover late map failures serialized as JSON; scientific/service references
+cover canonical cell geometry and cache observations through the gateway.
+
 The [earth wind follow-up retrospective](retro-earth-wind.md) records visible
 particle bands after a placement change, repeated server rebuilds for viewer
 edits and an explicit no-tests instruction. Browser review now distinguishes
