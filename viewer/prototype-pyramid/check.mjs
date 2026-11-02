@@ -53,6 +53,7 @@ try{
     for(const field of fields){
         await select('#pyramidField',field);await ready({field});
         const receipt=await evaluate(`fetch('/__pyramid/1/'+captureWeatherEvidence().displayed.selection+'/receipt.json').then(r=>r.json())`);
+        if(args.baseline)assert.deepEqual(receipt,JSON.parse(await readFile(join(args.baseline,field+'-preparation.json'),'utf8')),'Fill inputs and block hashes unchanged from accepted pyramid');
         await writeFile(join(directory,field+'-preparation.json'),JSON.stringify(receipt,null,2));
         // Native values are requested by the unchanged PointSeries path; the map level is irrelevant.
         await evaluate('window.pyramidApp.pointAt(37.6173,55.7558)');
@@ -79,6 +80,7 @@ try{
                     // Warm prepared source, but new HTTP payload/decode/upload and new contour worker.
                     const start=performance.now();await click('#pyramidRepeat');await pause(100);
                     const result=await ready({factor,field});result.complete_ms=performance.now()-start;
+                    assert.equal(result.state.contours.stats?.surface?.postprocess,'none; Float64 screen coordinates','Surface worker is active');
                     assert.deepEqual(result.prototype.series,expectedSeries,'Pyramid must not change/reload canonical series');
                     assert.equal(result.state.displayed.selection,point.selection);
                     assert.equal(result.state.mode,mode);
@@ -103,6 +105,11 @@ try{
     await ready({factor:first});
     assert.equal(await evaluate('document.getElementById("pyramidLevel").value'),String(first));
     await evaluate('window.restorePyramidFetch()');report.rapid_selection='passed: delayed real block, disabled selector and matching displayed variant';
+    // The legacy comparison is still available, but surface contours are the default.
+    await select('#pyramidSurface','0');const legacy=await ready();assert.equal(legacy.state.contours.stats?.surface,undefined);
+    await select('#pyramidSurface','1');const surface=await ready();assert.ok(surface.state.contours.stats.surface);
+    assert.equal(surface.state.displayed.selection,legacy.state.displayed.selection);assert.equal(surface.state.transfer_bytes,legacy.state.transfer_bytes);
+    assert.deepEqual(surface.prototype.series,legacy.prototype.series);report.surface_toggle='passed';
     report.runtime=await(await fetch(origin+'/__prototype/runtime.json')).json();
     assert.equal(report.errors.length,0,'No JS exceptions');report.status='passed';
 }catch(e){report.status='failed';report.failure=e.message;process.exitCode=1;}

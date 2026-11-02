@@ -21,7 +21,8 @@ patch('field.js','(?:api\\/v1\\/|ogc\\/collections\\/)','(?:api\\/v1\\/|ogc\\/co
 patch('contours.js','enabled = false;','enabled = true;');
 patch('contours.js','field?.metadata.selection !== this.field?.metadata.selection','field !== this.field');
 patch('wind-overlay.js','enabled = true;','enabled = false;');
-patch('contours.js',"new URL('./contour-worker.js', import.meta.url)","new URL('./contour-worker.js?variant='+window.pyramidVariant, import.meta.url)");
+patch('contours.js',"new URL('./contour-worker.js', import.meta.url)","new URL(window.pyramidSurface ? '/__prototype/surface-worker.js' : './contour-worker.js?variant='+window.pyramidVariant, import.meta.url)");
+patch('contours.js','BUILD_RESERVATION = 13 * 1024 ** 2','BUILD_RESERVATION = 34 * 1024 ** 2');
 // A read-only UI harness, scoped to this server. Original point/series code is untouched.
 modules.set('main.js',Buffer.concat([modules.get('main.js'),Buffer.from(`\nwindow.pyramidApp={reload:()=>chooseTime(index),
  choose:(name)=>{const g=groups.find(g=>g.selection.field_short_name===name&&g.selection.field_level_type==='surface')??groups.find(g=>g.selection.field_short_name===name);if(!g)throw Error('Поле недоступно');setGroup(g,true);},
@@ -100,7 +101,7 @@ const server=http.createServer(async(req,res)=>{
             const [,factor,selection,file]=match,{target,receipt}=await prepare(selection);
             if(file==='receipt.json'){bytes=Buffer.from(JSON.stringify(receipt));type='application/json';}
             else{bytes=await readFile(path.join(target,factor,file.replace('/','-')));type=file.endsWith('.json')?'application/json':'application/vnd.hmc.native-display-f32';}
-        }else if(u.pathname==='/__prototype/ui.js')bytes=await readFile(new URL('./ui.js',import.meta.url));
+        }else if(['/__prototype/ui.js','/__prototype/surface.js','/__prototype/surface-worker.js'].includes(u.pathname))bytes=await readFile(new URL('./'+u.pathname.split('/').at(-1),import.meta.url));
         else if(u.pathname.startsWith('/build/')&&modules.has(u.pathname.slice(7))){
             bytes=modules.get(u.pathname.slice(7));
             if(u.pathname==='/build/contour-worker.js'){
