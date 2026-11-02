@@ -1,0 +1,14 @@
+{
+  "contract": "hmc-display-pyramid/1",
+  "engine": "native-footprint-box/1",
+  "levels": [2, 4, 8],
+  "metadata_url": "/api/v1/selections/{selection}/display/4/{factor}/native.json",
+  "url_template": "/api/v1/selections/{selection}/display/4/{factor}/native/{column}/{row}.f32",
+  "aggregation": "Float32 native display values; overlap-weighted box mean in source coordinates; uniform output footprints; ceil dimensions",
+  "mask": "Any positive-weight missing contributor invalidates the output; valid zero participates",
+  "interpolation": "One bilinear interpolation of overlap-averaged display cells; positive-weight missing contributors invalidate the sample",
+  "identity": "selection and native_grid_sha256 refer to the source; display_grid_sha256 identifies the derivative grid",
+  "precision": "Spatial approximation for display only; no source-value or pixel displacement tolerance claimed; point/EDR/GIS remain native",
+  "cache": "Existing bounded process cache; eligibility and verified source storage checked before every hit",
+  "scope": "GRIB fields/1 native-display/3; no source rewrite or publication revision"
+}

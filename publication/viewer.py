@@ -15,6 +15,7 @@ def create_app() -> Flask:
         re.compile(r'ogc/collections/[0-9a-f.]+'),
         re.compile(r'gis/v1/runs/[A-Za-z0-9_.:/-]+/revisions/[0-9a-f]+(?:/fields/[0-9a-f]{64})?/wms'),
         re.compile(r'api/v1/selections/[0-9a-f.]+/display/[123]/(?:native\.json|native/[0-9]+/[0-9]+\.(?:f32|png))'),
+        re.compile(r'api/v1/selections/[0-9a-f.]+/display/4/[248]/(?:native\.json|native/[0-9]+/[0-9]+\.f32)'),
     )
 
     @app.after_request

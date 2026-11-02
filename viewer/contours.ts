@@ -15,7 +15,7 @@ function at(points:Points,distance:number,quantum=1){
 }
 /** One bounded, cancellable native-cell worker; no raster pixels or extra HTTP requests. */
 export class ContourOverlay {
-    enabled=false;
+    enabled=true;
     private field:FieldData|undefined;
     private selection:Selection|undefined;
     private map:any;
@@ -58,7 +58,7 @@ export class ContourOverlay {
     private reset(){this.cancel();this.cache.clear();this.shown=undefined;this.requested='';this.drawnKey='';this.clear();}
     cancelBuilding(){this.cancel();this.requested='';}
     update(field:FieldData|undefined,selection:Selection|undefined){
-        if(field?.metadata.selection!==this.field?.metadata.selection||Boolean(field)!==Boolean(this.field)){
+        if(field!==this.field){
             this.reset();this.field=field;this.selection=selection;
             this.profile=undefined;
             this.failure='';
@@ -75,7 +75,7 @@ export class ContourOverlay {
         const p=this.profile;
         const units=p?.temperature&&this.temperatureUnit()==='K'?'K':p?.unit;
         legend.textContent=!this.enabled?'Изолинии выключены':['ready','empty'].includes(this.state)&&p?
-            `${p.noun} проведены через ${p.step} ${units}${this.state==='empty'?' · '+this.message:''}${p.note?' · '+p.note:''}`:
+            `${p.noun} проведены через ${p.step} ${units}${this.field?.metadata.display_level?' · сглаженная поверхность':''}${this.state==='empty'?' · '+this.message:''}${p.note?' · '+p.note:''}`:
             this.message+(p?.note?' · '+p.note:'');
         document.getElementById('contourRetry')!.hidden=this.state!=='error'||!this.enabled;
     }
@@ -110,14 +110,15 @@ export class ContourOverlay {
     private build(key:string,view:View,serial:number,inverse:(xy:number[])=>number[]){
         if(serial!==this.serial||!this.field||!this.profile)return;
         try{
-            try{this.admit(BUILD_RESERVATION);}catch{
+            const reserve=this.field.metadata.display_level?34*1024**2:BUILD_RESERVATION;
+            try{this.admit(reserve);}catch{
                 // The shared renderer/point-series budget takes priority over a
                 // disposable contour cache. Release its actual owners first.
-                this.cache.clear();this.shown=undefined;this.clear();this.admit(BUILD_RESERVATION);
+                this.cache.clear();this.shown=undefined;this.clear();this.admit(reserve);
             }
-            this.reservation=BUILD_RESERVATION;
+            this.reservation=reserve;
             const field=this.field,profile=this.profile;
-            const worker=new Worker(new URL('./contour-worker.js',import.meta.url),{type:'module'});this.worker=worker;
+            const worker=new Worker(new URL(field.metadata.display_level?'./contour-surface-worker.js':'./contour-worker.js',import.meta.url),{type:'module'});this.worker=worker;
             worker.onerror=()=>{if(serial===this.serial)this.fail(Error('Ошибка фонового построения изолиний'));};
             worker.onmessage=({data:result})=>{
                 if(serial!==this.serial||this.field!==field)return;

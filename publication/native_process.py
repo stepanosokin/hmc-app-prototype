@@ -30,6 +30,12 @@ def main():
                 payload = json.dumps({'root': str(root), 'item': item}).encode()
             elif args['operation'] == 'native-metadata':
                 payload = native_display.metadata(Path(args['root']), args['item'])
+            elif args['operation'] in ('pyramid-metadata', 'pyramid-block'):
+                from publication import display_pyramid
+                if args['operation'] == 'pyramid-metadata':
+                    payload = display_pyramid.metadata(Path(args['root']), args['item'], args['factor'])
+                else:
+                    payload = display_pyramid.render(Path(args['root']), args['item'], args['factor'], *args['coordinates'])
             elif args['operation'] == 'native-experiment':
                 from publication.display_experiment import render
                 payload = render(Path(args['root']), args['item'], args['mode'])

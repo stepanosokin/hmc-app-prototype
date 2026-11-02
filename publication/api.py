@@ -394,7 +394,7 @@ def create_app() -> Flask:
         response.set_etag(hashlib.sha256(payload).hexdigest())
         return response
 
-    def native_response(selection, coordinates=None, experiment=None, portrayal=False):
+    def native_response(selection, coordinates=None, experiment=None, portrayal=False, display_level=None):
         arguments(set())
         deadline = min(g.deadline, time.time() + 10)
         def bounded(operation, arguments):
@@ -414,18 +414,28 @@ def create_app() -> Flask:
         source = json.loads(bounded('native-source', {'manifest': manifest}))
         root, item = source['root'], source['item']
         version = native_display.profile(item['metadata'].get('source_crs'),item['metadata'].get('field_profile'))[2]
-        if '/experiment/' not in request.path and f'/display/{version}/' not in request.path:
+        if display_level is not None:
+            from publication import display_pyramid
+            if version != 3:
+                raise KeyError('display pyramid requires native-display/3')
+            display_shape = display_pyramid.shape(item, display_level)
+        else:
+            display_shape = item['metadata']['grid']['shape_yx']
+        if display_level is None and '/experiment/' not in request.path and f'/display/{version}/' not in request.path:
             raise KeyError('native display version does not match selection')
         if coordinates is not None:
-            native_display.validate_address(coordinates[0], coordinates[1], item['metadata']['grid']['shape_yx'])
+            native_display.validate_address(coordinates[0], coordinates[1], display_shape)
         operation = 'native-portrayal' if portrayal else 'native-experiment' if experiment else 'native-metadata' if coordinates is None else 'native-block'
+        if display_level is not None:
+            operation = 'pyramid-metadata' if coordinates is None else 'pyramid-block'
         frame = None
         if experiment:
             from publication.display_experiment import FRAMES
             frame = FRAMES[experiment]
         payload, outcome = native_cache.lookup(native_display.key(manifest, item, operation, coordinates,
-            json.dumps(frame, sort_keys=True)),
-            lambda: bounded(operation, {'root': root, 'item': item, 'coordinates': coordinates, 'mode': experiment}),
+            json.dumps(frame, sort_keys=True), display_level,
+            display_pyramid.CONTRACT_SHA256 if display_level is not None else None),
+            lambda: bounded(operation, {'root': root, 'item': item, 'coordinates': coordinates, 'mode': experiment, 'factor': display_level}),
             metadata=coordinates is None and experiment is None, image=portrayal, seconds=max(0, deadline-time.time()))
         if time.time() >= deadline:
             raise WorkLimit(504)
@@ -443,6 +453,14 @@ def create_app() -> Flask:
         response.headers['Cache-Control'] = 'private, no-cache'
         response.set_etag(hashlib.sha256(response.get_data()).hexdigest())
         return response
+
+    @app.get('/api/v1/selections/<selection>/display/4/<int:factor>/native.json')
+    def pyramid_metadata(selection, factor):
+        return native_response(selection, display_level=factor)
+
+    @app.get('/api/v1/selections/<selection>/display/4/<int:factor>/native/<int:column>/<int:row>.f32')
+    def pyramid_block(selection, factor, column, row):
+        return native_response(selection, (column, row), display_level=factor)
 
     @app.get('/api/v1/selections/<selection>/display/1/native.json')
     @app.get('/api/v1/selections/<selection>/display/2/native.json')

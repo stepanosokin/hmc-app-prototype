@@ -4,6 +4,7 @@ import {spawn,execFileSync} from 'node:child_process';
 import {readFile,writeFile,mkdir,rm} from 'node:fs/promises';
 import {resolve,join,sep} from 'node:path';
 import {checkCoastline} from './live-coastline.mjs';
+import {checkPyramid} from './live-pyramid.mjs';
 
 const directory=resolve(process.argv[2]),origin=process.env.HMC_CONTOUR_LIVE_ORIGIN??'http://127.0.0.1:8140';
 const browser=process.argv[3]??'chrome',size=process.argv[4]??'1440x900';
@@ -61,6 +62,8 @@ try{
   assert.equal(await evaluate('captureWeatherEvidence().contours.enabled'),true);report.toggle='off/on passed; raster selection retained';
  }
  }
+ if(process.argv.includes('--pyramid'))report.pyramid=await checkPyramid({evaluate,call,directory});
+ assert.equal(report.errors.length,0,'No uncaught JavaScript errors');
  report.status='passed';
 }catch(error){report.status='failed';report.failure=String(error.message??error);process.exitCode=1;}
 finally{

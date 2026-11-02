@@ -1,6 +1,8 @@
 import type {Selection} from './selection.js';
 import {sameWindInterval} from './wind-identity.js';
 export interface NativeMetadata {
+    source_grid?:NativeMetadata['grid'];
+    display_level?:number; display_grid_sha256?:string;
     palette?: {id:string;version:string;range:number[];colors:number[];source_sha256:string}|null;
     wind_palette?: NativeMetadata['palette'];
     source_crs?: {template:number;[key:string]:unknown};
@@ -16,6 +18,11 @@ export interface NativeMetadata {
 export interface FieldData {metadata: NativeMetadata; blocks: ArrayBuffer[]; bytes: number; load_ms: number; wind?:FieldData; decode_ms?:number[]}
 export class PublicationExpired extends Error {
     constructor(){super('Публикация истекла. Проверьте обновления.');}
+}
+export const DISPLAY_LEVEL=8;
+export function displayBlockBound(selection:Selection,level=DISPLAY_LEVEL):number{
+    const blocks=selection.field_profile?(selection.display_blocks??64):18;
+    return level>1&&selection.native_display.includes('/display/3/')?Math.ceil(blocks/level):blocks;
 }
 export function localURL(url: string): string {
     if(!/^\/(?:api\/v1\/|ogc\/collections\/)/.test(url)||url.includes('..')||url.includes('\\')||url.includes('#'))
@@ -70,17 +77,22 @@ export class FieldLoader {
     private loadingBlocks:ArrayBuffer[]|undefined;
     private secondary:FieldLoader|undefined;
     private baseline:boolean;
-    constructor(baseline=false){this.baseline=baseline;}
+    private displayLevel:number;
+    constructor(baseline=false,displayLevel=1){this.baseline=baseline;this.displayLevel=displayLevel;if(![1,2,4,8].includes(displayLevel))throw Error('Неизвестная детализация карты.');}
     cancel(){this.controller.abort();this.controller=new AbortController();this.generation++;
         this.secondary?.cancel();this.secondary=undefined;
         if(this.loadingBlocks)this.loadingBlocks.length=0;this.loadingBlocks=undefined;}
     async load(selection: Selection): Promise<FieldData> {
         this.cancel();const generation=this.generation,signal=this.controller.signal,start=performance.now();
-        const metadata=await json<NativeMetadata>(selection.native_display,signal);
+        const derivative=!this.baseline&&this.displayLevel>1&&selection.native_display.includes('/display/3/');
+        const url=derivative?selection.native_display.replace('/display/3/','/display/4/'+this.displayLevel+'/'):selection.native_display;
+        const metadata=await json<NativeMetadata>(url,signal);
         if(this.baseline)metadata.portrayal_baseline=true;
-        const generic=metadata.contract==='hmc-native-display/3';
+        const pyramid=metadata.contract==='hmc-display-pyramid/1';
+        if(pyramid!==derivative||pyramid&&(metadata.display_level!==this.displayLevel||!metadata.display_grid_sha256?.match(/^[a-f0-9]{64}$/)))throw Error('Несогласованный уровень отображения.');
+        const generic=metadata.contract==='hmc-native-display/3'||pyramid;
         const extended=generic||metadata.contract==='hmc-native-display/2';
-        if((generic?metadata.contract_sha256!=='98c9e10367d9c4185647e22758c94913d8cc9d716561ff0b93f3b1dcd71db0eb'||selection.field_profile!=='grib2-fields/1'||
+        if((generic?metadata.contract_sha256!==(pyramid?'4ae5596b80fe86d1cfc2fa6dd8b18a5b3c5fee219f0a08d1aa596c5be2297ae1':'98c9e10367d9c4185647e22758c94913d8cc9d716561ff0b93f3b1dcd71db0eb')||selection.field_profile!=='grib2-fields/1'||
             (metadata.all_nodata===true||metadata.all_transparent===true?metadata.display_range!==null:
             !metadata.display_range||metadata.display_range.length!==2||metadata.display_range.some(v=>!Number.isFinite(v))||metadata.display_range[0]>metadata.display_range[1]):
             extended?metadata.contract_sha256!=='2d4f078f773b794f5a727a3506cacc3fa8f7a0ca58e829698c68c1da03b3ecf7':
@@ -142,7 +154,7 @@ export class FieldLoader {
         let wind:FieldData|undefined;
         if(selection.wind_v&&!this.baseline){
             if(!sameWindInterval(selection,selection.wind_v))throw Error('Интервалы компонент ветра не совпадают.');
-            this.secondary=new FieldLoader();
+            this.secondary=new FieldLoader(false,this.displayLevel);
             wind=await this.secondary.load(selection.wind_v);
             signal.throwIfAborted();
             if(metadata.uv_relative_to_grid!==wind.metadata.uv_relative_to_grid||typeof metadata.uv_relative_to_grid!=='boolean')

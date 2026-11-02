@@ -1,5 +1,5 @@
 import {referenceTime,withdrawnReplacement,type Selection,type PublishedGroup} from './selection.js';
-import {FieldLoader,json,PublicationExpired,type FieldData} from './field.js';
+import {FieldLoader,json,PublicationExpired,DISPLAY_LEVEL,displayBlockBound,type FieldData} from './field.js';
 import {create,clippedLine} from './geometry.js';
 import {WeatherLayer} from './weather-layer.js';
 import {nativeToWgs} from './native-layer.js';
@@ -22,7 +22,7 @@ const control=(id:string)=>$<HTMLSelectElement>(id);
 const text=(id:string,value:string)=>{$(id).textContent=value;};
 const mobile=()=>matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches;
 const portrayalBaseline=new URL(location.href).searchParams.get('validation')==='1'&&new URL(location.href).searchParams.get('portrayal')==='1';
-const loader=new FieldLoader(portrayalBaseline);
+const loader=new FieldLoader(portrayalBaseline,DISPLAY_LEVEL);
 const charts=new Map<string,PointChart>();
 // Shared discovery, current/pending catalogues and four hydrated groups each.
 // This is a managed estimate; actual JS heap remains a separate observation.
@@ -54,7 +54,7 @@ let ownedCanvas:HTMLCanvasElement|undefined;
 let screenPick:unknown;
 let unit='C',alternate=false,light=false,pointCollapsed=false,lost=false,rendererError='';
 let metadata:SourceDescription|undefined,bootController=new AbortController(),pendingGroups:PublishedGroup[]|undefined;
-const updateLoader=new FieldLoader(portrayalBaseline);
+const updateLoader=new FieldLoader(portrayalBaseline,DISPLAY_LEVEL);
 let updateController=new AbortController(),catalogueController=new AbortController(),updateBusy=false;
 let dismissedPublication='',updateSerial=0,timeStagingBytes=0,updateStagingBytes=0;
 let catalogueChecks=0;
@@ -161,7 +161,7 @@ function releaseLayer(){
 function reserveFrame(target:Selection){
     // Bound the download before allocating it, and include its future texture and
     // decode scratch. No frame cache; cancellation releases the reservation.
-    const blocks=target.field_profile?(target.display_blocks??64):18;
+    const blocks=displayBlockBound(target,portrayalBaseline?1:DISPLAY_LEVEL);
     if(!Number.isInteger(blocks)||blocks<1||blocks>64)throw Error('Некорректный размер опубликованного поля.');
     const canvas=map?.getCanvas();
     const bytes=(332820*blocks+1024**2)*(target.wind_v?2:1)+(target.wind_v?0:258*258*8+258*258*blocks*8)+

@@ -1,4 +1,4 @@
-import {FieldLoader,json,PublicationExpired,type FieldData,type NativeMetadata} from './field.js';
+import {FieldLoader,json,PublicationExpired,DISPLAY_LEVEL,displayBlockBound,type FieldData,type NativeMetadata} from './field.js';
 import type {PublishedGroup,Selection} from './selection.js';
 import {pointValue,type Position} from './series.js';
 import {nativePosition} from './source-crs.js';
@@ -29,7 +29,7 @@ export class WindOverlay {
     private source:Selection|undefined;
     private group:PublishedGroup|undefined;
     private time=0;
-    private loader=new FieldLoader();
+    private loader=new FieldLoader(false,DISPLAY_LEVEL);
     private serial=0;
     private key='';
     private field:FieldData|undefined;
@@ -121,7 +121,7 @@ export class WindOverlay {
         if(!current)return;
         void (async()=>{
             try{
-                const blocks=current.display_blocks??64;
+                const blocks=displayBlockBound(current);
                 if(!Number.isInteger(blocks)||blocks<1||blocks>64)throw Error('Некорректный размер поля ветра');
                 const canvas=this.map?.getCanvas();
                 const bytes=blocks*332820*2+2*1024**2+(canvas?.width??0)*(canvas?.height??0)*4+8192*64;
@@ -172,7 +172,8 @@ export class WindOverlay {
                         if(u.value===null||v.value===null){entry.state=u.reason==='outside_coverage'||v.reason==='outside_coverage'?'outside_coverage':'native_nodata';}
                         else{
                             if(!u.cell||!v.cell||u.cell.row!==v.cell.row||u.cell.column!==v.cell.column)throw Error('Разные ячейки U/V');
-                            const [w,s]=metadata.grid.outer_cell_edges_wsen,[dx,dy]=metadata.grid.spacing_degrees_xy;
+                            const grid=metadata.source_grid??metadata.grid;
+                            const [w,s]=grid.outer_cell_edges_wsen,[dx,dy]=grid.spacing_degrees_xy;
                             const xy=[w+(u.cell.column+.5)*dx,s+(u.cell.row+.5)*dy],geographic=nativePosition(metadata.source_crs,xy,true);
                             if(typeof current.uv_relative_to_grid!=='boolean')throw Error('Не задана ориентация компонент');
                             const earth=earthComponents(u.value,v.value,{...metadata,uv_relative_to_grid:current.uv_relative_to_grid},xy,geographic,p=>nativePosition(metadata.source_crs,p,true));

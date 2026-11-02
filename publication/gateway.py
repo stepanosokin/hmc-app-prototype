@@ -24,6 +24,7 @@ ROUTES = (
     re.compile(r'api/v1/jobs/[0-9a-f-]{36}'),
     re.compile(r'api/v1/selections/[0-9a-f.]+/(?:tiles\.json|tiles/[234]/[0-9]+/[0-9]+/[0-9]+\.f32)'),
     re.compile(r'api/v1/selections/[0-9a-f.]+/display/[123]/(?:native\.json|native/[0-9]+/[0-9]+\.(?:f32|png))'),
+    re.compile(r'api/v1/selections/[0-9a-f.]+/display/4/[248]/(?:native\.json|native/[0-9]+/[0-9]+\.f32)'),
     re.compile(r'api/v1/selections/[0-9a-f.]+/display/1/experiment/(?:ortho|laea)\.f32'),
     re.compile(r'gis/v1/runs/[A-Za-z0-9_.:/-]+/revisions/[0-9a-f]+(?:/fields/[0-9a-f]{64})?/wms'),
 )
