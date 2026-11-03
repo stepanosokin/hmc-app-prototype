@@ -10,6 +10,7 @@ import {nativePointPixel} from './viewer-fields.mjs';
 import {checkWindFixtures} from './viewer-wind-fixtures.mjs';
 import {checkPaletteFixtures} from './viewer-palette-fixtures.mjs';
 import {checkWindParticleFixtures} from './viewer-wind-particle-fixtures.mjs';
+import {selectViewerOption} from './viewer-select-option.mjs';
 
 const directory=resolve(process.argv[2]),browser=process.argv[3]??'chrome';
 const direct=process.argv[4]==='--direct-smoke';
@@ -28,7 +29,7 @@ const sha=b=>createHash('sha256').update(b).digest('hex');
 const freeze=async(source,target)=>{const bytes=await readFile(source);report.inputs[source]=sha(bytes);await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes);};
 for(const entry of await readdir('viewer',{withFileTypes:true}))if(entry.isFile()&&/\.(?:ts|js|json|css|html|mjs)$/.test(entry.name))
     await freeze('viewer/'+entry.name,join(directory,'inputs/viewer',entry.name));
-for(const path of ['tools/check-wind-overlay.mjs','tools/viewer-fields.mjs','tools/viewer-wind-fixtures.mjs','tools/viewer-palette-fixtures.mjs','tools/viewer-wind-particle-fixtures.mjs','config/earth-palettes.json'])await freeze(path,join(directory,'inputs',path));
+for(const path of ['tools/check-wind-overlay.mjs','tools/viewer-fields.mjs','tools/viewer-wind-fixtures.mjs','tools/viewer-palette-fixtures.mjs','tools/viewer-wind-particle-fixtures.mjs','tools/viewer-select-option.mjs','config/earth-palettes.json'])await freeze(path,join(directory,'inputs',path));
 await freeze('tests/fixtures/wind/rotated-reference.json',join(directory,'inputs/tests/fixtures/wind/rotated-reference.json'));
 const build=join(directory,'site/build');
 const profile=join(directory,'profile'),pause=ms=>new Promise(r=>setTimeout(r,ms));
@@ -88,7 +89,7 @@ try{
     const wait=async(expression,name)=>{console.log(JSON.stringify({phase:name}));for(let i=0;i<450;i++){if(await evaluate(expression))return;await pause(100);}throw Error('Timeout: '+name);};
     const check=async(name,expression)=>{assert.equal(await evaluate(expression),true,name);report.checks.push(name);};
     const click=async selector=>{const b=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...b});await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...b});};
-    const select=async(selector,value)=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+    const select=(selector,value)=>selectViewerOption(evaluate,selector,value);
     const snapshot=()=>evaluate('captureWeatherEvidence()');
     const capture=async name=>{const r=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,name+'.png'),Buffer.from(r.data,'base64'));report.screenshots.push(name+'.png');report.states.push({name,...await snapshot()});};
     await call('Page.enable');await call('Runtime.enable');report.version=await call('Browser.getVersion');

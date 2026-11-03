@@ -77,7 +77,7 @@ preview; опубликованные данные при таком отказ�
 
 ```text
 node tools/revalidate-fields.mjs preview --project hmc-app-live --plan data/live/hmc-app/nodata-plan.json
-node tools/revalidate-fields.mjs apply --project hmc-app-live --plan data/live/hmc-app/nodata-plan.json
+node tools/revalidate-fields.mjs apply --project hmc-app-live --plan data/live/hmc-app/nodata-plan.json --expect-rebuild-batches 10
 ```
 
 Каталог для плана должен существовать. Имя плана для просмотра должно быть
@@ -85,6 +85,14 @@ node tools/revalidate-fields.mjs apply --project hmc-app-live --plan data/live/h
 между просмотром и применением требуется новый план. Команда не запускает
 остановленные службы. При необходимости увеличьте бюджет управляемого
 хранилища параметром `--storage-budget-bytes ЧИСЛО` в обеих командах.
+Preview печатает сводку `revalidation_scope`: число корневых редакций,
+уникальных партий для пересчёта, повторно используемых партий и состав полей.
+`--expect-rebuild-batches` обязателен для apply: число выбирается из требуемого
+объёма задачи и сверяется со сводкой. В примере 10 — десять сроков одного слоя;
+для пустого плана укажите 0. Для изменения одного поля добавьте
+`--expect-field ИДЕНТИФИКАТОР_ПОЛЯ` из каталога. Несовпадение количества или
+поля останавливает команду до обращения к Docker. Старый план без
+`rebuild_keys` требует нового preview.
 У прямого `tools/revalidate-fields.mjs` нижележащий бюджет по умолчанию — 16 ГиБ;
 у операторского `hmc-app.mjs` — 64 ГиБ. Для пересчёта с тем же бюджетом, что
 у операторского CLI, передайте `--storage-budget-bytes 68719476736` в обеих

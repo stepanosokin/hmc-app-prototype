@@ -19,7 +19,9 @@ try{
         @{name='late';text=$late;error='Preflight must precede'},
         @{name='narrow';text=$original.Replace("'trials','publication','tools'","'trials','publication'");error='Incomplete preflight'},
         @{name='live-http';text=$original.Replace('T65_HTTP=0','T65_HTTP=1');error='Incomplete preflight'},
-        @{name='unchecked';text=$original.Replace($text,$text.Replace('Invoke-CheckedProcess','Write-Output'));error='Unchecked preflight'}
+        @{name='unchecked';text=$original.Replace($text,$text.Replace('Invoke-CheckedProcess','Write-Output'));error='Unchecked preflight'},
+        @{name='operator-unbounded';text=$original.Replace(",'--expect-rebuild-batches','1'",'');error='Incomplete operator scope'},
+        @{name='operator-excess';text=$original.Replace("'--expect-rebuild-batches','1'","'--expect-rebuild-batches','334'");error='Incomplete operator scope'}
     )
     foreach($case in $cases){
         $file=Join-Path $directory ($case.name+'.ps1')
@@ -28,7 +30,7 @@ try{
         try{& $checker -Path $file | Out-Null}catch{$failure=$_.Exception.Message}
         if(-not $failure -or -not $failure.Contains($case.error)){throw "Wrong rejection: $($case.name): $failure"}
     }
-    Write-Output 'NoData preflight: current runner and 7 negative cases passed.'
+    Write-Output 'NoData preflight: current runner and 9 negative cases passed.'
 }finally{
     $resolved=[IO.Path]::GetFullPath($directory)
     if([IO.Path]::GetDirectoryName($resolved) -ne [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') -or

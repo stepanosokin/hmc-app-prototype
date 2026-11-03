@@ -33,4 +33,11 @@ foreach($case in @(@{command=$types;required=@('docker','mypy','--check-untyped-
     $values=@($case.command.FindAll({param($node) $node -is [Management.Automation.Language.StringConstantExpressionAst]},$true) | ForEach-Object {$_.Value})
     foreach($required in $case.required){if($values -notcontains $required){throw "Incomplete preflight: $required"}}
 }
-Write-Output 'NoData preflight order passed (types, unit tests, freeze, services; no runner or Docker executed).'
+$operatorPreview=Find-Step 'operator-preview';$operatorApply=Find-Step 'operator-apply'
+$operatorValues=@($operatorApply.FindAll({param($node) $node -is [Management.Automation.Language.StringConstantExpressionAst]},$true) | ForEach-Object {$_.Value})
+$scopeIndex=[Array]::IndexOf($operatorValues,'--expect-rebuild-batches')
+if($scopeIndex -lt 0 -or $scopeIndex+1 -ge $operatorValues.Count -or $operatorValues[$scopeIndex+1] -ne '1'){
+    throw 'Incomplete operator scope: expected exactly one seeded batch'
+}
+if($operatorPreview.Extent.StartOffset -ge $operatorApply.Extent.StartOffset){throw 'Operator preview must precede apply'}
+Write-Output 'NoData preflight order and one-batch operator scope passed (no runner or Docker executed).'

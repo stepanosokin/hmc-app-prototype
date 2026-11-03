@@ -1,5 +1,33 @@
 # Test environment cleanup
 
+## Failed-job cleanup in a retained live stand
+
+When an operation fails before catalogue switching, preserve the running stand
+and compare its selection identifiers with the pre-operation snapshot. Inspect
+the exact job state and its unreferenced attempt; `recovery.collect` otherwise
+considers all jobs. A scoped adapter must retain the complete published revision
+and catalogue reference graph and limit only the candidate job query. Use the
+cursor's full `execute`/`fetchone`/`fetchall` interface when adapting that query.
+
+Before mutation, resolve the stand's worker DB credentials, GeoServer admin
+credentials and `MOSAIC_PASSWORD` through its existing configuration; retain
+values in memory. Validate the preview's exit status and candidate ownership,
+archive its report, numerical manifests, validation and workspace names, then
+apply the same scope. Record private generated GIS files separately: `.properties`
+can contain credentials, and generated sample files can be unreadable to the worker.
+The archive boundary should cover scientific metadata without copying private
+GIS configuration. A failed preview ends the sequence before archive/apply;
+use the existing checked-process wrapper or check `$LASTEXITCODE` after each native
+command in PowerShell.
+
+Completion requires no remaining candidates for that job, retired temporary
+containers/workspaces, and an unchanged published selection set. The
+[#85 retrospective](../validation/retrospectives/retro-wind-nodata.md) records
+the completed scoped cleanup and the adapter failures that led to these checks.
+This is separate from retiring an isolated test project below.
+
+## Isolated test projects
+
 At the end of every validation attempt, including a failed probe, archive evidence
 and retire that attempt's Docker resources before the task handoff. The validation
 runners preserve state while evidence is collected; that is a temporary phase.

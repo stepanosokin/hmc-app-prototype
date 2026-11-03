@@ -1,5 +1,11 @@
 # Retrospective basis
 
+The [wind and NoData retrospective](retro-wind-nodata.md) follows #84–#85:
+CLI scope checks reject excess work before Docker, browser select checks reject
+invalid options before waits, and cleanup guidance preserves complete reference
+graphs while limiting candidate jobs. New resource-free regressions use existing
+local/manual CI entrypoints; the live stand is unchanged.
+
 The [TLS retrospective](retro-tls.md) follows #33: service guidance brings
 proxy startup/reload feedback before the GRIB-backed gate and separates host
 capture from Docker logging. Acceptance checks new entrypoints/config formats

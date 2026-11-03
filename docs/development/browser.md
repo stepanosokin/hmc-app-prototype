@@ -1,5 +1,11 @@
 # Browser prototypes
 
+For programmatic select changes, use `tools/viewer-select-option.mjs` and run
+`tools/test-viewer-select-option.mjs` before a browser attempt. It verifies the
+requested option exists and the assignment is accepted before emitting change;
+the time control accepts an index. Keep the observed field/valid-time assertion
+after the event: a successful assignment alone does not establish a completed load.
+
 For a missing feature on a named running viewer, first run
 `node tools/check-viewer-runtime.mjs http://127.0.0.1:8140` with that stand's port.
 It compiles current sources into memory and compares all served module bytes,

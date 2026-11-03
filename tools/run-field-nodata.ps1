@@ -45,9 +45,9 @@ try{
     Check migrate @('run','--rm','worker','once','--migrate')
     Check acceptance @('run','--rm','--env','T65_HTTP=1','--entrypoint','python','check','-B','-m','unittest','discover','-s','tests','-p','test_field_nodata.py','-v')
     Check operator-seed @('run','--rm','--env','PYTHONPATH=/app:/app/tests','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','-B','/workspace/tools/seed-field-nodata.py')
-    foreach($operation in @('preview','apply')){
-        Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/revalidate-fields.mjs',$operation,'--project',$Project,'--plan',"$directory/operator-plan.json") -ReportDirectory $directory -Name "operator-$operation" -OutputMode Summary
-    }
+    Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/revalidate-fields.mjs','preview','--project',$Project,'--plan',"$directory/operator-plan.json") -ReportDirectory $directory -Name operator-preview -OutputMode Summary
+    # seed-field-nodata.py creates exactly one old-policy fixture.
+    Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/revalidate-fields.mjs','apply','--project',$Project,'--plan',"$directory/operator-plan.json",'--expect-rebuild-batches','1') -ReportDirectory $directory -Name operator-apply -OutputMode Summary
     if($WithBrowser){
         $env:T13_VIEWER="http://127.0.0.1:$ViewerPort";$env:T65_NODATA='1'
         $env:T13_FOCUSED=if($Final){'0'}else{'1'}

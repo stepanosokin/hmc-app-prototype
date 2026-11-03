@@ -1,5 +1,13 @@
 # Service checks
 
+For a field-policy change, inspect the revalidation plan before apply:
+`rebuild_keys` identifies actual work; `entries` also includes reused batches.
+Use the [NoData operator scope check](../field-nodata.md#пересчитать-существующие-публикации)
+with an expected batch count from the task and a field restriction for a single
+layer. The resource-free `tools/test-revalidate-fields.mjs` exercises rejection
+before Docker. For abandoned preparation inside a retained live stand, follow
+[failed-job cleanup](cleanup.md#failed-job-cleanup-in-a-retained-live-stand).
+
 For `hmc-app.mjs refresh-grib` failures, begin with the displayed operation
 directory: `operation.json`, then `reload-grib.json` and the numbered worker log.
 A failed batch can contain already published files; report both outcomes before
