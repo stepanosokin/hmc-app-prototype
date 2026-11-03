@@ -54,10 +54,11 @@ export function earthComponents(u:number,v:number,metadata:FieldData['metadata']
 }
 
 interface Geometry {width:number;height:number;origin:number[];scale:number}
-interface Arrow {x:number;y:number;dx:number;dy:number;valid:boolean;age:number;trail:Float32Array;head:number;size:number}
+interface Arrow {x:number;y:number;dx:number;dy:number;valid:boolean;retiring:boolean;fade:number;age:number;trail:Float32Array;head:number;size:number}
 type WindProjection={forward:(xy:number[])=>number[];inverse:(xy:number[])=>number[]};
 
 const PARTICLE_LIFETIME_SECONDS=6.8;
+const PARTICLE_FADE_FRACTION=.2;
 const PARTICLE_PLACEMENT_ATTEMPTS=8;
 // Bounded per-particle history: x0, y0, x1, y1, birth age, opacity.
 const TRAIL_SEGMENTS=1024,TRAIL_STRIDE=6,TRAIL_DECAY_SECONDS=5,TRAIL_ALPHA_BUCKETS=32;
@@ -108,10 +109,10 @@ export class WindArrows {
         if(canvas.width!==view.width||canvas.height!==view.height){canvas.width=view.width;canvas.height=view.height;}
         const ctx=canvas.getContext('2d');if(!ctx)return;
         const css=canvas.getBoundingClientRect(),count=particleCount(css.width,css.height);
-        if(count!==this.arrows.length)this.arrows=Array.from({length:count},()=>({x:Math.random(),y:Math.random(),dx:0,dy:0,valid:false,age:Math.random(),trail:new Float32Array(TRAIL_SEGMENTS*TRAIL_STRIDE),head:0,size:0}));
+        if(count!==this.arrows.length)this.arrows=Array.from({length:count},()=>({x:Math.random(),y:Math.random(),dx:0,dy:0,valid:false,retiring:false,fade:0,age:Math.random(),trail:new Float32Array(TRAIL_SEGMENTS*TRAIL_STRIDE),head:0,size:0}));
         const key=JSON.stringify([view.width,view.height,view.origin,view.scale,center,mode]);
         const moved=key!==this.viewKey;this.viewKey=key;
-        if(moved){this.viewChanges++;ctx.clearRect(0,0,canvas.width,canvas.height);for(const arrow of this.arrows){arrow.valid=false;arrow.size=0;}}
+        if(moved){this.viewChanges++;ctx.clearRect(0,0,canvas.width,canvas.height);for(const arrow of this.arrows){arrow.valid=false;arrow.retiring=false;arrow.fade=0;arrow.size=0;}}
         const now=performance.now(),dt=!paused&&this.last?Math.min(.05,(now-this.last)/1000):0;this.last=now;this.frames++;
         const geographic=(x:number,y:number)=>projection.inverse([(x*view.width-view.origin[0])/view.scale,(view.origin[1]-y*view.height)/view.scale]);
         const visible=(p:number[])=>{
@@ -134,7 +135,7 @@ export class WindArrows {
             return true;
         };
         const respawn=(arrow:Arrow,age=0)=>{
-            arrow.age=age;arrow.head=0;arrow.size=0;
+            arrow.age=age;arrow.head=0;arrow.size=0;arrow.retiring=false;arrow.fade=0;
             // Independent uniform coordinates avoid lattice patterns and bands.
             // Reject gaps and the hidden hemisphere with bounded retries.
             for(let attempt=0;attempt<PARTICLE_PLACEMENT_ATTEMPTS;attempt++){
@@ -142,10 +143,17 @@ export class WindArrows {
                 if(updateVelocity(arrow))return;
             }
         };
+        const retire=(arrow:Arrow)=>{
+            arrow.valid=false;arrow.retiring=true;arrow.fade=0;
+            // Keep existing pixels in their valid location; fade before reusing history.
+        };
         // Stagger the bounded source sampling; draw every actual map frame.
         for(let i=0;i<(moved?this.arrows.length:Math.ceil(this.arrows.length/8));i++){
             const arrow=this.arrows[this.cursor++%this.arrows.length];
-            if(!updateVelocity(arrow))respawn(arrow,moved?Math.random():0);
+            if(arrow.retiring)continue;
+            if(!updateVelocity(arrow)){
+                if(arrow.size)retire(arrow);else respawn(arrow,moved?Math.random():0);
+            }
         }
         this.paints++;
         ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -153,21 +161,28 @@ export class WindArrows {
         const dpr=canvas.width/canvas.getBoundingClientRect().width;
         for(const arrow of this.arrows){
             arrow.age+=dt/PARTICLE_LIFETIME_SECONDS;
-            if(arrow.age>=1||arrow.x<0||arrow.x>1||arrow.y<0||arrow.y>1)respawn(arrow);
-            if(!arrow.valid)continue;
-            const previousX=arrow.x*view.width,previousY=arrow.y*view.height;
-            arrow.x+=arrow.dx*dt*dpr/view.width;arrow.y+=arrow.dy*dt*dpr/view.height;
-            const p=geographic(arrow.x,arrow.y);
-            if(arrow.x<0||arrow.x>1||arrow.y<0||arrow.y>1||!visible(p)||!sampleWind(this.field,nativePosition(this.field.metadata.source_crs,p))){arrow.valid=false;arrow.size=0;continue;}
-            const x=arrow.x*view.width,y=arrow.y*view.height,length=Math.hypot(arrow.dx,arrow.dy);
-            const dx=arrow.dx/length,dy=arrow.dy/length;
-            const offset=arrow.head*TRAIL_STRIDE;
-            arrow.trail.set([dt?previousX:x-dx*3*dpr,dt?previousY:y-dy*3*dpr,x,y,arrow.age,Math.min(1,arrow.age*5)*.65],offset);
-            arrow.head=(arrow.head+1)%TRAIL_SEGMENTS;arrow.size=Math.min(TRAIL_SEGMENTS,arrow.size+1);
-            // The entire trail fades with its owner; no pixels outlive a particle.
+            if(arrow.retiring)arrow.fade+=dt/(PARTICLE_LIFETIME_SECONDS*PARTICLE_FADE_FRACTION);
+            if(arrow.age>=1||arrow.retiring&&arrow.fade>=1)respawn(arrow);
+            if(!arrow.valid&&!arrow.retiring)continue;
+            if(arrow.valid){
+                const previousX=arrow.x*view.width,previousY=arrow.y*view.height;
+                arrow.x+=arrow.dx*dt*dpr/view.width;arrow.y+=arrow.dy*dt*dpr/view.height;
+                const p=geographic(arrow.x,arrow.y);
+                if(arrow.x<0||arrow.x>1||arrow.y<0||arrow.y>1||!visible(p)||!sampleWind(this.field,nativePosition(this.field.metadata.source_crs,p)))retire(arrow);
+                else{
+                    const x=arrow.x*view.width,y=arrow.y*view.height,length=Math.hypot(arrow.dx,arrow.dy);
+                    const dx=arrow.dx/length,dy=arrow.dy/length;
+                    const offset=arrow.head*TRAIL_STRIDE;
+                    arrow.trail.set([dt?previousX:x-dx*3*dpr,dt?previousY:y-dy*3*dpr,x,y,arrow.age,Math.min(1,arrow.age*5)*.65],offset);
+                    arrow.head=(arrow.head+1)%TRAIL_SEGMENTS;arrow.size=Math.min(TRAIL_SEGMENTS,arrow.size+1);
+                }
+            }
+            // Smoothstep reaches zero with zero slope before history is reused.
+            const remaining=Math.max(0,Math.min(1,(1-arrow.age)/PARTICLE_FADE_FRACTION,1-arrow.fade));
+            const opacity=remaining*remaining*(3-2*remaining);
             for(let i=0;i<arrow.size;i++){
                 const j=((arrow.head-1-i+TRAIL_SEGMENTS)%TRAIL_SEGMENTS)*TRAIL_STRIDE;
-                const alpha=arrow.trail[j+5]*Math.exp(-(arrow.age-arrow.trail[j+4])*PARTICLE_LIFETIME_SECONDS/TRAIL_DECAY_SECONDS)*Math.min(1,(1-arrow.age)*5);
+                const alpha=arrow.trail[j+5]*Math.exp(-(arrow.age-arrow.trail[j+4])*PARTICLE_LIFETIME_SECONDS/TRAIL_DECAY_SECONDS)*opacity;
                 const bucket=Math.round(alpha*TRAIL_ALPHA_BUCKETS);if(!bucket)continue;
                 paths[bucket-1].moveTo(arrow.trail[j],arrow.trail[j+1]);paths[bucket-1].lineTo(arrow.trail[j+2],arrow.trail[j+3]);
             }
@@ -186,7 +201,7 @@ export class WindArrows {
                 earth,display_visible:this.display?.visible(geographic),
                 screen:earth&&this.display?.visible(geographic)?screenVelocity(geographic,earth,this.display.projection):undefined};
         }));
-        return {style:'particles-with-trails',particle_lifetime_seconds:PARTICLE_LIFETIME_SECONDS,placement_attempts:PARTICLE_PLACEMENT_ATTEMPTS,trail_decay_seconds:TRAIL_DECAY_SECONDS,trail_lifecycle:'particle-owned',trail_segment_limit:TRAIL_SEGMENTS,frames:this.frames,paints:this.paints,view_changes:this.viewChanges,arrows:this.arrows.length,visible:this.arrows.filter(a=>a.valid).length,vectors,
+        return {style:'particles-with-trails',particle_lifetime_seconds:PARTICLE_LIFETIME_SECONDS,particle_fade_seconds:PARTICLE_LIFETIME_SECONDS*PARTICLE_FADE_FRACTION,retiring:this.arrows.filter(a=>a.retiring).length,placement_attempts:PARTICLE_PLACEMENT_ATTEMPTS,trail_decay_seconds:TRAIL_DECAY_SECONDS,trail_lifecycle:'particle-owned',trail_segment_limit:TRAIL_SEGMENTS,frames:this.frames,paints:this.paints,view_changes:this.viewChanges,arrows:this.arrows.length,visible:this.arrows.filter(a=>a.valid).length,vectors,
             identity:this.field.metadata.identity,display_mode:this.display?.mode,display_center:this.display?.center,
             orientation:this.field.metadata.uv_relative_to_grid?'grid':'geographic',scope:'U/V directions; display-speed animation, not forecast trajectories'};
     }

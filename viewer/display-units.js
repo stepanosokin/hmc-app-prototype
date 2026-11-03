@@ -23,7 +23,7 @@ export function displayNumber(value,source,temperatureUnit='C',legend=false){
 const intervals={prmsl:[10,5,2],sp:[25,20,5],T_G:[10,5,2],t:[10,5,2],'2t':[10,5,2],sot:[10,5,2],
     min_2t:[10,5,2],max_2t:[10,5,2],'2d':[10,5,2],q:[5,5,2],'2sh':[2,2,1],'2r':[20,20,10],
     ccl:[25,25,20],max_i10fg:[10,5,5],tp:[20,10,5],cp:[20,10,5],lsp:[20,10,5],
-    lsfwe:[10,5,5],csfwe:[10,5,5],sde:[50,20,10],sd:[100,50,20],tgrp:[5,2,2],vis:[20000,10000,5000],
+    lsfwe:[10,5,5],csfwe:[10,5,5],sde:[500,200,100],sd:[1000,500,200],tgrp:[5,2,2],vis:[20000,10000,5000],
     lsrr:[20,10,5],crr:[20,10,5]};
 export function contourProfile(source,widthKm){
     const short=source.field_short_name??source.field?.split(':')[0],spec=displaySpec(source,'C');

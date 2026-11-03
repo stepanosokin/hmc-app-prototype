@@ -29,32 +29,51 @@ async function windParticleFixtures(origin){
     const pixels=()=>Array.from(ctx.getImageData(0,0,20,20).data);
     const ink=()=>pixels().filter((_,i)=>i%4===3).reduce((a,b)=>a+b,0);
     const masks=()=>[new Uint8Array(field.blocks[0],258*258*4),new Uint8Array(field.wind.blocks[0],258*258*4)];
-    const reset=()=>{placement=.5;masks().forEach(m=>m.fill(1));for(const part of [field,field.wind])new Float32Array(part.blocks[0],0,258*258).fill(1);wind.clear();view.origin[0]+=.0001;draw();for(let i=0;i<5;i++)draw();expect('Living particle has a visible trail',ink()>0);};
+    const reset=()=>{placement=.5;masks().forEach(m=>m.fill(1));for(const part of [field,field.wind])new Float32Array(part.blocks[0],0,258*258).fill(1);wind.clear();view.origin[0]+=.0001;draw();for(const arrow of wind.arrows)arrow.age=.5;for(let i=0;i<5;i++)draw();expect('Living particle has a visible trail',ink()>0);};
+    const fadeOut=name=>{
+        const values=[ink()];
+        expect(name+' retains its trail in the invalidation frame',values[0]>0&&wind.evidence().retiring===1);
+        for(let i=0;i<30&&values.at(-1)>0;i++){draw();values.push(ink());}
+        expect(name+' fades monotonically through several frames',values.filter(v=>v>0).length>=5&&values.every((v,i)=>!i||v<=values[i-1]));
+        expect(name+' reaches zero before history reuse',values.at(-1)===0);
+        samples.push({case:name,step_ms:50,alpha_sums:values});
+    };
     try{
         const configuration=wind.evidence();
         expect('Particle life is 6.8 seconds',configuration.particle_lifetime_seconds===6.8);
         expect('Trail decay is 5 seconds',configuration.trail_decay_seconds===5);
         expect('Trail history has fourfold capacity',configuration.trail_segment_limit===1024);
+        expect('Particle fade lasts 1.36 seconds',Math.abs(configuration.particle_fade_seconds-1.36)<1e-9);
         reset();expect('Fixture has exactly one particle',wind.evidence().arrows===1);
+        const beforeNoData=ink();
         masks().forEach(m=>m.fill(0));draw();
-        expect('NoData removes every pixel of the old trail',ink()===0);samples.push({case:'nodata',alpha_sum:ink()});
+        expect('NoData does not cause an opacity jump',ink()>=beforeNoData*.8);fadeOut('NoData');
         reset();
         const frozen=pixels(),paints=wind.evidence().paints;
         // Invalidated data must not mutate particles while paused, either.
         masks().forEach(m=>m.fill(0));for(let i=0;i<8;i++)draw(true);
         expect('Pause freezes pixels and particle state',pixels().every((v,i)=>v===frozen[i])&&wind.evidence().paints===paints&&wind.evidence().visible===1);
-        draw();expect('Resume removes the invalidated trail',ink()===0);
+        draw();
+        const fading=pixels(),fadingPaints=wind.evidence().paints;
+        for(let i=0;i<8;i++)draw(true);
+        expect('Pause also freezes a retiring particle',pixels().every((v,i)=>v===fading[i])&&wind.evidence().paints===fadingPaints);
+        fadeOut('Resume after invalidation');
         reset();new Float32Array(field.blocks[0],0,258*258).fill(0);new Float32Array(field.wind.blocks[0],0,258*258).fill(0);
-        draw();expect('Unusable velocity removes the trail',ink()===0);
+        draw();fadeOut('Unusable velocity');
         reset();placement=.25;
         let previous=ink(),expired=false;
-        for(let i=0;i<160;i++){draw();const value=ink();if(previous>0&&value===0){expired=true;break;}previous=value;}
-        expect('Lifetime expiry and respawn leave no old trail',expired);draw();expect('Respawn starts a visible new trail',ink()>0);
+        const ending=[];
+        for(let i=0;i<160;i++){draw();const value=ink();if(wind.arrows[0].age>.8)ending.push(value);if(previous>0&&value===0){expired=true;break;}previous=value;}
+        expect('Lifetime ends with multiple gradually fading frames',ending.length>=5&&ending.at(-1)===0&&ending.at(-2)<ending[0]/4);
+        samples.push({case:'lifetime',step_ms:50,alpha_sums:ending});
+        expect('Lifetime expiry and respawn leave no old trail',expired);
+        for(let i=0;i<12&&ink()===0;i++)draw();expect('Respawn starts a visible new trail',ink()>0);
         reset();for(const part of [field,field.wind])new Float32Array(part.blocks[0],0,258*258).fill(80);
         let crossed=false;
-        for(let i=0;i<10;i++){draw();if(wind.evidence().visible===0){expect('Leaving the screen removes the trail in the crossing frame',ink()===0);crossed=true;break;}}
+        for(let i=0;i<10;i++){draw();if(wind.evidence().visible===0){crossed=true;break;}}
         expect('Fast constant wind crosses the screen before lifetime expiry',crossed);
-        reset();masks()[1][2*258+2]=0;draw();expect('Partial NoData removes the complete individual trail',ink()===0);
+        masks().forEach(m=>m.fill(0));fadeOut('Leaving the screen');
+        reset();masks()[1][2*258+2]=0;draw();fadeOut('Partial NoData');
         reset();
         draw(false,'hmc:orthographic',[180,0]);expect('Hidden hemisphere removes the trail',ink()===0);
         reset();draw(false,'EPSG:3576');expect('Outside projection coverage removes the trail',ink()===0);

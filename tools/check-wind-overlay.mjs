@@ -15,6 +15,7 @@ const directory=resolve(process.argv[2]),browser=process.argv[3]??'chrome';
 const direct=process.argv[4]==='--direct-smoke';
 const fixturesOnly=process.argv[4]==='--fixtures-only';
 const fieldStyles=process.argv.includes('--field-styles');
+const snowStyles=process.argv.includes('--snow-styles');
 assert.ok(directory.startsWith(resolve('data/reports/wind72')+sep));
 const gateway=process.env.HMC_WIND_GATEWAY??'http://127.0.0.1:8140';
 assert.match(gateway,/^http:\/\/127\.0\.0\.1:\d+$/);
@@ -215,9 +216,29 @@ try{
             }
         }
     }
-    if(!direct){
+    if(snowStyles){
+        await click('#field-group-snow');
+        const options=await evaluate("[...document.querySelectorAll('#fieldMenu .fieldOption')].map(e=>e.dataset.field)");
+        assert.equal(options.length,2,'Both snow group layers are available');
+        for(const field of options){
+            if(await evaluate("document.getElementById('fieldMenu').hidden"))await click('#field-group-snow');
+            await click('#fieldMenu .fieldOption[data-field='+JSON.stringify(field)+']');
+            await wait(`(()=>{const s=captureWeatherEvidence();return s.ready&&s.selected.field===${JSON.stringify(field)}&&['ready','empty'].includes(s.contours?.state)&&!s.contours.worker_active;})()`,'live snow '+field);
+            const state=await snapshot(),short=state.selected.field_short_name,profile=state.contours.profile;
+            assert.ok(['sde','sd'].includes(short));
+            const expected=short==='sde'?[500,200,100]:[1000,500,200];
+            assert.equal(profile.step,expected[profile.scale],'Live snow interval ×10');
+            assert.equal(profile.excludeZero,true,'Live snow omits zero');
+            assert.ok(state.contours.labels.every(label=>Number(label.value??label.level)!==0));
+            report.checks.push('Live '+short+' interval ×10 and zero omitted');
+            await capture('snow-'+short);
+        }
+    }
+    {
         report.particles=await checkWindParticleFixtures(evaluate,origin);
         for(const frame of report.particles.frames){await writeFile(join(directory,frame.name+'.png'),Buffer.from(frame.png,'base64'));report.screenshots.push(frame.name+'.png');delete frame.png;}
+    }
+    if(!direct){
         report.palettes=await checkPaletteFixtures(evaluate,origin);report.synthetic=await checkWindFixtures(evaluate,origin);
     }
     assert.deepEqual(report.errors,[]);report.status='passed';

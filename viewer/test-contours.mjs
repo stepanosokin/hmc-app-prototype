@@ -50,6 +50,18 @@ test('10m speed intervals are scoped to height and retain gust intervals',()=>{
  assert.equal(contourProfile({...wind,field_short_name:'max_i10fg'},1000).step,5);
 });
 
+test('snow group intervals increase tenfold at every scale without changing snowfall',()=>{
+ const widths=[6001,6000,2001,2000];
+ for(const [short,units,expected] of [['sde','m',[500,200,200,100]],['sd','kg m**-2',[1000,500,500,200]]]){
+  const source={field_short_name:short,units};
+  assert.deepEqual(widths.map(w=>contourProfile(source,w).step),expected);
+  assert.ok(contourProfile(source,2000).excludeZero);
+ }
+ assert.equal(displayValue(1,{field_short_name:'sde',units:'m'}),100);
+ for(const short of ['lsfwe','csfwe'])assert.deepEqual(widths.map(w=>contourProfile({field_short_name:short},w).step),[10,5,5,5]);
+ assert.deepEqual(widths.map(w=>contourProfile({field_short_name:'tgrp'},w).step),[5,2,2,2]);
+});
+
 test('precipitation, cloud and snow omit zero contours while retaining zero nodes',()=>{
  const f=fixture(5,4,x=>x-1),original=f.blocks.map(b=>b.slice(0));
  for(const short of ['tp','cp','lsp','lsrr','crr','lsfwe','csfwe','tgrp','ccl','sde','sd','2t']){
