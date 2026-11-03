@@ -31,6 +31,10 @@ scoped to that archive rather than disabling ignores repository-wide.
 
 Keep project-specific workflow changes in this repository's agent instructions. Leave original third-party skills, including Matt Pocock's skills, unchanged unless the user explicitly requests edits to those skills.
 
+Before every implementation, ask the user to choose a testing level: **без тестов**, **минимальный**, **базовый** or **средний**. Wait for their answer before starting implementation.
+
+Before every implementation, agree with the user on the test environment and how tests will be run. Start implementation only after both the testing level and these execution details have been explicitly agreed. For **без тестов**, explicitly agree that tests will not be run.
+
 For implementation and validation, start with [the change-to-check table](docs/development-workflow.md#choose-validation-by-the-change). Follow its conditional links for browser, service, QGIS, scientific, specification or tracker details. During edits, use affected Development checks; after review fixes, run the required complete acceptance on frozen inputs. Repeat an affected complete gate when its validated inputs change.
 
 ## Test environment cleanup
