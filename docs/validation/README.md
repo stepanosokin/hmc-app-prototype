@@ -17,3 +17,4 @@
 [Синхронизация снятия GRIB-публикаций (#52)](grib-sync-52.md).
 [Опциональный HTTPS для карты, API и WMS (#33)](t21.md).
 [Удаление следа вместе с частицей ветра (#82)](wind-particle-trails-82.md).
+[Применение исправления следов к hmc-app-live](wind-particle-trails-82-live.md).
