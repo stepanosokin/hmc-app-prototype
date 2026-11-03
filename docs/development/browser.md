@@ -40,6 +40,12 @@ Such a regression is still deferred; existing wind tests cover sampling, pairing
 values and rotation. Follow [explicit check deferrals](acceptance.md#explicit-check-deferrals)
 when the user requests no tests.
 
+The wind trail lifecycle pixel regression is in
+`tools/viewer-wind-particle-fixtures.mjs`, called by `tools/check-wind-overlay.mjs`.
+It covers particle removal, respawn, pause, bounded history and constant-wind
+frames in a real Canvas. It supplements the actual-source browser matrix;
+it does not establish physical-device acceptance or statistical uniformity.
+
 ## Other browser changes
 
 Projection dependencies: `viewer/geometry.js` registers the map CRS;

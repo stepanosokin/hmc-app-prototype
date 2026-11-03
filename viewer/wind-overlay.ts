@@ -2,7 +2,7 @@ import {FieldLoader,json,PublicationExpired,DISPLAY_LEVEL,displayBlockBound,type
 import type {PublishedGroup,Selection} from './selection.js';
 import {pointValue,type Position} from './series.js';
 import {nativePosition} from './source-crs.js';
-import {earthComponents,WindArrows} from './wind.js';
+import {earthComponents,WindArrows,windParticleBytes} from './wind.js';
 import {windAtTime,windGroups,windLevel,windValue,windVariant} from './wind-values.js';
 
 export interface WindEntry {time:string;state:'loading'|'missing'|'value'|'error'|'outside_coverage'|'native_nodata';speed?:number;direction?:number|null}
@@ -124,7 +124,8 @@ export class WindOverlay {
                 const blocks=displayBlockBound(current);
                 if(!Number.isInteger(blocks)||blocks<1||blocks>64)throw Error('Некорректный размер поля ветра');
                 const canvas=this.map?.getCanvas();
-                const bytes=blocks*332820*2+2*1024**2+(canvas?.width??0)*(canvas?.height??0)*4+8192*64;
+                const css=canvas?.getBoundingClientRect();
+                const bytes=blocks*332820*2+2*1024**2+(canvas?.width??0)*(canvas?.height??0)*4+windParticleBytes(css?.width??0,css?.height??0);
                 this.admit(bytes);this.reservation=bytes;
                 const field=await this.loader.load(current);
                 if(serial!==this.serial)return;

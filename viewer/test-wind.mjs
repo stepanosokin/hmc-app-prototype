@@ -1,7 +1,15 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {sampleWind,earthWind} from './wind.ts';
+import {sampleWind,earthWind,windParticleBytes} from './wind.ts';
 import {publishedGroups,sameWindInterval} from './selection.ts';
+
+test('wind reserves bounded particle histories at CSS density before allocation',()=>{
+    const one=windParticleBytes(0,0);
+    assert.ok(one>256*6*4);
+    assert.equal(windParticleBytes(1440,900),one*2400);
+    assert.equal(windParticleBytes(2880,1800),one*8192);
+    assert.equal(windParticleBytes(1e6,1e6),one*8192);
+});
 
 test('wind pairing compares the entire averaging interval, independent of key order',()=>{
     const interval={start:'2026-10-30T00:00:00Z',end:'2026-10-30T06:00:00Z',statistical_process:0,time_increment:1};
