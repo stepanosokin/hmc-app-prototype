@@ -6,7 +6,9 @@ import sys
 import time
 import uuid
 import queue
+import os
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
 import pg8000.dbapi
 import requests
@@ -33,6 +35,12 @@ SECRET_PARAMETERS = {'key', 'api_key', 'apikey', 'token', 'access_token', 'autho
 
 def create_app() -> Flask:
     app = Flask('hmc-gateway', static_folder=None)
+    origin = os.environ.get('HMC_PUBLIC_ORIGIN', '')
+    if origin:
+        parsed = urlsplit(origin)
+        if (parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password
+                or parsed.path or parsed.query or parsed.fragment):
+            raise ValueError('TLS: HMC_PUBLIC_ORIGIN должен быть HTTPS origin без пути и учётных данных')
     channels: queue.Queue = queue.LifoQueue(maxsize=8)
     for _ in range(8):
         channels.put(ProcessChannel('publication.http_process', 4*1024**2))
@@ -180,7 +188,7 @@ def create_app() -> Flask:
             g.event['cache'] = 'unavailable'
             upstream = forward_work({'url': 'http://api:8000/' + upstream_path,
                                    'params': list(request.args.items(multi=True)),
-                                   'headers': {'X-Publication-Prefix': '/org' if protected else '',
+                                   'headers': {'X-Publication-Prefix': origin + ('/org' if protected else ''),
                                                'X-HMC-Request-ID': g.event['request_id'],
                                                'X-HMC-WMS-Dimension': str(min(wms.MAX_MAP_SIZE, limits.dimension)),
                                                'X-HMC-Deadline': str(time.time() + limits.seconds - 0.25)},

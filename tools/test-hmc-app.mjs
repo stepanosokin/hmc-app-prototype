@@ -5,6 +5,15 @@ import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
 
+test('TLS commands require explicit HTTPS origin and an external certificate directory', () => {
+    assert.equal(parse(['tls-enable', 'live', '--origin', 'https://localhost:8443', '--cert-dir', 'data/tls']).mode, 'tls-enable');
+    for (const mode of ['tls-check', 'tls-reload']) assert.equal(parse([mode, 'live']).mode, mode);
+    for (const flags of [[], ['--origin', 'http://localhost', '--cert-dir', 'data/tls'],
+        ['--origin', 'https://user:secret@localhost', '--cert-dir', 'data/tls'],
+        ['--origin', 'https://localhost/path', '--cert-dir', 'data/tls']])
+        assert.throws(() => parse(['tls-enable', 'live', ...flags]));
+});
+
 test('all agreed commands and scoped options', () => {
     for (const mode of ['deploy', 'remove', 'start', 'stop', 'status', 'refresh-grib'])
         assert.equal(parse([mode, 'hmc-app-live']).mode, mode);

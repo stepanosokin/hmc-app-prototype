@@ -2,7 +2,9 @@ param(
     [ValidatePattern('^hmc-publication-t8-[a-z0-9-]+$')][string]$Project = 'hmc-publication-t8-check',
     [int]$Port = 8100,
     [switch]$Development,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$TLS,
+    [int]$TlsPort = 8443
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'process.ps1')
@@ -105,6 +107,9 @@ try {
     Invoke-T8Check -Name service-logs -Arguments @('logs','--no-color','db','api','gateway','geoserver')
     Invoke-T8Check -Name access-restart -Arguments @('run','--rm','--env','T8_HTTP=1','--env','T8_RESTART=1','--entrypoint','python','check',
         '-m','unittest','discover','-s','tests','-p','test_publication_access.py','-k','restart','-v')
+    if ($TLS) {
+        Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-tls.mjs',$Project,$t8Environment,[string]$Port,[string]$TlsPort) -ReportDirectory $t8Directory -Name tls
+    }
     Invoke-T8Check -Name inputs-end -Arguments @('run','--rm','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check',
         '-m','publication.verify_recovery','--inputs','/workspace','--base-commit',$t8Base,'--clock',$env:PUBLICATION_CLOCK)
     if ((Get-FileHash -Algorithm SHA256 (Join-Path $t8Directory 'inputs-start.json')).Hash -ne
@@ -112,6 +117,8 @@ try {
     @{status='passed';development=[bool]$Development;scope='T8 organization access; partial A7; no desktop QGIS or capacity claim'} |
         ConvertTo-Json | Set-Content -Encoding ascii (Join-Path $t8Directory 'gate.json')
 } catch {
+    try { Invoke-T8Check -Name failure-service-logs -Arguments @('logs','--no-color') }
+    catch { Write-Warning 'Cannot capture service logs; original failure is preserved.' }
     @{status='failed';error=$_.Exception.Message} | ConvertTo-Json | Set-Content -Encoding ascii (Join-Path $t8Directory 'gate.json')
     throw
 } finally {

@@ -32,6 +32,7 @@ param(
         'docs/validation/retrospectives/retro-grib-crs.md',
         'docs/prototypes/weather-map.README.md',
         'docs/access.md',
+        'docs/tls.md',
         'docs/stack-recovery.md',
         '.scratch/hmc-meteo/spec.md',
         '.scratch/hmc-meteo/spec.ru.md',

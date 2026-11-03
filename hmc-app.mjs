@@ -4,16 +4,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import net from 'node:net';
 import {fileURLToPath} from 'node:url';
-import {randomBytes, randomUUID, createHash} from 'node:crypto';
+import {randomBytes, randomUUID, createHash, X509Certificate} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline/promises';
 
 export const root = path.dirname(fileURLToPath(import.meta.url));
 const stateRoot = path.join(root, 'data/live/hmc-app/projects');
-const modes = ['deploy', 'remove', 'stop', 'start', 'status', 'refresh-grib', 'revisions'];
+const modes = ['deploy', 'remove', 'stop', 'start', 'status', 'refresh-grib', 'revisions', 'tls-enable', 'tls-check', 'tls-reload'];
 const revisionModes = ['--report', '--collect-view', '--collect-apply', '--keep-latest'];
 const bools = ['--dry-run', '--yes', '--remove-all', '--include-unlocated', ...revisionModes];
-const values = ['--folder', '--viewer-port', '--api-port', '--storage-budget-bytes'];
+const values = ['--folder', '--viewer-port', '--api-port', '--storage-budget-bytes', '--origin', '--cert-dir'];
 const services = ['db', 'geoserver', 'api', 'gateway', 'viewer'];
 const budgetDefault = 64 * 1024 ** 3;
 const fail = message => { throw Error(message); };
@@ -37,10 +37,17 @@ export function parse(args) {
         else if (values.includes(flag) && rest[i+1] && !rest[i+1].startsWith('--')) options[flag] = rest[++i];
         else fail('Неизвестный параметр или отсутствует значение: ' + flag);
     }
-    const allowed = mode === 'deploy' ? ['--viewer-port', '--api-port'] :
+    const allowed = mode === 'tls-enable' ? ['--origin', '--cert-dir'] : mode === 'deploy' ? ['--viewer-port', '--api-port'] :
         mode === 'remove' ? ['--dry-run', '--yes'] : mode === 'revisions' ? [...revisionModes, '--dry-run', '--yes'] : mode === 'refresh-grib' ?
         ['--folder', '--dry-run', '--yes', '--remove-all', '--include-unlocated', '--storage-budget-bytes'] : [];
     for (const flag of Object.keys(options)) if (!allowed.includes(flag)) fail('Параметр недоступен для этого режима: ' + flag);
+    if (mode === 'tls-enable') {
+        let origin;
+        try { origin = new URL(options['--origin']); } catch { fail('Укажите --origin https://имя-сервера[:порт] и --cert-dir ПАПКА.'); }
+        if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash || !options['--cert-dir'])
+            fail('Нужен HTTPS origin без пути, параметров и учётных данных, а также --cert-dir ПАПКА.');
+        options['--origin'] = origin.origin;
+    }
     if (mode === 'revisions') {
         if (revisionModes.filter(flag => options[flag]).length !== 1) fail('Укажите один режим: --report, --collect-view, --collect-apply или --keep-latest.');
         if ((options['--report'] || options['--collect-view']) && (options['--yes'] || options['--dry-run']))
@@ -301,6 +308,10 @@ export class Operator {
     }
     async ready(state) {
         await this.worker(state, ['-m', 'publication.verify_revisions', '--ready-only']);
+        if (state.env.HMC_TLS_ORIGIN) {
+            await this.composeRun(state, ['exec', '--no-TTY', 'tls-proxy', 'nginx', '-t'], 'Проверка TLS proxy');
+            return; // Client trust is checked separately with the operator's CA.
+        }
         const configuration = await this.jsonCompose(state);
         const viewer = configuration.services.viewer.ports[0].published;
         for (const url of [`http://127.0.0.1:${state.env.T4_PORT || 8141}/health`, `http://127.0.0.1:${viewer}/`]) {
@@ -340,6 +351,31 @@ export class Operator {
         await this.worker(state, ['-c', 'from publication.recovery import migrate; migrate()']);
         await this.ready(state);
         return {state: 'deployed', viewer: `http://127.0.0.1:${viewerPort}`, api: `http://127.0.0.1:${apiPort}`};
+    }
+    async tls({state, file}) {
+        if (this.mode === 'tls-enable') {
+            let directory;
+            try {
+                directory = fs.realpathSync.native(path.resolve(root, this.options['--cert-dir']));
+                const certificate = new X509Certificate(fs.readFileSync(path.join(directory, 'fullchain.pem')));
+                const host = new URL(this.options['--origin']).hostname.replace(/^\[|\]$/g, '');
+                if (!(net.isIP(host) ? certificate.checkIP(host) : certificate.checkHost(host)) ||
+                    Date.parse(certificate.validFrom) > Date.now() || Date.parse(certificate.validTo) <= Date.now()) throw Error();
+            } catch { fail('TLS: проверьте читаемость fullchain.pem, имя SAN и срок сертификата.'); }
+            const candidate = {...state, files: [...new Set([...state.files, path.join(root, 'compose.tls.yaml')])],
+                env: {...state.env, HMC_TLS_ORIGIN: this.options['--origin'], HMC_TLS_PORT: new URL(this.options['--origin']).port || '443', HMC_TLS_CERT_DIR: directory}};
+            await this.composeRun(candidate, ['run', '--rm', '--no-deps', 'tls-proxy', '-t'], 'Проверка новой конфигурации TLS');
+            // Persist before replacing listeners: a failed activation must never start HTTP.
+            save(file, candidate);
+            await this.composeRun(state, ['stop', 'gateway', 'viewer'], 'Закрытие прежних входных портов');
+            await this.composeRun(candidate, ['up', '--detach', '--force-recreate', 'gateway', 'viewer', 'tls-proxy'], 'Включение HTTPS');
+            return {state: 'tls-enabled', origin: candidate.env.HMC_TLS_ORIGIN};
+        }
+        if (!state.env.HMC_TLS_ORIGIN) fail('TLS ещё не настроен. Выполните tls-enable.');
+        await this.composeRun(state, ['exec', '--no-TTY', 'tls-proxy', 'nginx', '-t'], 'Проверка файлов и конфигурации TLS');
+        if (this.mode === 'tls-reload')
+            await this.composeRun(state, ['exec', '--no-TTY', 'tls-proxy', 'nginx', '-s', 'reload'], 'Применение сертификата TLS');
+        return {state: this.mode === 'tls-reload' ? 'tls-reloaded' : 'tls-checked', origin: state.env.HMC_TLS_ORIGIN};
     }
     async revisions({state, containers}) {
         for (const service of ['db', 'geoserver', 'api', 'gateway'])
@@ -443,13 +479,14 @@ export class Operator {
                 const configuration = await this.configuration();
                 if (this.mode === 'refresh-grib') Object.assign(receipt, await this.refresh(configuration));
                 if (this.mode === 'revisions') Object.assign(receipt, await this.revisions(configuration));
+                if (this.mode.startsWith('tls-')) Object.assign(receipt, await this.tls(configuration));
                 if (this.mode === 'remove') Object.assign(receipt, await this.removal(configuration));
                 if (this.mode === 'status') {
                     this.progress.stop();
                     for (const item of configuration.containers) console.log((item.Config.Labels['hmc.app.kind'] === 'cleanup' ? 'Очистка данных' :
                         item.Config.Labels['com.docker.compose.service']) + ': ' + (item.State.Running ? 'работает' : 'остановлен'));
-                    console.log('Карта: http://127.0.0.1:' + (configuration.state.env.T13_PORT || 8140));
-                    console.log('API: http://127.0.0.1:' + (configuration.state.env.T4_PORT || 8141));
+                    console.log('Карта: ' + (configuration.state.env.HMC_TLS_ORIGIN || 'http://127.0.0.1:' + (configuration.state.env.T13_PORT || 8140)));
+                    console.log('API: ' + (configuration.state.env.HMC_TLS_ORIGIN || 'http://127.0.0.1:' + (configuration.state.env.T4_PORT || 8141)));
                     console.log('Папка GRIB: ' + (configuration.state.folder || 'не привязана'));
                     receipt.state = 'observed';
                 }
@@ -464,7 +501,8 @@ export class Operator {
                             catch (error) { if ((await this.containers()).some(value => value.Id === item.Id && value.State.Running)) throw error; }
                         }
                     }
-                    await this.composeRun(configuration.state, this.mode === 'start' ? ['up', '--detach', ...services] : ['stop'], this.mode === 'start' ? 'Запуск проекта' : 'Остановка проекта');
+                    await this.composeRun(configuration.state, this.mode === 'start' ? ['up', '--detach', ...services,
+                        ...(configuration.state.env.HMC_TLS_ORIGIN ? ['tls-proxy'] : [])] : ['stop'], this.mode === 'start' ? 'Запуск проекта' : 'Остановка проекта');
                     if (this.mode === 'stop' && (await this.containers()).some(item => item.State.Running))
                         fail('В проекте остались работающие контейнеры. Проверьте status и повторите stop.');
                     if (this.mode === 'start') {
@@ -521,6 +559,10 @@ deploy        Создать и запустить стенд без GRIB. --vie
 remove        Удалить стенд, настройки и тома; сохранить исходники и отчёты.
 stop / start  Остановить / запустить ранее развёрнутый стенд.
 status        Показать состояние, адреса и каталог GRIB.
+tls-enable    Включить HTTPS: --origin https://имя[:порт] --cert-dir ПАПКА.
+              Папка содержит fullchain.pem и privkey.pem; прежние HTTP-порты закрываются.
+tls-check     Проверить файлы и конфигурацию работающего TLS proxy.
+tls-reload    Проверить и перечитать сертификат без остановки HTTPS.
 revisions     Управление редакциями без загрузки GRIB; выберите один режим:
   --report                Редакции, сроки хранения и объём данных.
   --collect-view          Предварительный просмотр очистки по политике хранения.
