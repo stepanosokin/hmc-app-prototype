@@ -92,6 +92,12 @@ fresh project. Select evidence only when every required phase used the recorded
 configuration. Do not combine a passing phase from one source revision with a
 passing phase from another to establish a final result.
 
+For new entrypoints or configuration formats, compare the collector's actual
+path selection with the changed runtime and runner dependencies before freezing.
+T8 uses [verify_recovery.py](../../publication/verify_recovery.py); the
+[TLS checker](../../tools/check-tls.mjs) adds its own inputs. Include missing
+paths in the affected gate's initial/final inventories.
+
 Reuse an unaffected unit/Python suite after a viewer-only fix when its source,
 fixtures, configuration, dependencies and toolchain are unchanged. Preserve the
 original result (including skips), record matching input lengths/hashes and

@@ -43,7 +43,7 @@ For particle appearance changes, start with [wind-particle review](development/b
 | Mockup projection geometry | Projection scenario and independent PROJ comparison | Complete browser matrix and independent PROJ; preserve numerical tolerances |
 | Publication / worker / GeoServer | Focused scenario in the existing runner | Actual-sample T5; select combined gate below when applicable |
 | Access policy / keys | T8 Development | Complete T8, including T5 |
-| TLS proxy / HTTPS entrypoint | T8 Development with `-TLS`; CLI checks | Complete T8 with `-TLS` (includes T5), trusted TLS/hostname checks and certificate replacement; [TLS instructions](tls.md) |
+| TLS proxy / HTTPS entrypoint | [TLS development](development/services.md#tls-proxy), then T8 Development with `-TLS`; CLI checks | Complete T8 with `-TLS` (includes T5), trusted TLS/hostname checks and certificate replacement; [TLS instructions](tls.md) |
 | Request budgets / accounting | T9 Development | Complete T9, including T5 and T8 regression; full T8 if access policy changed |
 | Recovery / tile cache | T6 focused scenario | T6 plus applicable publication/access gates |
 | Retention / migration | T7 focused scenario | T7 plus applicable T5/T6 regressions |

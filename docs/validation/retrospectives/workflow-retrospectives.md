@@ -1,5 +1,10 @@
 # Retrospective basis
 
+The [TLS retrospective](retro-tls.md) follows #33: service guidance brings
+proxy startup/reload feedback before the GRIB-backed gate and separates host
+capture from Docker logging. Acceptance checks new entrypoints/config formats
+against the actual input collector. Existing TLS regressions remain the check seam.
+
 The [display pyramid retrospective](retro-pyramid-live.md) follows #79–#81:
 surface invariants now run in the ordinary viewer suite, and the existing
 Python pyramid checks are wired into local Runtime/manual CI. Bounded summaries

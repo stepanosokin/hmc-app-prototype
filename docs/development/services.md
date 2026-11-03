@@ -297,3 +297,20 @@ the effective policy before the full gate. If the scenario requires a temporary
 isolated concurrency profile, preserve all other fields and restore the exact
 original row or its absence in finally, with readback. Require a successful
 reader response before collection; admission rejection does not prove overlap.
+
+## TLS proxy
+
+For TLS proxy startup, certificate mounts or reload changes, first isolate the
+proxy from the GRIB-backed gate. Use the pinned image, UID, read-only mounts and
+tmpfs from the actual Compose override; start with the configuration check in
+[TLS instructions](../tls.md#ручное-подключение-compose). For reload failures,
+observe the serial number through a verified TLS handshake after replacement
+and rollback with unchanged file timestamps. Run the full T8/TLS gate after
+both observations match the expected certificates.
+
+When reviewing secret delivery, trace host capture and container logging
+separately. A suppressed host report still permits Docker to retain stdout.
+Deliver fixture tokens through an unlogged channel (`--log-driver none` for a
+container printing a token), and inspect only metadata in diagnostics. The
+existing [TLS checker](../../tools/check-tls.mjs) covers the delivered token,
+actual key fragments and certificate lifecycle; extend that seam for new cases.
