@@ -14,8 +14,6 @@ from publication.domain import ROOT, database
 
 phase = sys.argv[1]
 report = Path('/report')
-sentinel = 0.0005118664217222548
-rounded = float(np.float32(sentinel))
 response = requests.get('http://gateway:8000/api/v1/catalogue', timeout=90)
 response.raise_for_status()
 catalogue = response.json()
@@ -62,10 +60,10 @@ for selection in catalogue['selections']:
     reasons = read_values(group, 'missing_reason')
     assert hashlib.sha256(np.asarray(values, dtype='<f8').tobytes()).hexdigest() == observations[identity]['values_sha256']
     if wind:
-        rejected = (reasons != 1) & ((values == sentinel) | (values == rounded))
+        rejected = (reasons != 1) & (values < .01)
         if phase == 'after':
             np.testing.assert_array_equal(reasons == 2, rejected)
-            assert observations[identity]['validity']['version'] == 'field-validity/4'
+            assert observations[identity]['validity']['version'] == 'field-validity/5'
             if rejected.any() and not point_checked:
                 y, x = np.argwhere(rejected)[0]
                 params = {k: selection[k] for k in ('selection', 'run', 'revision', 'valid_time')}
@@ -76,7 +74,7 @@ for selection in catalogue['selections']:
                 assert point.json()['value'] is None and point.json()['nodata_reason'] == 'rejected_value'
                 checks.append({'point': point.json()})
                 point_checked = True
-        checks.append({'wind_time': selection['valid_time'], 'sentinel_cells': int(rejected.sum()),
+        checks.append({'wind_time': selection['valid_time'], 'threshold_cells': int(rejected.sum()),
                        'rejected_count': int((reasons == 2).sum())})
     if cloud:
         cloud_levels.add(selection['level'])

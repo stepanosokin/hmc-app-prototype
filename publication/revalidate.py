@@ -13,7 +13,7 @@ import zarr
 
 from decoder.sampling import ManifestSampler, asset_path, canonical, file_hash, read_values
 from decoder.storage import write_field, check_field
-from decoder.validity import VERSION
+from decoder.validity import VERSION, rejection_rule
 from decoder.palettes import VERSION as PORTRAYAL_VERSION
 from publication import grib_sync, recovery, retention, revisions, worker
 from publication.domain import ROOT, database, database_transaction, load_manifest, sampler, write_once
@@ -33,16 +33,29 @@ def preview(target: str) -> dict:
             entries = [{'key': revisions.batch_key(batch['identity']),
                         'field': batch['identity']['field'], 'valid_time': batch['identity']['valid_time'],
                         'manifest_path': row['manifest_path'], 'manifest_sha256': row['manifest_sha256']}]
-        if any(needs_rebuild(grib_sync.source_manifest(entry['manifest_path'], entry['manifest_sha256'])) for entry in entries):
-            actions.append({'root': row['root'], 'entries': entries})
+        rebuild_keys = [entry['key'] for entry in entries
+                        if needs_rebuild(grib_sync.source_manifest(entry['manifest_path'], entry['manifest_sha256']))]
+        if rebuild_keys:
+            actions.append({'root': row['root'], 'entries': entries, 'rebuild_keys': rebuild_keys})
     body = {'version': 'field-revalidation/1', 'rule_version': VERSION, 'portrayal_version': PORTRAYAL_VERSION, 'target': target,
             'catalogue': rows, 'policy': snapshot['policy'], 'actions': actions}
     return {**body, 'id': grib_sync.fingerprint(body)}
 
 
 def needs_rebuild(batch: dict) -> bool:
-    return (batch['source'].get('value_validity_version') != VERSION
-            or batch['source'].get('portrayal_version') != PORTRAYAL_VERSION)
+    source = batch['source']
+    if source.get('portrayal_version') != PORTRAYAL_VERSION:
+        return True
+    previous = source.get('value_validity_version')
+    if previous == VERSION:
+        return False
+    # V4 -> V5 only changes the 10m speed rule. Reuse every other immutable
+    # batch when its recorded rule still agrees; older migrations stay conservative.
+    if previous == 'field-validity/4' and VERSION == 'field-validity/5':
+        metadata = sampler(batch).manifest['fields'][0]['metadata']
+        recorded = metadata.get('value_validity', {})
+        return recorded.get('version') != previous or recorded.get('rule') != rejection_rule(metadata)
+    return True
 
 
 def rebuild(job: dict, batch: dict, directory: Path) -> tuple[dict, str, str]:

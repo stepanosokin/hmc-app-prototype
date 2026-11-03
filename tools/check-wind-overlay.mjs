@@ -16,6 +16,7 @@ const direct=process.argv[4]==='--direct-smoke';
 const fixturesOnly=process.argv[4]==='--fixtures-only';
 const fieldStyles=process.argv.includes('--field-styles');
 const snowStyles=process.argv.includes('--snow-styles');
+const windThreshold=process.argv.includes('--wind-threshold');
 assert.ok(directory.startsWith(resolve('data/reports/wind72')+sep));
 const gateway=process.env.HMC_WIND_GATEWAY??'http://127.0.0.1:8140';
 assert.match(gateway,/^http:\/\/127\.0\.0\.1:\d+$/);
@@ -206,14 +207,40 @@ try{
                 const current=await snapshot(),response=await fetch(gateway+current.displayed.native_display);
                 assert.equal(response.status,200,'Actual speed metadata is available');
                 const metadata=await response.json();
-                assert.equal(metadata.value_validity.rule,'wind-speed-10m-sentinel');
-                assert.equal(metadata.value_counts.rejected_count,246465);
+                assert.equal(metadata.value_validity.rule,'wind-speed-10m-minimum-0.01-ms');
+                assert.ok(metadata.value_counts.rejected_count>=246465);
                 const rendered=await evaluate('captureWeatherEvidence(true,true)');
                 assert.ok(rendered.view?.samples.some(s=>s[3]===1),'Corrected speed has visible numerical GPU samples');
                 assert.ok(rendered.view.samples.some(s=>s[3]===0),'Corrected speed retains GPU gaps');
                 report.wind_nodata={metadata,numerical_view:rendered.view,color_view:rendered.color_view};
                 await capture('field-wind-speed-nodata');
             }
+        }
+    }
+    if(windThreshold){
+        const speed=catalogue.templates.find(t=>t.field_short_name==='wind_speed'&&t.level===10);
+        assert.ok(speed,'Actual scalar 10m speed exists');
+        await click('#field-group-wind');
+        await click('#fieldMenu .fieldOption[data-field='+JSON.stringify(speed.field)+']');
+        for(const time of ['2026-10-24T06:00:00Z','2026-10-24T13:00:00Z']){
+            const index=(Date.parse(time)-Date.parse('2026-10-24T06:00:00Z'))/3600000;
+            const value=await evaluate(`document.querySelector('#time').options[${index}]?.value`);
+            assert.notEqual(value,undefined,'Requested time is offered by the live control');
+            await select('#time',value);
+            await wait(`captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.field===${JSON.stringify(speed.field)}&&captureWeatherEvidence().displayed.valid_time===${JSON.stringify(time)}`,'threshold speed '+time);
+            const current=await snapshot(),response=await fetch(gateway+current.displayed.native_display);
+            assert.equal(response.status,200);const metadata=await response.json();
+            assert.equal(metadata.value_validity.version,'field-validity/5');
+            assert.equal(metadata.value_validity.rule,'wind-speed-10m-minimum-0.01-ms');
+            assert.ok(metadata.display_range[0]>=.01);
+            assert.ok(metadata.value_counts.rejected_count>246000);
+            const rendered=await evaluate('captureWeatherEvidence(true,true)');
+            assert.ok(rendered.color_view.samples.some(s=>s[3]===0),'Threshold cells are transparent on GPU');
+            assert.ok(rendered.view.samples.some(s=>s[3]===0),'Numerical display retains NoData gaps');
+            assert.ok(rendered.view.samples.some(s=>s[3]>0),'Valid speeds remain visible');
+            report.threshold_checks??=[];report.threshold_checks.push({time,metadata,numerical:rendered.view,color:rendered.color_view});
+            report.checks.push('10m speed <0.01 NoData, metadata and GPU '+time);
+            await capture('wind-threshold-'+time.slice(11,13));
         }
     }
     if(snowStyles){

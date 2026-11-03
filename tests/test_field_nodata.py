@@ -34,34 +34,57 @@ def temperature_frame(values, category=0, number=0, bitmap=False, **keys):
 
 
 class FieldNoData(unittest.TestCase):
-    def test_10m_speed_sentinel_is_exact_and_scoped(self):
-        from decoder.validity import validity, WIND_10M_SENTINEL as sentinel, WIND_10M_SENTINEL_F32 as rounded
+    def test_v4_to_v5_revalidation_reuses_unchanged_fields(self):
+        from types import SimpleNamespace
+        from publication import revalidate
+        from decoder.palettes import VERSION as palette_version
+        base = field_metadata(temperature_frame([280] * 12), 1, sample_inventory=False, all_fields=True)
+        batch = {'source': {'value_validity_version': 'field-validity/4', 'portrayal_version': palette_version}}
+        for number, level, old_rule, expected in [
+                (1, 10, 'wind-speed-10m-sentinel', True), (1, 100, None, False),
+                (2, 10, None, False), (3, 10, None, False)]:
+            metadata = {**base, 'raw_identity': {**base['raw_identity'], 'parameterCategory': 2, 'parameterNumber': number},
+                        'identity': {**base['identity'], 'units': 'm s**-1', 'typeOfLevel': 'heightAboveGround', 'level': level},
+                        'value_validity': {'version': 'field-validity/4', 'rule': old_rule}}
+            with self.subTest(number=number, level=level), patch.object(revalidate, 'sampler', return_value=SimpleNamespace(manifest={'fields': [{'metadata': metadata}]})):
+                self.assertEqual(revalidate.needs_rebuild(batch), expected)
+        base['value_validity'] = {'version': 'field-validity/4', 'rule': 'absolute-temperature-positive-kelvin'}
+        with patch.object(revalidate, 'sampler', return_value=SimpleNamespace(manifest={'fields': [{'metadata': base}]})):
+            self.assertFalse(revalidate.needs_rebuild(batch))
+            self.assertTrue(revalidate.needs_rebuild({'source': {**batch['source'], 'value_validity_version': 'field-validity/3'}}))
+            self.assertTrue(revalidate.needs_rebuild({'source': {**batch['source'], 'portrayal_version': 'old'}}))
+
+    def test_10m_speed_threshold_is_strict_and_scoped(self):
+        from decoder.validity import validity
+        sentinel = 0.0005118664217222548
+        rounded = float(np.float32(sentinel))
         metadata = field_metadata(temperature_frame([1] * 12), 1, sample_inventory=False, all_fields=True)
         metadata['raw_identity'].update(parameterCategory=2, parameterNumber=1)
         metadata['identity'].update(shortName='wind_speed', units='m s**-1', typeOfLevel='heightAboveGround', level=10)
-        values = np.array([[sentinel, rounded, np.nextafter(sentinel, 0), np.nextafter(sentinel, 1)],
-                           [0., -0., .0004439248945262679, .0005756149388564241],
-                           [2., 3., 4., sentinel]])
+        values = np.array([[sentinel, .000666263, np.nextafter(.01, 0), .01],
+                           [0., -0., -1., np.nextafter(.01, 1)],
+                           [rounded, 2., 3., sentinel]])
         source = np.zeros(values.shape, dtype=bool)
         source[2, 3] = True
         reasons, report = validity(values, source, metadata)
-        np.testing.assert_array_equal(reasons, [[2, 2, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
-        self.assertEqual(report['statistics']['rejected_count'], 2)
+        np.testing.assert_array_equal(reasons, [[2, 2, 2, 0], [2, 2, 2, 0], [2, 0, 0, 1]])
+        self.assertEqual(report['statistics']['rejected_count'], 7)
+        self.assertEqual(report['statistics']['min'], .01)
         for update in ({'level': 100}, {'typeOfLevel': 'surface'}, {'units': 'knots'}):
             changed = {**metadata, 'identity': {**metadata['identity'], **update}}
-            self.assertEqual(validity(values, source, changed)[0][0, 0], 0)
+            np.testing.assert_array_equal(validity(values, source, changed)[0], source.astype('uint8'))
         for number in (2, 3):
             changed = {**metadata, 'raw_identity': {**metadata['raw_identity'], 'parameterNumber': number}}
-            self.assertEqual(validity(values, source, changed)[0][0, 0], 0)
+            np.testing.assert_array_equal(validity(values, source, changed)[0], source.astype('uint8'))
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             item = write_field(root, 'wind', metadata, values, source)
-            self.assertEqual(check_field(root, item, values, source)['missing_cells'], 3)
+            self.assertEqual(check_field(root, item, values, source)['missing_cells'], 8)
             group = zarr.open_group(str(root / item['zarr']), mode='r', zarr_format=2)
             np.testing.assert_array_equal(read_values(group, 'missing_reason'), reasons)
             np.testing.assert_array_equal(read_values(group, 'values'), values)
             native = json.loads(describe(root, item))
-            self.assertEqual(native['value_counts']['rejected_count'], 2)
+            self.assertEqual(native['value_counts']['rejected_count'], 7)
 
     def test_selected_zero_rules_and_source_missing_are_distinct(self):
         from decoder.validity import refresh
@@ -279,11 +302,11 @@ class FieldNoData(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('T65_HTTP') == '1', 'requires isolated publication services')
 class PublishedNoData(unittest.TestCase):
-    def test_wind_sentinel_is_nodata_in_point_native_and_gis(self):
-        from decoder.validity import WIND_10M_SENTINEL as sentinel
+    def test_wind_threshold_is_nodata_in_point_native_and_gis(self):
+        sentinel = 0.000666263
         from publication import revisions, geoserver
         from publication.domain import resolve, sampler
-        values = np.array([[sentinel, .0004439248945262679, 2., 3.]] * 3)
+        values = np.array([[sentinel, .01, 2., 3.]] * 3)
         # Exact native fixture: GRIB encoding would quantize this sentinel.
         with patch.object(revisions, 'decoded_arrays', return_value=(values, np.zeros((3, 4), dtype=bool))):
             selection, batch = self.seed(values.reshape(-1), category=2, number=1,
