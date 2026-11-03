@@ -2,6 +2,7 @@
 import {laeaRfId,laeaRfDefinition,laeaBeta0,laeaRq,laeaD} from './laea-rf.js';
 import {sourceShader} from './source-crs.js';
 import {paletteThresholds} from './palettes.js';
+import {MAP_RESOURCE_BUDGET_BYTES} from './resource-budget.js';
 export const nativeToWgs=lat=>Math.atan2(Math.sin(lat*Math.PI/180),(1-.0066943799901413165)*Math.cos(lat*Math.PI/180))*180/Math.PI;
 const vertex = `#version 300 es
 void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.-1.,0,1);}`;
@@ -227,7 +228,7 @@ export class NativeLayer {
         const perCell=this.metadata.portrayal_baseline?4:8;
         const bytes=(this.metadata.portrayal_baseline?258*258*4:332820)*this.blockCount+258*258*perCell+258*258*this.blockCount*perCell+width*height*(this.context?28:24)+(this.metadata.palette?.colors.length??0)*10;
         if(width>maximum||height>maximum||258>maximum||(this.metadata.palette?.colors.length??0)/4>maximum||gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)<this.blockCount
-            ||bytes>128*1024**2)throw Error('Размер вида превышает бюджет числовых ресурсов.');
+            ||bytes>MAP_RESOURCE_BUDGET_BYTES)throw Error('Размер вида превышает бюджет числовых ресурсов.');
         return bytes;
     }
     draw(gl,numeric,view=this.geometry(),geometryOnly=false) {

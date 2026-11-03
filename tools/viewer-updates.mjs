@@ -146,7 +146,7 @@ export async function checkUpdates({call,evaluate,wait,select,click,capture,orig
         const value=await capture(true);
         assert.equal(value.mode,mode);assert.equal(value.view.cache_identity.identity.revision,value.selected.revision);
         if(mode!=='orthographic')assert.equal(JSON.stringify(value.view.cache_identity.display_definition).includes('+proj=ortho'),false);
-        assert.ok(value.managed_bytes<=128*1024**2);
+        assert.ok(value.managed_bytes<=value.managed_budget_bytes);
         results.replacements.push({mode,view:value.view,identity:value.view.cache_identity,managed_bytes:value.managed_bytes});
     }
     results.resources=await evaluate('({max_arrays:window.__navigationGate.maxArrays,max_array_bytes:window.__navigationGate.maxArrayBytes,current_array_bytes:window.__navigationGate.arrayBytes})');

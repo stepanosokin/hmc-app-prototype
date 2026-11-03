@@ -3,6 +3,7 @@ import type {FieldData} from './field.js';
 import {LocalContext} from './local-context.js';
 import {WindArrows} from './wind.js';
 import {windSpeed} from './wind-speed.js';
+import {MAP_RESOURCE_BUDGET_BYTES} from './resource-budget.js';
 
 /** MapLibre custom layer over the accepted one-pass native-cell GPU kernel. */
 export class WeatherLayer extends NativeLayer {
@@ -69,7 +70,7 @@ export class WeatherLayer extends NativeLayer {
         const canvas=this.map.getCanvas();
         const base=this.wind?this.blocks.reduce((n:number,b:ArrayBuffer)=>n+b.byteLength,0)+2*1024**2+canvas.width*canvas.height*(this.context?28:24):super.checkBudget();
         const total=base+(this.wind?.bytes(canvas.width,canvas.height)??0)+this.retainedWindBytes;
-        if(total>128*1024**2)throw Error('Ветер превышает общий бюджет числовых ресурсов.');
+        if(total>MAP_RESOURCE_BUDGET_BYTES)throw Error('Ветер превышает общий бюджет числовых ресурсов.');
         return total;
     }
     async prepared(signal:AbortSignal){

@@ -82,7 +82,7 @@ export async function checkTimeSwitch({call,evaluate,wait,select,click,capture,o
         const checkContext=async()=>{
             assert.equal(await evaluate("window.__timeCanvas===document.querySelector('.maplibregl-canvas')&&window.__timeLabels.every(e=>e.isConnected)"),true,'Map canvas and labels survive');
             const state=await capture();
-            maxManaged=Math.max(maxManaged,state.managed_bytes);assert.ok(state.managed_bytes<=128*1024**2);
+            maxManaged=Math.max(maxManaged,state.managed_bytes);assert.ok(state.managed_bytes<=state.managed_budget_bytes);
             assert.equal(contextRequests(),baselineRequests,'No context assets reloaded');
             assert.equal(state.mode,mode);assert.deepEqual(state.position,before.position);
             assert.deepEqual(state.view_geometry,before.view_geometry);

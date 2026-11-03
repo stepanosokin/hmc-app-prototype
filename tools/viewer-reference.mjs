@@ -19,7 +19,7 @@ export async function captureScalarReference({call,evaluate,wait,click,select,ca
         await click('#closeDrawer');
         await new Promise(resolve=>setTimeout(resolve,300));
         const state=await capture(true);assert.ok(state.view?.samples.length,'Actual GPU numerical readback');
-        assert.ok(state.managed_bytes<=128*1024**2);
+        assert.ok(state.managed_bytes<=state.managed_budget_bytes);
         report.scalar_reference.push({mode,identity:state.selected,source_crs:state.source_crs,view:state.view,
             managed_bytes:state.managed_bytes,heap:await call('Runtime.getHeapUsage')});
         const shot=await call('Page.captureScreenshot',{format:'png'});

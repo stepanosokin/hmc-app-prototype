@@ -57,7 +57,7 @@ export async function checkPyramid({evaluate,call,directory}){
         const screenshot=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,field+'-point.png'),Buffer.from(screenshot.data,'base64'));
         await click('#closePoint');
         for(const mode of field==='t'?['laea-rf','laea','orthographic','mercator']:['laea-rf']){
-            await select('#projection',mode);state=await ready(field);assert.equal(state.mode,mode);assert.ok(state.managed_bytes<=128*1024**2);assert.ok(state.contours.stats.surface);
+            await select('#projection',mode);state=await ready(field);assert.equal(state.mode,mode);assert.ok(state.managed_bytes<=state.managed_budget_bytes);assert.ok(state.contours.stats.surface);
             const shot=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,field+'-'+mode+'.png'),Buffer.from(shot.data,'base64'));
             rows.push({field,mode,selection:state.displayed,bytes:state.transfer_bytes,load_ms:state.load_ms,contours:state.contours,wind:state.wind_overlay,canonical_points:reference.length,canonical_wind_points:windReference.length,managed_bytes:state.managed_bytes});
         }

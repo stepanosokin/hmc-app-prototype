@@ -1,11 +1,31 @@
 """Only the existing public gateway receives the viewer's scoped WMS requests."""
 import unittest
+import tempfile
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from publication.viewer import create_app
 
 
 class ViewerBridge(unittest.TestCase):
+    def test_project_budget_is_read_on_each_request_and_only_public_value_is_returned(self):
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / 'viewer.json'
+            with patch('publication.viewer.VIEWER_CONFIG', config):
+                client = create_app().test_client()
+                self.assertEqual(client.get('/build/viewer-config.js').data, b'export const viewerConfig = {};\n')
+                config.write_text('{"map_memory_mib":512,"private":"do-not-publish"}', encoding='utf-8')
+                response = client.get('/build/viewer-config.js')
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.mimetype, 'text/javascript')
+                self.assertEqual(response.headers['Cache-Control'], 'no-store')
+                self.assertEqual(response.data, b'export const viewerConfig = {"map_memory_mib": 512};\n')
+                config.write_text('{"map_memory_mib":256}', encoding='utf-8')
+                self.assertIn(b'256', client.get('/build/viewer-config.js').data)
+                for value in ['null', 'true', '0', '-1', '1.5', '"512"', '99999999999999999']:
+                    config.write_text('{"map_memory_mib":' + value + '}', encoding='utf-8')
+                    self.assertEqual(client.get('/build/viewer-config.js').status_code, 500)
+
     def test_scoped_wms_uses_fixed_public_upstream_without_browser_credentials(self):
         path = '/gis/v1/runs/ICON-EU%2F2026-10-15T00:00:00Z/revisions/abcd/wms'
         upstream = MagicMock()

@@ -234,7 +234,7 @@ try{
             viewport.views.push({...frame.view,synthetic_masks:frame.synthetic_masks});
             (viewport.measurements??=[]).push({mode,transfer_bytes:frame.transfer_bytes,managed_bytes:frame.managed_bytes,
                 load_ms:frame.load_ms,warm_switch_ms:frame.warm_switch_ms,upload_timings:frame.upload_timings});
-            assert.ok(frame.managed_bytes<=128*1024**2);assert.ok(frame.transfer_bytes<=8*1024**2);
+            assert.ok(frame.managed_bytes<=frame.managed_budget_bytes);assert.ok(frame.transfer_bytes<=8*1024**2);
             const target=await nativePointPixel(evaluate,mode);assert.ok(target,'An unobstructed native point for the canonical click');
             const pointRequests=report.requests.filter(item=>item.url.includes('/api/v1/point?')).length;
             if(android){await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:Math.floor(target.x)+.5,y:Math.floor(target.y)+.5,id:1}]});

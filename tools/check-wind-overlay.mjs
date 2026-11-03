@@ -97,7 +97,7 @@ try{
         await wait("captureWeatherEvidence().wind_overlay.state==='ready'&&captureWeatherEvidence().wind?.visible>0",'independent actual wind');
         await check(width+' default enabled and exact identity',"(()=>{const s=captureWeatherEvidence(),w=s.wind.identity;return s.wind_overlay.enabled&&['model','run','revision','valid_time','member'].every(k=>w[k]===s.displayed[k]);})()");
         await check(width+' controls above legend',"document.getElementById('windPanel').getBoundingClientRect().bottom<=document.getElementById('legendPanel').getBoundingClientRect().top");
-        await check(width+' managed memory bounded','captureWeatherEvidence().managed_bytes<=128*1024**2');
+        await check(width+' managed memory bounded','captureWeatherEvidence().managed_bytes<=captureWeatherEvidence().managed_budget_bytes');
         await check(width+' adaptive particle density',`captureWeatherEvidence().wind.arrows===Math.round(${width}*${height}/(1440*900)*2400)`);
         await check(width+' particles with trails',"captureWeatherEvidence().wind.style==='particles-with-trails'");
         let lastGeometry='',stable=0;
@@ -171,7 +171,7 @@ try{
                 await click('#fieldMenu .fieldOption');
                 await wait("captureWeatherEvidence().ready&&captureWeatherEvidence().wind_overlay.state==='ready'&&captureWeatherEvidence().wind?.visible>0",'overlay on '+id);
                 await check('Exact wind identity on '+id,"(()=>{const s=captureWeatherEvidence();return ['model','run','revision','valid_time','member'].every(k=>s.wind.identity[k]===s.displayed[k]);})()");
-                await check('Memory bounded on '+id,'captureWeatherEvidence().managed_bytes<=128*1024**2');
+                await check('Memory bounded on '+id,'captureWeatherEvidence().managed_bytes<=captureWeatherEvidence().managed_budget_bytes');
                 await capture('field-'+id);
             }
         }

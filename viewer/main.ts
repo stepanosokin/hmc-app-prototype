@@ -13,6 +13,7 @@ import {displaySpec,displayNumber} from './display-units.js';
 import {ContourOverlay} from './contours.js';
 import {compactGroups,type CompactCatalogue} from './catalogue.js';
 import {WindOverlay} from './wind-overlay.js';
+import {MAP_RESOURCE_BUDGET_BYTES} from './resource-budget.js';
 import {CoastlineOverlay} from './coastline.js';
 
 import {laeaRfId,laeaRq,laeaD} from './laea-rf.js';
@@ -62,14 +63,14 @@ let timeController=new AbortController(),displayed:Selection|undefined;
 let reselectController=new AbortController();
 let timeState:'loading'|'ready'|'missing'|'error'|'expired'|'withdrawn'='missing',pointMessage='',timeError='';
 function admitOverlay(bytes:number){
-    if(stagingBase()+bytes+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)
+    if(stagingBase()+bytes+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET>MAP_RESOURCE_BUDGET_BYTES)
         throw Error('Превышен общий бюджет ресурсов карты.');
 }
 const contours=new ContourOverlay(admitOverlay,()=>unit);
 const coastline=new CoastlineOverlay(admitOverlay,rendererFailure);
 const wind=new WindOverlay(()=>{wind.points(position);if(position)renderPoint();fieldPicker.layout();},bytes=>{
     const base=stagingBase();
-    if(base+bytes+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)
+    if(base+bytes+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET>MAP_RESOURCE_BUDGET_BYTES)
         throw Error('Превышен общий бюджет числовых ресурсов.');
 });
 function syncWind(){
@@ -166,7 +167,7 @@ function reserveFrame(target:Selection){
     const canvas=map?.getCanvas();
     const bytes=(332820*blocks+1024**2)*(target.wind_v?2:1)+(target.wind_v?0:258*258*8+258*258*blocks*8)+
         (target.wind_v&&canvas?canvas.width*canvas.height*4:0);
-    if(stagingBase()+bytes+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)throw Error('Превышен бюджет обновления GPU.');
+    if(stagingBase()+bytes+SERIES_BUDGET+CATALOGUE_BUDGET>MAP_RESOURCE_BUDGET_BYTES)throw Error('Превышен бюджет обновления GPU.');
     return bytes;
 }
 function stagingBase(){
@@ -178,7 +179,7 @@ function stagingBase(){
 async function prepareLayer(field:FieldData,owner:any,signal:AbortSignal){
     const extra=field.blocks.reduce((n,b)=>n+b.byteLength,0)+(field.wind?.blocks.reduce((n,b)=>n+b.byteLength,0)??0)+
         (field.wind?field.blocks.reduce((n,b)=>n+b.byteLength,0):0)+258*258*8+258*258*field.blocks.length*8;
-    if((layer?stagingBase():owner.getCanvas().width*owner.getCanvas().height*28)+extra+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)
+    if((layer?stagingBase():owner.getCanvas().width*owner.getCanvas().height*28)+extra+SERIES_BUDGET+CATALOGUE_BUDGET>MAP_RESOURCE_BUDGET_BYTES)
         throw Error('Превышен бюджет обновления GPU.');
     const candidate=new WeatherLayer(field,mode==='laea-rf'?laeaRfId:mode==='laea'?'EPSG:3576':mode==='orthographic'?'hmc:orthographic':'mercator',projection(),center);
     candidate.baseCenter=[...mapBaseCenter];candidate.baseProjection=mapBaseProjection;
@@ -663,7 +664,7 @@ addEventListener('pagehide',()=>{clearInterval(poll);contours.dispose();wind.dis
 function numericalView(){
     if(!layer?.ready||lost||layer.wind||timeState!=='ready'||updateBusy||timeStagingBytes||updateStagingBytes)return undefined;
     const canvas=map.getCanvas();
-    if(stagingBase()+canvas.width*canvas.height*16+SERIES_BUDGET+CATALOGUE_BUDGET>128*1024**2)return undefined;
+    if(stagingBase()+canvas.width*canvas.height*16+SERIES_BUDGET+CATALOGUE_BUDGET>MAP_RESOURCE_BUDGET_BYTES)return undefined;
     const view=layer.samples(),p=projection();
     const cases:[string,number[]][]=[['pole',[90,90]],['dateline-positive',[180,80]],['dateline-negative',[-180,80]]];
     if(mode==='laea')cases.push(['south-of-cut',[90,44.999]],['north-of-cut',[90,45.001]]);
@@ -685,7 +686,7 @@ if(validation){
         view:samples?numericalView():undefined,transfer_bytes:data?.bytes,load_ms:data?.load_ms,
         map_zoom:map?.getZoom(),view_geometry:layer?.geometry(),view_center:[...center],native_bounds:data?.metadata.grid.outer_cell_edges_wsen,source_crs:data?.metadata.source_crs,
         synthetic_masks:samples&&layer?.ready&&!lost&&data?.metadata.grid.shape_yx.join(',')==='657,1377'?layer.syntheticMasks():undefined,
-        managed_bytes:!lost?stagingBase()+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET:undefined,context_lost:lost,renderer_error:rendererError,
+        managed_bytes:!lost?stagingBase()+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET:undefined,managed_budget_bytes:MAP_RESOURCE_BUDGET_BYTES,context_lost:lost,renderer_error:rendererError,
         first_complete_ms:firstCompleteMs,render_frames_ms:[...frames],render_times_ms:[...renderTimes],warm_switch_ms:warmSwitchMs,
         rendered:lastRendered,
         catalogue_checks:catalogueChecks,catalogue_pending:Boolean(pendingGroups),

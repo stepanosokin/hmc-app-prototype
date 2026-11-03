@@ -7,21 +7,22 @@ import {fileURLToPath} from 'node:url';
 import {randomBytes, randomUUID, createHash, X509Certificate} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline/promises';
+import {DEFAULT_MAP_RESOURCE_BUDGET_MIB, mapResourceBudgetBytes, parseViewerConfigModule} from './viewer/resource-budget.js';
 
 export const root = path.dirname(fileURLToPath(import.meta.url));
 const stateRoot = path.join(root, 'data/live/hmc-app/projects');
-const modes = ['deploy', 'remove', 'stop', 'start', 'status', 'refresh-grib', 'revisions', 'tls-enable', 'tls-check', 'tls-reload'];
+const modes = ['deploy', 'remove', 'stop', 'start', 'status', 'viewer-budget', 'refresh-grib', 'revisions', 'tls-enable', 'tls-check', 'tls-reload'];
 const revisionModes = ['--report', '--collect-view', '--collect-apply', '--keep-latest'];
 const bools = ['--dry-run', '--yes', '--remove-all', '--include-unlocated', ...revisionModes];
-const values = ['--folder', '--viewer-port', '--api-port', '--storage-budget-bytes', '--origin', '--cert-dir'];
+const values = ['--folder', '--viewer-port', '--api-port', '--storage-budget-bytes', '--origin', '--cert-dir', '--memory-mib'];
 const services = ['db', 'geoserver', 'api', 'gateway', 'viewer'];
 const budgetDefault = 64 * 1024 ** 3;
 const fail = message => { throw Error(message); };
 const read = file => JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
-function save(file, value) {
+function save(file, value, mode = 0o600) {
     fs.mkdirSync(path.dirname(file), {recursive: true});
     const temp = file + '.' + randomUUID();
-    fs.writeFileSync(temp, JSON.stringify(value, null, 2) + '\n', {mode: 0o600});
+    fs.writeFileSync(temp, JSON.stringify(value, null, 2) + '\n', {mode});
     fs.renameSync(temp, file);
 }
 export function parse(args) {
@@ -37,10 +38,15 @@ export function parse(args) {
         else if (values.includes(flag) && rest[i+1] && !rest[i+1].startsWith('--')) options[flag] = rest[++i];
         else fail('Неизвестный параметр или отсутствует значение: ' + flag);
     }
-    const allowed = mode === 'tls-enable' ? ['--origin', '--cert-dir'] : mode === 'deploy' ? ['--viewer-port', '--api-port'] :
+    const allowed = mode === 'viewer-budget' ? ['--memory-mib'] : mode === 'tls-enable' ? ['--origin', '--cert-dir'] : mode === 'deploy' ? ['--viewer-port', '--api-port'] :
         mode === 'remove' ? ['--dry-run', '--yes'] : mode === 'revisions' ? [...revisionModes, '--dry-run', '--yes'] : mode === 'refresh-grib' ?
         ['--folder', '--dry-run', '--yes', '--remove-all', '--include-unlocated', '--storage-budget-bytes'] : [];
     for (const flag of Object.keys(options)) if (!allowed.includes(flag)) fail('Параметр недоступен для этого режима: ' + flag);
+    if (mode === 'viewer-budget') {
+        const value = options['--memory-mib'];
+        if (!/^[1-9]\d*$/.test(value ?? '')) fail('Укажите --memory-mib и положительное целое число МиБ.');
+        mapResourceBudgetBytes(Number(value));
+    }
     if (mode === 'tls-enable') {
         let origin;
         try { origin = new URL(options['--origin']); } catch { fail('Укажите --origin https://имя-сервера[:порт] и --cert-dir ПАПКА.'); }
@@ -91,6 +97,12 @@ export function normalized(value) {
     let resolved = value.replace(/^\/run\/desktop\/mnt\/host\/([a-z])\//i, '$1:/');
     resolved = path.resolve(resolved);
     return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+}
+export function viewerBudgetMiB(configurationFile) {
+    const file = path.join(path.dirname(configurationFile), 'viewer-config', 'viewer.json');
+    const value = fs.existsSync(file) ? read(file).map_memory_mib : DEFAULT_MAP_RESOURCE_BUDGET_MIB;
+    mapResourceBudgetBytes(value);
+    return value;
 }
 function contained(file, directory) {
     const relative = path.relative(normalized(directory), normalized(file));
@@ -377,6 +389,29 @@ export class Operator {
             await this.composeRun(state, ['exec', '--no-TTY', 'tls-proxy', 'nginx', '-s', 'reload'], 'Применение сертификата TLS');
         return {state: this.mode === 'tls-reload' ? 'tls-reloaded' : 'tls-checked', origin: state.env.HMC_TLS_ORIGIN};
     }
+    async viewerBudget({state, file, containers}) {
+        const mib = Number(this.options['--memory-mib']);mapResourceBudgetBytes(mib);
+        const directory = path.join(path.dirname(file), 'viewer-config');
+        const settings = path.join(directory, 'viewer.json');
+        const override = path.join(path.dirname(file), 'viewer-budget.compose.json');
+        for (const target of [directory, settings, override])
+            if (fs.existsSync(target) && fs.lstatSync(target).isSymbolicLink()) fail('Ссылка в пути настройки просмотрщика.');
+        fs.mkdirSync(directory, {recursive: true, mode: 0o755});
+        save(settings, {map_memory_mib: mib}, 0o644);
+        save(override, {services: {viewer: {volumes: [{type: 'bind', source: directory, target: '/viewer-config', read_only: true}]}}});
+        const candidate = {...state, files: [...new Set([...state.files, override])]};
+        save(file, candidate);
+        const viewer = containers.find(item => item.Config.Labels['com.docker.compose.service'] === 'viewer');
+        if (viewer?.State.Running) {
+            const mounted = viewer.Mounts?.some(item => item.Type === 'bind' && item.Destination === '/viewer-config' && normalized(item.Source) === normalized(directory));
+            if (!mounted) await this.composeRun(candidate, ['up', '--detach', '--no-deps', '--force-recreate', 'viewer'], 'Подключение настройки просмотрщика');
+            const probe = "import time, urllib.request\nfor attempt in range(30):\n try:\n  print(urllib.request.urlopen('http://127.0.0.1:8000/build/viewer-config.js', timeout=1).read().decode()); break\n except Exception:\n  if attempt == 29: raise\n  time.sleep(0.2)";
+            const response = await this.composeRun(candidate, ['exec', '--no-TTY', 'viewer', 'python', '-c', probe], 'Проверка настройки просмотрщика');
+            if (parseViewerConfigModule(response).map_memory_mib !== mib) fail('Настройка сохранена, но просмотрщик ещё не применил её. Повторите команду.');
+        }
+        this.progress.stop();console.log('Лимит памяти карты: ' + mib + ' МиБ. ' + (viewer?.State.Running ? 'Обновите страницу браузера.' : 'Применится при следующем start.'));
+        return {state: 'viewer-budget-set', map_memory_mib: mib, live_readback: Boolean(viewer?.State.Running)};
+    }
     async revisions({state, containers}) {
         for (const service of ['db', 'geoserver', 'api', 'gateway'])
             if (!containers.some(item => item.Config.Labels['com.docker.compose.service'] === service && item.State.Running))
@@ -451,7 +486,8 @@ export class Operator {
             const users = (await this.docker(['ps', '--all', '--quiet', '--no-trunc', '--filter', 'volume=' + volume], {privateOutput: true})).split(/\r?\n/).filter(Boolean);
             if (users.some(id => !ownedIds.has(id))) fail('Том используется другим проектом. Удаление остановлено.');
         }
-        const settings = [state.envFile, ...state.files, file].filter(target => fs.existsSync(target) && safeSettingsFile(target));
+        const viewerConfigDirectory = path.join(path.dirname(file), 'viewer-config');
+        const settings = [state.envFile, ...state.files, path.join(viewerConfigDirectory, 'viewer.json'), file].filter(target => fs.existsSync(target) && safeSettingsFile(target));
         this.progress.stop(); console.log(`Удалить ${this.project}: контейнеров ${containers.length}, томов ${volumes.length}, сетей ${networks.length}. Исходные GRIB и отчёты сохраняются.`);
         if (!await this.confirm(true)) return {state: this.options['--dry-run'] ? 'planned' : 'cancelled'};
         await this.removeContainers(containers.map(item => item.Id));
@@ -465,6 +501,7 @@ export class Operator {
             }
         }
         const ownDirectory = path.join(stateRoot, this.project);
+        if (fs.existsSync(viewerConfigDirectory) && fs.readdirSync(viewerConfigDirectory).length === 0) fs.rmdirSync(viewerConfigDirectory);
         if (fs.existsSync(ownDirectory) && fs.readdirSync(ownDirectory).length === 0) fs.rmdirSync(ownDirectory);
         return {state: 'removed'};
     }
@@ -479,6 +516,7 @@ export class Operator {
                 const configuration = await this.configuration();
                 if (this.mode === 'refresh-grib') Object.assign(receipt, await this.refresh(configuration));
                 if (this.mode === 'revisions') Object.assign(receipt, await this.revisions(configuration));
+                if (this.mode === 'viewer-budget') Object.assign(receipt, await this.viewerBudget(configuration));
                 if (this.mode.startsWith('tls-')) Object.assign(receipt, await this.tls(configuration));
                 if (this.mode === 'remove') Object.assign(receipt, await this.removal(configuration));
                 if (this.mode === 'status') {
@@ -488,6 +526,7 @@ export class Operator {
                     console.log('Карта: ' + (configuration.state.env.HMC_TLS_ORIGIN || 'http://127.0.0.1:' + (configuration.state.env.T13_PORT || 8140)));
                     console.log('API: ' + (configuration.state.env.HMC_TLS_ORIGIN || 'http://127.0.0.1:' + (configuration.state.env.T4_PORT || 8141)));
                     console.log('Папка GRIB: ' + (configuration.state.folder || 'не привязана'));
+                    console.log('Лимит памяти карты: ' + viewerBudgetMiB(configuration.file) + ' МиБ');
                     receipt.state = 'observed';
                 }
                 if (['start', 'stop'].includes(this.mode)) {
@@ -558,6 +597,7 @@ function help() {
 deploy        Создать и запустить стенд без GRIB. --viewer-port 8140 --api-port 8141
 remove        Удалить стенд, настройки и тома; сохранить исходники и отчёты.
 stop / start  Остановить / запустить ранее развёрнутый стенд.
+viewer-budget Задать память карты: --memory-mib 512. По умолчанию ${DEFAULT_MAP_RESOURCE_BUDGET_MIB} МиБ.
 status        Показать состояние, адреса и каталог GRIB.
 tls-enable    Включить HTTPS: --origin https://имя[:порт] --cert-dir ПАПКА.
               Папка содержит fullchain.pem и privkey.pem; прежние HTTP-порты закрываются.

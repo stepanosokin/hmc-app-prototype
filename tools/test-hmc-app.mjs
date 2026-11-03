@@ -1,9 +1,36 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parse, Progress, assertOwned, root, composeEnvironment, safeSettingsFile, Operator} from '../hmc-app.mjs';
+import {parse, Progress, assertOwned, root, composeEnvironment, safeSettingsFile, Operator, viewerBudgetMiB} from '../hmc-app.mjs';
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
+
+test('viewer budget requires an explicit positive integer MiB before contacting Docker',()=>{
+    assert.equal(parse(['viewer-budget','live','--memory-mib','512']).options['--memory-mib'],'512');
+    for(const flags of [[],['--memory-mib','0'],['--memory-mib','-1'],['--memory-mib','1.5'],['--memory-mib','1e3'],['--memory-mib','9007199254740991'],['--folder','x']])assert.throws(()=>parse(['viewer-budget','live',...flags]));
+    assert.throws(()=>parse(['start','live','--memory-mib','512']));
+});
+test('viewer budget persists per project, mounts only public settings and reuses a mounted directory',async()=>{
+    const base=fs.mkdtempSync(path.join(os.tmpdir(),'hmc-viewer-budget-'));
+    const operator=new Operator(parse(['viewer-budget','live','--memory-mib','512']));
+    const calls=[];operator.composeRun=async(_state,args)=>{calls.push(args);return args[0]==='exec'?'export const viewerConfig = {"map_memory_mib":'+operator.options['--memory-mib']+'};':'';};
+    try{
+        const file=path.join(base,'one','project.json'),other=path.join(base,'two','project.json');fs.mkdirSync(path.dirname(file),{recursive:true});fs.mkdirSync(path.dirname(other),{recursive:true});
+        const state={files:['base.compose.yaml'],env:{PRIVATE:'keep-private'}};
+        assert.equal(viewerBudgetMiB(file),256);
+        const viewer={Config:{Labels:{'com.docker.compose.service':'viewer'}},State:{Running:true},Mounts:[]};
+        await operator.viewerBudget({state,file,containers:[viewer]});assert.equal(viewerBudgetMiB(file),512);assert.equal(viewerBudgetMiB(other),256);
+        assert.deepEqual(calls[0],['up','--detach','--no-deps','--force-recreate','viewer']);
+        const saved=JSON.parse(fs.readFileSync(file));assert.deepEqual(saved.env,state.env);assert.equal(saved.files.length,2);
+        const config=path.join(path.dirname(file),'viewer-config');assert.ok(!fs.readFileSync(path.join(config,'viewer.json'),'utf8').includes('PRIVATE'));
+        viewer.Mounts=[{Type:'bind',Destination:'/viewer-config',Source:config}];calls.length=0;operator.options['--memory-mib']='256';
+        await operator.viewerBudget({state:saved,file,containers:[viewer]});assert.equal(viewerBudgetMiB(file),256);assert.equal(calls.length,1);assert.equal(calls[0][0],'exec');
+        calls.length=0;operator.options['--memory-mib']='1024';await operator.viewerBudget({state,file:other,containers:[]});assert.equal(viewerBudgetMiB(other),1024);assert.equal(viewerBudgetMiB(file),256);assert.equal(calls.length,0);
+    }finally{
+        process.removeListener('SIGINT',operator.signal);process.removeListener('SIGTERM',operator.signal);
+        assert.ok(path.resolve(base).startsWith(path.resolve(os.tmpdir())+path.sep));fs.rmSync(base,{recursive:true,force:true});assert.equal(fs.existsSync(base),false);
+    }
+});
 
 test('TLS commands require explicit HTTPS origin and an external certificate directory', () => {
     assert.equal(parse(['tls-enable', 'live', '--origin', 'https://localhost:8443', '--cert-dir', 'data/tls']).mode, 'tls-enable');
@@ -12,6 +39,16 @@ test('TLS commands require explicit HTTPS origin and an external certificate dir
         ['--origin', 'https://user:secret@localhost', '--cert-dir', 'data/tls'],
         ['--origin', 'https://localhost/path', '--cert-dir', 'data/tls']])
         assert.throws(() => parse(['tls-enable', 'live', ...flags]));
+});
+test('removal includes only the owned public viewer settings directory',async()=>{
+    const parent=path.join(root,'data/live/hmc-app/projects');fs.mkdirSync(parent,{recursive:true});
+    const directory=fs.mkdtempSync(path.join(parent,'hmc-budget-test-')),other=fs.mkdtempSync(path.join(parent,'hmc-budget-keep-'));
+    const file=path.join(directory,'project.json'),envFile=path.join(directory,'environment.env'),override=path.join(directory,'viewer-budget.compose.json');
+    fs.mkdirSync(path.join(directory,'viewer-config'));for(const target of [file,envFile,override,path.join(directory,'viewer-config/viewer.json')])fs.writeFileSync(target,'{}');
+    fs.writeFileSync(path.join(other,'keep.txt'),'keep');
+    const operator=new Operator({mode:'remove',project:path.basename(directory),options:{}});operator.ids=async()=>[];operator.confirm=async()=>true;operator.removeContainers=async()=>{};
+    try{await operator.removal({state:{envFile,files:[override]},file,containers:[]});assert.equal(fs.existsSync(directory),false);assert.equal(fs.readFileSync(path.join(other,'keep.txt'),'utf8'),'keep');}
+    finally{process.removeListener('SIGINT',operator.signal);process.removeListener('SIGTERM',operator.signal);for(const target of [directory,other]){assert.equal(path.dirname(path.resolve(target)),path.resolve(parent));fs.rmSync(target,{recursive:true,force:true});}}
 });
 
 test('all agreed commands and scoped options', () => {

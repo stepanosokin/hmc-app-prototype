@@ -156,7 +156,7 @@ try{
                         await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.field==='+JSON.stringify(entry.field),'tour '+entry.label);
                         await wait("['ready','empty'].includes(captureWeatherEvidence().contours.state)",'tour contours');
                         const state=await snapshot();assert.ok(state.contours.profile?.step||state.contours.state==='empty');
-                        assert.ok(state.managed_bytes<=128*1024**2);await capture('tour-'+model.replace(/[^a-z0-9-]/gi,'_')+'-'+report.states.length);
+                        assert.ok(state.managed_bytes<=state.managed_budget_bytes);await capture('tour-'+model.replace(/[^a-z0-9-]/gi,'_')+'-'+report.states.length);
                     }
                 }
             }
@@ -190,7 +190,7 @@ try{
                     const s=await snapshot();assert.equal(s.contours.color,theme==='light'?'#707070':'#000000');
                     assert.ok(s.contours.curves>0,'Actual pressure contours visible in '+mode);
                     assert.equal(s.contours.build_ms,built.contours.build_ms,'Theme/font reuse geometry');assert.equal(s.contours.worker_active,false);
-                    assert.ok(s.contours.labels.length<=7);assert.ok(s.managed_bytes<=128*1024**2,JSON.stringify({bytes:s.managed_bytes,contours:s.contours}));
+                    assert.ok(s.contours.labels.length<=7);assert.ok(s.managed_bytes<=s.managed_budget_bytes,JSON.stringify({bytes:s.managed_bytes,contours:s.contours}));
                     await capture(width+'-'+mode+'-'+theme+'-'+font);
                 }
             }
@@ -221,7 +221,7 @@ try{
         const previousTime=(await snapshot()).displayed.valid_time;
         await click('#next');await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.valid_time!=='+JSON.stringify(previousTime),'next time');await settled('next-time contour');
         const s=await snapshot();assert.equal(s.contours.selection,s.displayed.selection);await capture(width+'-next');
-        assert.ok(await evaluate('window.__contourProbe.peak_managed_bytes<=128*1024**2'));
+        assert.ok(await evaluate('window.__contourProbe.peak_managed_bytes<=captureWeatherEvidence().managed_budget_bytes'));
     }
     await network.finish();assert.deepEqual(report.errors,[]);report.status='passed';
 }catch(error){report.status='failed';report.failure=String(error.stack??error);process.exitCode=1;

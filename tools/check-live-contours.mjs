@@ -1,3 +1,4 @@
+import {mapResourceBudgetBytes} from '../viewer/resource-budget.js';
 // Direct live-site regression: no proxy and no replacement build or field data.
 import assert from 'node:assert/strict';
 import {spawn,execFileSync} from 'node:child_process';
@@ -9,6 +10,11 @@ import {checkPyramid} from './live-pyramid.mjs';
 const directory=resolve(process.argv[2]),origin=process.env.HMC_CONTOUR_LIVE_ORIGIN??'http://127.0.0.1:8140';
 const browser=process.argv[3]??'chrome',size=process.argv[4]??'1440x900';
 const coastline=process.argv.includes('--coastline');
+const withWind=process.argv.includes('--with-wind');
+const dpr=Number(process.argv.find(arg=>arg.startsWith('--dpr='))?.slice(6)??1);
+const expectedBudget=process.argv.find(arg=>arg.startsWith('--budget-mib='))?.split('=')[1];
+if(expectedBudget!==undefined)mapResourceBudgetBytes(Number(expectedBudget));
+assert.ok(Number.isFinite(dpr)&&dpr>=1&&dpr<=2);
 assert.ok(['chrome','edge'].includes(browser));assert.match(size,/^\d+x\d+$/);
 const [width,height]=size.split('x').map(Number);
 assert.ok(directory.startsWith(resolve('data/reports/contour-live')+sep));
@@ -31,13 +37,14 @@ try{
  call=(method,params={})=>new Promise((res,rej)=>{const n=++id,timer=setTimeout(()=>{pending.delete(n);rej(Error('CDP timeout '+method));},15000);pending.set(n,{resolve:res,reject:rej,timer});socket.send(JSON.stringify({id:n,method,params}));});
  const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.text);return r.result.value;};
  await call('Page.enable');await call('Runtime.enable');await call('Network.enable');await call('Network.setCacheDisabled',{cacheDisabled:true});
- await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});report.viewport={width,height,scope:'Desktop browser with responsive viewport; not physical Android'};
+ await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:dpr,mobile:false});report.viewport={width,height,dpr,scope:'Desktop browser with responsive viewport; not physical Android'};
  report.browser=await call('Browser.getVersion');
  const start=performance.now();await call('Page.navigate',{url:origin+'/?validation=1'});
+ const readState=()=>evaluate("(()=>{const s=window.captureWeatherEvidence?.(),c=s?.contours,w=s?.wind_overlay;return {ready:s?.ready??false,field:s?.displayed?.field_short_name,mode:s?.mode,managed_bytes:s?.managed_bytes,managed_budget_bytes:s?.managed_budget_bytes,wind:w?{state:w.state,status:w.status,visible:s?.wind?.visible}:null,button:Boolean(document.getElementById('contourToggle')),canvas:Boolean(document.querySelector('.fieldContours')),contours:c?{state:c.state,message:c.message,enabled:c.enabled,worker_active:c.worker_active,curves:c.curves}:null};})()");
  let state;
  for(let i=0;i<600;i++){
-  state=await evaluate("(()=>{const s=window.captureWeatherEvidence?.(),c=s?.contours;return {ready:s?.ready??false,field:s?.displayed?.field_short_name,mode:s?.mode,button:Boolean(document.getElementById('contourToggle')),canvas:Boolean(document.querySelector('.fieldContours')),contours:c?{state:c.state,message:c.message,enabled:c.enabled,worker_active:c.worker_active,curves:c.curves}:null};})()");
-  if(state.ready&&(coastline||!state.button||!state.contours||['ready','empty','error'].includes(state.contours.state)))break;
+  state=await readState();
+  if(state.ready&&(coastline||!state.button||!state.contours||['ready','empty','error'].includes(state.contours.state))&&(!withWind||state.contours?.state==='error'||state.wind?.state==='error'||state.wind?.state==='ready'))break;
   await pause(100);
  }
  report.elapsed_ms=performance.now()-start;report.state=state;
@@ -52,6 +59,27 @@ try{
  await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
  report.contour_ink_pixels=await evaluate("(()=>{const c=document.querySelector('.fieldContours'),a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let n=0;for(let i=3;i<a.length;i+=4)if(a[i])n++;return n;})()");
  assert.ok(report.contour_ink_pixels>0,'Isoline canvas has no painted pixels');
+ if(withWind){
+  assert.ok(Number.isSafeInteger(state.managed_budget_bytes)&&state.managed_budget_bytes>0,'Live declares its configured budget');
+  if(expectedBudget!==undefined)assert.equal(state.managed_budget_bytes,mapResourceBudgetBytes(Number(expectedBudget)),'Live uses the requested project budget');
+  assert.equal(state.wind?.state,'ready','Wind and isolines must coexist at the requested viewport');
+  assert.ok(state.wind.visible>0,'Live wind must have visible particles');
+  assert.ok(state.managed_bytes<=state.managed_budget_bytes,'Combined managed memory stays within the configured map allowance');
+ }
+ if(process.argv.includes('--resize')){
+  assert.ok(withWind,'Resize regression requires --with-wind');report.resizes=[];
+  for(const [w,h] of [[1440,900],[1920,1080]]){
+   await call('Emulation.setDeviceMetricsOverride',{width:w,height:h,deviceScaleFactor:dpr,mobile:false});await pause(400);
+   let current;for(let i=0;i<100;i++){current=await readState();if(current.ready&&current.contours?.state==='ready'&&current.wind?.state==='ready')break;await pause(100);}
+   assert.equal(current.contours?.state,'ready','Isolines survive resize');assert.equal(current.wind?.state,'ready','Wind survives resize');
+   assert.ok(current.contours.curves>0&&current.wind.visible>0);assert.equal(current.managed_budget_bytes,state.managed_budget_bytes);assert.ok(current.managed_bytes<=current.managed_budget_bytes);
+   const ink=await evaluate("(()=>{const c=document.querySelector('.fieldContours'),a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;return {width:c.width,height:c.height,pixels:a.filter((v,i)=>i%4===3&&v>0).length};})()");
+   // Isolines deliberately use CSS-pixel dimensions, independently of GPU DPR.
+   assert.equal(ink.width,w);assert.equal(ink.height,h);assert.ok(ink.pixels>0,'Resized isolines are painted');
+   const image=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,'resize-'+w+'.png'),Buffer.from(image.data,'base64'));
+   report.resizes.push({width:w,height:h,dpr,state:current,ink});
+  }
+ }
  if(process.argv.includes('--interaction')){
   const click=async selector=>{const p=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2};})()`);for(const type of ['mousePressed','mouseReleased'])await call('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,...p});};
   if(!await evaluate("document.getElementById('legendPanel').open"))await click('#legendPanel>summary');

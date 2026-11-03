@@ -102,7 +102,7 @@ export async function checkFieldGroups({call,evaluate,wait,click,select,capture,
             const point=await capture();assert.equal(point.point.field,point.selected.field);assert.equal(point.point.units,point.selected.units);
             if(before.selected.field!==point.selected.field)assert.notEqual(point.series.key,before.series.key,'Field choice replaces series identity');
             assert.equal(await evaluate("document.querySelector('#units').closest('label').hidden"),point.selected.units!=='K','Units control never shows kelvin for another quantity');
-            assert.ok(after.managed_bytes<=128*1024**2);
+            assert.ok(after.managed_bytes<=after.managed_budget_bytes);
             assert.equal(await evaluate("document.getElementById('fieldMenu').hidden"),true);
             if(id==='wind'){
                 await new Promise(resolve=>setTimeout(resolve,500));

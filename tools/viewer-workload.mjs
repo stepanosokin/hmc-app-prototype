@@ -76,7 +76,7 @@ export async function measureViewer({call,evaluate,wait,click,select,capture,ori
                 initial_frame_rendered_at_ms:modeState.first_complete_ms,transfer_bytes:modeState.transfer_bytes,managed_bytes:modeState.managed_bytes,
                 decode_ms:modeState.decode_timings,wind_decode_ms:modeState.wind_decode_timings,upload_timings:modeState.upload_timings,
                 identity:modeState.selected,camera:camera(modeState),actions:[]};
-            assert.ok(modeResult.managed_bytes<=128*1024**2,'Combined managed resource budget');
+            assert.ok(modeResult.managed_bytes<=modeState.managed_budget_bytes,'Combined managed resource budget');
             // Choose the real native coverage centre, not a colour-derived value.
             const target=await nativePointPixel(evaluate,mode);
             if(target&&target.x>0&&target.y>0&&target.x<width&&target.y<height){
@@ -93,7 +93,7 @@ export async function measureViewer({call,evaluate,wait,click,select,capture,ori
                 await select('#time',true,next);await settle(rendered);
                 const state=await capture();
                 assert.notEqual(state.selected.selection,old.selected.selection,'Time changes to another real field');
-                assert.ok(state.managed_bytes<=128*1024**2);
+                assert.ok(state.managed_bytes<=state.managed_budget_bytes);
                 assert.equal(state.series.key,beforeSeries.series.key,'Time-only navigation reuses the canonical point series');
                 assert.deepEqual(state.position,old.position,'Time navigation preserves the point');
                 assert.deepEqual(state.view_geometry,old.view_geometry,'Time navigation preserves camera and projection');
@@ -135,7 +135,7 @@ export async function measureViewer({call,evaluate,wait,click,select,capture,ori
             await evaluate('window.__t19Context.restoreContext();delete window.__t19Context');
             await settle('window.captureWeatherEvidence().ready&&!window.captureWeatherEvidence().context_lost');
             assert.equal((await capture()).selected.selection,selection);
-            assert.ok((await capture()).managed_bytes<=128*1024**2);
+            const finalState=await capture();assert.ok(finalState.managed_bytes<=finalState.managed_budget_bytes);
             modeResult.context_loss_restored=true;
             modeResult.observed_end=new Date().toISOString();view.measurements.push(modeResult);
             await writeFile(join(directory,'workload-progress.json'),JSON.stringify(view,null,2)+'\n');

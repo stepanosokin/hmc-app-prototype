@@ -3,6 +3,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 import {createHash} from 'node:crypto';
+import {parseViewerConfigModule} from '../viewer/resource-budget.js';
 
 const viewer=fileURLToPath(new URL('../viewer/',import.meta.url));
 const sha=value=>createHash('sha256').update(value).digest('hex');
@@ -27,7 +28,7 @@ export function compileViewerModules(){
 
 export async function checkViewerRuntime(modules,origin,fetchModule=fetch){
     if(!/^http:\/\/127\.0\.0\.1:\d+$/.test(origin))throw Error('Укажите локальный HTTP origin: http://127.0.0.1:ПОРТ');
-    const failures=[];
+    const failures=[];let configuration;
     for(const [name,source] of modules){
         if(!/^[\w-]+\.js$/.test(name))throw Error('Неожиданный путь модуля сборки.');
         let response;
@@ -38,11 +39,17 @@ export async function checkViewerRuntime(modules,origin,fetchModule=fetch){
             failures.push({module:name,reason:'mime'});continue;
         }
         try{
-            const expected=sha(source),actual=sha(Buffer.from(await response.arrayBuffer()));
+            const bytes=Buffer.from(await response.arrayBuffer());
+            if(name==='viewer-config.js'){
+                try{configuration=bytes.equals(source)?{}:parseViewerConfigModule(bytes.toString('utf8'));}
+                catch{failures.push({module:name,reason:'configuration'});}
+                continue;
+            }
+            const expected=sha(source),actual=sha(bytes);
             if(actual!==expected)failures.push({module:name,reason:'bytes',expected,actual});
         }catch{failures.push({module:name,reason:'body'});}
     }
-    return {status:failures.length?'failed':'passed',modules:modules.size,failures};
+    return {status:failures.length?'failed':'passed',modules:modules.size,failures,...(configuration?{configuration}: {})};
 }
 
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){

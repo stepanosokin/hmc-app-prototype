@@ -39,6 +39,13 @@ test('invalid origin and module paths cannot issue requests',async()=>{
         await assert.rejects(checkViewerRuntime(modules,origin,forbidden),/origin/);
     await assert.rejects(checkViewerRuntime(new Map([['../escape.js','']]),'http://127.0.0.1:8140',forbidden),/путь/);
 });
+test('only the explicit configuration module can differ and must contain a validated budget',async()=>{
+    const configured=new Map([...modules,['viewer-config.js',Buffer.from('export const viewerConfig = {};\n')]]);
+    const good=await checkViewerRuntime(configured,'http://127.0.0.1:8140',async url=>response(url.endsWith('viewer-config.js')?'export const viewerConfig = {"map_memory_mib":512};\n':configured.get(url.split('/').at(-1))));
+    assert.equal(good.status,'passed');assert.deepEqual(good.configuration,{map_memory_mib:512});
+    const bad=await checkViewerRuntime(configured,'http://127.0.0.1:8140',async url=>response(url.endsWith('viewer-config.js')?'export const viewerConfig = {"map_memory_mib":0};':configured.get(url.split('/').at(-1))));
+    assert.equal(bad.status,'failed');assert.equal(bad.failures[0].reason,'configuration');
+});
 
 test('current TypeScript is emitted into memory without updating the runtime directory',()=>{
     const runtime=new URL('../data/viewer/build/',import.meta.url);

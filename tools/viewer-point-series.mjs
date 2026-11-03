@@ -75,7 +75,7 @@ export async function checkPointSeries({call,evaluate,wait,select,click,capture,
         state=await capture(true);assert.equal(state.selected.valid_time,state.point.valid_time);assert.equal(state.displayed.selection,state.point.selection);
         assert.equal(await evaluate("document.getElementById('timeRange').value"),'23');
         assert.equal(await evaluate('window.__seriesCalls.length'),requests,'Time switch reuses the series');
-        assert.ok(state.managed_bytes<=128*1024**2);
+        assert.ok(state.managed_bytes<=state.managed_budget_bytes);
         const geometry=await evaluate(`(()=>{const c=document.querySelector(${JSON.stringify(host+' .realPointChart')}),r=c.getBoundingClientRect(),s=c.querySelector('svg').getBoundingClientRect(),d=document.getElementById('drawer').getBoundingClientRect(),t=document.getElementById('timelinePanel').getBoundingClientRect(),b=document.getElementById('closeDrawer').getBoundingClientRect();return {left:r.left,right:r.right,width:innerWidth,svg_width:s.width,scroll:document.documentElement.scrollWidth,drawer:{top:d.top,bottom:d.bottom,left:d.left,right:d.right},time:{top:t.top,bottom:t.bottom},close:{top:b.top,bottom:b.bottom,left:b.left,right:b.right}};})()`);
         assert.ok(geometry.left>=0&&geometry.right<=geometry.width+1&&geometry.scroll<=geometry.width+1);
         assert.ok(geometry.drawer.bottom<=geometry.time.top,'Point panel does not cover time');

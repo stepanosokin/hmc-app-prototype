@@ -1,10 +1,13 @@
 """Russian viewer assets and a bounded, public-only same-origin gateway bridge."""
 
+import json
 import re
 from pathlib import Path
 
 import requests
 from flask import Flask, Response, request, send_from_directory
+
+VIEWER_CONFIG = Path('/viewer-config/viewer.json')
 
 
 def create_app() -> Flask:
@@ -31,6 +34,18 @@ def create_app() -> Flask:
 
     @app.get('/<path:path>')
     def asset_or_public(path):
+        if path == 'build/viewer-config.js':
+            config = {}
+            try:
+                if VIEWER_CONFIG.exists():
+                    value = json.loads(VIEWER_CONFIG.read_text(encoding='utf-8'))['map_memory_mib']
+                    if type(value) is not int or value < 1 or value > (2**53-1)//1024**2:
+                        raise ValueError('invalid memory allowance')
+                    config = {'map_memory_mib': value}
+            except (OSError, ValueError, KeyError, TypeError):
+                return Response('Некорректная настройка памяти просмотрщика.', status=500)
+            return Response('export const viewerConfig = ' + json.dumps(config) + ';\n',
+                            content_type='text/javascript; charset=utf-8')
         if path == '__start':
             return Response('<!doctype html><html lang="ru"><meta charset="utf-8">'
                 '<meta name="viewport" content="width=device-width,initial-scale=1">Подготовка проверки…</html>',

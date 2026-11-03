@@ -72,7 +72,8 @@ specifications requires preserving the map during time changes, smooth presentat
 of exact forecast frames while dragging the slider, and a real forecast graph in
 the point card. The [confirmed decisions](.scratch/hmc-meteo/time-navigation-graph-discussion.md)
 include loading/gap/error behavior, graph interaction, timing targets and the
-128 MiB bound. These are new requirements with six unchecked implementation
+128 MiB bound (raised to 256 MiB on 2026-11-03; see the
+[current map budget](docs/design/map-resource-budget.md)). These are new requirements with six unchecked implementation
 criteria; publication does not establish their implementation.
 
 The [v0.7 implementation plan](.scratch/hmc-meteo/implementation-plan-v07.md)
