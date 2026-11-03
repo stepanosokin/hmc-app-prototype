@@ -14,6 +14,7 @@ import {checkWindParticleFixtures} from './viewer-wind-particle-fixtures.mjs';
 const directory=resolve(process.argv[2]),browser=process.argv[3]??'chrome';
 const direct=process.argv[4]==='--direct-smoke';
 const fixturesOnly=process.argv[4]==='--fixtures-only';
+const fieldStyles=process.argv.includes('--field-styles');
 assert.ok(directory.startsWith(resolve('data/reports/wind72')+sep));
 const gateway=process.env.HMC_WIND_GATEWAY??'http://127.0.0.1:8140';
 assert.match(gateway,/^http:\/\/127\.0\.0\.1:\d+$/);
@@ -172,7 +173,45 @@ try{
                 await wait("captureWeatherEvidence().ready&&captureWeatherEvidence().wind_overlay.state==='ready'&&captureWeatherEvidence().wind?.visible>0",'overlay on '+id);
                 await check('Exact wind identity on '+id,"(()=>{const s=captureWeatherEvidence();return ['model','run','revision','valid_time','member'].every(k=>s.wind.identity[k]===s.displayed[k]);})()");
                 await check('Memory bounded on '+id,'captureWeatherEvidence().managed_bytes<=captureWeatherEvidence().managed_budget_bytes');
+                if(fieldStyles&&['field-group-precipitation','field-group-cloud','field-group-snow'].includes(id)){
+                    await wait("['ready','empty'].includes(captureWeatherEvidence().contours?.state)&&!captureWeatherEvidence().contours.worker_active",'field isolines '+id);
+                    await check('Zero isoline excluded on '+id,"(()=>{const c=captureWeatherEvidence().contours;return c.profile.excludeZero&&c.labels.every(label=>Number(label.value??label.level)!==0);})()");
+                    if(id==='field-group-cloud'){
+                        const current=await snapshot(),url=current.displayed.native_display;
+                        const response=await fetch(gateway+url);report.cloud_metadata_status=response.status;
+                        assert.equal(response.status,200,'Actual cloud metadata is available');
+                        const palette=await response.json();
+                        assert.equal(palette.palette?.id,'cloud');
+                        assert.deepEqual(palette.palette.colors.slice(0,4),[31,31,68,255]);
+                        assert.deepEqual(palette.palette.colors.slice(-4),[255,255,255,255]);
+                        report.cloud_palette={range:palette.palette.range,first:palette.palette.colors.slice(0,4),last:palette.palette.colors.slice(-4)};
+                        await select('#palette','contrast');await check('Cloud contrast palette retained',"document.querySelector('.ramp').style.background.includes('31, 46, 140')&&document.querySelector('.ramp').style.background.includes('255, 204, 51')");
+                        await select('#palette','temperature');
+                        await check('Actual cloud standard legend uses the new endpoints',"(()=>{const p=getComputedStyle(document.querySelector('.ramp')).backgroundImage;return p.includes('rgb(31, 31, 68)')&&p.includes('rgb(255, 255, 255)');})()");
+                    }
+                }
                 await capture('field-'+id);
+            }
+            if(fieldStyles){
+                const speed=catalogue.templates.find(t=>t.field_short_name==='wind_speed'&&t.level===10);
+                assert.ok(speed,'Actual scalar 10m speed exists');
+                await click('#field-group-wind');await click('#fieldMenu .fieldOption[data-field="'+speed.field+'"]');
+                await wait("captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.field_short_name==='wind_speed'&&['ready','empty'].includes(captureWeatherEvidence().contours?.state)",'actual speed isolines');
+                await check('Actual 10m speed isoline profile',"(()=>{const c=captureWeatherEvidence().contours;return c.profile.step===(c.width_km>6000?10:c.width_km>2000?5:2);})()");
+                await capture('field-wind-speed');
+                await select('#time',await evaluate("document.querySelector('#time').options[0].value"));
+                await click('#fit');
+                await wait("captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.valid_time==='2026-10-24T06:00:00Z'&&captureWeatherEvidence().wind_overlay.state==='ready'",'actual sentinel time');
+                const current=await snapshot(),response=await fetch(gateway+current.displayed.native_display);
+                assert.equal(response.status,200,'Actual speed metadata is available');
+                const metadata=await response.json();
+                assert.equal(metadata.value_validity.rule,'wind-speed-10m-sentinel');
+                assert.equal(metadata.value_counts.rejected_count,246465);
+                const rendered=await evaluate('captureWeatherEvidence(true,true)');
+                assert.ok(rendered.view?.samples.some(s=>s[3]===1),'Corrected speed has visible numerical GPU samples');
+                assert.ok(rendered.view.samples.some(s=>s[3]===0),'Corrected speed retains GPU gaps');
+                report.wind_nodata={metadata,numerical_view:rendered.view,color_view:rendered.color_view};
+                await capture('field-wind-speed-nodata');
             }
         }
     }

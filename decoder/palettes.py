@@ -1,11 +1,12 @@
 """Physical colour scales shared by GPU metadata, cached images and WMS."""
 import json
+import hashlib
 from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
 
-VERSION = 'earth-palette/1'
+VERSION = 'earth-palette/2'
 
 
 @lru_cache(maxsize=1)
@@ -29,6 +30,22 @@ def select(metadata: dict) -> dict | None:
     units, surface = identity['units'], identity.get('typeOfLevel')
     interval = metadata.get('interval')
     ordinary = not interval
+    # Preserve the existing visible-value range and zero transparency of clouds.
+    # ccl is the whole current cloud group, including all vertical layers.
+    if identity.get('shortName') == 'ccl':
+        from decoder.portrayal import policy
+        bounds = policy(metadata)['display_range']
+        if bounds is None:
+            return None
+        source = (Path(__file__).parents[1] / 'config' / 'cloud-palette.json').read_bytes()
+        stops = np.asarray(json.loads(source)['colors'], dtype=float)
+        t = np.linspace(0, 1, 250)[:, None]
+        colors = np.rint(stops[0] * (1-t) + stops[1] * t).astype('uint8')
+        # A constant field still needs a nonzero denominator for GPU/WMS lookup.
+        low, high = bounds
+        return {'id': 'cloud', 'version': VERSION, 'range': [low, high if high > low else low+1],
+                'colors': np.column_stack((colors, np.full(250, 255))).reshape(-1).tolist(),
+                'source_sha256': hashlib.sha256(source).hexdigest()}
     key = None
     # Match quantities, surfaces and temporal semantics, never UI groups.
     if units == 'K' and ordinary and surface in ('heightAboveGround', 'isobaricInhPa', 'isobaricInPa'):

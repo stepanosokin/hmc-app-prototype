@@ -31,6 +31,10 @@ async function windParticleFixtures(origin){
     const masks=()=>[new Uint8Array(field.blocks[0],258*258*4),new Uint8Array(field.wind.blocks[0],258*258*4)];
     const reset=()=>{placement=.5;masks().forEach(m=>m.fill(1));for(const part of [field,field.wind])new Float32Array(part.blocks[0],0,258*258).fill(1);wind.clear();view.origin[0]+=.0001;draw();for(let i=0;i<5;i++)draw();expect('Living particle has a visible trail',ink()>0);};
     try{
+        const configuration=wind.evidence();
+        expect('Particle life is 6.8 seconds',configuration.particle_lifetime_seconds===6.8);
+        expect('Trail decay is 5 seconds',configuration.trail_decay_seconds===5);
+        expect('Trail history has fourfold capacity',configuration.trail_segment_limit===1024);
         reset();expect('Fixture has exactly one particle',wind.evidence().arrows===1);
         masks().forEach(m=>m.fill(0));draw();
         expect('NoData removes every pixel of the old trail',ink()===0);samples.push({case:'nodata',alpha_sum:ink()});
@@ -44,7 +48,7 @@ async function windParticleFixtures(origin){
         draw();expect('Unusable velocity removes the trail',ink()===0);
         reset();placement=.25;
         let previous=ink(),expired=false;
-        for(let i=0;i<40;i++){draw();const value=ink();if(previous>0&&value===0){expired=true;break;}previous=value;}
+        for(let i=0;i<160;i++){draw();const value=ink();if(previous>0&&value===0){expired=true;break;}previous=value;}
         expect('Lifetime expiry and respawn leave no old trail',expired);draw();expect('Respawn starts a visible new trail',ink()>0);
         reset();for(const part of [field,field.wind])new Float32Array(part.blocks[0],0,258*258).fill(80);
         let crossed=false;
@@ -63,8 +67,8 @@ async function windParticleFixtures(origin){
         for(const [part,value] of [[field,8],[field.wind,5]]){new Float32Array(part.blocks[0],0,258*258).fill(value);new Uint8Array(part.blocks[0],258*258*4).fill(1);}
         const capture=name=>{const image=document.createElement('canvas');image.width=640;image.height=360;const context=image.getContext('2d');context.fillStyle='#20343f';context.fillRect(0,0,640,360);context.drawImage(canvas,0,0);frames.push({name,png:image.toDataURL('image/png').split(',')[1]});};
         draw();capture('constant-initial');for(let i=0;i<16;i++)draw();capture('constant-motion');
-        for(let i=0;i<40;i++)draw();capture('constant-respawn');view.origin[0]-=120;draw();for(let i=0;i<20;i++)draw();capture('constant-view-change');
+        for(let i=0;i<160;i++)draw();capture('constant-respawn');view.origin[0]-=120;draw();for(let i=0;i<20;i++)draw();capture('constant-view-change');
         expect('Constant-wind population retains partial coverage',wind.evidence().visible>0&&wind.evidence().visible<wind.evidence().arrows);
-        return {checks,samples,frames,scope:'Real Canvas, constant U/V, deterministic clock/placement, single-particle pixels and seeded population; supplements actual-source acceptance'};
+        return {checks,samples,frames,configuration,scope:'Real Canvas, constant U/V, deterministic clock/placement, single-particle pixels and seeded population; supplements actual-source acceptance'};
     }finally{wind.remove();container.remove();}
 }

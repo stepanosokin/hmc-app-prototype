@@ -8,6 +8,8 @@ async function paletteFixtures(origin){
     const {nativePosition}=await import(origin+'/build/source-crs.js');
     const {specs}=await(await fetch(origin+'/wind-reference.json')).json();
     const reference=await(await fetch(origin+'/earth-palette-reference.json')).json();
+    reference.palettes.cloud={range:[2,100],colors:Array.from({length:250},(_,i)=>[
+        Math.round(31+224*i/249),Math.round(31+224*i/249),Math.round(68+187*i/249),255]).flat()};
     const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
     const gl=canvas.getContext('webgl2',{premultipliedAlpha:true,antialias:false});
     if(!gl)throw Error('WebGL 2 unavailable');

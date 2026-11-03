@@ -57,10 +57,10 @@ interface Geometry {width:number;height:number;origin:number[];scale:number}
 interface Arrow {x:number;y:number;dx:number;dy:number;valid:boolean;age:number;trail:Float32Array;head:number;size:number}
 type WindProjection={forward:(xy:number[])=>number[];inverse:(xy:number[])=>number[]};
 
-const PARTICLE_LIFETIME_SECONDS=1.7;
+const PARTICLE_LIFETIME_SECONDS=6.8;
 const PARTICLE_PLACEMENT_ATTEMPTS=8;
 // Bounded per-particle history: x0, y0, x1, y1, birth age, opacity.
-const TRAIL_SEGMENTS=256,TRAIL_STRIDE=6,TRAIL_DECAY_SECONDS=1.25,TRAIL_ALPHA_BUCKETS=32;
+const TRAIL_SEGMENTS=1024,TRAIL_STRIDE=6,TRAIL_DECAY_SECONDS=5,TRAIL_ALPHA_BUCKETS=32;
 const particleCount=(width:number,height:number)=>Math.min(8192,Math.max(1,Math.round(width*height/(1440*900)*2400)));
 /** Reserve particle histories before allocating them, including a future resize. */
 export function windParticleBytes(cssWidth:number,cssHeight:number){return particleCount(cssWidth,cssHeight)*(64+TRAIL_SEGMENTS*TRAIL_STRIDE*4);}

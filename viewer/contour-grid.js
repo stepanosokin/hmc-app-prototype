@@ -74,6 +74,7 @@ export class NativeContours {
             if(hi-lo>10000)throw Error('Слишком много уровней изолиний в ячейке');
             const x=baseX+col,y=baseY+row;
             for(let k=lo;k<=hi;k++){
+                if(k===0&&this.profile.excludeZero)continue;
                 const level=k*step,g=v.map(value=>value-level);
                 const bits=g.reduce((n,value,i)=>n+(value>0?1<<i:0),0);
                 if(bits===0||bits===15)continue;

@@ -19,6 +19,26 @@ def field(quantity, units, surface='heightAboveGround', level=2, interval=None):
 
 
 class EarthPalettes(unittest.TestCase):
+    def test_cloud_palette_preserves_visible_range_and_wms_colours(self):
+        metadata = field((0, 6, 1), '%', 'isobaricLayer')
+        metadata['identity']['shortName'] = 'ccl'
+        metadata['values'] = {'finite_count': 3, 'min': 0., 'max': 100.}
+        metadata['portrayal'] = {'display_range': [2., 100.], 'zero_transparent': True, 'visible_count': 3}
+        palette = select(metadata)
+        assert palette is not None
+        self.assertEqual(palette['range'], [2., 100.])
+        np.testing.assert_array_equal(rgb(np.array([2., 100.]), palette), [[31, 31, 68], [255, 255, 255]])
+        self.assertEqual(entries(palette)[0], (2., '#1f1f44'))
+        self.assertEqual(entries(palette)[-1], (100., '#ffffff'))
+        table = np.asarray(palette['colors']).reshape(-1, 4)
+        self.assertTrue((np.diff(table[:, :3].astype(int), axis=0) >= 0).all())
+        metadata['portrayal']['display_range'] = [10., 10.]
+        constant = select(metadata)
+        assert constant is not None
+        self.assertTrue(np.isfinite(rgb(np.array([10.]), constant)).all())
+        metadata['portrayal']['display_range'] = None
+        self.assertIsNone(select(metadata))
+
     def test_speed_rejects_averaged_components_even_with_a_common_end_time(self):
         from publication.wind_speed import components, numerical
         batches: dict[str, dict] = {axis: {'source': {'field_descriptor': {'wind_axis': axis, 'wind_pair': 'pair',

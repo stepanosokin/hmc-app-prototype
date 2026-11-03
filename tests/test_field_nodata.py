@@ -34,6 +34,35 @@ def temperature_frame(values, category=0, number=0, bitmap=False, **keys):
 
 
 class FieldNoData(unittest.TestCase):
+    def test_10m_speed_sentinel_is_exact_and_scoped(self):
+        from decoder.validity import validity, WIND_10M_SENTINEL as sentinel, WIND_10M_SENTINEL_F32 as rounded
+        metadata = field_metadata(temperature_frame([1] * 12), 1, sample_inventory=False, all_fields=True)
+        metadata['raw_identity'].update(parameterCategory=2, parameterNumber=1)
+        metadata['identity'].update(shortName='wind_speed', units='m s**-1', typeOfLevel='heightAboveGround', level=10)
+        values = np.array([[sentinel, rounded, np.nextafter(sentinel, 0), np.nextafter(sentinel, 1)],
+                           [0., -0., .0004439248945262679, .0005756149388564241],
+                           [2., 3., 4., sentinel]])
+        source = np.zeros(values.shape, dtype=bool)
+        source[2, 3] = True
+        reasons, report = validity(values, source, metadata)
+        np.testing.assert_array_equal(reasons, [[2, 2, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
+        self.assertEqual(report['statistics']['rejected_count'], 2)
+        for update in ({'level': 100}, {'typeOfLevel': 'surface'}, {'units': 'knots'}):
+            changed = {**metadata, 'identity': {**metadata['identity'], **update}}
+            self.assertEqual(validity(values, source, changed)[0][0, 0], 0)
+        for number in (2, 3):
+            changed = {**metadata, 'raw_identity': {**metadata['raw_identity'], 'parameterNumber': number}}
+            self.assertEqual(validity(values, source, changed)[0][0, 0], 0)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            item = write_field(root, 'wind', metadata, values, source)
+            self.assertEqual(check_field(root, item, values, source)['missing_cells'], 3)
+            group = zarr.open_group(str(root / item['zarr']), mode='r', zarr_format=2)
+            np.testing.assert_array_equal(read_values(group, 'missing_reason'), reasons)
+            np.testing.assert_array_equal(read_values(group, 'values'), values)
+            native = json.loads(describe(root, item))
+            self.assertEqual(native['value_counts']['rejected_count'], 2)
+
     def test_selected_zero_rules_and_source_missing_are_distinct(self):
         from decoder.validity import refresh
         # Every agreed quantity, including the actual soil code from live.
@@ -250,6 +279,34 @@ class FieldNoData(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('T65_HTTP') == '1', 'requires isolated publication services')
 class PublishedNoData(unittest.TestCase):
+    def test_wind_sentinel_is_nodata_in_point_native_and_gis(self):
+        from decoder.validity import WIND_10M_SENTINEL as sentinel
+        from publication import revisions, geoserver
+        from publication.domain import resolve, sampler
+        values = np.array([[sentinel, .0004439248945262679, 2., 3.]] * 3)
+        # Exact native fixture: GRIB encoding would quantize this sentinel.
+        with patch.object(revisions, 'decoded_arrays', return_value=(values, np.zeros((3, 4), dtype=bool))):
+            selection, batch = self.seed(values.reshape(-1), category=2, number=1,
+                                         typeOfLevel='heightAboveGround', level=10)
+        published = resolve(selection)
+        numerical = sampler(published)
+        item = numerical.manifest['fields'][0]
+        self.assertEqual(item['metadata']['values']['rejected_count'], 3)
+        self.assertEqual(item['metadata']['values']['min'], values[0, 1])
+        group = zarr.open_group(str(numerical.root / item['zarr']), mode='r', zarr_format=2)
+        np.testing.assert_array_equal(read_values(group, 'missing_reason')[:, 0], [2, 2, 2])
+        grid = item['metadata']['grid']
+        west, south, _, _ = grid['outer_cell_edges_wsen']
+        dx, dy = grid['spacing_degrees_xy']
+        cell = {'lon': west+dx/2, 'lat': south+1.5*dy, 'value': None}
+        self.assertIsNone(geoserver.verify({**published['gis'], 'probe': cell})['identified_value'])
+        from decoder.grib_crs import transform
+        lon, lat = transform(item['metadata']['source_crs'], cell['lon'], cell['lat'], inverse=True)
+        response = self.point(selection, batch, lon, lat)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertIsNone(response.json()['value'])
+        self.assertEqual(response.json()['nodata_reason'], 'rejected_value')
+
     def test_pressure_zero_is_nodata_in_every_product(self):
         from publication.domain import resolve, sampler
         selection, batch = self.seed([0, 100000, 101000, 102000] * 3, category=3, number=0)

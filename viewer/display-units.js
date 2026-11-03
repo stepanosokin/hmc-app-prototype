@@ -28,10 +28,12 @@ const intervals={prmsl:[10,5,2],sp:[25,20,5],T_G:[10,5,2],t:[10,5,2],'2t':[10,5,
 export function contourProfile(source,widthKm){
     const short=source.field_short_name??source.field?.split(':')[0],spec=displaySpec(source,'C');
     let steps=intervals[short];
+    if(short==='wind_speed'&&source.field_level_type==='heightAboveGround'&&source.level===10)steps=[10,5,2];
     const identity=(source.field??'')+' '+(source.field_label??'');
     if(!steps&&/0[.:/]6[.:/]1(?:\D|$)/.test(identity))steps=[25,25,20];
     if(!steps&&/0[.:/]0[.:/]18(?:\D|$)/.test(identity))steps=[10,5,2];
     const index=widthKm>6000?0:widthKm>2000?1:2;
-    return {...spec,step:steps?.[index],scale:index,noun:['sp','prmsl'].includes(short)?'Изобары':spec.temperature?'Изотермы':
-        short==='max_i10fg'?'Изотахи':['tp','cp','lsp'].includes(short)?'Изогиеты':'Изолинии'};
+    const excludeZero=['tp','cp','lsp','lsrr','crr','lsfwe','csfwe','tgrp','ccl','sde','sd'].includes(short);
+    return {...spec,step:steps?.[index],scale:index,excludeZero,noun:['sp','prmsl'].includes(short)?'Изобары':spec.temperature?'Изотермы':
+        ['max_i10fg','wind_speed'].includes(short)?'Изотахи':['tp','cp','lsp'].includes(short)?'Изогиеты':'Изолинии'};
 }

@@ -3,7 +3,10 @@ import hashlib
 
 import numpy as np
 
-VERSION = 'field-validity/3'
+VERSION = 'field-validity/4'
+# Confirmed native 10 m speed and its numeric-display float32 representation.
+WIND_10M_SENTINEL = 0.0005118664217222548
+WIND_10M_SENTINEL_F32 = float(np.float32(WIND_10M_SENTINEL))
 # Explicit GRIB2 absolute-temperature quantities. Never infer from K alone:
 # temperature anomalies/deviations also use K and may legitimately be zero.
 # GRIB2 table 4.2-0-0 (NCEP/WMO); difference/depression/anomaly are excluded.
@@ -30,6 +33,9 @@ def rejection_rule(metadata: dict) -> str | None:
         return 'specific-humidity-surface-or-2m-nonzero'
     if quantity == (0, 2, 22) and units == 'm s**-1':
         return 'wind-gust-nonzero'
+    if (quantity == (0, 2, 1) and units == 'm s**-1'
+            and surface == 'heightAboveGround' and level == 10):
+        return 'wind-speed-10m-sentinel'
     if quantity == (0, 19, 0) and units == 'm':
         return 'visibility-nonzero'
     return None
@@ -38,8 +44,11 @@ def rejection_rule(metadata: dict) -> str | None:
 def validity(values: np.ndarray, source_missing: np.ndarray, metadata: dict) -> tuple[np.ndarray, dict]:
     source_missing = np.asarray(source_missing, dtype=bool)
     rule = rejection_rule(metadata)
-    rejected = (~source_missing & ((values <= 0) if rule == 'absolute-temperature-positive-kelvin'
-                                 else (values == 0))) if rule else np.zeros(values.shape, dtype=bool)
+    if rule == 'wind-speed-10m-sentinel':
+        rejected = ~source_missing & ((values == WIND_10M_SENTINEL) | (values == WIND_10M_SENTINEL_F32))
+    else:
+        rejected = (~source_missing & ((values <= 0) if rule == 'absolute-temperature-positive-kelvin'
+                                     else (values == 0))) if rule else np.zeros(values.shape, dtype=bool)
     reason = np.where(source_missing, 1, np.where(rejected, 2, 0)).astype('uint8')
     missing = reason != 0
     valid = values[~missing]

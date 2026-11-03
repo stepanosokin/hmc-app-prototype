@@ -43,6 +43,25 @@ test('chosen custom intervals and exact scale boundaries are retained',()=>{
  assert.equal(contourProfile({units:'unknown',field_label:'Поле GRIB 0.0.18'},1000).step,2);
 });
 
+test('10m speed intervals are scoped to height and retain gust intervals',()=>{
+ const wind={units:'m s**-1',field_short_name:'wind_speed',field_level_type:'heightAboveGround',level:10};
+ assert.deepEqual([6001,6000,2001,2000].map(w=>contourProfile(wind,w).step),[10,5,5,2]);
+ assert.equal(contourProfile({...wind,level:100},1000).step,undefined);
+ assert.equal(contourProfile({...wind,field_short_name:'max_i10fg'},1000).step,5);
+});
+
+test('precipitation, cloud and snow omit zero contours while retaining zero nodes',()=>{
+ const f=fixture(5,4,x=>x-1),original=f.blocks.map(b=>b.slice(0));
+ for(const short of ['tp','cp','lsp','lsrr','crr','lsfwe','csfwe','tgrp','ccl','sde','sd','2t']){
+  const profile=contourProfile({field_short_name:short},1000),paths=[];
+  const engine=new NativeContours(f.metadata,{...profile,factor:1,offset:0,step:1},level=>paths.push(level));
+  f.blocks.forEach((b,i)=>engine.addBlock(i,b));engine.finish();
+  assert.equal(paths.includes(0),short==='2t',short);
+  assert.ok(paths.includes(1),short+' retains nonzero levels');
+ }
+ f.blocks.forEach((b,i)=>assert.deepEqual(new Uint8Array(b),new Uint8Array(original[i])));
+});
+
 test('all 29 approved field intervals agree with the normative requirements table',()=>{
  const rows=readFileSync(new URL('../docs/design/field-contours-discussion.md',import.meta.url),'utf8').split('\n')
   .filter(line=>/^\| .+ \| .+ \| \d+ \| \d+ \| \d+ \|/.test(line));
