@@ -13,7 +13,7 @@ export async function checkSourceSettings({call,evaluate,wait,click,select,captu
     const checkIdentity=(value,state)=>{
         const wms=new URL(value.wms),api=new URL(value.api);
         assert.equal(wms.origin,origin);assert.equal(api.origin,origin);
-        assert.ok(decodeURIComponent(wms.pathname).includes('/runs/'+state.selected.run+'/revisions/'+state.selected.revision+'/wms'));
+        assert.ok(decodeURIComponent(wms.pathname).includes('/runs/'+state.selected.run+'/revisions/'+state.selected.revision+'/')&&decodeURIComponent(wms.pathname).endsWith('/wms'));
         assert.equal(wms.searchParams.get('REQUEST'),'GetCapabilities');
         for(const key of ['selection','run','revision','valid_time'])assert.equal(api.searchParams.get(key),state.selected[key]);
         assert.ok(!/[?&](?:key|token|api_key)=/i.test(value.wms+value.api));

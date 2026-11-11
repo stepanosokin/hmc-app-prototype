@@ -54,6 +54,14 @@ it does not establish physical-device acceptance or statistical uniformity.
 
 ## Other browser changes
 
+Point-series / popup-chart changes: the focused gate is the T27 runner
+`tools/run-weather-viewer.ps1 -PointSeries -Offline` (add `-WithEdge`; `T13_FOCUSED=1`
+keeps desktop to one viewport); see [viewer/README.md](../../viewer/README.md) for the
+scenario matrix. The runner runs `checkSourceSettings` before the point-series
+scenario, so a WMS-link assertion failure there blocks it. `check-wind-overlay.mjs`
+takes a `chrome`/`edge` argument but hardcodes the Chrome path — pass `edge` when
+Chrome is not at `C:\Program Files\Google\Chrome\Application`.
+
 Projection dependencies: `viewer/geometry.js` registers the map CRS;
 `native-layer.js` implements GPU inverse geometry; `local-context.js` projects
 the basemap; `main.ts` handles coverage, visibility, fitting and picking;
