@@ -45,6 +45,21 @@
   запускался: он не входит в согласованный базовый уровень; сквозную проверку
   реального просмотрщика покрывает полный `check-wind-overlay.mjs`.
 
+## Ретроспектива (после №89)
+
+`check-wind-overlay.mjs --fixtures-only` печатал в итоговой строке `checks: 0`,
+хотя 172 фикстурные проверки прошли: они лежат в `synthetic`, `palettes` и
+`particles`, а не в верхнеуровневом `checks`. Приходилось вручную разбирать
+`validation.json`, чтобы подтвердить результат. Теперь итоговая строка содержит
+`fixture_checks` и `total_checks`, а `tools/validation-summary.mjs` показывает
+`fixture_checks` по группам; добавлен тест на отчёт без фикстурных payload.
+
+- `node --test tools/test-validation-summary.mjs` — 9 тестов прошли.
+- `check-wind-overlay.mjs --fixtures-only` (Chrome) — пройден: `fixture_checks:
+  172` (88 синтетических + 42 палитры + 42 частицы), `total_checks: 172`.
+- Полный `check-wind-overlay.mjs` (Chrome) после изменения раннера — пройден:
+  65 живых + 172 фикстурные = 237 проверок, 41 скриншот, 3 вьюпорта.
+
 ## Архив
 
 `HMC_EVIDENCE_ROOT/chart-redraw-89/`:
@@ -54,6 +69,10 @@
   `604ae5f99188fc833590b06ad5da571cec0602fc9f89b54108e2ff92d71784d3`.
 - `full` — 152 файла, индекс SHA256
   `e23395f1c58f6688311a59504b49b5df2bf4ce3d04382c92bca214ac7df69c1c`.
+- `retro-fixtures` — 114 файлов, индекс SHA256
+  `924d3aa2b66aaa2c0603228e1a620d05f18d001d3c44d3307d6f73dd75286e63`.
+- `retro-full-pass` — 152 файла, индекс SHA256
+  `0a8d0d24779a711ae4e74a1f5c2c027df64dc2361446fd9d00a06add497658c7`.
 
 Очистка: профиль браузера удалён, процессов браузера 0, тестовый прокси закрыт,
 Docker-ресурсы не создавались, живые сервисы и данные не изменены; живой стенд

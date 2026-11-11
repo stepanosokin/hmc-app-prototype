@@ -291,5 +291,6 @@ try{
         report.cleanup={browser_processes_remaining:0,profile_removed:true,test_proxy_closed:true,compose_resources_created:0,live_services_modified:false,live_data_modified:false};
     }catch(error){report.status='failed';report.cleanup={error:String(error)};process.exitCode=1;}
     await writeFile(join(directory,'validation.json'),JSON.stringify(report,null,2)+'\n');
-    console.log(JSON.stringify({directory,status:report.status,checks:report.checks.length,screenshots:report.screenshots.length,cleanup:report.cleanup,failure:report.failure}));
+    const fixtureChecks=['synthetic','palettes','particles'].reduce((total,key)=>total+(report[key]?.checks?.length??0),0);
+    console.log(JSON.stringify({directory,status:report.status,checks:report.checks.length,fixture_checks:fixtureChecks,total_checks:report.checks.length+fixtureChecks,screenshots:report.screenshots.length,cleanup:report.cleanup,failure:report.failure}));
 }

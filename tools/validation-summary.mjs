@@ -60,6 +60,9 @@ export function summarizeReport(report){
     const result=fields(report,['status','state','phase','observed_at','scope','failure','error','starting_commit']);
     result.browser=fields(report.browser,['product','protocolVersion']);
     result.counts=Object.fromEntries(['checks','errors','requests','responses','files','inputs'].filter(key=>Array.isArray(report[key])).map(key=>[key,report[key].length]));
+    const fixtureChecks=Object.fromEntries(['synthetic','palettes','particles'].filter(key=>Array.isArray(report[key]?.checks))
+        .map(key=>[key,report[key].checks.length]));
+    if(Object.keys(fixtureChecks).length)result.fixture_checks=fixtureChecks;
     result.errors=samples(report.errors);
     if(report.state&&typeof report.state==='object'){
         result.state=fields(report.state,['ready','field','mode','button','canvas']);

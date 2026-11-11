@@ -17,6 +17,13 @@ test('live summary distinguishes missing runtime from throttled field loading wi
     assert.equal(summarizeReport({status:'passed',contour_ink_pixels:123,state:{ready:true,contours:{state:'ready',curves:92}}}).contour_ink_pixels,123);
 });
 
+test('fixture-only reports expose nested check counts without fixture payloads',()=>{
+    const output=renderSummary({status:'passed',checks:[],synthetic:{checks:['a','b'],requests:99,metadata:'private'},
+        palettes:{checks:['c']},particles:{checks:['d'],frames:[{png:'secret-frame'}]}});
+    assert.deepEqual(JSON.parse(output).fixture_checks,{synthetic:2,palettes:1,particles:1});
+    assert.ok(!/private|secret-frame/.test(output));assert.equal(summarizeReport({status:'passed'}).fixture_checks,undefined);
+});
+
 test('NoData cases retain coverage counts without nested field or GPU data',()=>{
     const nodata=[];
     for(const [width,height] of [[1440,900],[390,844],[360,740],[640,360]])for(const kind of ['empty','zero','mixed'])
