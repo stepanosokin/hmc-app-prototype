@@ -69,14 +69,24 @@ or a new hover invalidates it and coalesces pointer tooltip updates per frame;
 `evidence()` exposes `pointer_events`/`pointer_rect_reads`/`pointer_describes`,
 asserted by `viewer-point-series.mjs`. Map picks in the point runners use the
 projection-aware `nativePointPixel`/`geographicPointPixel`; fixed Mercator
-coordinates miss on LAEA or behind landscape panels. `check-wind-overlay.mjs`
-accepts `chrome`/`edge`;
+coordinates miss on LAEA or behind landscape panels, and
+`tools/test-viewer-map-picks.mjs` rejects hand-rolled Mercator picks in those
+runners. `check-wind-overlay.mjs` accepts `chrome`/`edge`;
 set `HMC_WIND_BROWSER` when Chrome is not at
 `C:\Program Files\Google\Chrome\Application` (unified resolution is #91). Its
 `--fixtures-only` summary reports `fixture_checks`/`total_checks` separately from
 live `checks`; `validation-summary.mjs` exposes the same groups. T27 has no
-paced proxy, so its 24-time point burst can hit HTTP 429 on a shared stand — use a
-fresh stack for the complete gate (`check-wind-overlay.mjs` already paces its proxy).
+paced proxy: its 24-time burst exhausts a shared stand's request slots, so run it
+only from `run-weather-viewer.ps1`, which seeds a fresh stack
+(`check-wind-overlay.mjs` already paces its proxy).
+
+When T27 fails before the browser matrix is trustworthy, rerun the runner with
+`-KeepStack`: it prints the viewer/gateway URLs and leaves the seeded stack in
+place instead of retiring it. Iterate with `node tools/check-weather-viewer.mjs`
+and a fresh `T13_REPORT_DIRECTORY` (`T13_VIEWER`, `T13_BROWSER`,
+`T13_FOCUSED=1`, `T27_POINT_SERIES=1`), then retire explicitly with
+`tools/retire-publication-project.ps1`. Redirect Compose/GeoSever output to a log
+and read the final JSON line; the full log is rarely needed in context.
 
 Projection dependencies: `viewer/geometry.js` registers the map CRS;
 `native-layer.js` implements GPU inverse geometry; `local-context.js` projects

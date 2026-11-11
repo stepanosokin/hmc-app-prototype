@@ -13,6 +13,7 @@ param(
     [switch]$TimeSwitch,
     [switch]$TimeSwitchOnly,
     [switch]$PointSeries,
+    [switch]$KeepStack,
     [ValidateRange(0,10)][int]$InitialLoadRepeats=0,
     [switch]$TimeStatusOnly
 )
@@ -137,5 +138,11 @@ try{
     Remove-Item Env:T25_TIME_STATUS_ONLY -ErrorAction SilentlyContinue
     if($null -eq $originalFocused){Remove-Item Env:T13_FOCUSED -ErrorAction SilentlyContinue}else{$env:T13_FOCUSED=$originalFocused}
     if($null -eq $originalOffline){Remove-Item Env:T16_OFFLINE -ErrorAction SilentlyContinue}else{$env:T16_OFFLINE=$originalOffline}
-    & (Join-Path $PSScriptRoot 'retire-publication-project.ps1') -Project $Project -ReportDirectory "data/reports/t13/$Project"
+    if($KeepStack){
+        Write-Host "Стек сохранён: project=$Project viewer=http://127.0.0.1:$ViewerPort gateway=http://127.0.0.1:$Port"
+        Write-Host "Повторный браузерный прогон: T13_VIEWER=http://127.0.0.1:$ViewerPort T13_BROWSER=... T13_FOCUSED=1 T27_POINT_SERIES=1 T13_REPORT_DIRECTORY=<fresh> node tools/check-weather-viewer.mjs"
+        Write-Host "Завершение: powershell -NoProfile -File tools/retire-publication-project.ps1 -Project $Project -ReportDirectory $directory"
+    }else{
+        & (Join-Path $PSScriptRoot 'retire-publication-project.ps1') -Project $Project -ReportDirectory "data/reports/t13/$Project"
+    }
 }

@@ -34,6 +34,8 @@ jobs:
         run: node --test tools/test-revalidate-fields.mjs
       - name: Check browser select values before timed waits without a browser
         run: node --test tools/test-viewer-select-option.mjs
+      - name: Check projection-aware point-series map picks
+        run: node --test tools/test-viewer-map-picks.mjs
       - name: Check cross-platform project command and single-line progress
         run: node --test tools/test-hmc-app.mjs
       - name: Check bounded validation report summaries
