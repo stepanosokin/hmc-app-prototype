@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import {nativePointPixel} from './viewer-fields.mjs';
 
 /** Visible controls, real public endpoints and an actual clipboard on the same origin. */
 export async function checkSourceSettings({call,evaluate,wait,click,select,capture,report,directory,width,height,origin}){
@@ -40,7 +41,7 @@ export async function checkSourceSettings({call,evaluate,wait,click,select,captu
     await select('#run',true,0);await ready();await click('#settings');
     // A chosen point, rather than the default sample, supplies API coordinates.
     await click('#closeDrawer');
-    const pixel=await evaluate(`(()=>{const state=window.captureWeatherEvidence(true),g=state.view,definition=state.mode==='laea-rf'?'hmc:laea-rf':'EPSG:3857',p=proj4('EPSG:4326',definition).forward([37.6,55.7]),dpr=g.width/document.querySelector('.maplibregl-canvas').getBoundingClientRect().width;return {x:(g.origin[0]+p[0]*g.scale)/dpr,y:(g.origin[1]-p[1]*g.scale)/dpr};})()`);
+    const pixel=await nativePointPixel(evaluate);assert.ok(pixel,'Visible settings point pixel');
     for(const type of ['mousePressed','mouseReleased'])await call('Input.dispatchMouseEvent',{type,...pixel,button:'left',clickCount:1});
     await wait('Boolean(window.captureWeatherEvidence().position)','settings point chosen');await click('#settings');value=await links();current=await capture();
     assert.match(value.point,/Выбранная точка/);const api=new URL(value.api);assert.equal(Number(api.searchParams.get('lon')),current.position.lng);assert.equal(Number(api.searchParams.get('lat')),current.position.lat);

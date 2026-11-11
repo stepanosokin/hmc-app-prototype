@@ -64,7 +64,13 @@ copies — `#pointContent` (desktop card) and `#mobilePoint` (drawer); `renderPo
 `openDrawer(pointMode)`, so verify both copies' final DOM. `PointChart` caches each
 wind symbol by time and rebuilds it only when speed/direction changes; `evidence()`
 exposes `barb_builds`/`barb_reuses`, and `viewer-wind-fixtures.mjs` checks reuse,
-repositioning and calm symbols. `check-wind-overlay.mjs` accepts `chrome`/`edge`;
+repositioning and calm symbols. It also caches the SVG box until resize, scroll
+or a new hover invalidates it and coalesces pointer tooltip updates per frame;
+`evidence()` exposes `pointer_events`/`pointer_rect_reads`/`pointer_describes`,
+asserted by `viewer-point-series.mjs`. Map picks in the point runners use the
+projection-aware `nativePointPixel`/`geographicPointPixel`; fixed Mercator
+coordinates miss on LAEA or behind landscape panels. `check-wind-overlay.mjs`
+accepts `chrome`/`edge`;
 set `HMC_WIND_BROWSER` when Chrome is not at
 `C:\Program Files\Google\Chrome\Application` (unified resolution is #91). Its
 `--fixtures-only` summary reports `fixture_checks`/`total_checks` separately from

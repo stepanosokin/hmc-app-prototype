@@ -2,13 +2,23 @@ import assert from 'node:assert/strict';
 import {readFile,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 
+/** Map a geographic coordinate through the current projection without assuming Mercator. */
+export async function geographicPointPixel(evaluate,lon,lat){
+    return evaluate(`(async()=>{const s=window.captureWeatherEvidence(),g=s.view_geometry;
+        const mode=s.mode,spec=mode==='mercator'?'EPSG:3857':mode==='laea'?'EPSG:3576':mode==='laea-rf'?'hmc:laea-rf':
+            '+proj=ortho +lat_0='+s.view_center[1]+' +lon_0='+s.view_center[0]+' +R=6378137';
+        const q=proj4('EPSG:4326',spec).forward([${lon},${lat}]),canvas=document.querySelector('.maplibregl-canvas'),dpr=canvas.width/canvas.clientWidth;
+        const pixel={x:(g.origin[0]+q[0]*g.scale)/dpr,y:(g.origin[1]-q[1]*g.scale)/dpr};
+        return Number.isFinite(pixel.x)&&Number.isFinite(pixel.y)&&document.elementFromPoint(pixel.x,pixel.y)?.classList.contains('maplibregl-canvas')?pixel:null;})()`);
+}
+
 /** Pick an actual native coordinate whose map pixel is not covered by controls. */
 export async function nativePointPixel(evaluate,mode){
     return evaluate(`(async()=>{const s=window.captureWeatherEvidence(),b=s.native_bounds,{nativePosition}=await import('/build/source-crs.js'),g=s.view_geometry;
         const mode=${JSON.stringify(mode)}??s.mode,spec=mode==='mercator'?'EPSG:3857':mode==='laea'?'EPSG:3576':mode==='laea-rf'?'hmc:laea-rf':
             '+proj=ortho +lat_0='+s.view_center[1]+' +lon_0='+s.view_center[0]+' +R=6378137';
         const canvas=document.querySelector('.maplibregl-canvas'),dpr=canvas.width/canvas.clientWidth;
-        for(const [fx,fy] of [[.5,.5],[.35,.5],[.3,.35],[.25,.6],[.6,.65],[.5,.2]]){
+        for(const [fx,fy] of [[.5,.5],[.35,.5],[.3,.35],[.25,.6],[.6,.65],[.5,.2],[.2,.8],[.2,.2],[.8,.8],[.8,.2],[.2,.5],[.8,.5],[.5,.8]]){
             const p=nativePosition(s.source_crs,[b[0]+(b[2]-b[0])*fx,b[1]+(b[3]-b[1])*fy],true);
             if(mode==='laea'&&p[1]<45)continue;
             const q=proj4('EPSG:4326',spec).forward(p),pixel={x:(g.origin[0]+q[0]*g.scale)/dpr,y:(g.origin[1]-q[1]*g.scale)/dpr};

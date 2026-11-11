@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import {geographicPointPixel} from './viewer-fields.mjs';
 
 // Native Android range may emit trusted input/change without a compatibility click.
 export async function previewSeriesTime({call,evaluate,wait,click,android,host,index}){
@@ -58,7 +59,8 @@ export async function checkSeriesSynthetic({call,evaluate,wait,select,click,capt
     const mobile=await evaluate("matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches");
     const host='#mobilePoint';
     const pick=async(lon,lat)=>{
-        const pixel=await evaluate(`(()=>{const g=window.captureWeatherEvidence(true).view,p=proj4('EPSG:4326','EPSG:3857').forward([${lon},${lat}]),dpr=g.width/document.querySelector('.maplibregl-canvas').getBoundingClientRect().width;return {x:(g.origin[0]+p[0]*g.scale)/dpr,y:(g.origin[1]-p[1]*g.scale)/dpr};})()`);
+        const pixel=await geographicPointPixel(evaluate,lon,lat);
+        assert.ok(pixel,'Visible point pixel: '+lon+','+lat);
         if(android)await call('Input.synthesizeTapGesture',{...pixel,duration:50,gestureSourceType:'touch'});
         else {await call('Input.dispatchMouseEvent',{type:'mousePressed',...pixel,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',...pixel,button:'left',clickCount:1});}
     };

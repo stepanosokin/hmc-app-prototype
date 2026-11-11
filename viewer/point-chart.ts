@@ -34,6 +34,13 @@ export class PointChart {
     private barbs=new Map<string,CachedBarb>();
     private barbBuilds=0;
     private barbReuses=0;
+    private rect:DOMRect|undefined;
+    private describeFrame=0;
+    private pointerEvents=0;
+    private rectReads=0;
+    private pointerDescribes=0;
+    private invalidateRect=()=>{this.rect=undefined;};
+    private resizeObserver=new ResizeObserver(this.invalidateRect);
     constructor(privateChoose:(index:number)=>void){
         this.element.className='pointChart realPointChart';this.caption.textContent='Прогноз выбранной точки';
         this.range.type='range';this.range.min='0';this.range.step='1';this.range.setAttribute('aria-label','Просмотреть срок графика');
@@ -42,10 +49,16 @@ export class PointChart {
         this.select.textContent='Выбрать этот срок';this.select.onclick=()=>privateChoose(this.preview);
         this.retry.textContent='Повторить ошибки ряда';this.retry.onclick=()=>void this.series?.retry();
         const locate=(event:PointerEvent|MouseEvent)=>{
-            const rect=this.svg.getBoundingClientRect(),count=this.series?.entries.length??0;
+            // The box changes on resize, scroll or a new hover, not per pointermove;
+            // reading it on every move would force layout.
+            if(!this.rect){this.rect=this.svg.getBoundingClientRect();this.rectReads++;}
+            const rect=this.rect,count=this.series?.entries.length??0;
             this.preview=Math.max(0,Math.min(count-1,Math.round(((event.clientX-rect.left)/rect.width*this.width-12)/(this.width-24)*(count-1))));
-            this.range.value=String(this.preview);this.describe();
+            this.range.value=String(this.preview);this.pointerEvents++;this.scheduleDescribe();
         };
+        this.resizeObserver.observe(this.svg);
+        this.svg.addEventListener('pointerenter',this.invalidateRect);
+        window.addEventListener('scroll',this.invalidateRect,{capture:true,passive:true});
         this.svg.addEventListener('pointermove',locate);
         this.svg.addEventListener('click',event=>{if(this.series?.expired)return;locate(event);privateChoose(this.preview);});
         this.plot.className='pointPlot';this.plot.append(this.svg);
@@ -131,7 +144,11 @@ export class PointChart {
         this.range.disabled=series.expired||!entries.length;this.select.disabled=this.range.disabled;
         this.describe();
     }
-    evidence(){return {key:this.key,full_builds:this.fullBuilds,rebuilds_while_busy:this.rebuildsWhileBusy,build_ms:this.buildMs,barb_builds:this.barbBuilds,barb_reuses:this.barbReuses};}
+    evidence(){return {key:this.key,full_builds:this.fullBuilds,rebuilds_while_busy:this.rebuildsWhileBusy,build_ms:this.buildMs,barb_builds:this.barbBuilds,barb_reuses:this.barbReuses,pointer_events:this.pointerEvents,pointer_rect_reads:this.rectReads,pointer_describes:this.pointerDescribes};}
+    private scheduleDescribe(){
+        if(this.describeFrame)return;
+        this.describeFrame=requestAnimationFrame(()=>{this.describeFrame=0;this.pointerDescribes++;this.describe();});
+    }
     private describe(){
         const entry:SeriesEntry|undefined=this.series?.entries[this.preview];if(!entry)return;
         const description=utc(entry.time)+' · '+(entry.result?.value!=null?this.format(entry.result.value,entry.result.units):labels[entry.state]);

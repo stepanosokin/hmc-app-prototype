@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {checkSeriesSynthetic,previewSeriesTime} from './viewer-series-synthetic.mjs';
+import {nativePointPixel} from './viewer-fields.mjs';
 
 export async function checkPointSeries({call,evaluate,wait,select,click,capture,origin,report,directory,android,width,height}){
     const ready=()=>wait('window.captureWeatherEvidence().ready','GPU field');
     const complete=()=>wait('window.captureWeatherEvidence().series.entries.length===24&&!window.captureWeatherEvidence().series.busy','24 canonical times');
-    const pick=async(lon,lat)=>{
-        const pixel=await evaluate(`(()=>{const g=window.captureWeatherEvidence(true).view,p=proj4('EPSG:4326','EPSG:3857').forward([${lon},${lat}]),dpr=g.width/document.querySelector('.maplibregl-canvas').getBoundingClientRect().width;return {x:(g.origin[0]+p[0]*g.scale)/dpr,y:(g.origin[1]-p[1]*g.scale)/dpr};})()`);
+    const pick=async()=>{
+        const pixel=await nativePointPixel(evaluate);
+        assert.ok(pixel,'Visible point pixel');
         if(android)await call('Input.synthesizeTapGesture',{...pixel,duration:50,gestureSourceType:'touch'});
         else {await call('Input.dispatchMouseEvent',{type:'mousePressed',...pixel,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',...pixel,button:'left',clickCount:1});}
     };
@@ -18,7 +20,7 @@ export async function checkPointSeries({call,evaluate,wait,select,click,capture,
         const url=String(input);if(url.includes('/point?')){window.__seriesCalls.push(url);const t=new URL(url,location.origin).searchParams.get('valid_time');
         if(window.__seriesFault===3&&t.endsWith('03:00:00Z'))return new Response('{}',{status:503});}
         return original(input,options);};})()`);
-    await pick(37.6,55.7);await complete();
+    await pick();await complete();
     const charts=await evaluate("window.captureWeatherEvidence().point_charts");
     assert.ok(Array.isArray(charts)&&charts.length>=1,'Chart rebuild counters exposed');
     for(const chart of charts)assert.equal(chart.rebuilds_while_busy,0,'No full chart rebuild while the point series loads');
@@ -65,9 +67,24 @@ export async function checkPointSeries({call,evaluate,wait,select,click,capture,
         const requests=await evaluate('window.__seriesCalls.length');
         if(!android){
             const rect=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(host+' svg')}).getBoundingClientRect();return {x:r.left+r.width*.4,y:r.top+r.height*.5};})()`);
+            const chartId=host.replace('#',''),counters=async()=>{
+                const chart=(await capture()).point_charts.find(item=>item.id===chartId);
+                assert.ok(chart,'Pointer counters exposed: '+host);return chart;
+            };
             const selection=(await capture()).selected.selection;
             await call('Input.dispatchMouseEvent',{type:'mouseMoved',...rect});
             assert.equal((await capture()).selected.selection,selection,'Hover never changes time');
+            const before=await counters();
+            // One task keeps the 12 moves in the same frame, so rAF coalescing is
+            // deterministic; the real CDP mouseMoved above covers delivery.
+            await evaluate(`(()=>{const svg=document.querySelector(${JSON.stringify(host+' svg')});for(let i=0;i<12;i++)svg.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,clientX:${rect.x}+i*3,clientY:${rect.y}}));})()`);
+            await evaluate('new Promise(resolve=>requestAnimationFrame(()=>resolve(true)))');
+            const after=await counters(),events=after.pointer_events-before.pointer_events,
+                reads=after.pointer_rect_reads-before.pointer_rect_reads,describes=after.pointer_describes-before.pointer_describes;
+            assert.ok(events>=12,'All pointer moves reach the chart: '+events);
+            assert.ok(reads<=1,'Pointer moves reuse the cached SVG box: '+reads);
+            assert.ok(describes>=1&&describes<events,'Pointer tooltip updates coalesce per frame: '+describes+'/'+events);
+            (report.pointer_throttle??=[]).push({host,events,rect_reads:reads,describes});
         }
         // Hover/keyboard preview must not change selection; Enter is explicit.
         const selected=(await capture()).selected.selection;
