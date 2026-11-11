@@ -7,6 +7,7 @@ const svgElement=(tag:string,attributes:Record<string,string|number>)=>{
     const node=document.createElementNS('http://www.w3.org/2000/svg',tag);
     for(const [name,value] of Object.entries(attributes))node.setAttribute(name,String(value));return node;
 };
+type CachedBarb={speed:number;direction:number|null;calm:boolean;node:Element};
 /** Keyboard range previews values; Enter, Space or the button explicitly selects time. */
 export class PointChart {
     readonly element=document.createElement('figure');
@@ -30,6 +31,9 @@ export class PointChart {
     private fullBuilds=0;
     private rebuildsWhileBusy=0;
     private buildMs=0;
+    private barbs=new Map<string,CachedBarb>();
+    private barbBuilds=0;
+    private barbReuses=0;
     constructor(privateChoose:(index:number)=>void){
         this.element.className='pointChart realPointChart';this.caption.textContent='Прогноз выбранной точки';
         this.range.type='range';this.range.min='0';this.range.step='1';this.range.setAttribute('aria-label','Просмотреть срок графика');
@@ -54,7 +58,7 @@ export class PointChart {
     }
     update(series:PointSeries,selected:number,format:(value:number,units:string)=>string){
         const changed=this.key!==series.key||this.selected!==selected;
-        if(this.key!==series.key){this.key=series.key;this.fullBuilds=0;this.rebuildsWhileBusy=0;this.buildMs=0;this.svg.replaceChildren();}
+        if(this.key!==series.key){this.key=series.key;this.fullBuilds=0;this.rebuildsWhileBusy=0;this.buildMs=0;this.barbBuilds=0;this.barbReuses=0;this.barbs.clear();this.svg.replaceChildren();}
         this.series=series;this.selected=selected;this.format=format;
         if(changed||!this.element.isConnected)this.preview=selected;
         // During loading the series fills in one entry at a time; rebuilding the whole
@@ -70,19 +74,32 @@ export class PointChart {
         const x=(i:number)=>12+i/Math.max(1,entries.length-1)*(this.width-24);
         const y=(v:number)=>88+offset-(v-low)/span*68;
         const nodes:Element[]=[];let path='';
+        const placeBarb=(node:Element,i:number,direction:number|null,calm:boolean)=>{
+            if(calm){node.setAttribute('cx',String(x(i)));node.setAttribute('cy','27');node.setAttribute('r',String(3*windScale));}
+            else node.setAttribute('transform',`translate(${x(i)} 27) rotate(${direction}) scale(${windScale})`);
+        };
         if(this.windEnabled)for(const [i,entry] of entries.entries()){
             const wind=this.windEntries.get(entry.time);
             if(wind?.state==='value'&&wind.speed!==undefined){
-                const barb=windBarb(wind.speed);
-                if(wind.direction===null||barb.calm)nodes.push(svgElement('circle',{cx:x(i),cy:27,r:3*windScale,fill:'none',stroke:'currentColor'}));
-                else{
-                    const g=svgElement('g',{transform:`translate(${x(i)} 27) rotate(${wind.direction}) scale(${windScale})`});
-                    const symbol=svgElement('g',{transform:barb.transform});
-                    symbol.append(svgElement('path',{d:barb.shaft+barb.feathers,fill:'none',stroke:'currentColor','stroke-width':1.1,'vector-effect':'non-scaling-stroke'}),svgElement('path',{d:barb.pennants,fill:'currentColor'}));g.append(symbol);
-                    const title=svgElement('title',{});title.textContent=entry.time+' · '+windDescription({speed:wind.speed,direction:wind.direction??null});g.append(title);nodes.push(g);
+                const direction=wind.direction??null,cached=this.barbs.get(entry.time);
+                if(cached&&cached.speed===wind.speed&&cached.direction===direction){
+                    // Positions depend on the slot count and width, but the symbol itself
+                    // depends only on speed/direction. Reuse the built node and refresh
+                    // only its placement.
+                    placeBarb(cached.node,i,direction,cached.calm);nodes.push(cached.node);this.barbReuses++;continue;
                 }
+                const barb=windBarb(wind.speed),calm=direction===null||barb.calm,node=calm?svgElement('circle',{fill:'none',stroke:'currentColor'}):svgElement('g',{});
+                placeBarb(node,i,direction,calm);
+                if(!calm){
+                    const symbol=svgElement('g',{transform:barb.transform});
+                    symbol.append(svgElement('path',{d:barb.shaft+barb.feathers,fill:'none',stroke:'currentColor','stroke-width':1.1,'vector-effect':'non-scaling-stroke'}),svgElement('path',{d:barb.pennants,fill:'currentColor'}));node.append(symbol);
+                    const title=svgElement('title',{});title.textContent=entry.time+' · '+windDescription({speed:wind.speed,direction});node.append(title);
+                }
+                this.barbs.set(entry.time,{speed:wind.speed,direction,calm,node});this.barbBuilds++;nodes.push(node);
             }else{const label=svgElement('text',{x:x(i),y:30,'text-anchor':'middle'});label.textContent=wind?.state==='loading'?'…':wind?.state==='error'?'!':'—';nodes.push(label);}
         }
+        const times=new Set(entries.map(entry=>entry.time));
+        for(const time of this.barbs.keys())if(!times.has(time))this.barbs.delete(time);
         for(const [i,entry] of entries.entries()){
             if(entry.state!=='value'||entry.result?.value==null){path='';continue;}
             const next=`${x(i)},${y(entry.result.value)}`;
@@ -114,7 +131,7 @@ export class PointChart {
         this.range.disabled=series.expired||!entries.length;this.select.disabled=this.range.disabled;
         this.describe();
     }
-    evidence(){return {key:this.key,full_builds:this.fullBuilds,rebuilds_while_busy:this.rebuildsWhileBusy,build_ms:this.buildMs};}
+    evidence(){return {key:this.key,full_builds:this.fullBuilds,rebuilds_while_busy:this.rebuildsWhileBusy,build_ms:this.buildMs,barb_builds:this.barbBuilds,barb_reuses:this.barbReuses};}
     private describe(){
         const entry:SeriesEntry|undefined=this.series?.entries[this.preview];if(!entry)return;
         const description=utc(entry.time)+' · '+(entry.result?.value!=null?this.format(entry.result.value,entry.result.units):labels[entry.state]);

@@ -16,16 +16,41 @@ async function windFixtures(origin){
     const expect=(name,ok)=>{if(!ok)throw Error(name);checks.push(name);};
     const chart=new PointChart(()=>{});document.body.append(chart.element);
     const times=Array.from({length:8},(_,i)=>new Date(Date.UTC(2026,9,28,i)).toISOString());
-    chart.setWind(new Map(times.map((time,i)=>[time,{time,state:'value',speed:i<4?90:200,direction:[0,90,180,270][i%4]}])),true,'synthetic','');
-    chart.update({key:'strong-wind',entries:times.map(time=>({time,state:'value',result:{value:1,units:'Pa'}}))},0,String);
-    const svg=chart.element.querySelector('svg'),symbols=[...svg.querySelectorAll('g[transform^="translate"]')];
-    expect('Strong-wind barbs retain all marks inside the wind band at four directions',symbols.length===8&&symbols.every(g=>{
+    const entries=times.map(time=>({time,state:'value',result:{value:1,units:'Pa'}}));
+    const windMap=(speed=(i)=>i<4?90:200,direction=(i)=>[0,90,180,270][i%4])=>new Map(times.map((time,i)=>[time,{time,state:'value',speed:speed(i),direction:direction(i)}]));
+    const draw=(wind,list=entries,selected=0)=>{chart.setWind(wind,true,'synthetic','');chart.update({key:'strong-wind',entries:list},selected,String);};
+    draw(windMap());
+    const svg=chart.element.querySelector('svg'),symbols=[...svg.querySelectorAll('g[transform^="translate"]')],built=chart.evidence().barb_builds;
+    expect('Strong-wind barbs retain all marks inside the wind band at four directions',symbols.length===8&&built===8&&symbols.every(g=>{
         const box=g.getBBox(),matrix=g.getCTM(),inverse=svg.getCTM().inverse();
         return [box.x,box.x+box.width].every(x=>[box.y,box.y+box.height].every(y=>{
             const p=new DOMPoint(x,y).matrixTransform(matrix).matrixTransform(inverse);
             return p.x>=.6&&p.x<=264-.6&&p.y>=.6&&p.y<=49.4;
         }));
-    }));chart.element.remove();
+    }));
+    draw(windMap(),entries,1);
+    const redrawn=[...svg.querySelectorAll('g[transform^="translate"]')],reused=chart.evidence();
+    expect('Redraw reuses cached wind barbs',redrawn.length===8&&redrawn.every((node,i)=>node===symbols[i])&&reused.barb_builds===built&&reused.barb_reuses===8);
+    const movedFrom=symbols.map(node=>node.getAttribute('transform'));
+    draw(windMap(),[...entries,{time:new Date(Date.UTC(2026,9,28,8)).toISOString(),state:'value',result:{value:1,units:'Pa'}}],1);
+    const moved=[...svg.querySelectorAll('g[transform^="translate"]')];
+    expect('Reused barbs are repositioned when the slot layout changes',moved.length===8&&moved.every((node,i)=>node===symbols[i])&&moved.slice(1).every((node,i)=>node.getAttribute('transform')!==movedFrom[i+1]));
+    const changed=windMap();changed.set(times[0],{...changed.get(times[0]),speed:110});
+    draw(changed);
+    const rebuilt=[...svg.querySelectorAll('g[transform^="translate"]')];
+    expect('Only a changed wind value rebuilds its barb',rebuilt.length===8&&rebuilt[0]!==symbols[0]&&rebuilt.slice(1).every((node,i)=>node===symbols[i+1])&&chart.evidence().barb_builds===built+1);
+    const turned=windMap();turned.set(times[0],{...turned.get(times[0]),speed:110});turned.set(times[1],{...turned.get(times[1]),direction:270});
+    draw(turned);
+    const turnedNodes=[...svg.querySelectorAll('g[transform^="translate"]')];
+    expect('Only a changed direction rebuilds its barb',turnedNodes.length===8&&turnedNodes[1]!==rebuilt[1]&&[0,2,3,4,5,6,7].every(i=>turnedNodes[i]===rebuilt[i])&&chart.evidence().barb_builds===built+2);
+    const calm=windMap(()=>0,()=>null);
+    draw(calm);
+    const calmNodes=[...svg.querySelectorAll('circle[fill="none"]')],calmBuilds=chart.evidence().barb_builds;
+    expect('Calm wind symbols are built once',calmNodes.length===8&&calmBuilds===built+10&&svg.querySelectorAll('g[transform^="translate"]').length===0);
+    draw(calm,entries,1);
+    const calmRedrawn=[...svg.querySelectorAll('circle[fill="none"]')];
+    expect('Calm wind symbols are reused on redraw',calmRedrawn.length===8&&calmRedrawn.every((node,i)=>node===calmNodes[i])&&chart.evidence().barb_builds===calmBuilds);
+    chart.element.remove();
     const css=document.createElement('link');css.rel='stylesheet';css.href=origin+'/style.css';
     await new Promise((resolve,reject)=>{css.onload=resolve;css.onerror=reject;document.head.append(css);});
     let chosen=-1;
@@ -152,5 +177,5 @@ async function windFixtures(origin){
     wind.points({lng:1,lat:1});await pointsSettled(wind);
     expect('Expiry removes already loaded wind values and retires the map frame',wind.state==='error'&&wind.status.includes('истекла')&&[...wind.entries.values()].every(e=>e.state==='error'&&e.speed===undefined)&&wind.bytes()===0);
     wind.dispose();
-    return {scope:'Synthetic levels/races/failures and independent projected U/V references; not real forecast values',checks,requests:requests.length,projectionCounts,maximumError};
+    return {scope:'Synthetic levels/races/failures, point-chart wind symbol caching and independent projected U/V references; not real forecast values',checks,requests:requests.length,projectionCounts,maximumError};
 }

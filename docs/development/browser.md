@@ -61,8 +61,11 @@ scenario matrix. The runner runs `checkSourceSettings` before the point-series
 scenario, so a WMS-link assertion failure there blocks it. The point chart has two
 copies — `#pointContent` (desktop card) and `#mobilePoint` (drawer); `renderPoint`
 (`viewer/main.ts`) skips rebuilding a hidden `mobilePoint` and refreshes it once in
-`openDrawer(pointMode)`, so verify both copies' final DOM. `check-wind-overlay.mjs`
-accepts `chrome`/`edge`; set `HMC_WIND_BROWSER` when Chrome is not at
+`openDrawer(pointMode)`, so verify both copies' final DOM. `PointChart` caches each
+wind symbol by time and rebuilds it only when speed/direction changes; `evidence()`
+exposes `barb_builds`/`barb_reuses`, and `viewer-wind-fixtures.mjs` checks reuse,
+repositioning and calm symbols. `check-wind-overlay.mjs` accepts `chrome`/`edge`;
+set `HMC_WIND_BROWSER` when Chrome is not at
 `C:\Program Files\Google\Chrome\Application` (unified resolution is #91). T27 has no
 paced proxy, so its 24-time point burst can hit HTTP 429 on a shared stand — use a
 fresh stack for the complete gate (`check-wind-overlay.mjs` already paces its proxy).
