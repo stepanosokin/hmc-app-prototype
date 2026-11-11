@@ -21,6 +21,7 @@ type Mode='mercator'|'orthographic'|'laea'|'laea-rf';
 const $=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 const control=(id:string)=>$<HTMLSelectElement>(id);
 const text=(id:string,value:string)=>{$(id).textContent=value;};
+const hidden=(el:Element)=>{for(let node:Element|null=el;node;node=node.parentElement)if(node instanceof HTMLElement&&node.hidden)return true;return false;};
 const mobile=()=>matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches;
 const portrayalBaseline=new URL(location.href).searchParams.get('validation')==='1'&&new URL(location.href).searchParams.get('portrayal')==='1';
 const loader=new FieldLoader(portrayalBaseline,DISPLAY_LEVEL);
@@ -40,7 +41,7 @@ function seriesChanged(){
         const entry=series.entries[index];point=entry?.result;
         pointMessage=entry?.state==='error'?'Не удалось получить значение. Повторите ошибки ряда.':'';
         renderPoint();
-    }else for(const chart of charts.values())chart.update(series,index,valueText);
+    }else for(const [id,chart] of charts)if(id!=='mobilePoint'||!hidden($(id)))chart.update(series,index,valueText);
 }
 function ensureSeries(initial?:PointResult){if(group&&position)void series.load(group,position,initial);}
 const validation=new URLSearchParams(location.search).get('validation')==='1';
@@ -389,7 +390,8 @@ function renderPoint(message=pointMessage){
         if(position){
             let chart=charts.get(id);if(!chart){chart=new PointChart(next=>void chooseTime(next));charts.set(id,chart);}
             chart.setWind(wind.entries,wind.enabled,wind.levelLabel,wind.state==='ready'?'':wind.status);
-            chart.update(series,index,valueText);if(chart.element.parentElement!==container)container.append(chart.element);
+            if(id!=='mobilePoint'||!hidden(container))chart.update(series,index,valueText);
+            if(chart.element.parentElement!==container)container.append(chart.element);
         }
     }
     placePoint();
@@ -437,6 +439,7 @@ function openDrawer(pointMode=false){
     $('clearMobilePoint').hidden=!position;
     $('sheetPoint').hidden=!position;
     $('settings').setAttribute('aria-expanded','true');layout();
+    if(pointMode&&position)renderPoint();
 }
 function palette(){
     const temperature=absoluteTemperature();control('units').disabled=!temperature;
@@ -683,7 +686,7 @@ if(validation){
     Object.assign(window,{captureWeatherEvidence:(samples=false,colorSamples=false)=>({ready:Boolean(layer?.ready&&layer.fieldVisible&&!lost&&timeState==='ready'),frame_visible:Boolean(layer?.ready&&layer.fieldVisible&&!lost),mode,selected,displayed,time_state:timeState,time_error:timeError,position,point,
         color_view:colorSamples&&layer?.ready&&!lost?layer.samples(layer.geometry(),false):undefined,
         series:{key:series.key,entries:series.entries,expired:series.expired,busy:series.busy,requests:series.requests,elapsed_ms:series.elapsedMs},
-        point_charts:[...charts.values()].map(chart=>chart.evidence()),
+        point_charts:[...charts.entries()].map(([id,chart])=>({id,...chart.evidence()})),
         view:samples?numericalView():undefined,transfer_bytes:data?.bytes,load_ms:data?.load_ms,
         map_zoom:map?.getZoom(),view_geometry:layer?.geometry(),view_center:[...center],native_bounds:data?.metadata.grid.outer_cell_edges_wsen,source_crs:data?.metadata.source_crs,
         synthetic_masks:samples&&layer?.ready&&!lost&&data?.metadata.grid.shape_yx.join(',')==='657,1377'?layer.syntheticMasks():undefined,

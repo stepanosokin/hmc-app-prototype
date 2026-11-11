@@ -21,7 +21,7 @@ const windThreshold=process.argv.includes('--wind-threshold');
 assert.ok(directory.startsWith(resolve('data/reports/wind72')+sep));
 const gateway=process.env.HMC_WIND_GATEWAY??'http://127.0.0.1:8140';
 assert.match(gateway,/^http:\/\/127\.0\.0\.1:\d+$/);
-const executable=browser==='edge'?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':'C:/Program Files/Google/Chrome/Application/chrome.exe';
+const executable=browser==='edge'?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':process.env.HMC_WIND_BROWSER||'C:/Program Files/Google/Chrome/Application/chrome.exe';
 await mkdir(directory,{recursive:false});
 const report={scope:'Wind overlay: frozen production viewer and real published APIs; emulated mobile, not physical hardware',
     browser,gateway,starting_commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),checks:[],inputs:{},errors:[],screenshots:[],states:[],requests:[],cleanup:{}};

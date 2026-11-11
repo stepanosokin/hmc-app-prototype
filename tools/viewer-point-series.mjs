@@ -22,6 +22,11 @@ export async function checkPointSeries({call,evaluate,wait,select,click,capture,
     const charts=await evaluate("window.captureWeatherEvidence().point_charts");
     assert.ok(Array.isArray(charts)&&charts.length>=1,'Chart rebuild counters exposed');
     for(const chart of charts)assert.equal(chart.rebuilds_while_busy,0,'No full chart rebuild while the point series loads');
+    if(!mobile){
+        const byId=Object.fromEntries(charts.map(chart=>[chart.id,chart]));
+        assert.ok(byId.pointContent?.full_builds>=1,'Visible desktop popup rebuilds its chart');
+        assert.equal(byId.mobilePoint?.full_builds,0,'Hidden mobile copy is not rebuilt during series load');
+    }
     report.point_chart_builds=charts;
     const checkGraph=async host=>{
         const state=await capture(),entries=state.series.entries;

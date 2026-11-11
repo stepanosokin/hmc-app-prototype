@@ -1,0 +1,65 @@
+# Пропуск перерисовки скрытой копии графика точки (mobilePoint) — №88
+
+Задача [№88](https://github.com/stepanosokin/hmc-app-prototype/issues/88).
+Начальный commit `dc6304f`, ветка `main`. Уровень тестирования — базовый;
+среда — офлайн-фикстуры viewer + браузер (Chrome по пути
+`C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`).
+
+## Причина и изменение
+
+`renderPoint` (`viewer/main.ts`) на каждое уведомление ряда/ветра обновлял обе
+копии графика точки — `pointContent` (карточка) и `mobilePoint` (панель drawer) —
+даже когда мобильная панель скрыта. Обе копии строили полный SVG.
+
+- Добавлен `hidden(el)`: копия считается скрытой, если у неё или предка стоит
+  атрибут `hidden` (охватывает `#mobilePoint.hidden` и `#drawer.hidden`).
+- В цикле `renderPoint` и в резервной ветке `seriesChanged` пересборка скрытой
+  копии `mobilePoint` пропускается; `pointContent` обновляется как раньше.
+  Дешёвые тексты (координаты/значение/происхождение) и `setWind` выполняются для
+  обеих копий всегда, а сам SVG строится только у видимой.
+- При раскрытии панели (`openDrawer(pointMode)` при выбранной точке) вызывается
+  `renderPoint()`, поэтому после `#showPoint`/`#sheetPoint` график `mobilePoint`
+  пересобирается один раз актуальными данными.
+- В `captureWeatherEvidence` счётчики графиков дополнены `id`, а в
+  `viewer-point-series.mjs` добавлен ассерт: на desktop до `#showPoint` копия
+  `mobilePoint` не пересобиралась (`full_builds === 0`), видимая `pointContent`
+  — пересобиралась (`full_builds >= 1`).
+- В `check-wind-overlay.mjs` добавлена env-переопределение `HMC_WIND_BROWSER` для
+  запуска Chrome по нестандартному пути (остановка; полная унификация — №91).
+
+## Проверка
+
+- `node viewer/build.mjs` — сборка и типобезопасность прошли.
+- `node tools/check-wind-overlay.mjs data/reports/wind72/chart-88-fixtures chrome --fixtures-only`
+  (Chrome через `HMC_WIND_BROWSER`) — пройден: 82 синтетические проверки
+  построения графика точки + 42 проверки палитр. Подтверждает отсутствие
+  регрессии в отрисовке `PointChart` и загрузку пересобранного просмотрщика.
+  Чисто: профиль удалён, процессов браузера 0, Docker-ресурсы не создавались,
+  живой стенд не изменён.
+- Полный `check-wind-overlay.mjs` (Chrome) дошёл до выбора точки; в снимке
+  состояния `point_charts` видно ожидаемое поведение: копия `mobilePoint`
+  `key=''`, `full_builds=0` (скрыта, не пересобиралась), копия `pointContent`
+  `key` установлен (обновлялась). Прогон завершился неудачей на предшествующей
+  проверке `scalar chart with wind flags`: скалярный ряд ещё загружался
+  (`busy`, 5 из 24 сроков через прокси с паузами), тогда как ветровой ряд уже
+  устоялся (5 значений). Это расхождение числа сроков ряда/ветра на живом стенде
+  и времени оседания — не связано с изменением №88.
+- `node tools/check-weather-viewer.mjs` (focused `T27_POINT_SERIES=1`,
+  Chrome через `T13_BROWSER`) — **не выполнен до конца**: после исправления
+  ассерта WMS (№87) runner проходит `checkSourceSettings`, но ряд из 24 сроков не
+  завершается — шлюз `127.0.0.1:8140` отвечает HTTP 429 на burst точечных
+  запросов (зафиксировано 7×429 на `/point?`). Это ограничение общего стенда,
+  не связанное с изменением. Ассерт `full_builds` для `mobilePoint` закодирован в
+  тесте и будет выполнен при восстановлении бюджета либо на свежем стенде.
+
+## Архив
+
+`HMC_EVIDENCE_ROOT/chart-redraw-88/`:
+- `wind-fixtures-final` — 114 файлов, индекс SHA256
+  `b7a159dabc624ae2854b1e2fe2640d1c3949f27aab9941b7a8501196db3bdd3d`.
+- `point-series-blocked-429` — 7 файлов, индекс SHA256
+  `301179f5fdec63d8f6b7d1146e421b0cad44b85ce124f6f939005751e0f10260`.
+- `wind-full-blocked-timing` — 124 файла, индекс SHA256
+  `036b1f946514ac152a37b4e2e0b00c2ef5b0f35bdd323a3d43043b62a845734c`.
+
+Фаза записи — до commit; финальное подтверждение push/закрытия — после commit.
