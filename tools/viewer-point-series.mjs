@@ -19,6 +19,10 @@ export async function checkPointSeries({call,evaluate,wait,select,click,capture,
         if(window.__seriesFault===3&&t.endsWith('03:00:00Z'))return new Response('{}',{status:503});}
         return original(input,options);};})()`);
     await pick(37.6,55.7);await complete();
+    const charts=await evaluate("window.captureWeatherEvidence().point_charts");
+    assert.ok(Array.isArray(charts)&&charts.length>=1,'Chart rebuild counters exposed');
+    for(const chart of charts)assert.equal(chart.rebuilds_while_busy,0,'No full chart rebuild while the point series loads');
+    report.point_chart_builds=charts;
     const checkGraph=async host=>{
         const state=await capture(),entries=state.series.entries;
         const expectedPoints=entries.filter(e=>e.state==='value').length;

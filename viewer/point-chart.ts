@@ -27,6 +27,9 @@ export class PointChart {
     private windEnabled=false;
     private width=264;
     private format:(value:number,units:string)=>string=String;
+    private fullBuilds=0;
+    private rebuildsWhileBusy=0;
+    private buildMs=0;
     constructor(privateChoose:(index:number)=>void){
         this.element.className='pointChart realPointChart';this.caption.textContent='Прогноз выбранной точки';
         this.range.type='range';this.range.min='0';this.range.step='1';this.range.setAttribute('aria-label','Просмотреть срок графика');
@@ -50,9 +53,15 @@ export class PointChart {
         this.windLabel.title='Короткое перо — 5 узлов, полное — 10, треугольник — 50. Точная скорость в подписи — м/с.';
     }
     update(series:PointSeries,selected:number,format:(value:number,units:string)=>string){
-        const changed=this.key!==series.key||this.selected!==selected;this.key=series.key;
+        const changed=this.key!==series.key||this.selected!==selected;
+        if(this.key!==series.key){this.key=series.key;this.fullBuilds=0;this.rebuildsWhileBusy=0;this.buildMs=0;this.svg.replaceChildren();}
         this.series=series;this.selected=selected;this.format=format;
         if(changed||!this.element.isConnected)this.preview=selected;
+        // During loading the series fills in one entry at a time; rebuilding the whole
+        // SVG on each entry is O(n²). Only refresh the cheap text/controls now and
+        // defer the single full build until the series settles.
+        if(series.busy){this.refreshMeta();return;}
+        const start=performance.now();
         const entries=series.entries,values=entries.flatMap(e=>e.result?.value!=null?[e.result.value]:[]);
         const low=Math.min(...values),high=Math.max(...values),span=Math.max(1e-30,Math.abs(low)*1e-6,high-low);
         const offset=this.windEnabled?50:0;
@@ -89,6 +98,13 @@ export class PointChart {
             const label=svgElement('text',{x:x(i),y:108+offset,'text-anchor':anchor});label.textContent=entries[i].time.slice(11,this.windEnabled?13:16)+(this.windEnabled?'':' UTC');nodes.push(label);
         }
         this.svg.replaceChildren(...nodes);
+        if(series.busy)this.rebuildsWhileBusy++;
+        this.fullBuilds++;this.buildMs+=performance.now()-start;
+        this.refreshMeta();
+    }
+    private refreshMeta(){
+        const series=this.series;if(!series)return;
+        const entries=series.entries;
         const successes=entries.filter(e=>e.result).length,errors=entries.filter(e=>e.state==='error').length;
         this.status.textContent=series.expired?'Публикация истекла. Перевыберите публикацию.':
             series.busy?`Загрузка ряда: ${successes} из ${entries.filter(e=>e.selection).length}`:
@@ -98,6 +114,7 @@ export class PointChart {
         this.range.disabled=series.expired||!entries.length;this.select.disabled=this.range.disabled;
         this.describe();
     }
+    evidence(){return {key:this.key,full_builds:this.fullBuilds,rebuilds_while_busy:this.rebuildsWhileBusy,build_ms:this.buildMs};}
     private describe(){
         const entry:SeriesEntry|undefined=this.series?.entries[this.preview];if(!entry)return;
         const description=utc(entry.time)+' · '+(entry.result?.value!=null?this.format(entry.result.value,entry.result.units):labels[entry.state]);
