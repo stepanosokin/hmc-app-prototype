@@ -145,6 +145,15 @@ try{
         const pixel=await nativePointPixel(evaluate);assert.ok(pixel,'Uncovered native point exists');pixel.x+=.37;pixel.y+=.23;
         await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...pixel});await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...pixel});
         await wait("captureWeatherEvidence().wind_overlay.point_entries.some(e=>e.state==='value')&&!captureWeatherEvidence().wind_overlay.point_entries.some(e=>e.state==='loading')",'U/V point series');
+        // The scalar series loads independently of the wind point series; wait for it
+        // before the scalar chart is inspected, otherwise a still-busy series skips
+        // the full SVG build and the flags/line check fails on a slower stand.
+        await wait("!captureWeatherEvidence().series.busy&&captureWeatherEvidence().series.entries.some(e=>e.state==='value')",'scalar point series');
+        if(width===1440){
+            const charts=await evaluate('captureWeatherEvidence().point_charts'),byId=Object.fromEntries(charts.map(chart=>[chart.id,chart]));
+            assert.ok(byId.pointContent?.full_builds>=1,'Visible desktop chart built');
+            assert.equal(byId.mobilePoint?.full_builds,0,'Hidden mobile copy skipped while the drawer is closed');
+        }
         await check(width+' scalar chart with wind flags',"document.querySelector('.realPointChart .pointPlot svg g title')?.textContent.includes('м/с')&&document.querySelector('.realPointChart .forecastLine')!==null");
         await check(width+' entire popup chart fits without horizontal scrolling',"(()=>{const plots=[...document.querySelectorAll('.realPointChart .pointPlot')].filter(e=>e.getClientRects().length);return plots.length>0&&plots.every(e=>e.clientWidth>0&&e.scrollWidth<=e.clientWidth);})()");
         await check(width+' barb and exact-value units explicit',"document.querySelector('.realPointChart>small').textContent.includes('в узлах')&&document.querySelector('.realPointChart>small').title.includes('м/с')");
