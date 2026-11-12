@@ -6,8 +6,11 @@ import json
 from pathlib import Path
 import re
 import uuid
+import time
+import math
 
 from publication.domain import database
+from publication.limited import request_deadline
 
 
 @dataclass(frozen=True)
@@ -58,31 +61,70 @@ def migrate() -> None:
                        'UPDATE(backend_started,backend_done) ON access.usage TO hmc_api')
 
 
-def begin(event: dict, admit: bool) -> tuple[bool, Limits]:
+def begin(event: dict, admit: bool, *, retry: bool = False) -> tuple[bool, Limits]:
     """Serialize admission across keys/workers; reserve worst-case output atomically."""
     with database() as cursor:
-        cursor.execute("SET LOCAL statement_timeout = '2000ms'")
+        deadline = request_deadline.get()
+        if deadline is not None:
+            remaining = max(1, math.ceil((deadline-time.time())*1000))
+            # PostgreSQL 18: bound the entire retry transaction, including
+            # consecutive lock waits, not a fresh timeout per SQL statement.
+            cursor.execute("SELECT set_config('transaction_timeout',%s,true)", (str(remaining),))
+        milliseconds = min(2000, max(1, math.ceil((deadline-time.time())*1000))) if deadline else 2000
+        cursor.execute("SELECT set_config('statement_timeout',%s,true)", (str(milliseconds),))
         cursor.execute('SELECT pg_advisory_xact_lock(hashtextextended(%s,9))', (event['bucket'],))
+        get_map = bool(event.get('get_map'))
+        if get_map and admit:
+            cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended('wms-getmap',10))")
         cursor.execute('SELECT limits FROM access.policies WHERE bucket=%s', (event['bucket'],))
         row = cursor.fetchone()
         limits = Limits.parse(row['limits']) if row else Limits(concurrency=2, requests=3000) if event['bucket'] == 'public' else Limits()
         allowed = False
         if admit:
-            cursor.execute('SELECT count(*) AS requests, '
+            # This fresh snapshot, AFTER waiting for admission locks, is the
+            # start of protected admission. A later revocation may let already
+            # admitted work finish, as for other operations; no new DB grants.
+            revoked = False
+            if event.get('key_id'):
+                cursor.execute('SELECT revoked_at FROM access.keys WHERE id=%s', (event['key_id'],))
+                key = cursor.fetchone()
+                revoked = key is None or key['revoked_at'] is not None
+            cursor.execute('SELECT count(*) FILTER (WHERE request_id<>%s) AS requests, '
                            'COALESCE(sum(COALESCE(bytes,reservation)),0) AS bytes, '
                            'count(*) FILTER (WHERE admitted AND (expires_at>clock_timestamp() OR '
                            '(backend_started AND NOT backend_done))) AS active '
                            'FROM access.usage WHERE bucket=%s AND '
                            "(observed_at > clock_timestamp()-interval '60 seconds' OR "
-                           '(admitted AND (expires_at>clock_timestamp() OR (backend_started AND NOT backend_done))))', (event['bucket'],))
+                           '(admitted AND (expires_at>clock_timestamp() OR (backend_started AND NOT backend_done))))',
+                           (event['request_id'], event['bucket']))
             usage = cursor.fetchone()
             assert usage is not None
-            allowed = (usage['requests'] < limits.requests and usage['active'] < limits.concurrency
-                       and usage['bytes'] + limits.output <= limits.bytes)
-        cursor.execute('INSERT INTO access.usage(request_id,observed_at,bucket,organization,key_id,operation,admitted,expires_at,reservation) '
+            global_active = 0
+            if get_map:
+                cursor.execute("SELECT count(*) AS active FROM access.usage WHERE operation='wms' AND admitted "
+                               'AND (expires_at>clock_timestamp() OR (backend_started AND NOT backend_done))')
+                active = cursor.fetchone()
+                assert active is not None
+                global_active = active['active']
+            event['admission'] = ('revoked' if revoked else 'requests' if usage['requests'] >= limits.requests else
+                                  'bytes' if usage['bytes'] + limits.output > limits.bytes else
+                                  'concurrency' if usage['active'] >= min(limits.concurrency, 2 if get_map else 4)
+                                  or get_map and global_active >= 3 else 'allowed')
+            allowed = event['admission'] == 'allowed'
+        if retry:
+            # The external attempt was registered once. Retrying admission does
+            # not consume another request, reserve bytes twice or hold a lock
+            # between attempts. Only a still-waiting row can acquire a slot.
+            cursor.execute('UPDATE access.usage SET admitted=%s, '
+                           "expires_at=clock_timestamp()+(%s * interval '1 second'), reservation=%s "
+                           'WHERE request_id=%s AND NOT admitted AND status IS NULL RETURNING request_id',
+                           (allowed, 40 if allowed else 0, limits.output if allowed else 0, event['request_id']))
+            allowed = allowed and cursor.fetchone() is not None
+        else:
+            cursor.execute('INSERT INTO access.usage(request_id,observed_at,bucket,organization,key_id,operation,admitted,expires_at,reservation) '
                        "VALUES(%s,%s,%s,%s,%s,%s,%s,clock_timestamp()+(%s * interval '1 second'),%s)",
                        (event['request_id'], event['observed_at'], event['bucket'], event['organization'], event['key_id'], event['operation'],
-                        allowed, 40 if allowed else 0, limits.output if allowed else 0))
+                           allowed, 40 if allowed else 0, limits.output if allowed else 0))
     return allowed, limits
 
 

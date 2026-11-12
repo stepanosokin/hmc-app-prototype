@@ -102,6 +102,12 @@ def create_app() -> Flask:
             if not budgets.backend(request_id):
                 raise WorkLimit(504)
             g.backend_id = request_id
+        # Isolated T9 fixture: observe queued GetMaps while actual API work
+        # occupies its admitted slots. Disabled in ordinary/live stacks.
+        if (os.environ.get('T6_TEST_FAULTS') == '1' and request.path.startswith('/gis/')
+                and request.args.get('REQUEST', '').lower() == 'getmap'
+                and (ROOT / '.t9-wms-delay').exists()):
+            time.sleep(2)
         # Isolated actual-path test of cold I/O that outlives gateway timeout.
         if (os.environ.get('T6_TEST_FAULTS') == '1' and request.path.endswith('/tiles/2/6/34/20.f32')
                 and (ROOT / '.t9-reader-delay').exists()):

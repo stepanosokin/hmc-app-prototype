@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
 import requests
@@ -15,6 +16,301 @@ import requests
 
 @unittest.skipUnless(os.environ.get('T9_HTTP') == '1', 'requires isolated T9 actual-sample services')
 class UsageBudgets(unittest.TestCase):
+    def test_a_wms_public_burst_completes_without_duplicate_accounting(self):
+        """A normal six-tile QGIS burst must wait for the two public slots."""
+        import threading
+        from PIL import Image
+        import io
+
+        base = 'http://gateway:8000'
+        selected = next(item for item in requests.get(base+'/api/v1/catalogue', timeout=30).json()['selections']
+                        if item['fixture'] == 'actual')
+        barrier = threading.Barrier(6)
+
+        def render(index):
+            barrier.wait(timeout=10)
+            return requests.get(base+selected['wms'], params={
+                'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetMap', 'LAYERS': 'temperature',
+                'STYLES': '', 'FORMAT': 'image/png', 'TRANSPARENT': 'true', 'CRS': 'EPSG:4326',
+                'TIME': selected['valid_time'], 'BBOX': f'45,{10+index},55,{20+index}',
+                'WIDTH': '256', 'HEIGHT': '256'}, timeout=40)
+
+        active = []
+        marker = Path('/assets/.t9-wms-delay')
+        marker.touch()
+        try:
+            with ThreadPoolExecutor(max_workers=6) as executor:
+                pending = [executor.submit(render, index) for index in range(6)]
+                while not all(future.done() for future in pending):
+                    rows = self.command('usage', '--public')['requests']
+                    active.append(sum(row['admitted'] and row['status'] is None for row in rows))
+                    time.sleep(.05)
+                responses = [future.result() for future in pending]
+        finally:
+            marker.unlink(missing_ok=True)
+        statuses = [response.status_code for response in responses]
+        rows = self.command('usage', '--public')['requests']
+        observations = []
+        for response in responses:
+            matches = [row for row in rows if row['request_id'] == response.headers['X-Request-ID']]
+            self.assertEqual(len(matches), 1)
+            observations.append(matches[0])
+        Path('/evidence/t9-wms-burst.json').write_text(json.dumps({
+            'statuses': statuses, 'active_samples': active, 'requests': observations}, indent=2))
+        self.assertEqual(statuses, [200]*6)
+        self.assertEqual(max(active), 2)
+        for response in responses:
+            image = Image.open(io.BytesIO(response.content)).convert('RGBA')
+            self.assertIsNotNone(image.getchannel('A').getbbox())
+
+    def wms_fixture(self):
+        base = 'http://gateway:8000'
+        selected = next(item for item in requests.get(base+'/api/v1/catalogue', timeout=30).json()['selections']
+                        if item['fixture'] == 'actual')
+        params = {'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetMap', 'LAYERS': 'temperature',
+                  'STYLES': '', 'FORMAT': 'image/png', 'CRS': 'EPSG:4326', 'BBOX': '45,10,55,30',
+                  'WIDTH': '32', 'HEIGHT': '32', 'TIME': selected['valid_time']}
+        return base, selected, params
+
+    def test_b_wms_queue_bounds_preserve_other_bucket_and_control_requests(self):
+        import threading
+        from publication.access import issue
+        base, selected, params = self.wms_fixture()
+        snapshots = []
+        queue_org = 't9-wms-queue-'+uuid.uuid4().hex[:8]
+        other_org = 't9-wms-other-'+uuid.uuid4().hex[:8]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            headers = []
+            for name, organization in (('a', queue_org), ('b', queue_org), ('other', other_org)):
+                issue(organization, 'all', root/name)
+                headers.append({'X-API-Key': (root/name).read_text().strip()})
+            policy = root/'policy'
+            policy.write_text(json.dumps({'concurrency': 4, 'seconds': 15}))
+            self.command('configure', '--organization', queue_org, '--file', policy)
+            marker = Path('/assets/.t9-wms-delay')
+            barrier = threading.Barrier(6)
+
+            def render(index):
+                barrier.wait(timeout=10)
+                return requests.get(base+'/org'+selected['wms'], params=params,
+                                    headers=headers[index % 2], timeout=25)
+
+            def rows():
+                result = self.command('usage', '--organization', queue_org)['requests']
+                snapshots.append(result)
+                return result
+
+            marker.touch()
+            try:
+                with ThreadPoolExecutor(max_workers=7) as executor:
+                    pending = [executor.submit(render, index) for index in range(6)]
+                    deadline = time.monotonic()+8
+                    while True:
+                        observed = rows()
+                        if len(observed) == 6 and all(row['status'] is None for row in observed):
+                            break
+                        self.assertLess(time.monotonic(), deadline, 'six simultaneous GetMaps were not observed')
+                        time.sleep(.05)
+                    self.assertEqual(sum(row['admitted'] for row in observed), 2)
+                    overloaded = requests.get(base+'/org'+selected['wms'], params=params, headers=headers[1], timeout=3)
+                    self.assertEqual(overloaded.status_code, 429)
+                    self.assertEqual(overloaded.headers['Retry-After'], '2')
+                    other = executor.submit(requests.get, base+'/org'+selected['wms'],
+                                            params=params, headers=headers[2], timeout=10)
+                    deadline = time.monotonic()+3
+                    while not any(row['backend_started'] for row in self.command('usage', '--organization', other_org)['requests']):
+                        self.assertLess(time.monotonic(), deadline)
+                        time.sleep(.05)
+                    global_overload = requests.get(base+'/org'+selected['wms'], params=params, headers=headers[2], timeout=3)
+                    self.assertEqual(global_overload.status_code, 429)
+                    self.assertEqual(global_overload.headers['Retry-After'], '2')
+                    started = time.monotonic()
+                    self.assertEqual(requests.get(base+'/health', timeout=3).status_code, 200)
+                    self.assertEqual(requests.get(base+'/org/api/v1/catalogue', headers=headers[2], timeout=3).status_code, 200)
+                    self.assertLess(time.monotonic()-started, 3)
+                    self.assertEqual(other.result().status_code, 200)
+                    while not all(future.done() for future in pending):
+                        observed = rows()
+                        self.assertLessEqual(sum(row['admitted'] and row['status'] is None for row in observed), 2)
+                        time.sleep(.1)
+                    self.assertEqual([future.result().status_code for future in pending], [200]*6)
+            finally:
+                marker.unlink(missing_ok=True)
+                Path('/evidence/t9-wms-queue.json').write_text(json.dumps({'snapshots': snapshots}, indent=2))
+
+    def test_c_wms_wait_deadline_revocation_and_disconnect(self):
+        import socket
+        from urllib.parse import urlencode
+        from publication.access import issue
+        base, selected, params = self.wms_fixture()
+        path = '/org'+selected['wms']
+        observations = {}
+        marker = Path('/assets/.t9-wms-delay')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+
+            def credential(name, organization, seconds=10):
+                identity = issue(organization, 'all', root/name)
+                token = (root/name).read_text().strip()
+                policy = root/'policy'
+                policy.write_text(json.dumps({'concurrency': 1, 'seconds': seconds}))
+                self.command('configure', '--organization', organization, '--file', policy)
+                return identity, {'X-API-Key': token}
+
+            def get(headers):
+                return requests.get(base+path, params=params, headers=headers, timeout=15)
+
+            def observe(organization, condition):
+                deadline = time.monotonic()+5
+                while True:
+                    rows = self.command('usage', '--organization', organization)['requests']
+                    if condition(rows):
+                        return rows
+                    self.assertLess(time.monotonic(), deadline, organization)
+                    time.sleep(.05)
+
+            marker.touch()
+            try:
+                _, timed = credential('timed', 't9-wms-deadline', 1)
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    first = executor.submit(get, timed)
+                    observe('t9-wms-deadline', lambda rows: any(row['backend_started'] for row in rows))
+                    second = executor.submit(get, timed)
+                    self.assertEqual(first.result().status_code, 504)
+                    self.assertEqual(second.result().status_code, 504)
+                rows = observe('t9-wms-deadline', lambda rows: any(row['backend_done'] for row in rows))
+                self.assertEqual(sum(row['backend_started'] for row in rows), 1)
+                # Completed backend alone does not erase the 40s timeout lease.
+                self.assertEqual(get(timed).status_code, 504)
+                observations['deadline'] = self.command('usage', '--organization', 't9-wms-deadline')['requests']
+                self.assertEqual(sum(row['backend_started'] for row in observations['deadline']), 1)
+
+                _, keeper = credential('keeper', 't9-wms-revoke')
+                revoked, victim = credential('victim', 't9-wms-revoke')
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    first = executor.submit(get, keeper)
+                    observe('t9-wms-revoke', lambda rows: any(row['backend_started'] for row in rows))
+                    second = executor.submit(get, victim)
+                    observe('t9-wms-revoke', lambda rows: len(rows) == 2 and not rows[-1]['admitted'])
+                    result = subprocess.run([sys.executable, '-m', 'publication.access', 'revoke', '--id', revoked['id']],
+                                            capture_output=True, timeout=10)
+                    self.assertEqual(result.returncode, 0)
+                    self.assertEqual(second.result().status_code, 401)
+                    self.assertEqual(first.result().status_code, 200)
+                observations['revoked'] = self.command('usage', '--organization', 't9-wms-revoke')['requests']
+                self.assertFalse(observations['revoked'][-1]['backend_started'])
+
+                _, cancel = credential('cancel', 't9-wms-disconnect')
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    first = executor.submit(get, cancel)
+                    observe('t9-wms-disconnect', lambda rows: any(row['backend_started'] for row in rows))
+                    connection = socket.create_connection(('gateway', 8000), timeout=3)
+                    try:
+                        connection.sendall(('GET '+path+'?'+urlencode(params)+' HTTP/1.1\r\nHost: gateway\r\nX-API-Key: '
+                                            +cancel['X-API-Key']+'\r\nConnection: close\r\n\r\n').encode())
+                        observe('t9-wms-disconnect', lambda rows: len(rows) == 2 and not rows[-1]['admitted'])
+                    finally:
+                        connection.close()
+                    rows = observe('t9-wms-disconnect', lambda rows: len(rows) == 2 and rows[-1]['status'] is not None)
+                    self.assertEqual(rows[-1]['status'], 504)
+                    self.assertFalse(rows[-1]['backend_started'])
+                    self.assertEqual(first.result().status_code, 200)
+                    observations['disconnect'] = rows
+            finally:
+                marker.unlink(missing_ok=True)
+                Path('/evidence/t9-wms-lifecycle.json').write_text(json.dumps(observations, indent=2))
+
+    def test_d_wms_rate_and_bytes_do_not_wait(self):
+        from publication.access import issue
+        base, selected, params = self.wms_fixture()
+        observations = {}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, limits in (('rate', {'requests': 1}), ('bytes', {'bytes': 1024})):
+                organization = 't9-wms-'+name
+                issue(organization, 'all', root/name)
+                headers = {'X-API-Key': (root/name).read_text().strip()}
+                policy = root/'policy'
+                policy.write_text(json.dumps(limits))
+                self.command('configure', '--organization', organization, '--file', policy)
+                if name == 'rate':
+                    self.assertEqual(requests.get(base+'/org'+selected['wms'], params=params, headers=headers, timeout=10).status_code, 200)
+                started = time.monotonic()
+                response = requests.get(base+'/org'+selected['wms'], params=params, headers=headers, timeout=3)
+                self.assertEqual(response.status_code, 429)
+                self.assertEqual(response.headers['Retry-After'], '60')
+                self.assertLess(time.monotonic()-started, 3)
+                observations[name] = self.command('usage', '--organization', organization)['requests']
+        Path('/evidence/t9-wms-rate-bytes.json').write_text(json.dumps(observations, indent=2))
+
+    def test_e_wms_admission_lock_observes_revocation_and_remaining_deadline(self):
+        from publication.access import issue
+        from publication.domain import database
+        base, selected, params = self.wms_fixture()
+        observations = {}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            organization = 't9-wms-lock-'+uuid.uuid4().hex[:8]
+            identity = issue(organization, 'all', root/'key')
+            headers = {'X-API-Key': (root/'key').read_text().strip()}
+
+            def get():
+                return requests.get(base+'/org'+selected['wms'], params=params, headers=headers, timeout=10)
+
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                # Fixture holds admission after initial gateway authorization.
+                # Consumer assertions remain HTTP + operator usage, not SQL.
+                with database() as cursor:
+                    cursor.execute('SELECT pg_advisory_xact_lock(hashtextextended(%s,9))', ('org:'+organization,))
+                    pending = executor.submit(get)
+                    deadline = time.monotonic()+1.5
+                    while True:
+                        cursor.execute("SELECT count(*) AS waiting FROM pg_locks WHERE locktype='advisory' AND NOT granted")
+                        lock_state = cursor.fetchone()
+                        assert lock_state is not None
+                        if lock_state['waiting']:
+                            break
+                        self.assertLess(time.monotonic(), deadline)
+                        time.sleep(.01)
+                    revoked = subprocess.run([sys.executable, '-m', 'publication.access', 'revoke', '--id', identity['id']],
+                                             capture_output=True, timeout=10)
+                    self.assertEqual(revoked.returncode, 0)
+                self.assertEqual(pending.result().status_code, 401)
+                rows = self.command('usage', '--organization', organization)['requests']
+                self.assertEqual(len(rows), 1)
+                self.assertFalse(rows[0]['backend_started'])
+                observations['revoked_during_lock'] = rows
+
+                organization = 't9-wms-lock-deadline-'+uuid.uuid4().hex[:8]
+                issue(organization, 'all', root/'timed-key')
+                headers = {'X-API-Key': (root/'timed-key').read_text().strip()}
+                policy = root/'policy'
+                policy.write_text(json.dumps({'concurrency': 1, 'seconds': 1}))
+                self.command('configure', '--organization', organization, '--file', policy)
+                marker = Path('/assets/.t9-wms-delay')
+                marker.touch()
+                try:
+                    first = executor.submit(get)
+                    deadline = time.monotonic()+3
+                    while not any(row['backend_started'] for row in self.command('usage', '--organization', organization)['requests']):
+                        self.assertLess(time.monotonic(), deadline)
+                    started = time.monotonic()
+                    second = executor.submit(get)
+                    while len(self.command('usage', '--organization', organization)['requests']) < 2:
+                        self.assertLess(time.monotonic()-started, .8)
+                    with database() as cursor:
+                        cursor.execute('SELECT pg_advisory_xact_lock(hashtextextended(%s,9))', ('org:'+organization,))
+                        self.assertEqual(second.result(timeout=1.4).status_code, 504)
+                        self.assertLess(time.monotonic()-started, 1.4)
+                    self.assertEqual(first.result().status_code, 504)
+                    rows = self.command('usage', '--organization', organization)['requests']
+                    self.assertEqual(sum(row['backend_started'] for row in rows), 1)
+                    observations['deadline_during_lock'] = rows
+                finally:
+                    marker.unlink(missing_ok=True)
+        Path('/evidence/t9-wms-admission-lock.json').write_text(json.dumps(observations, indent=2))
+
     def command(self, *args):
         result = subprocess.run([sys.executable, '-m', 'publication.budgets', *map(str, args)],
                                 capture_output=True, text=True, timeout=30)

@@ -7,6 +7,36 @@ import re
 import xml.etree.ElementTree as ET
 from urllib.request import Request, urlopen
 
+def assert_render_mask(image, settings, reference):
+    """Compare stable mask interiors with an independently requested WMS map."""
+    from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
+    extent = settings.visibleExtent()
+    transform = QgsCoordinateTransform(settings.destinationCrs(), QgsCoordinateReferenceSystem('EPSG:4326'),
+                                       QgsProject.instance())
+    checked = opaque = transparent = missing = extra = 0
+    for y in range(8, image.height(), 16):
+        for x in range(8, image.width(), 16):
+            point = transform.transform(extent.xMinimum()+(x+.5)*extent.width()/image.width(),
+                                        extent.yMaximum()-(y+.5)*extent.height()/image.height())
+            rx = int((point.x()+26)/91*reference.width())
+            ry = int((72-point.y())/44*reference.height())
+            if not (1 <= rx < reference.width()-1 and 1 <= ry < reference.height()-1):
+                continue
+            mask = {reference.pixelColor(rx+dx, ry+dy).alpha() > 0 for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
+            if len(mask) != 1:  # exclude resampling at the data boundary
+                continue
+            expected = mask.pop()
+            actual = image.pixelColor(x, y).alpha() > 0
+            checked += 1
+            opaque += expected
+            transparent += not expected
+            missing += expected and not actual
+            extra += actual and not expected
+    result = dict(checked=checked, opaque=opaque, transparent=transparent, missing=missing, extra=extra)
+    assert opaque and transparent and missing == 0 and extra == 0, result
+    return result
+
+
 def connect_forecast(base, wms_path, key, valid_time, crs='EPSG:3857'):
     """Create a WMS-T layer with ordinary QGIS DPI and request-size defaults."""
     from qgis.core import QgsDataSourceUri, QgsHttpHeaders, QgsRasterLayer
@@ -38,7 +68,7 @@ def verify_desktop(config_path):
                            QgsCoordinateReferenceSystem, QgsRectangle, QgsPointXY,
                            QgsDateTimeRange, QgsDataSourceUri)
     from qgis.PyQt.QtCore import QDateTime, Qt, QSize, QEventLoop, QTimer
-    from qgis.PyQt.QtGui import QColor
+    from qgis.PyQt.QtGui import QColor, QImage, QPainter
 
     assert Qgis.QGIS_VERSION == '3.44.11-Solothurn', Qgis.QGIS_VERSION
     config = json.loads(Path(config_path).read_text(encoding='utf-8-sig'))
@@ -47,8 +77,9 @@ def verify_desktop(config_path):
     http = json.loads((report / 't11-http.json').read_text())
     selected = http['selection']
 
-    observations, standard_identify = [], []
+    observations, standard_identify, masks = [], [], []
     project = QgsProject.instance()
+    initial_dirty = project.isDirty()
     owned = []
     try:
         for crs in ('EPSG:4326', 'EPSG:3857'):
@@ -89,7 +120,25 @@ def verify_desktop(config_path):
                 assert not job.errors(), [error.message for error in job.errors()]
                 image = job.renderedImage()
                 assert not image.isNull()
-                assert any(image.pixelColor(x, y).alpha() for x in range(0, image.width(), 16) for y in range(0, image.height(), 16))
+                query = ('?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=temperature&STYLES=raster'
+                         '&FORMAT=image/png&TRANSPARENT=true&CRS=EPSG:4326&BBOX=28,-26,72,65'
+                         '&WIDTH=512&HEIGHT=256&TIME='+item['valid_time'])
+                with urlopen(Request(config['base']+selected['wms']+query, headers={'X-API-Key': key}), timeout=35) as response:
+                    reference = QImage.fromData(response.read())
+                assert not reference.isNull()
+                mask = assert_render_mask(image, settings, reference)
+                masks.append({'source_crs': crs, 'project_crs': crs, 'time': item['valid_time'], **mask})
+                fragment = image.copy()
+                painter = QPainter(fragment)
+                painter.setCompositionMode(QPainter.CompositionMode_Source)
+                painter.fillRect(0, 0, fragment.width()//2, fragment.height(), QColor(0, 0, 0, 0))
+                painter.end()
+                try:
+                    assert_render_mask(fragment, settings, reference)
+                except AssertionError:
+                    pass
+                else:
+                    raise AssertionError('Проверка маски приняла изображение с удалённым фрагментом.')
                 image.save(str(report / f"qgis-{crs.split(':')[1]}-{item['valid_time'][11:13]}.png"))
                 # QGIS renders a cloned pipe. Python does not expose the C++
                 # setRequestedTemporalRange mutator on the original provider.
@@ -165,11 +214,57 @@ def verify_desktop(config_path):
             'qgis_version': Qgis.QGIS_VERSION, 'selected': selected,
             'input_inventory_sha256': hashlib.sha256((report / 'inputs-start.json').read_bytes()).hexdigest(),
             'method': 'QGIS Desktop WMS provider, temporal map renderer, identify and legend fetcher',
-            'observations': observations, 'standard_identify': standard_identify}, indent=2) + '\n')
+            'observations': observations, 'standard_identify': standard_identify, 'masks': masks,
+            'negative_fragment_rejected': True}, indent=2) + '\n')
         print('QGIS Desktop: карта, время, легенда и значения проверены.')
     finally:
         for layer_id in owned:
             project.removeMapLayer(layer_id)
+        project.setDirty(initial_dirty)
+
+
+def verify_cold_matrix(config_path, offset=0, count=4):
+    """Run a bounded batch; every case gets a fresh loopback origin/cache key."""
+    import contextlib
+    import itertools
+    import runpy
+    config = json.loads(Path(config_path).read_text(encoding='utf-8-sig'))
+    report = Path(config['report_directory'])
+    http = json.loads((report/'t11-http.json').read_text())
+    times = sorted({item['valid_time'] for item in http['choices']})
+    assert len(times) >= 2
+    directory = report/'cold-matrix'
+    directory.mkdir(exist_ok=True)
+    selection = dict(http['selection'])
+    selection['wms'] = selection['wms'].removeprefix('/org')
+    selection_file = directory/'selection.json'
+    selection_file.write_text(json.dumps(selection))
+    probe = runpy.run_path(str(Path(__file__).resolve().parents[1]/'tools/diagnose-qgis-wms.py'))['diagnose_wms']
+    cases = list(itertools.product(('public', 'org'), ('EPSG:4326', 'EPSG:3857'),
+                 ('EPSG:4326', 'EPSG:3857', 'EPSG:3576'), ((320, 187), (1204, 700)), (times[0], times[-1])))
+    for index in range(offset, min(offset+count, len(cases))):
+        profile, source, target, size, valid_time = cases[index]
+        case = {'origin': config['base'], 'selection_file': str(selection_file),
+                'report_directory': str(directory/f'case-{index:02d}'), 'source_crs': source,
+                'project_crs': target, 'size': size, 'valid_time': valid_time,
+                'extent': [10, 45, 30, 55], 'sequential': False}
+        if profile == 'org':
+            case['key_file'] = config['key_file']
+        case_file = directory/f'config-{index:02d}.json'
+        case_file.write_text(json.dumps(case))
+        with (directory/f'case-{index:02d}.log').open('w', encoding='utf-8') as stream, contextlib.redirect_stdout(stream):
+            result = probe(str(case_file))
+        assert result['qgis_version'] == '3.44.11-Solothurn'
+        assert set(result['http_statuses']) == {'200'}, result['http_statuses']
+        print(f'Cold WMS {index+1}/{len(cases)}: {profile}, {source} -> {target}, {size}, {valid_time}: passed')
+    files = [directory/f'case-{index:02d}'/'result.json' for index in range(len(cases))]
+    if all(path.exists() for path in files):
+        results = [json.loads(path.read_text()) for path in files]
+        assert all(item['passed'] and set(item['http_statuses']) == {'200'} for item in results)
+        assert all(all(item['cleanup'][key] for key in ('project_unchanged', 'proxy_thread_stopped', 'proxy_socket_closed')) for item in results)
+        (report/'t11-cold-matrix.json').write_text(json.dumps({'status': 'passed', 'cases': len(results),
+            'input_inventory_sha256': hashlib.sha256((report/'inputs-start.json').read_bytes()).hexdigest(),
+            'results': results}, indent=2))
 
 
 def identify_in_canvas(layer, crs, x, y, delta, temporal_range):

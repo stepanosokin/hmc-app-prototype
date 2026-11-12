@@ -86,6 +86,10 @@ if ($Phase -eq 'Prepare') {
     if ($desktop.input_inventory_sha256 -ne (Get-FileHash -Algorithm SHA256 (Join-Path $directory 'inputs-start.json')).Hash) {
         throw 'Desktop evidence belongs to different validated inputs'
     }
+    $coldMatrix = Get-Content -Raw -Encoding UTF8 (Join-Path $directory 't11-cold-matrix.json') | ConvertFrom-Json
+    if ($coldMatrix.status -ne 'passed' -or $coldMatrix.cases -ne 48 -or
+        $coldMatrix.input_inventory_sha256 -ne $desktop.input_inventory_sha256 -or
+        -not $desktop.negative_fragment_rejected) { throw 'Cold WMS coverage matrix has not passed on the frozen inputs' }
     $http = Get-Content -Raw -Encoding UTF8 (Join-Path $directory 't11-http.json') | ConvertFrom-Json
     if ($desktop.selected.selection -ne $http.selection.selection) { throw 'Desktop evidence belongs to another selection' }
     Check restart @('restart','api','gateway','geoserver')

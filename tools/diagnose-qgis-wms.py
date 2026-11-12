@@ -16,7 +16,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import parse_qsl, unquote, urlencode, urlsplit
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 
 def _coverage(image):
@@ -44,8 +44,8 @@ def diagnose_wms(config_path, *, enforce=True):
     from qgis.core import (Qgis, QgsProject, QgsDataSourceUri, QgsRasterLayer,
                            QgsMapSettings, QgsMapRendererSequentialJob,
                            QgsCoordinateReferenceSystem, QgsCoordinateTransform,
-                           QgsRectangle)
-    from qgis.PyQt.QtCore import QSize
+                           QgsRectangle, QgsDateTimeRange, QgsHttpHeaders)
+    from qgis.PyQt.QtCore import QSize, QDateTime, Qt
     from qgis.PyQt.QtGui import QColor, QImage
 
     config = json.loads(Path(config_path).read_text(encoding='utf-8-sig'))
@@ -57,11 +57,14 @@ def diagnose_wms(config_path, *, enforce=True):
         raise ValueError('Укажите локальный HTTP origin без учётных данных.')
     selection = json.loads(Path(config['selection_file']).read_text(encoding='utf-8-sig'))
     route = selection['wms']
-    if not route.startswith('/gis/v1/') or '?' in route or '#' in route:
+    key = Path(config['key_file']).read_text().strip() if config.get('key_file') else ''
+    if key:
+        route = '/org' + route
+    if not route.startswith(('/gis/v1/', '/org/gis/v1/')) or '?' in route or '#' in route:
         raise ValueError('Нужен публичный WMS-путь из каталога без параметров.')
     source, destination = config['source_crs'], config['project_crs']
-    if source not in ('EPSG:4326', 'EPSG:3857') or destination not in ('EPSG:4326', 'EPSG:3857'):
-        raise ValueError('HTTP-эталон этой проверки поддерживает EPSG:4326/3857.')
+    if source not in ('EPSG:4326', 'EPSG:3857') or destination not in ('EPSG:4326', 'EPSG:3857', 'EPSG:3576'):
+        raise ValueError('Проверка поддерживает WMS 4326/3857 и CRS проекта 4326/3857/3576.')
     report = Path(config['report_directory'])
     report.mkdir(parents=True, exist_ok=False)
     (report / 'config.json').write_text(json.dumps(config, indent=2), encoding='utf-8')
@@ -83,7 +86,7 @@ def diagnose_wms(config_path, *, enforce=True):
             try:
                 with serialization if sequential else nullcontext():
                     try:
-                        response = urlopen(origin + self.path, timeout=20)
+                        response = urlopen(Request(origin + self.path, headers={'X-API-Key': key} if key else {}), timeout=35)
                     except HTTPError as error:
                         response = error
                     with response:
@@ -96,7 +99,6 @@ def diagnose_wms(config_path, *, enforce=True):
                         self.send_header(name, headers[name])
                 self.send_header('Content-Length', str(len(body)))
                 self.end_headers()
-                self.wfile.write(body)
                 item = {'parameters': dict(parse_qsl(incoming.query)), 'status': status,
                         'type': headers.get('Content-Type'), 'bytes': len(body),
                         'retry_after': headers.get('Retry-After'),
@@ -105,6 +107,7 @@ def diagnose_wms(config_path, *, enforce=True):
                     # Public route only; do not record request headers or URI credentials.
                     item['body'] = body.decode('utf-8', 'replace')[:1000]
                 requests.append(item)
+                self.wfile.write(body)
             except Exception as error:
                 requests.append({'exception': type(error).__name__})
                 self.close_connection = True
@@ -127,6 +130,8 @@ def diagnose_wms(config_path, *, enforce=True):
     local_url = 'http://127.0.0.1:' + str(server.server_port) + route
     result = {'qgis_version': Qgis.QGIS_VERSION, 'source_crs': source,
               'project_crs': destination, 'sequential': sequential,
+              'profile': 'org' if key else 'public',
+              'selection': selection['selection'], 'run': selection['run'], 'revision': selection['revision'],
               'extent_wgs84': config['extent'], 'size': config['size']}
     layer = settings = job = None
     started = time.monotonic()
@@ -138,15 +143,22 @@ def diagnose_wms(config_path, *, enforce=True):
         names = [node.text for node in document.findall('.//{*}Layer/{*}Name')]
         if len(names) != 1:
             raise ValueError('Ожидался один опубликованный WMS-слой.')
-        effective_time = next(node.get('default') for node in document.findall('.//{*}Dimension')
-                              if node.get('name') == 'time')
+        dimension = next(node for node in document.findall('.//{*}Dimension') if node.get('name') == 'time')
+        effective_time = config.get('valid_time', dimension.get('default'))
         if not effective_time or effective_time not in selection['valid_times']:
             raise ValueError('Срок по умолчанию отсутствует в зафиксированной редакции.')
-        result.update(layer=names[0], time=effective_time, time_mode='capabilities default')
+        result.update(layer=names[0], time=effective_time,
+                      time_mode='temporal range' if 'valid_time' in config else 'capabilities default')
         uri = QgsDataSourceUri()
         for name, value in {'url': local_url, 'layers': names[0], 'styles': '',
                             'format': 'image/png', 'crs': source, 'version': '1.3.0'}.items():
             uri.setParam(name, value)
+        if 'valid_time' in config:
+            for name, value in {'timeDimensionExtent': dimension.text or '', 'type': 'wmst',
+                                'allowTemporalUpdates': 'true', 'temporalSource': 'provider'}.items():
+                uri.setParam(name, value)
+        if key:
+            uri.setHttpHeaders(QgsHttpHeaders({'X-API-Key': key}))
         layer = QgsRasterLayer(bytes(uri.encodedUri()).decode(), 'Диагностика WMS', 'wms')
         if not layer.isValid():
             raise ValueError('Не удалось подключить диагностический WMS-слой.')
@@ -159,6 +171,10 @@ def diagnose_wms(config_path, *, enforce=True):
         settings.setExtent(transform.transformBoundingBox(QgsRectangle(*config['extent'])))
         settings.setOutputSize(QSize(*config['size']))
         settings.setBackgroundColor(QColor(0, 0, 0, 0))
+        if 'valid_time' in config:
+            instant = QDateTime.fromString(effective_time, Qt.ISODate)
+            settings.setIsTemporal(True)
+            settings.setTemporalRange(QgsDateTimeRange(instant, instant))
         job = QgsMapRendererSequentialJob(settings)
         job.start()
         job.waitForFinished()
@@ -167,17 +183,31 @@ def diagnose_wms(config_path, *, enforce=True):
             raise ValueError('Не удалось сохранить результат рендера QGIS.')
         result['render_error_count'] = len(job.errors())
         result['qgis'] = _coverage(image)
+        # The next GetMap is the independent reference; inspect the actual
+        # provider requests collected BEFORE it, not merely the configured time.
+        provider_times = [item['parameters'].get('TIME') for item in requests
+                          if item.get('parameters', {}).get('REQUEST', '').lower() == 'getmap']
+        result['provider_times'] = provider_times
+        assert provider_times
+        if 'valid_time' in config:
+            assert set(provider_times) == {effective_time}, provider_times
+        else:
+            assert all(value in (None, effective_time) for value in provider_times), provider_times
         extent = settings.visibleExtent()
+        reference_crs = destination
+        if destination == 'EPSG:3576':
+            reference_crs = 'EPSG:4326'
+            extent = QgsCoordinateTransform(target, QgsCoordinateReferenceSystem(reference_crs), project).transformBoundingBox(extent)
         bounds = [extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()]
         result['visible_extent'] = bounds
-        if destination == 'EPSG:4326':
+        if reference_crs == 'EPSG:4326':
             bounds = [bounds[1], bounds[0], bounds[3], bounds[2]]
         width, height = config['size']
         # Keep both axes inside GetMap's advertised 512px maximum.
         scale = 480 / max(width, height)
         parameters = {'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetMap',
                       'LAYERS': names[0], 'STYLES': '', 'FORMAT': 'image/png',
-                      'TRANSPARENT': 'TRUE', 'CRS': destination,
+                      'TRANSPARENT': 'TRUE', 'CRS': reference_crs,
                       'BBOX': ','.join(map(str, bounds)),
                       'WIDTH': max(1, round(width * scale)),
                       'HEIGHT': max(1, round(height * scale)), 'TIME': effective_time}

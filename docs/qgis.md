@@ -129,9 +129,11 @@ Prepare запускает проверки типов, реальную пуб�
 настольного QGIS:
 
 ```python
-from pathlib import Path
-exec(Path(r'D:/path/hmc-app-prototype/publication/qgis_desktop.py').read_text(encoding='utf-8'))
-verify_desktop(r'D:/path/hmc-app-prototype/.scratch/hmc-meteo/hmc-publication-t11-check/desktop.json')
+import runpy
+checks = runpy.run_path(r'D:/path/hmc-app-prototype/publication/qgis_desktop.py')
+config = r'D:/path/hmc-app-prototype/.scratch/hmc-meteo/hmc-publication-t11-check/desktop.json'
+checks.get('verify_desktop')(config)
+checks.get('verify_cold_matrix')(config, offset=0, count=4)
 ```
 
 Сценарий использует настоящие WMS provider, temporal renderer, identify и
@@ -140,12 +142,23 @@ legend fetcher настольного процесса, сохраняет PNG �
 ячейки и точки вне поля с каноническим числовым API в обеих CRS. T5 дополнительно
 проверяет неполные публикации, исправления и сохранённые ревизии.
 
+Повторите `verify_cold_matrix` отдельными вызовами с offset 4, 8, …, 44.
+Всего 48 случаев: public/org, CRS слоя 4326/3857 независимо
+от CRS проекта 4326/3857/3576, 320×187 и 1204×700, первый и последний сроки.
+Каждый случай использует новый временный loopback origin, чтобы исключить
+предыдущий кеш QGIS, и проверяет полностью заполненный внутренний участок
+против прямого GetMap. Обычный desktop-сценарий дополнительно сравнивает
+маску всего поля и NoData с независимым GetMap, проверяет отказ при намеренно
+удалённом фрагменте, Identify и легенду. Серверные WMS CRS остаются 4326/3857.
+Используйте `runpy.run_path`, чтобы корректно определить путь к проверочной
+программе; каждый MCP-вызов должен самостоятельно импортировать нужные модули.
+
 ```powershell
 powershell -NoProfile -File publication/run-qgis.ps1 -Project hmc-publication-t11-check -Phase Complete
 powershell -NoProfile -File tools/retire-publication-project.ps1 -Project hmc-publication-t11-check -ReportDirectory data/reports/t11/hmc-publication-t11-check
 ```
 
-Complete требует успешный desktop-отчёт, перезапускает сервисы, повторяет WMS,
+Complete требует успешные desktop-отчёт и cold-матрицу, перезапускает сервисы, повторяет WMS,
 проверяет сохранённые ревизии, полный набор тестов и runtime, сверяет инвентарь
 входных файлов. Между Prepare, QGIS и Complete файлы менять нельзя.
 `-Development` пропускает длинную T5-регрессию и не является финальной приёмкой.

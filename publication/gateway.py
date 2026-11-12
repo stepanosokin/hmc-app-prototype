@@ -7,6 +7,9 @@ import time
 import uuid
 import queue
 import os
+import select
+import socket
+import threading
 from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
@@ -17,7 +20,7 @@ from flask import Flask, Response, jsonify, request, g
 from publication.access import identify
 from publication import budgets
 from publication import wms
-from publication.limited import WorkLimit
+from publication.limited import WorkLimit, request_deadline
 from publication.process_channel import ProcessChannel
 
 ROUTES = (
@@ -35,6 +38,11 @@ SECRET_PARAMETERS = {'key', 'api_key', 'apikey', 'token', 'access_token', 'autho
 
 def create_app() -> Flask:
     app = Flask('hmc-gateway', static_folder=None)
+    # One worker / eight HTTP threads: at most six GetMaps from one bucket,
+    # seven overall, including active work. Keep room for another bucket and
+    # a control request. This is an in-memory bound, not a durable job queue.
+    maps: dict[str, int] = {}
+    maps_lock = threading.Lock()
     origin = os.environ.get('HMC_PUBLIC_ORIGIN', '')
     if origin:
         parsed = urlsplit(origin)
@@ -63,6 +71,23 @@ def create_app() -> Flask:
             return channel.run('http', arguments, deadline-time.monotonic())
         finally:
             channels.put(channel)
+
+    @app.teardown_request
+    def release_map(error):
+        bucket = g.pop('map_bucket', None)
+        if bucket is not None:
+            with maps_lock:
+                maps[bucket] -= 1
+                if not maps[bucket]:
+                    del maps[bucket]
+
+    def check_wait(deadline):
+        if time.monotonic() >= deadline:
+            raise WorkLimit(504)
+        connection = request.environ.get('gunicorn.socket')
+        if connection is not None and select.select([connection], [], [], 0)[0]:
+            if not connection.recv(1, socket.MSG_PEEK | socket.MSG_DONTWAIT):
+                raise WorkLimit(504)
 
     def failure(status: int):
         code, description = {
@@ -170,35 +195,66 @@ def create_app() -> Flask:
         elif authorization or api_key:
             return failure(400)
         try:
+            params = {name.upper(): value for name, value in request.args.items()}
+            get_map = upstream_path.startswith('gis/') and params.get('REQUEST', '').lower() == 'getmap'
+            g.event['get_map'] = get_map
+            if get_map:
+                with maps_lock:
+                    bucket = g.event['bucket']
+                    if maps.get(bucket, 0) >= 6 or sum(maps.values()) >= 7:
+                        response = failure(429)
+                        response.headers['Retry-After'] = '2'
+                        return response
+                    maps[bucket] = maps.get(bucket, 0) + 1
+                    g.map_bucket = bucket
             if upstream_path != 'health':
                 allowed, limits = budgets.begin(g.event, True)
                 g.recorded = True
+                deadline = g.started + limits.seconds
+                while get_map and not allowed and g.event.get('admission') == 'concurrency':
+                    check_wait(deadline)
+                    time.sleep(min(.05, max(0, deadline-time.monotonic())))
+                    check_wait(deadline)
+                    deadline_token = request_deadline.set(time.time()+deadline-time.monotonic())
+                    try:
+                        allowed, current = budgets.begin(g.event, True, retry=True)
+                    finally:
+                        request_deadline.reset(deadline_token)
+                    deadline = min(deadline, g.started + current.seconds)
+                    limits = current
                 if not allowed:
-                    return failure(429)
+                    return failure(401 if g.event.get('admission') == 'revoked' else 429)
             else:
                 limits = budgets.Limits()
+                deadline = g.started + limits.seconds
             if '/tiles/2/' in upstream_path or '/tiles/3/' in upstream_path or '/tiles/4/' in upstream_path:
                 z, x, y = (int(part.removesuffix('.f32')) for part in upstream_path.rsplit('/', 3)[-3:])
                 if not (0 <= z <= limits.zoom and 0 <= x < 2**z and 0 <= y < 2**z):
                     return failure(400)
             if upstream_path.startswith('gis/'):
-                params = {name.upper(): value for name, value in request.args.items()}
                 wms.check_dimensions(params, limits.dimension)
             # Never forward credentials or trust client prefix/identity headers.
+            if get_map:
+                check_wait(deadline)
+            remaining = deadline-time.monotonic()
+            if remaining <= .25:
+                raise WorkLimit(504)
             g.event['cache'] = 'unavailable'
             upstream = forward_work({'url': 'http://api:8000/' + upstream_path,
                                    'params': list(request.args.items(multi=True)),
                                    'headers': {'X-Publication-Prefix': origin + ('/org' if protected else ''),
                                                'X-HMC-Request-ID': g.event['request_id'],
                                                'X-HMC-WMS-Dimension': str(min(wms.MAX_MAP_SIZE, limits.dimension)),
-                                               'X-HMC-Deadline': str(time.time() + limits.seconds - 0.25)},
-                                   'seconds': limits.seconds, 'output': limits.output}, limits.seconds)
+                                               'X-HMC-Deadline': str(time.time() + remaining - 0.25)},
+                                   'seconds': remaining, 'output': limits.output}, remaining)
         except WorkLimit as error:
             backend_observation(error.headers)
             return failure(error.status)
         except ValueError:
             return failure(400)
         except (requests.RequestException, pg8000.dbapi.Error, OSError, KeyError):
+            if g.recorded and time.monotonic() >= deadline:
+                return failure(504)
             return failure(503)
         headers = {key.lower(): value for key, value in upstream['headers'].items()}
         backend_observation(headers)
