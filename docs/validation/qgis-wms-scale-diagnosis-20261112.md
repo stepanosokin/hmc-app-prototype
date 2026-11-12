@@ -1,5 +1,8 @@
 # QGIS: фрагменты и мигание WMS при увеличении масштаба
 
+Продолжение: [проверка серверного решения без настройки QGIS](qgis-wms-server-compatibility-20261112.md)
+уточняет вывод о MaxWidth/MaxHeight и содержит положительные опыты с размером 2000.
+
 Диагностика после [№92](https://github.com/stepanosokin/hmc-app-prototype/issues/92),
 исходный commit `b425b2bfbf3d62cc765a76693687133e8ecac22e`.
 Согласованы базовый уровень, Windows/PowerShell, действующий `hmc-app-live`
