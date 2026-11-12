@@ -35,8 +35,8 @@ class QgisWms(unittest.TestCase):
         path = selected['wms']
         caps = {'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetCapabilities'}
         root = ET.fromstring(self.get(path, caps).content)
-        self.assertEqual(root.findtext('.//{*}Service/{*}MaxWidth'), '512')
-        self.assertEqual(root.findtext('.//{*}Service/{*}MaxHeight'), '512')
+        self.assertEqual(root.findtext('.//{*}Service/{*}MaxWidth'), '3000')
+        self.assertEqual(root.findtext('.//{*}Service/{*}MaxHeight'), '3000')
         negotiated = self.get(path, {'SERVICE': 'WMS', 'REQUEST': 'GetCapabilities'})
         self.assertEqual(ET.fromstring(negotiated.content).attrib['version'], '1.3.0')
         self.assertEqual([n.text for n in root.findall('.//{*}Layer/{*}Name')], ['temperature'])
@@ -101,7 +101,7 @@ class QgisWms(unittest.TestCase):
                     observations.append({'time': item['valid_time'], 'crs': crs, 'native': [lon, lat],
                                          'value_K': point['value'], 'identify': identified.text})
             self.get(path, {**params, 'TIME': '1900-01-01T00:00:00Z'}, expected=404)
-        for extra in ({'WIDTH': '513'}, {'DPI': '1201'}, {'FORMAT_OPTIONS': 'dpi:96;layout:bad'}):
+        for extra in ({'WIDTH': '3001'}, {'DPI': '1201'}, {'FORMAT_OPTIONS': 'dpi:96;layout:bad'}):
             self.get(path, {**params, **extra}, expected=400)
         for extra in ({'WIDTH': '16385'}, {'I': '3'}, {'BBOX': '0,0,nan,1'}):
             self.get(path, {**identify_params, **extra}, expected=400)
@@ -126,7 +126,7 @@ class QgisWms(unittest.TestCase):
                 cursor.execute('DELETE FROM access.policies WHERE bucket=%s', ('org:t11-reader',))
         Path('/evidence/t11-http.json').write_text(json.dumps({'status': 'passed',
             'selection': selected, 'choices': choices, 'observations': observations,
-            'compatibility': {'max_map_size': 512, 'dpi': True, 'default_time': True,
+            'compatibility': {'max_map_size': 3000, 'dpi': True, 'default_time': True,
                 'large_identify': True, 'invalid_context': True, 'lower_policy_and_spoofed_header': True}}, indent=2) + '\n')
 
     def get(self, path, params=None, expected=200):

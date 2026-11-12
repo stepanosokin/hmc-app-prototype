@@ -46,7 +46,8 @@ def discard_staging(workspace: str) -> None:
 
 def configure_limits() -> dict:
     """Bound server-side WMS rendering as well as gateway HTTP reading."""
-    limits = {'maxRenderingTime': 20, 'maxRequestMemory': 16384}
+    # KiB: a 3000 x 3000 RGBA output alone needs about 35,157 KiB.
+    limits = {'maxRenderingTime': 20, 'maxRequestMemory': 65536}
     admin('PUT', '/services/wms/settings.json', json={'wms': limits})
     observed = admin('GET', '/services/wms/settings.json').json()['wms']
     if any(observed.get(key) != value for key, value in limits.items()):

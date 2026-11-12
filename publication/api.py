@@ -523,7 +523,7 @@ def create_app() -> Flask:
         params = {key.upper(): value for key, value in request.args.items()}
         if len(params) != len(request.args) or any(len(request.args.getlist(key)) != 1 for key in request.args):
             raise ValueError('repeated WMS parameter')
-        map_limit = min(wms_options.MAX_MAP_SIZE, int(request.headers.get('X-HMC-WMS-Dimension', '512')))
+        map_limit = min(wms_options.MAX_MAP_SIZE, int(request.headers.get('X-HMC-WMS-Dimension', str(wms_options.MAX_MAP_SIZE))))
         params = wms_options.normalize(params, map_limit)
         operation = params.get('REQUEST')
         if operation == 'GetCapabilities':
@@ -643,7 +643,7 @@ def create_app() -> Flask:
         response.set_etag(hashlib.sha256(json.dumps({'run': run_id, 'revision': revision,
             'field': manifest['identity']['field'], 'level': manifest['identity']['level'],
             'grid': manifest['identity']['native_grid_sha256'], 'member': manifest['identity']['member'],
-            'wms_profile': 'qgis-512-v1', 'map_limit': map_limit,
+            'wms_profile': 'qgis-3000-v1', 'map_limit': map_limit,
             'renderer': 'geoserver-2.27.0', 'parameters': params}, sort_keys=True).encode()).hexdigest())
         return response
 

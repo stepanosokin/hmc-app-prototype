@@ -3,7 +3,7 @@
 import math
 import re
 
-MAX_MAP_SIZE = 512
+MAX_MAP_SIZE = 3000
 MAX_IDENTIFY_SIZE = 16384
 
 

@@ -370,7 +370,7 @@ class UsageBudgets(unittest.TestCase):
         base = 'http://gateway:8000'
         observations = []
         gis_limits = self.command('gis-limits')
-        self.assertEqual(gis_limits, {'maxRenderingTime': 20, 'maxRequestMemory': 16384})
+        self.assertEqual(gis_limits, {'maxRenderingTime': 20, 'maxRequestMemory': 65536})
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             policy = root / 'policy.json'

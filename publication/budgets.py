@@ -20,13 +20,13 @@ class Limits:
     concurrency: int = 4
     seconds: int = 30
     output: int = 4 * 1024**2
-    dimension: int = 1024
+    dimension: int = 3000
     zoom: int = 6
 
     @classmethod
     def parse(cls, value: dict):
         bounds = {'requests': (1, 100000), 'bytes': (1024, 1024**3), 'concurrency': (1, 4),
-                  'seconds': (1, 30), 'output': (512, 4 * 1024**2), 'dimension': (1, 1024), 'zoom': (0, 6)}
+                  'seconds': (1, 30), 'output': (512, 4 * 1024**2), 'dimension': (1, 3000), 'zoom': (0, 6)}
         if set(value) - set(bounds) or any(type(v) is not int or not bounds[k][0] <= v <= bounds[k][1]
                                           for k, v in value.items()):
             raise ValueError('unsupported policy field or bound')
