@@ -1,5 +1,15 @@
 # Development workflow
 
+## YAGNI
+
+Prefer YAGNI (You Aren't Gonna Need It): implement the simplest complete solution
+that satisfies the current approved requirements. Add abstractions, configuration
+and extension points when current behaviour or concrete existing uses require
+them; defer capabilities justified only by hypothetical future needs.
+
+During review, simplify additions that lack a current requirement or concrete use.
+Keep required correctness, security, scientific contracts and validation intact.
+
 ## Choose validation by the change
 
 Run checks locally by default; GitHub Actions is an optional manual fallback,

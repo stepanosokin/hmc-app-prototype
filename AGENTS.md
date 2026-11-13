@@ -4,6 +4,10 @@
 
 The web app prototype's user-facing interface must be in Russian, including controls, states, validation messages and errors shown in the UI. Deliver final user-facing results and completion reports in Russian.
 
+## Coding approach
+
+When writing or reviewing code, prefer [YAGNI](docs/development-workflow.md#yagni): implement the simplest complete solution for current requirements. Consult that guidance when adding abstractions, configuration or extension points.
+
 ## Ticket completion
 
 Before reporting completion, verify all acceptance criteria and required checks. Report in Russian as 3–5 brief results: behavior, validation, evidence/cleanup, commit/push, issue link, complete/incomplete scope and verified open/closed state. State any blocker.
