@@ -70,6 +70,20 @@ class UsageBudgets(unittest.TestCase):
         params = {'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetMap', 'LAYERS': 'temperature',
                   'STYLES': '', 'FORMAT': 'image/png', 'CRS': 'EPSG:4326', 'BBOX': '45,10,55,30',
                   'WIDTH': '32', 'HEIGHT': '32', 'TIME': selected['valid_time']}
+        if os.environ.get('T106_WMS') == '1':
+            import xml.etree.ElementTree as ET
+            from urllib.parse import urlsplit
+            response = requests.get(base+'/gis/v1/wms', timeout=30)
+            self.assertEqual(response.status_code, 200)
+            root = ET.fromstring(response.content)
+            resource = root.find('.//{*}GetMap//{*}OnlineResource')
+            assert resource is not None
+            url = urlsplit(resource.attrib['{http://www.w3.org/1999/xlink}href'])
+            selected = {**selected, 'wms': url.path+'?'+url.query}
+            layer_name = root.findtext('.//{*}Layer/{*}Name')
+            assert layer_name is not None
+            params['LAYERS'] = layer_name
+            params.pop('TIME')  # The snapshot's advertised earliest time.
         return base, selected, params
 
     def test_b_wms_queue_bounds_preserve_other_bucket_and_control_requests(self):

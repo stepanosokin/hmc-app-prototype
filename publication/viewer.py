@@ -2,18 +2,23 @@
 
 import json
 import re
+import xml.etree.ElementTree as ET
+from urllib.parse import urlsplit
 from pathlib import Path
 
 import requests
 from flask import Flask, Response, request, send_from_directory
 
 VIEWER_CONFIG = Path('/viewer-config/viewer.json')
+ET.register_namespace('', 'http://www.opengis.net/wms')
+ET.register_namespace('xlink', 'http://www.w3.org/1999/xlink')
 
 
 def create_app() -> Flask:
     app = Flask('hmc-viewer', static_folder=None)
     source, runtime = Path('/viewer'), Path('/viewer-runtime')
     routes = (
+        re.compile(r'gis/v1/wms'),
         re.compile(r'api/v1/(?:catalogue|point)'),
         re.compile(r'ogc/collections/[0-9a-f.]+'),
         re.compile(r'gis/v1/runs/[A-Za-z0-9_.:/-]+/revisions/[0-9a-f]+(?:/fields/[0-9a-f]{64})?/wms'),
@@ -61,7 +66,17 @@ def create_app() -> Flask:
                         if size > 4 * 1024**2:
                             return Response('Ответ сервиса превышает допустимый размер.', status=502)
                         chunks.append(chunk)
-                    response = Response(b''.join(chunks), status=upstream.status_code,
+                    body = b''.join(chunks)
+                    if path == 'gis/v1/wms' and upstream.status_code == 200 and 'xml' in upstream.headers.get('Content-Type', ''):
+                        root = ET.fromstring(body)
+                        for node in root.iter():
+                            href = node.get('{http://www.w3.org/1999/xlink}href')
+                            if href:
+                                url = urlsplit(href)
+                                if url.path == '/gis/v1/wms':
+                                    node.set('{http://www.w3.org/1999/xlink}href', request.host_url.rstrip('/') + url.path + '?' + url.query)
+                        body = ET.tostring(root, encoding='utf-8', xml_declaration=True)
+                    response = Response(body, status=upstream.status_code,
                         content_type=upstream.headers.get('Content-Type', 'application/octet-stream'))
                     for name in ('X-Request-ID', 'Retry-After', 'X-HMC-Cache'):
                         if name in upstream.headers:
@@ -69,6 +84,8 @@ def create_app() -> Flask:
                     return response
             except requests.RequestException:
                 return Response('Сервис прогнозов временно недоступен.', status=503)
+            except ET.ParseError:
+                return Response('Некорректный каталог общего WMS.', status=502)
         if path in ('style.css', 'worker-projection.mjs'):
             return send_from_directory(source, path)
         if path in ('land.js', 'native-display.v1.json') or path.startswith(('vendor/', 'build/')):

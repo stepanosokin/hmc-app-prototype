@@ -170,8 +170,8 @@ def apply(saved: dict, target: str) -> dict:
                         cursor.execute('INSERT INTO app.revisions VALUES(%s,%s,%s,%s,%s,%s)',
                                        (manifest['revision'], manifest['run'], relative, checksum, row['published_at'], identifier))
                         cursor.execute('INSERT INTO app.retention_roots '
-                            '(root,manifest_path,event_clock,run,wms_revision,published_at,superseded_at,managed_bytes) '
-                            'SELECT %s,%s,event_clock,run,%s,published_at,superseded_at,%s '
+                            '(root,manifest_path,event_clock,run,wms_revision,published_at,superseded_at,managed_bytes,model) '
+                            'SELECT %s,%s,event_clock,run,%s,published_at,superseded_at,%s,model '
                             'FROM app.retention_roots WHERE root=%s',
                             (manifest['revision'], relative, manifest['revision'],
                              sum(asset['bytes'] for asset in assets.values()), previous))

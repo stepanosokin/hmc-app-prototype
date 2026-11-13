@@ -32,6 +32,10 @@ h1{font-size:16px;margin:0 0 8px;font-weight:600}h2{font-size:16px;margin:5px 0 
 .selection button{margin-top:8px;width:100%}.selection small{margin-top:5px;font-size:9px}
 .srOnly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 .fieldGroups{position:absolute;right:16px;top:16px;width:54px;z-index:7}
+#wmsQuickCopy{width:100%;margin-top:5px;padding:7px 2px;font-size:11px}
+#wmsQuickStatus{position:absolute;right:60px;bottom:0;width:220px;padding:8px;pointer-events:none}
+#wmsQuickStatus:empty{display:none}
+body:has(#drawer:not([hidden]):not(.pointMode)) #wmsQuickStatus{display:none}
 #fieldButtons{display:grid;gap:5px;overflow:auto;padding:3px;scrollbar-width:thin}
 #fieldButtons>button{height:48px;min-height:48px;width:100%;padding:8px;display:grid;place-items:center;color:inherit;background:rgba(22,44,58,.10);backdrop-filter:blur(6px)}
 #fieldButtons>button[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
@@ -152,7 +156,7 @@ dl{font-size:11px}dt{color:var(--muted);margin-top:6px}dd{margin:2px 0;overflow-
 .legendDock>.legend,.legendDock>.windPanel{position:static;width:100%;flex-shrink:0}
 .windPanel{padding:8px}.windControls{display:flex;align-items:center;gap:7px}.windControls>button{padding:7px;width:44px;height:44px;flex-shrink:0;background:rgba(22,44,58,.10)}.windControls>label{font-size:10px;min-width:0;flex:1}.windControls select{display:block;width:100%;min-width:0;font-size:10px;padding:4px;margin-top:4px}.windPanel small{font-size:9px;margin-top:5px;overflow-wrap:anywhere}.windPanel>button{font-size:10px;margin-top:6px;width:100%}.pointPlot{width:100%;min-width:0}.pointPlot svg{display:block;width:100%;height:auto;color:inherit}.realPointChart>small{font-size:9px;margin-top:6px}.windArrows{z-index:1}
 @media(max-width:700px),(max-height:600px) and (orientation:landscape){.legendDock{right:10px;width:184px;bottom:calc(var(--time-height,34px) + 75px);max-height:calc(100dvh - var(--time-height,34px) - 145px)}}
-@media(max-height:600px) and (orientation:landscape){.legendDock{left:270px;right:auto;bottom:calc(var(--time-height,34px) + 35px);width:190px;max-height:calc(100dvh - var(--time-height,34px) - 110px)}}
+@media(max-height:600px) and (orientation:landscape){.legendDock{left:270px;right:auto;top:110px;bottom:calc(var(--time-height,34px) + 35px);width:190px;max-height:none}main:has(#navigationPanel[open]) .legendDock{top:170px}}
 @media(max-width:700px),(max-height:600px) and (orientation:landscape){.drawer.pointMode{z-index:10;height:min(60dvh,480px)}}
 @media(max-height:600px) and (orientation:landscape){.drawer.pointMode{height:auto;bottom:calc(var(--time-height,34px) + 31px);width:min(360px,calc(100vw - 300px))}}
 .coastline{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}

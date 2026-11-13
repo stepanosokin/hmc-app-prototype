@@ -25,6 +25,7 @@ from publication import budgets
 from publication import numerical
 from publication import native_display
 from publication import wms as wms_options
+from publication import common_wms
 from publication.process_channel import ProcessChannel
 from publication.tile_cache import TileCache
 from publication.limited import run as limited_work, WorkLimit, request_deadline
@@ -166,23 +167,27 @@ def create_app() -> Flask:
 
     @app.errorhandler(retention.ExpiredSelection)
     def expired(error):
-        return jsonify(code='Expired', description='published selection expired'), 410
+        return jsonify(code='Expired', description='Публикация снята или срок её хранения истёк.'
+                       if request.path == '/gis/v1/wms' else 'published selection expired'), 410
 
     @app.errorhandler(KeyError)
     def unavailable(error):
-        return jsonify(code='NotFound', description='unavailable published selection'), 404
+        return jsonify(code='NotFound', description='Слой или точный срок отсутствует в закреплённом каталоге.'
+                       if request.path == '/gis/v1/wms' else 'unavailable published selection'), 404
 
     @app.errorhandler(ValueError)
     @app.errorhandler(ValidationError)
     def invalid(error):
-        return jsonify(code='InvalidParameterValue', description=str(error)[:200]), 400
+        return jsonify(code='InvalidParameterValue', description='Недопустимые параметры общего WMS.'
+                       if request.path == '/gis/v1/wms' else str(error)[:200]), 400
 
     @app.errorhandler(requests.RequestException)
     @app.errorhandler(PublicationUnavailable)
     @app.errorhandler(pg8000.dbapi.Error)
     @app.errorhandler(OSError)
     def upstream(error):
-        response = jsonify(code='Unavailable', description='published service temporarily unavailable')
+        response = jsonify(code='Unavailable', description='Сервис опубликованных данных временно недоступен.'
+                           if request.path == '/gis/v1/wms' else 'published service temporarily unavailable')
         response.status_code = 503
         response.headers['Retry-After'] = '2'
         response.headers['Cache-Control'] = 'no-store'
@@ -497,9 +502,84 @@ def create_app() -> Flask:
         response.headers['Cache-Control'] = 'no-store'
         return response
 
+    @app.get('/gis/v1/wms')
+    def shared_wms():
+        params = {key.upper(): value for key, value in request.args.items()}
+        if len(params) != len(request.args) or any(len(request.args.getlist(key)) != 1 for key in request.args):
+            raise ValueError('Повторяющийся параметр WMS.')
+        token = params.pop('SNAPSHOT', None)
+        params.setdefault('SERVICE', 'WMS')
+        params.setdefault('VERSION', '1.3.0')
+        params.setdefault('REQUEST', 'GetCapabilities')
+        if params['REQUEST'] != 'GetCapabilities' and token is None:
+            raise ValueError('Получите общую ссылку закреплённого каталога WMS в приложении.')
+        token, manifests = common_wms.snapshot(token)
+        fields: dict[str, list[dict]] = {}
+        for manifest in manifests:
+            if manifest['source'].get('field_descriptor', {}).get('wind_axis'):
+                continue
+            fields.setdefault(common_wms.name(manifest), []).append(manifest)
+        prefix = request.headers.get('X-Publication-Prefix', '')
+        if not prefix.startswith('http'):
+            prefix = request.headers.get('X-Publication-Origin', '') + prefix
+        operation_url = prefix + '/gis/v1/wms?snapshot=' + token + '&'
+        if params['REQUEST'] != 'GetCapabilities':
+            key = params.get('LAYER') if params['REQUEST'] == 'GetLegendGraphic' else params.get('LAYERS')
+            if key not in fields:
+                raise KeyError('Неизвестный слой общего WMS.')
+            return shared_field(fields[key][0], params, key, operation_url)
+        if set(params) != {'SERVICE', 'VERSION', 'REQUEST'} or params['SERVICE'] != 'WMS' or params['VERSION'] != '1.3.0':
+            raise ValueError('Поддерживается GetCapabilities WMS 1.3.0 без фильтра слоёв.')
+        ns = '{http://www.opengis.net/wms}'
+        root = None
+        model_nodes: dict[str, ET.Element] = {}
+        for key, choices in fields.items():
+            manifest = choices[0]
+            response = shared_field(manifest, params, key, operation_url)
+            tree = ET.fromstring(response.get_data())
+            leaf = tree.find('.//' + ns + 'Layer[' + ns + 'Name]')
+            if leaf is None:
+                raise PublicationUnavailable('WMS layer metadata unavailable')
+            abstract = leaf.find(ns + 'Abstract')
+            if abstract is None:
+                abstract = ET.SubElement(leaf, ns + 'Abstract')
+            abstract.text = ('Расчёт: ' + manifest['identity']['run'] + '; редакция: ' + manifest['identity']['revision']
+                             + '; сроки: ' + ', '.join(sorted(m['identity']['valid_time'] for m in choices)))
+            if root is None:
+                root = tree
+                capability = root.find(ns + 'Capability')
+                assert capability is not None
+                old = capability.find(ns + 'Layer')
+                if old is not None:
+                    capability.remove(old)
+                parent = ET.SubElement(capability, ns + 'Layer')
+                ET.SubElement(parent, ns + 'Title').text = 'Метеорология'
+                for crs in ('EPSG:4326', 'EPSG:3857'):
+                    ET.SubElement(parent, ns + 'CRS').text = crs
+            model = manifest['identity']['model']
+            if model not in model_nodes:
+                model_nodes[model] = ET.SubElement(parent, ns + 'Layer')
+                ET.SubElement(model_nodes[model], ns + 'Title').text = model
+            model_nodes[model].append(leaf)
+        if root is None:
+            raise KeyError('Нет доступных публикаций общего WMS.')
+        operations = root.find('.//' + ns + 'Request')
+        assert operations is not None
+        legend = ET.SubElement(operations, '{http://www.opengis.net/sld}GetLegendGraphic')
+        ET.SubElement(legend, ns + 'Format').text = 'image/png'
+        get = ET.SubElement(ET.SubElement(ET.SubElement(legend, ns + 'DCPType'), ns + 'HTTP'), ns + 'Get')
+        ET.SubElement(get, ns + 'OnlineResource', {'{http://www.w3.org/1999/xlink}href': operation_url})
+        return Response(ET.tostring(root, encoding='utf-8', xml_declaration=True), content_type='application/xml')
+
+    def shared_field(manifest, params, layer_name, operation_url):
+        identity = manifest['identity']
+        field_id = identity['field'].removeprefix('GRIB2:') if manifest['source'].get('field_profile') else None
+        return wms(identity['run'], identity['revision'], field_id, params, layer_name, operation_url,
+                   common_wms.title(manifest))
+
     @app.get('/gis/v1/runs/<path:run_id>/revisions/<revision>/wms')
     @app.get('/gis/v1/runs/<path:run_id>/revisions/<revision>/fields/<field_id>/wms')
-    def wms(run_id, revision, field_id=None):
+    def wms(run_id, revision, field_id=None, supplied=None, public_name=None, operation_url=None, title=None):
         _, _, retained = retention.snapshot()
         matches = [row for row in retained if row['run'] == run_id and row['wms_revision'] == revision]
         if matches and all(row['state'] == 'expired' for row in matches):
@@ -520,8 +600,8 @@ def create_app() -> Flask:
         if not candidates:
             raise KeyError('GIS selection')
         # Normalize case, then reject duplicate and arbitrary pass-through options.
-        params = {key.upper(): value for key, value in request.args.items()}
-        if len(params) != len(request.args) or any(len(request.args.getlist(key)) != 1 for key in request.args):
+        params = dict(supplied) if supplied is not None else {key.upper(): value for key, value in request.args.items()}
+        if supplied is None and (len(params) != len(request.args) or any(len(request.args.getlist(key)) != 1 for key in request.args)):
             raise ValueError('repeated WMS parameter')
         map_limit = min(wms_options.MAX_MAP_SIZE, int(request.headers.get('X-HMC-WMS-Dimension', str(wms_options.MAX_MAP_SIZE))))
         params = wms_options.normalize(params, map_limit)
@@ -540,7 +620,7 @@ def create_app() -> Flask:
         manifest = resolve(chosen[0]['selection'])
         g.identity = manifest['identity']
         gis = manifest['gis']
-        layer_name='field' if manifest['source'].get('field_profile') else 'temperature'
+        layer_name=public_name or ('field' if manifest['source'].get('field_profile') else 'temperature')
         if params.get('SERVICE') != 'WMS' or params.get('VERSION') != '1.3.0':
             raise ValueError('WMS 1.3.0 required')
         allowed = {'SERVICE', 'VERSION', 'REQUEST'}
@@ -594,7 +674,7 @@ def create_app() -> Flask:
         payload = result.content
         if operation == 'GetCapabilities':
             root = ET.fromstring(payload)
-            scoped = links(manifest)['wms'] + '?'
+            scoped = operation_url or links(manifest)['wms'] + '?'
             namespace = '{http://www.opengis.net/wms}'
             service = root.find(namespace+'Service')
             if service is not None:
@@ -633,11 +713,18 @@ def create_app() -> Flask:
                     node.text = layer_name
                 if node.tag == namespace+'Title' and node.text == gis['coverage']:
                     descriptor=manifest['source'].get('field_descriptor',{})
-                    node.text = descriptor.get('label','Температура поверхности')+', '+descriptor.get('units','K')
+                    node.text = title or descriptor.get('label','Температура поверхности')+', '+descriptor.get('units','K')
+            if title:
+                for node in root.findall('.//' + namespace + 'Style/' + namespace + 'Title'):
+                    node.text = title
             for node in root.findall('.//' + namespace + 'LegendURL/' + namespace + 'OnlineResource'):
                 node.set('{http://www.w3.org/1999/xlink}href', scoped +
                          'SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&LAYER='+layer_name+'&STYLE=raster&FORMAT=image/png')
             payload = ET.tostring(root, encoding='utf-8', xml_declaration=True)
+        if public_name and operation == 'GetFeatureInfo':
+            payload += ('\nМодель: ' + manifest['identity']['model'] + '\nРасчёт: ' + run_id
+                        + '\nРедакция: ' + revision + '\nСрок: ' + manifest['identity']['valid_time']
+                        + '\nЕдиницы: ' + manifest['source'].get('field_descriptor', {}).get('units', 'K') + '\n').encode()
         response = Response(payload, content_type=result.headers.get('Content-Type', 'application/xml'))
         response.headers['Cache-Control'] = 'private, no-cache'
         response.set_etag(hashlib.sha256(json.dumps({'run': run_id, 'revision': revision,

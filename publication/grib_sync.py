@@ -208,8 +208,8 @@ def apply(saved: dict, directory: Path, target: str, source_directories: list[st
                         # A historical leftover keeps its place in publication
                         # order and its original retention deadlines.
                         cursor.execute('INSERT INTO app.retention_roots '
-                            '(root,manifest_path,event_clock,run,wms_revision,published_at,superseded_at,managed_bytes) '
-                            'SELECT %s,%s,event_clock,run,%s,published_at,superseded_at,%s '
+                            '(root,manifest_path,event_clock,run,wms_revision,published_at,superseded_at,managed_bytes,model) '
+                            'SELECT %s,%s,event_clock,run,%s,published_at,superseded_at,%s,model '
                             'FROM app.retention_roots WHERE root=%s',
                             (manifest['revision'], relative, manifest['revision'],
                              sum(item['bytes'] for item in assets.values()), action['root']))

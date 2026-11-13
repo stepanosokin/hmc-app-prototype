@@ -24,6 +24,7 @@ from publication.limited import WorkLimit, request_deadline
 from publication.process_channel import ProcessChannel
 
 ROUTES = (
+    re.compile(r'gis/v1/wms'),
     re.compile(r'api/v1/(?:catalogue|point|modules|models|runs|revisions|openapi\.json)'),
     re.compile(r'ogc(?:/(?:conformance|collections(?:/[0-9a-f.]+(?:/position)?)?))?'),
     re.compile(r'api/v1/jobs/[0-9a-f-]{36}'),
@@ -243,6 +244,7 @@ def create_app() -> Flask:
             upstream = forward_work({'url': 'http://api:8000/' + upstream_path,
                                    'params': list(request.args.items(multi=True)),
                                    'headers': {'X-Publication-Prefix': origin + ('/org' if protected else ''),
+                                               'X-Publication-Origin': origin or request.host_url.rstrip('/'),
                                                'X-HMC-Request-ID': g.event['request_id'],
                                                'X-HMC-WMS-Dimension': str(min(wms.MAX_MAP_SIZE, limits.dimension)),
                                                'X-HMC-Deadline': str(time.time() + remaining - 0.25)},

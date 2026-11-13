@@ -93,6 +93,7 @@ def migrate() -> None:
         cursor.execute('INSERT INTO app.retention_policy VALUES(true,%s) ON CONFLICT DO NOTHING',
                        (json.dumps(policy(clock=os.environ.get('PUBLICATION_CLOCK'))),))
         cursor.execute('ALTER TABLE app.retention_roots ADD COLUMN IF NOT EXISTS cleanup_after timestamptz')
+        cursor.execute('ALTER TABLE app.retention_roots ADD COLUMN IF NOT EXISTS model text')
         cursor.execute('GRANT SELECT ON app.retention_policy,app.retention_roots TO hmc_api')
         cursor.execute('SELECT * FROM app.revisions ORDER BY published_at,revision')
         revisions = cursor.fetchall()
@@ -100,16 +101,31 @@ def migrate() -> None:
         legacy = cursor.fetchall()
         cursor.execute('SELECT root FROM app.retention_roots')
         existing = {row['root'] for row in cursor.fetchall()}
-    from publication.revisions import load_revision
+        cursor.execute('SELECT root FROM app.retention_roots WHERE model IS NULL')
+        missing_models = {row['root'] for row in cursor.fetchall()}
+    from publication.revisions import load_revision, fixture_run
+    from decoder.storage import RUN
     from publication.domain import load_manifest
     for row in sorted(revisions + legacy, key=lambda row: (instant(row['published_at']),
                                                           row.get('revision', row.get('selection')))):
         root = row.get('revision', row.get('selection'))
-        if root in existing:
+        if root in existing and root not in missing_models:
             continue
         manifest = (load_revision if 'revision' in row else load_manifest)(row['manifest_path'], row['manifest_sha256'])
         with database() as cursor:
-            register(cursor, root, manifest, row['manifest_path'], row['published_at'])
+            if root in existing:
+                batch = load_manifest(manifest['batches'][0]['manifest_path'], manifest['batches'][0]['manifest_sha256']) if 'batches' in manifest else manifest
+                cursor.execute('UPDATE app.retention_roots SET model=%s WHERE root=%s', (batch['identity']['model'], root))
+            else:
+                register(cursor, root, manifest, row['manifest_path'], row['published_at'])
+    # GC deliberately preserves tombstones after removing catalogue/manifests.
+    # Historical producers encoded the model in the run prefix; the explicit
+    # overlap fixture is their one documented exception (same ICON model).
+    with database() as cursor:
+        cursor.execute('SELECT root,run FROM app.retention_roots WHERE model IS NULL')
+        for row in cursor.fetchall():
+            model = (RUN if row['run'] == fixture_run('overlap') else row['run']).rsplit('/', 1)[0]
+            cursor.execute('UPDATE app.retention_roots SET model=%s WHERE root=%s', (model, row['root']))
 
 
 def register(cursor, root: str, manifest: dict, manifest_path: str, published_at=None) -> None:
@@ -119,16 +135,18 @@ def register(cursor, root: str, manifest: dict, manifest_path: str, published_at
     assets = dict(manifest.get('assets', {}))
     for batch in manifest.get('batches', []):
         assets.update(load_manifest(batch['manifest_path'], batch['manifest_sha256'])['assets'])
+    first = manifest.get('batches', [None])[0]
+    model = (load_manifest(first['manifest_path'], first['manifest_sha256']) if first else manifest)['identity']['model']
     cursor.execute('SELECT configuration FROM app.retention_policy WHERE singleton')
     configuration = cursor.fetchone()['configuration']
     cursor.execute('SELECT clock_timestamp() AS clock')
     observed = cursor.fetchone()['clock']
     event_clock = published_at or configuration.get('clock') or observed
-    cursor.execute('INSERT INTO app.retention_roots(root,manifest_path,event_clock,run,wms_revision,published_at,managed_bytes) '
-                   'VALUES(%s,%s,%s,%s,%s,%s,%s)',
+    cursor.execute('INSERT INTO app.retention_roots(root,manifest_path,event_clock,run,wms_revision,published_at,managed_bytes,model) '
+                   'VALUES(%s,%s,%s,%s,%s,%s,%s,%s)',
                    (root, manifest_path, event_clock, run, manifest.get('revision') or manifest['identity']['revision'],
                     published_at or observed,
-                    sum(item['bytes'] for item in assets.values())))
+                    sum(item['bytes'] for item in assets.values()), model))
     # Wall publication chronology and the explicit policy clock are separate.
     # Late adoption of older rows must never supersede a newer current root.
     cursor.execute('SELECT root,superseded_at,event_clock FROM app.retention_roots '

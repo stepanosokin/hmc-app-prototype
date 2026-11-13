@@ -3,7 +3,8 @@ param(
     [int]$Port = 8111,
     [ValidateSet('Prepare','Complete')][string]$Phase = 'Prepare',
     [switch]$Development,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$CommonWms
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'process.ps1')
@@ -37,7 +38,7 @@ if ($Phase -eq 'Prepare') {
     try { $listener.Start() } finally { $listener.Stop() }
     New-Item -ItemType Directory -Force $directory,$secretDirectory | Out-Null
     $ownsProject = $true
-    @{project=$Project;port=$Port;development=[bool]$Development} | ConvertTo-Json |
+    @{project=$Project;port=$Port;development=[bool]$Development;common_wms=[bool]$CommonWms} | ConvertTo-Json |
         Set-Content -Encoding ascii (Join-Path $directory 'run-state.json')
     $lines = @('GEOSERVER_ADMIN_USER=t11operator')
     foreach ($name in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAIC_PASSWORD','GEOSERVER_ADMIN_PASSWORD','GATEWAY_PASSWORD')) {
@@ -68,6 +69,12 @@ if ($Phase -eq 'Prepare') {
         Check t5 @('run','--rm','--env','T5_HTTP=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_publication_revisions.py','-v')
     }
     Check wms @('run','--rm','--env','T11_HTTP=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_publication_qgis.py','-v')
+    if ($CommonWms) {
+        Check common-wms @('run','--rm','--env','T11_HTTP=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_common_wms.py','-v')
+        foreach ($selection in @('test_b_wms','test_c_wms')) {
+            Check $selection @('run','--rm','--env','T9_HTTP=1','--env','T106_WMS=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_publication_budgets.py','-k',$selection,'-v')
+        }
+    }
     Check access-regression @('run','--rm','--env','T8_HTTP=1','--entrypoint','python','check',
         '-m','unittest','discover','-s','tests','-p','test_publication_access.py','-k','policies','-v')
     Check desktop-key @('run','--rm','--volume',"${secretDirectory}:/secrets",'--entrypoint','python','worker',
@@ -77,7 +84,7 @@ if ($Phase -eq 'Prepare') {
     Write-Output "Desktop gate pending. Run publication/qgis_desktop.py in QGIS with config: $secretDirectory/desktop.json"
 } else {
     $state = Get-Content -Raw (Join-Path $directory 'run-state.json') | ConvertFrom-Json
-    if ($state.project -ne $Project -or $state.port -ne $Port -or $state.development -ne [bool]$Development) {
+    if ($state.project -ne $Project -or $state.port -ne $Port -or $state.development -ne [bool]$Development -or [bool]$state.common_wms -ne [bool]$CommonWms) {
         throw 'Complete must use the original project, port and mode'
     }
     $ownsProject = $true
@@ -92,6 +99,11 @@ if ($Phase -eq 'Prepare') {
         -not $desktop.negative_fragment_rejected) { throw 'Cold WMS coverage matrix has not passed on the frozen inputs' }
     $http = Get-Content -Raw -Encoding UTF8 (Join-Path $directory 't11-http.json') | ConvertFrom-Json
     if ($desktop.selected.selection -ne $http.selection.selection) { throw 'Desktop evidence belongs to another selection' }
+    if ($CommonWms) {
+        $commonDesktop = Get-Content -Raw -Encoding UTF8 (Join-Path $directory 'common-desktop.json') | ConvertFrom-Json
+        if ($commonDesktop.status -ne 'passed' -or $commonDesktop.qgis_version -ne '3.44.11-Solothurn' -or
+            $commonDesktop.input_inventory_sha256 -ne $desktop.input_inventory_sha256) { throw 'Ordinary common-WMS desktop gate has not passed on frozen inputs' }
+    }
     Check restart @('restart','api','gateway','geoserver')
     Check restart-readiness @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions','--ready-only')
     if (-not $Development) {
@@ -100,6 +112,10 @@ if ($Phase -eq 'Prepare') {
     Check wms-restart @('run','--rm','--env','T11_HTTP=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_publication_qgis.py','-v')
     Check full-suite @('run','--rm','--env','T4_HTTP=1','check')
     Check runtime @('run','--rm','--entrypoint','python','check','-m','publication.runtime')
+    if ($CommonWms) {
+        Check common-wms-restart @('run','--rm','--env','T11_HTTP=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_common_wms.py','-v')
+        Check common-wms-lifecycle @('run','--rm','--env','T11_HTTP=1','--env','T106_LIFECYCLE=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_common_wms.py','-k','retained_catalogue','-v')
+    }
     Check service-logs @('logs','--no-color','api','gateway','geoserver','db') | Out-Null
     $base = (Get-Content -Raw (Join-Path $directory 'inputs-start.json') | ConvertFrom-Json).base_commit
     Check inputs-end @('run','--rm','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check',

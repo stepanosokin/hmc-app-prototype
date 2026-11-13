@@ -12,17 +12,48 @@ export interface SourceDescription {
 }
 type State='loading'|'ready'|'missing'|'error'|'expired'|'withdrawn';
 const element=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
-/** The public links always describe the requested selection, never a retained frame. */
+/** WMS pins the latest catalogue; point/metadata describe the selected forecast. */
 export class SourceSettings {
+    private wms='';
+    private wmsLoad:Promise<string>|undefined;
+    private status(text:string){
+        element('copyStatus').textContent=text;
+        element('wmsQuickStatus').textContent=text;
+    }
+    private async loadWms(fresh=false):Promise<string>{
+        if(this.wms&&!fresh)return this.wms;
+        if(!this.wmsLoad)this.wmsLoad=(async()=>{
+            const response=await fetch('/gis/v1/wms?SERVICE=WMS&REQUEST=GetCapabilities');
+            if(!response.ok)throw Error('Общий WMS временно недоступен. Повторите копирование.');
+            const xml=new DOMParser().parseFromString(await response.text(),'application/xml');
+            const resource=xml.querySelector('Request > GetCapabilities OnlineResource');
+            const href=resource?.getAttributeNS('http://www.w3.org/1999/xlink','href');
+            if(!href)throw Error('Не удалось получить общую ссылку WMS.');
+            const url=new URL(href,location.origin);
+            if(url.origin!==location.origin||url.pathname!=='/gis/v1/wms'||!url.searchParams.has('snapshot'))throw Error('Некорректная общая ссылка WMS.');
+            // Keep only the advertised immutable reference, suitable for QGIS' URL field.
+            url.search=new URLSearchParams({snapshot:url.searchParams.get('snapshot')!}).toString();
+            this.wms=url.href;
+            const input=element<HTMLInputElement>('wmsUrl'),link=element<HTMLAnchorElement>('wmsLink');
+            input.value=this.wms;input.disabled=false;link.href=this.wms;link.setAttribute('aria-disabled','false');
+            for(const id of ['wmsCopy','wmsQuickCopy'])element<HTMLButtonElement>(id).disabled=false;
+            return this.wms;
+        })();
+        try{return await this.wmsLoad;}finally{this.wmsLoad=undefined;}
+    }
     constructor(){
         for(const kind of ['wms','api']){
             element(kind+'Copy').onclick=async()=>{
-                const input=element<HTMLInputElement>(kind+'Url'),url=input.value;
-                element('copyStatus').textContent='';
-                try{await navigator.clipboard.writeText(url);if(input.value===url)element('copyStatus').textContent='Адрес скопирован.';}
-                catch{if(input.value===url){input.focus();input.select();element('copyStatus').textContent='Выделите и скопируйте адрес вручную.';}}
+                const input=element<HTMLInputElement>(kind+'Url');
+                this.status(kind==='wms'?'Получение общей ссылки WMS…':'');
+                let url=input.value;
+                try{if(kind==='wms')url=await this.loadWms(true);}
+                catch{this.status('Не удалось получить общую ссылку WMS. Повторите копирование.');return;}
+                try{await navigator.clipboard.writeText(url);if(input.value===url)this.status('Адрес скопирован.');}
+                catch{if(input.value===url){if(element('drawer').hidden)element<HTMLButtonElement>('settings').click();input.focus();input.select();this.status('Выделите и скопируйте адрес вручную.');}}
             };
         }
+        element('wmsQuickCopy').onclick=()=>element<HTMLButtonElement>('wmsCopy').click();
     }
     update(group:PublishedGroup,index:number,current:Selection|undefined,position:Position|undefined,
         description:SourceDescription|undefined,state:State,shown:Selection|undefined,
@@ -31,7 +62,7 @@ export class SourceSettings {
         const units=displaySpec(source,temperatureUnit).unit;
         const title=fieldPresentation(source).label;
         element('sourceDescription').textContent=source.model+' · '+title+'. '+(source.wind_v?'Карта: частицы по потоку U/V и цветная скорость ветра. Ряд точки: компонента U ветра.':'Значение точки — ближайшая нативная ячейка; отображение — билинейная интерполяция.');
-        element('sourceUnitsInfo').textContent='Публичные демонстрационные ссылки. WMS закреплён за расчётом и редакцией; API — за точным сроком UTC и точкой. Единицы отображения: '+units+'.';
+        element('sourceUnitsInfo').textContent='Общий WMS содержит последние опубликованные расчёты. Выберите указанный слой в группе модели. Ссылка закрепляет каталог при получении. Для нового прогноза скопируйте новую ссылку, замените URL подключения QGIS и добавьте слой заново. API — за выбранным сроком и точкой. Единицы отображения: '+units+'.';
         const matching=current&&description?.identity?.revision===current.revision&&description.identity.valid_time===current.valid_time?description:undefined;
         const complete=source.completeness==='complete'?'полный':source.completeness==='partial'?'неполный':'неизвестна';
         const unavailable=state==='expired'||state==='withdrawn';
@@ -49,9 +80,10 @@ export class SourceSettings {
         const nodes:HTMLElement[]=[];
         for(const [label,value] of rows){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;nodes.push(dt,dd);}
         element('metadata').replaceChildren(...nodes);
-        element('linkSelection').textContent=source.model+' · '+format(referenceTime(source.run))+' · редакция '+source.revision.slice(0,12);
-        let wms='',api='';
-        if(!unavailable&&source.wms){const url=new URL(source.wms,location.origin);url.search=new URLSearchParams({SERVICE:'WMS',VERSION:'1.3.0',REQUEST:'GetCapabilities'}).toString();wms=url.href;}
+        element('linkSelection').textContent='Модель: '+source.model+' · Слой: '+title+', '+source.units;
+        let api='';
+        const wms=this.wms;
+        if(!wms&&!this.wmsLoad)void this.loadWms().catch(()=>this.status('Не удалось получить общую ссылку WMS. Повторите копирование.'));
         // Default sample uses the published native coverage, converted to geographic coordinates.
         const sample=bounds?nativePosition(matching?.source_crs,[(bounds[0]+bounds[2])/2,(bounds[1]+bounds[3])/2],true):undefined;
         const point=position??(sample?{lng:sample[0],lat:sample[1]}:undefined);
@@ -69,6 +101,8 @@ export class SourceSettings {
             input.value=url;input.disabled=!url;element<HTMLButtonElement>(kind+'Copy').disabled=!url;
             if(url)link.href=url;else link.removeAttribute('href');link.setAttribute('aria-disabled',String(!url));
         }
+        // Discovery can be retried even when the first request failed.
+        for(const id of ['wmsCopy','wmsQuickCopy'])element<HTMLButtonElement>(id).disabled=false;
         const technical=element<HTMLAnchorElement>('metadataLink');
         if(current&&!unavailable)technical.href=new URL(current.collection,location.origin).href;else technical.removeAttribute('href');
         technical.hidden=!current||unavailable;

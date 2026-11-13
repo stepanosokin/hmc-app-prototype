@@ -274,20 +274,21 @@ try{
         await wait("window.captureWeatherEvidence().mode==='orthographic'&&window.captureWeatherEvidence().ready",'globe');
         if(mobile)await click('#forecastPanel>summary');
         // Real mouse drag; the renderer must keep updating before pointerup.
-        const beforeDrag=await capture(true);const sx=width*.6,sy=height*.48;
+        const dragPoint=await nativePointPixel(evaluate);assert.ok(dragPoint,'Unobstructed map point for trusted drag');
+        const beforeDrag=await capture(true);const sx=dragPoint.x,sy=dragPoint.y,step=sx>=70?-3:3;
         const dragStart=await evaluate('performance.now()');
         if(android)await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:sx,y:sy,id:1}]});
         else await call('Input.dispatchMouseEvent',{type:'mousePressed',x:sx,y:sy,button:'left',clickCount:1});
         for(let i=1;i<=20;i++){
-            if(android)await call('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:sx-i*3,y:sy,id:1}]});
-            else await call('Input.dispatchMouseEvent',{type:'mouseMoved',x:sx-i*3,y:sy,button:'left',buttons:1});await delay(8);}
+            if(android)await call('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:sx+i*step,y:sy,id:1}]});
+            else await call('Input.dispatchMouseEvent',{type:'mouseMoved',x:sx+i*step,y:sy,button:'left',buttons:1});await delay(8);}
         const duringDrag=await capture(true);assert.notDeepEqual(duringDrag.view.center,beforeDrag.view.center,'Continuous globe rotation');
         const times=duringDrag.render_times_ms.filter(t=>t>=dragStart),intervals=times.slice(1).map((t,i)=>t-times[i]).sort((a,b)=>a-b);
         assert.ok(intervals.length>=5,'Multiple actual render events during trusted drag');
         viewport.trusted_drag_frame_p95_ms=intervals[Math.floor(intervals.length*.95)];
         viewport.frame_scope=android?'Map render intervals during trusted touch on physical Android':'Map render intervals during trusted desktop mouse input; emulated mobile uses desktop GPU';
         if(android)await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-        else await call('Input.dispatchMouseEvent',{type:'mouseReleased',x:sx-60,y:sy,button:'left',clickCount:1});
+        else await call('Input.dispatchMouseEvent',{type:'mouseReleased',x:sx+20*step,y:sy,button:'left',clickCount:1});
         await delay(1000);viewport.views.push((await capture(true)).view);
         if(android){
             const beforePinch=(await capture(true)).view,x=width*.5,y=height*.45;

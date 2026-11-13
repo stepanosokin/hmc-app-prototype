@@ -7,22 +7,22 @@ import {nativePointPixel} from './viewer-fields.mjs';
 export async function checkSourceSettings({call,evaluate,wait,click,select,capture,report,directory,width,height,origin}){
     const ready=()=>wait('window.captureWeatherEvidence().ready','settings field ready');
     const links=()=>evaluate(`(()=>{const by=id=>document.getElementById(id);return {wms:by('wmsLink').getAttribute('href'),api:by('apiLink').getAttribute('href'),technical:by('metadataLink').getAttribute('href'),text:by('metadata').textContent,rows:by('metadata').querySelectorAll('dt').length,point:by('linkPoint').textContent};})()`);
-    await click('#settings');let current=await capture(),value=await links();
+    await click('#settings');await wait("Boolean(document.getElementById('wmsUrl').value)",'common WMS link ready');let current=await capture(),value=await links();
     assert.ok(value.wms&&value.api&&value.technical,'Settings expose real WMS/API/metadata links');
     assert.match(value.point,/Пример — центр покрытия/);assert.ok(value.rows>=10&&value.text.length<2000);
     assert.ok(!value.text.includes('"dimensions"')&&!value.text.includes('"links"'),'No raw JSON dump');
     const checkIdentity=(value,state)=>{
         const wms=new URL(value.wms),api=new URL(value.api);
         assert.equal(wms.origin,origin);assert.equal(api.origin,origin);
-        assert.ok(decodeURIComponent(wms.pathname).includes('/runs/'+state.selected.run+'/revisions/'+state.selected.revision+'/')&&decodeURIComponent(wms.pathname).endsWith('/wms'));
-        assert.equal(wms.searchParams.get('REQUEST'),'GetCapabilities');
+        assert.equal(wms.pathname,'/gis/v1/wms');assert.ok(wms.searchParams.get('snapshot'));
+        assert.equal(wms.searchParams.size,1);
         for(const key of ['selection','run','revision','valid_time'])assert.equal(api.searchParams.get(key),state.selected[key]);
         assert.ok(!/[?&](?:key|token|api_key)=/i.test(value.wms+value.api));
     };
     checkIdentity(value,current);
     const endpoint=await evaluate(`(async()=>{const wms=await fetch(document.getElementById('wmsLink').href),xml=await wms.text(),api=await fetch(document.getElementById('apiLink').href),point=await api.json(),metadata=await fetch(document.getElementById('metadataLink').href);
         const documentXml=new DOMParser().parseFromString(xml,'application/xml'),name=[...documentXml.querySelectorAll('Layer > Name')].at(-1)?.textContent;
-        const map=new URL(document.getElementById('wmsLink').href);map.search=new URLSearchParams({SERVICE:'WMS',VERSION:'1.3.0',REQUEST:'GetMap',LAYERS:name,STYLES:'',CRS:'EPSG:4326',BBOX:'45,15,55,25',WIDTH:'8',HEIGHT:'8',FORMAT:'image/png',TIME:point.valid_time});const image=await fetch(map);
+        const map=new URL(document.getElementById('wmsLink').href);for(const [k,v] of Object.entries({SERVICE:'WMS',VERSION:'1.3.0',REQUEST:'GetMap',LAYERS:name,STYLES:'',CRS:'EPSG:4326',BBOX:'45,15,55,25',WIDTH:'8',HEIGHT:'8',FORMAT:'image/png',TIME:point.valid_time}))map.searchParams.set(k,v);const image=await fetch(map);
         return {wms:wms.status,xml:xml.includes('WMS_Capabilities'),api:api.status,point,metadata:metadata.status,map:image.status,map_type:image.headers.get('Content-Type')};})()`);
     assert.equal(endpoint.wms,200);assert.ok(endpoint.xml);assert.equal(endpoint.api,200);assert.notEqual(endpoint.point.value,null);assert.equal(endpoint.metadata,200);assert.equal(endpoint.map,200);assert.match(endpoint.map_type,/image\/png/);
     await call('Browser.setPermission',{permission:{name:'clipboard-read'},setting:'granted',origin});
@@ -30,6 +30,11 @@ export async function checkSourceSettings({call,evaluate,wait,click,select,captu
         await click('#'+kind+'Copy');await wait("document.getElementById('copyStatus').textContent==='Адрес скопирован.'",'URL copied');
         assert.equal(await evaluate('navigator.clipboard.readText()'),value[kind]);
     }
+    await click('#closeDrawer');await click('#wmsQuickCopy');
+    await wait("document.getElementById('wmsQuickStatus').textContent==='Адрес скопирован.'",'quick common WMS copied');
+    assert.equal(await evaluate('navigator.clipboard.readText()'),value.wms);
+    await click('#settings');
+    assert.match(await evaluate("document.getElementById('sourceUnitsInfo').textContent"),/Общий WMS содержит последние опубликованные расчёты/);
     const item={width,height,initial:value,endpoints:{wms:endpoint.wms,api:endpoint.api,metadata:endpoint.metadata,map:endpoint.map,map_type:endpoint.map_type},clipboard:true};
     const gap=await evaluate("[...document.querySelectorAll('#time option')].findIndex(o=>o.textContent.includes('отсутствует'))");
     if(gap>=0){
@@ -38,6 +43,8 @@ export async function checkSourceSettings({call,evaluate,wait,click,select,captu
     }
     await select('#time',true,2);await ready();value=await links();checkIdentity(value,await capture());
     await click('#settings');await select('#run',false,0);await ready();await click('#settings');value=await links();checkIdentity(value,await capture());
+    assert.equal(value.wms,item.initial.wms,'Viewing an older run preserves the same latest-catalogue link');
+    assert.match(await evaluate("document.getElementById('linkSelection').textContent"),/Модель:.*Слой:/);
     await select('#run',true,0);await ready();await click('#settings');
     // A chosen point, rather than the default sample, supplies API coordinates.
     await click('#closeDrawer');
@@ -73,8 +80,8 @@ export async function checkSourceSettings({call,evaluate,wait,click,select,captu
         await evaluate('window.fetch=window.__settingsOriginalFetch');await click('#retry');await ready();
         await evaluate("window.fetch=async(input,options)=>String(input).endsWith('/native.json')?new Response('{}',{status:410}):window.__settingsOriginalFetch(input,options)");
         await select('#time',true,0);await wait("window.captureWeatherEvidence().time_state==='expired'",'settings publication expiry');
-        value=await links();assert.equal(value.api,null);assert.equal(value.wms,null);assert.equal(value.technical,null);
+        value=await links();assert.equal(value.api,null);assert.ok(value.wms);assert.equal(value.technical,null);
         item.loading_error_expiry=true;
     }
-    report.checks.push(`${width}x${height}: real scoped WMS/API/metadata, clipboard, missing time, revision/point changes, both fonts/basemaps`);
+    report.checks.push(`${width}x${height}: common pinned WMS, both clipboard controls, API/metadata, older run explanation, missing time, both fonts/basemaps`);
 }

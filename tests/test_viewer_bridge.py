@@ -3,11 +3,39 @@ import unittest
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+import xml.etree.ElementTree as ET
 
 from publication.viewer import create_app
 
 
 class ViewerBridge(unittest.TestCase):
+    def test_common_catalogue_advertises_viewer_urls_without_forwarding_client_headers(self):
+        upstream = MagicMock()
+        upstream.__enter__.return_value = upstream
+        upstream.status_code = 200
+        upstream.headers = {'Content-Type': 'application/xml'}
+        upstream.iter_content.return_value = [b'<WMS_Capabilities xmlns="http://www.opengis.net/wms" '
+            b'xmlns:xlink="http://www.w3.org/1999/xlink"><Capability><Request>' + b''.join(
+            b'<'+operation+b'><OnlineResource xlink:href="http://gateway:8000/gis/v1/wms?snapshot=abc&amp;"/></'+operation+b'>'
+            for operation in (b'GetCapabilities', b'GetMap', b'GetFeatureInfo', b'GetLegendGraphic'))
+            + b'</Request><Layer><Style><LegendURL><OnlineResource xlink:href="http://gateway:8000/gis/v1/wms?snapshot=abc&amp;REQUEST=GetLegendGraphic&amp;LAYER=hmc_1"/>'
+            b'</LegendURL></Style></Layer></Capability></WMS_Capabilities>']
+        with patch('publication.viewer.requests.get', return_value=upstream) as get:
+            response = create_app().test_client().get('/gis/v1/wms?SERVICE=WMS&REQUEST=GetCapabilities',
+                headers={'Host': 'viewer.example', 'Authorization': 'Bearer private', 'X-API-Key': 'private'})
+        self.assertEqual(response.status_code, 200)
+        arguments, options = get.call_args
+        self.assertEqual(arguments[0], 'http://gateway:8000/gis/v1/wms')
+        self.assertNotIn('headers', options)
+        self.assertNotIn('cookies', options)
+        hrefs = [node.attrib['{http://www.w3.org/1999/xlink}href'] for node in ET.fromstring(response.data).findall('.//{*}OnlineResource')]
+        self.assertEqual(hrefs, ['http://viewer.example/gis/v1/wms?snapshot=abc&']*4 +
+                         ['http://viewer.example/gis/v1/wms?snapshot=abc&REQUEST=GetLegendGraphic&LAYER=hmc_1'])
+        # The copied URL itself has no REQUEST; the facade defaults to capabilities.
+        with patch('publication.viewer.requests.get', return_value=upstream):
+            bare = create_app().test_client().get('/gis/v1/wms?snapshot=abc', headers={'Host': 'viewer.example'})
+        self.assertEqual(bare.data, response.data)
+
     def test_project_budget_is_read_on_each_request_and_only_public_value_is_returned(self):
         with tempfile.TemporaryDirectory() as directory:
             config = Path(directory) / 'viewer.json'

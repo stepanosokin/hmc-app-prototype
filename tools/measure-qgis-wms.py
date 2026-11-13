@@ -18,6 +18,7 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import parse_qsl, unquote, urlencode, urlsplit
 from urllib.request import urlopen
+from typing import Any, cast
 
 
 def measure(config_file):
@@ -44,7 +45,7 @@ def measure(config_file):
     route = selection['wms']; origin = config.get('origin', 'http://127.0.0.1:8140')
     assert origin in ('http://127.0.0.1:8140', 'http://localhost:8140')
     assert route.startswith('/gis/v1/') and '?' not in route
-    requests = []; stage = {'name': 'setup'}
+    requests: list[dict] = []; stage = {'name': 'setup'}
     (report / 'responses').mkdir()
 
     class Handler(BaseHTTPRequestHandler):
@@ -104,9 +105,10 @@ def measure(config_file):
                 (name, ctypes.c_size_t) for name in ('peak_working_set', 'working_set',
                  'peak_paged', 'paged', 'peak_nonpaged', 'nonpaged', 'pagefile', 'peak_pagefile')]
         counters = Counters(); counters.cb = ctypes.sizeof(counters)
-        handle = ctypes.windll.kernel32.GetCurrentProcess
+        windows = cast(Any, ctypes).windll
+        handle = windows.kernel32.GetCurrentProcess
         handle.restype = ctypes.c_void_p
-        read = ctypes.windll.psapi.GetProcessMemoryInfo
+        read = windows.psapi.GetProcessMemoryInfo
         read.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_ulong]
         if not read(handle(), ctypes.byref(counters), counters.cb):
             raise OSError('Cannot read QGIS process memory')
@@ -117,7 +119,9 @@ def measure(config_file):
             caps = response.read()
         (report / 'capabilities.xml').write_bytes(caps); doc = ET.fromstring(caps)
         name = doc.findtext('.//{*}Layer/{*}Name')
-        times = next(n.text for n in doc.findall('.//{*}Dimension') if n.get('name') == 'time').split(',')
+        time_text = next(n.text for n in doc.findall('.//{*}Dimension') if n.get('name') == 'time')
+        assert time_text is not None
+        times = time_text.split(',')
         result.update(times=times, max_width=doc.findtext('.//{*}MaxWidth'))
         uri = QgsDataSourceUri()
         for key, value in {'url': local, 'layers': name, 'styles': '', 'crs': config['source_crs'],
