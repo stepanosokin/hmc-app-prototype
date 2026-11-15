@@ -103,6 +103,12 @@ jobs:
           --volume "$PWD:/workspace:ro" --workdir /workspace
           --entrypoint python hmc-publication:checks
           -B -m unittest discover -s tests -p test_grib_crs.py -v
+      - name: Check compact catalogue sharing without private samples or services
+        run: >-
+          docker run --rm --network none
+          --volume "$PWD:/workspace:ro" --workdir /workspace
+          --entrypoint python hmc-publication:checks
+          -B -m unittest discover -s tests -p test_catalogue.py -v
       - name: Check numeric boundary behavior
         run: >-
           docker run --rm --network none --entrypoint python hmc-publication:checks

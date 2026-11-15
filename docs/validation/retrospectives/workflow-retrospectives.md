@@ -1,5 +1,13 @@
 # Retrospective basis
 
+The [common WMS catalogue retrospective](retro-wms-catalogue.md) follows #107:
+existing compact-catalogue regressions now run in local Runtime/manual CI.
+Acceptance guidance brings multi-field fixture compatibility and error-channel
+checks before the full gate, and bounds reuse after orchestration-only changes.
+Browser/QGIS pointers cover actual controls, public-budget interference and MCP
+state. Tests for these retrospective edits were explicitly excluded by the user;
+the accepted implementation and requested live deployment remain separate results.
+
 The [wind and NoData retrospective](retro-wind-nodata.md) follows #84–#85:
 CLI scope checks reject excess work before Docker, browser select checks reject
 invalid options before waits, and cleanup guidance preserves complete reference

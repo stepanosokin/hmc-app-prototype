@@ -59,6 +59,20 @@ isolated API; selecting `T8_HTTP=1` in the check container alone is insufficient
 Confirm the intended failure and recovery through the gateway in that focused
 run. A successful build or typecheck does not validate these prerequisites.
 
+For a multi-model/field catalogue fixture, compare the baseline assumed by each
+existing verifier with the state left by the preceding scenario. T5's revision
+verifier compares the first scoped field with its original catalogue: run that
+restart check before adding independent fields/models, then verify the expanded
+catalogue after its own restart. The common-WMS runner's `-FullCatalogue` mode
+implements this ordering. During Development, complete the new fixture through
+its expected failure/recovery branch before freezing the full service/desktop
+gate; check GRIB interval construction and the CLI's actual JSON error channel.
+
+For catalogue/discovery edits, run the existing sample-free `test_catalogue.py`
+checks before service allocation. Local Runtime/All and manual CI include them;
+their 82-revision fixture detects repeated manifest reads and lost batch sharing.
+The full sample-backed suite still needs the runner's `/input` mount.
+
 For a shortened recovery scenario, reuse the seed preparation in
 [run-recovery.ps1](../../publication/run-recovery.ps1), including the accepted
 encoder decision and its bound evidence. Check those files on the host before
@@ -113,6 +127,15 @@ the reused platform; repeat the affected platform's full gate. The
 [T16 record](../validation/archives.md) covers only
 its desktop cleanup change. It does not authorize other mixed-input acceptance
 or imply that Android executed the newer runner bytes.
+
+For a change confined to test orchestration, classify affected gates before
+allocating another stack. Preserve each successful gate's original frozen inputs,
+compare every differing path, and inspect reachability in the actual diff.
+For example, moving T5 before independent WMS fixtures requires repeating the
+combined service gate; unchanged application and browser-driver inputs can retain
+their completed browser results. Record that dependency proof once alongside
+the snapshots. In progress reports, name the gate's purpose (WMS/QGIS acceptance)
+and distinguish required checks from retries caused by fixture/driver defects.
 
 Before freezing changed inputs, compare their working-file bytes with Git's
 prospective filtered contents. Include newly added input files. For each path:

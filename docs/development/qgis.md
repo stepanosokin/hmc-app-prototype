@@ -28,6 +28,12 @@ For an installed but unreachable plugin, first check the running QGIS instance
 and connection configuration. Use the Python-console fallback only when the
 user explicitly chooses it; continue independent work while awaiting a reply.
 
+Each QGIS MCP `execute_code` call has its own namespace. For a multi-call ordinary
+dialog interaction, keep the probe in a uniquely named temporary attribute on
+`qgis.utils`, queue dialog actions in separate calls, and remove that attribute
+with the temporary connection/layers during cleanup. This preserves UI state
+without assuming Python variables survive the next tool invocation.
+
 For QGIS reviews, trace temporal state separately through map rendering and
 identify. The renderer clones its raster pipe; setting its time does not set
 the original provider's identify time. Keep both direct-provider sampling and

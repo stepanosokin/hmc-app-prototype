@@ -171,6 +171,16 @@ reviewed prototype's visible transitions and source hash with the existing
 Before this first Development run, apply the [input-freeze procedure](acceptance.md)
 and wait for retirement before editing captured bind-mounted inputs.
 
+For shared-WMS source settings, first exercise the focused `T107_CATALOGUE=1`
+branch in [the viewer checker](../../tools/check-weather-viewer.mjs): select each
+intended field/run through visible controls, observe drawer closure, reopen it,
+and compare both copy controls with the catalogue's exact model/layer title.
+Wait for the selected field's ready state before the next request. If a shared
+public budget returns 429, inspect the gateway's admission reason and concurrent
+overlay loading before changing deadlines or limits. The catalogue-only scenario
+can turn wind off through its visible control; full wind coverage remains in
+the ordinary browser matrix.
+
 For time-switch changes, run `-TimeSwitch -TimeSwitchOnly` on each required
 platform first; status-layout fixes can use `-TimeStatusOnly` with those flags.
 Inspect the focused full-page phone screenshots before freezing the full gate.

@@ -29,6 +29,7 @@ param(
         'docs/validation/retrospectives/retro-t16.md',
         'docs/validation/retrospectives/retro-t25.md',
         'docs/validation/retrospectives/retro-wms-compat.md',
+        'docs/validation/retrospectives/retro-wms-catalogue.md',
         'docs/validation/retrospectives/retro-grib-crs.md',
         'docs/prototypes/weather-map.README.md',
         'docs/access.md',
