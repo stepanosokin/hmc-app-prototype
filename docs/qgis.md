@@ -187,6 +187,41 @@ Desktop-отчёт `common-desktop.json` должен включать `full_cat
 только после штатного добавления нескольких моделей/показателей и проверки
 их имён, карты, легенды и Identify; программная сборка URI этого не заменяет.
 
+Для жизненного цикла последних публикаций добавьте `-PublicationUpdates -CommonWms`
+к обеим фазам. Проверяются независимые модели, частичная публикация, позднее
+исправление старого расчёта, замена сроков целиком, отказ подготовки и следующая
+загрузка после снятия последней редакции. После desktop-проверок выполняются
+частичное снятие, восстановление новой редакцией, истечение и сборка мусора без
+возврата к более старому доступному расчёту. Эти проверки дополняют T5/T11.
+
+Обычный диалог проверяет [probe-qgis-wms-updates.py](../tools/probe-qgis-wms-updates.py):
+сохраните namespace на `qgis.utils`, вызовите `prepare(desktop.json)`, затем
+`probe['click_new']`, `probe['fill_connection']`, `probe['connect']`,
+`probe['select_leaf']`, `probe['add']` отдельными MCP-вызовами.
+`capture_before()` проверяет 280 K и сохраняет проект. На том же стенде запустите
+`python tests/test_common_wms_updates.py desktop-advance` через Compose check
+с `--env PYTHONPATH=/app`.
+`verify_redraw_and_reopen()` проверяет прежние 280 K после перерисовки и открытия
+проекта. Для нового прогноза вызовите `edit_connection('desktop-advance')`,
+затем отдельными вызовами `fill_connection`, `connect`, `select_leaf`, `add`.
+`verify_tree('desktop-advance')` проверяет состав, `capture_partial()` — 290 K
+и новое подключение при прежнем имени слоя.
+
+Фазы fixture `desktop-failure`, `desktop-withdraw`, `desktop-expire` проверяют
+позднее исправление, отказ подготовки, частичное снятие и истечение. Для каждой
+свежей ссылки замените URL через `edit_connection`, прочитайте дерево обычным
+диалогом и проверьте его через `verify_tree`. `verify_failed_preparation()`
+сохраняет 290 K; `capture_independent()` проверяет вторую модель (275 K),
+`capture_replacement()` — оставшееся давление (100000 Pa).
+`verify_unavailable('withdrawn','partial')` и
+`verify_unavailable('expired','replacement')` требуют отказа прежнего provider
+без прогнозных значений. После наблюдения истечения вызовите fixture-фазу
+`desktop-restore`: тестовые часы восстанавливаются до остальных сервисных
+проверок. Необратимое истечение/GC отдельно проверяется заключительным HTTP-тестом.
+`finish()` требует все desktop-наблюдения, записывает `common-updates-desktop.json`.
+После `cleanup()` восстановите исходный проект.
+Обычный T11 desktop и его холодная матрица остаются обязательными.
+
 Prepare запускает проверки типов, реальную публикацию и регрессию T5,
 проверку публичной ошибки и T11 WMS. Изолированный ключ находится в игнорируемом
 `.scratch/hmc-meteo/<project>/key`; журналы не содержат ключа. Затем в консоли

@@ -5,10 +5,12 @@ param(
     [switch]$Development,
     [switch]$SkipBuild,
     [switch]$CommonWms,
-    [switch]$FullCatalogue
+    [switch]$FullCatalogue,
+    [switch]$PublicationUpdates
 )
 $ErrorActionPreference = 'Stop'
 if ($FullCatalogue -and -not $CommonWms) { throw 'FullCatalogue requires CommonWms' }
+if ($PublicationUpdates -and -not $CommonWms) { throw 'PublicationUpdates requires CommonWms' }
 . (Join-Path $PSScriptRoot 'process.ps1')
 Set-Location (Split-Path $PSScriptRoot -Parent)
 $directory = Join-Path (Get-Location) "data/reports/t11/$Project"
@@ -40,7 +42,7 @@ if ($Phase -eq 'Prepare') {
     try { $listener.Start() } finally { $listener.Stop() }
     New-Item -ItemType Directory -Force $directory,$secretDirectory | Out-Null
     $ownsProject = $true
-    @{project=$Project;port=$Port;development=[bool]$Development;common_wms=[bool]$CommonWms;full_catalogue=[bool]$FullCatalogue} | ConvertTo-Json |
+    @{project=$Project;port=$Port;development=[bool]$Development;common_wms=[bool]$CommonWms;full_catalogue=[bool]$FullCatalogue;publication_updates=[bool]$PublicationUpdates} | ConvertTo-Json |
         Set-Content -Encoding ascii (Join-Path $directory 'run-state.json')
     $lines = @('GEOSERVER_ADMIN_USER=t11operator')
     foreach ($name in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAIC_PASSWORD','GEOSERVER_ADMIN_PASSWORD','GATEWAY_PASSWORD')) {
@@ -79,7 +81,7 @@ if ($Phase -eq 'Prepare') {
     }
     Check access-regression @('run','--rm','--env','T8_HTTP=1','--entrypoint','python','check',
         '-m','unittest','discover','-s','tests','-p','test_publication_access.py','-k','policies','-v')
-    if ($FullCatalogue) {
+    if ($FullCatalogue -or $PublicationUpdates) {
         if (-not $Development) {
             # T5's exact catalogue baseline precedes the independent models
             # below. Keep its full restart comparison on that unchanged set.
@@ -87,8 +89,15 @@ if ($Phase -eq 'Prepare') {
             Check t5-restart-readiness @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions','--ready-only')
             Check t5-restart-verification @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions')
         }
+    }
+    if ($FullCatalogue) {
         Check full-catalogue @('run','--rm','--env','T107_HTTP=1','--entrypoint','python','check',
             '-m','unittest','discover','-s','tests','-p','test_common_wms_catalogue.py','-k','full_catalogue','-v')
+    }
+    if ($PublicationUpdates) {
+        Check publication-updates @('run','--rm','--env','T108_HTTP=1','--entrypoint','python','check',
+            '-m','unittest','discover','-s','tests','-p','test_common_wms_updates.py','-k','model_updates','-k','withdrawn_latest','-v')
+        Check desktop-updates-seed @('run','--rm','--env','PYTHONPATH=/app','--entrypoint','python','check','tests/test_common_wms_updates.py','desktop-seed')
     }
     Check desktop-key @('run','--rm','--volume',"${secretDirectory}:/secrets",'--entrypoint','python','worker',
         '-m','publication.access','create','--organization','t11-desktop','--profile','all','--out','/secrets/key')
@@ -97,7 +106,7 @@ if ($Phase -eq 'Prepare') {
     Write-Output "Desktop gate pending. Run publication/qgis_desktop.py in QGIS with config: $secretDirectory/desktop.json"
 } else {
     $state = Get-Content -Raw (Join-Path $directory 'run-state.json') | ConvertFrom-Json
-    if ($state.project -ne $Project -or $state.port -ne $Port -or $state.development -ne [bool]$Development -or [bool]$state.common_wms -ne [bool]$CommonWms -or [bool]$state.full_catalogue -ne [bool]$FullCatalogue) {
+    if ($state.project -ne $Project -or $state.port -ne $Port -or $state.development -ne [bool]$Development -or [bool]$state.common_wms -ne [bool]$CommonWms -or [bool]$state.full_catalogue -ne [bool]$FullCatalogue -or [bool]$state.publication_updates -ne [bool]$PublicationUpdates) {
         throw 'Complete must use the original project, port and mode'
     }
     $ownsProject = $true
@@ -118,9 +127,14 @@ if ($Phase -eq 'Prepare') {
             $commonDesktop.input_inventory_sha256 -ne $desktop.input_inventory_sha256) { throw 'Ordinary common-WMS desktop gate has not passed on frozen inputs' }
         if ($FullCatalogue -and -not $commonDesktop.full_catalogue) { throw 'Ordinary full-catalogue desktop gate is required' }
     }
+    if ($PublicationUpdates) {
+        $updates = Get-Content -Raw -Encoding UTF8 (Join-Path $directory 'common-updates-desktop.json') | ConvertFrom-Json
+        if ($updates.status -ne 'passed' -or $updates.input_inventory_sha256 -ne $desktop.input_inventory_sha256 -or
+            $updates.qgis_version -ne '3.44.11-Solothurn') { throw 'Publication update desktop gate is required on frozen inputs' }
+    }
     Check restart @('restart','api','gateway','geoserver')
     Check restart-readiness @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions','--ready-only')
-    if (-not $Development -and -not $FullCatalogue) {
+    if (-not $Development -and -not $FullCatalogue -and -not $PublicationUpdates) {
         Check t5-restart @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions')
     }
     Check wms-restart @('run','--rm','--env','T11_HTTP=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_publication_qgis.py','-v')
@@ -133,6 +147,10 @@ if ($Phase -eq 'Prepare') {
                 '-m','unittest','discover','-s','tests','-p','test_common_wms_catalogue.py','-k','restart','-v')
         }
         Check common-wms-lifecycle @('run','--rm','--env','T11_HTTP=1','--env','T106_LIFECYCLE=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_common_wms.py','-k','retained_catalogue','-v')
+    }
+    if ($PublicationUpdates) {
+        Check publication-updates-withdrawal @('run','--rm','--env','T108_HTTP=1','--entrypoint','python','check',
+            '-m','unittest','discover','-s','tests','-p','test_common_wms_updates.py','-k','partial_withdrawal','-v')
     }
     Check service-logs @('logs','--no-color','api','gateway','geoserver','db') | Out-Null
     $base = (Get-Content -Raw (Join-Path $directory 'inputs-start.json') | ConvertFrom-Json).base_commit

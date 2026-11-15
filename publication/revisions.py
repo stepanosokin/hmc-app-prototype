@@ -117,13 +117,22 @@ def batch_key(identity: dict) -> str:
 
 
 def latest(run: str) -> dict | None:
+    """Use only the last publication as a base, never an older available one.
+
+    Retention keeps roots after collection removes revision rows and manifests.
+    A partial withdrawal's replacement shares its original publication time;
+    prefer that available replacement over its withdrawn original on a tie.
+    """
     from publication.retention import snapshot
     _, _, roots = snapshot()
-    expired = {row['root'] for row in roots if row['state'] == 'expired'}
+    latest_root = max((row for row in roots if row['run'] == run),
+                      key=lambda row: (row['published_at'], row['state'] == 'eligible', row['root']), default=None)
+    if latest_root is None or latest_root['state'] != 'eligible':
+        return None
     with database() as cursor:
-        cursor.execute('SELECT revision,manifest_path,manifest_sha256 FROM app.revisions WHERE run=%s '
-                       'ORDER BY published_at DESC, revision DESC', (run,))
-        row = next((row for row in cursor.fetchall() if row['revision'] not in expired), None)
+        cursor.execute('SELECT revision,manifest_path,manifest_sha256 FROM app.revisions WHERE revision=%s',
+                       (latest_root['root'],))
+        row = cursor.fetchone()
     return None if row is None else load_revision(row['manifest_path'], row['manifest_sha256'])
 
 

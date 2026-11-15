@@ -16,8 +16,7 @@ import requests
 from PIL import Image
 
 
-@unittest.skipUnless(os.environ.get('T107_HTTP') == '1', 'requires isolated catalogue stand')
-class CommonCatalogue(unittest.TestCase):
+class CatalogueFixture(unittest.TestCase):
     base = 'http://gateway:8000'
 
     def get(self, params=None, expected=200):
@@ -52,8 +51,11 @@ class CommonCatalogue(unittest.TestCase):
         identifier = worker.submit('2026-10-21T12:00:00Z',
                                    {'source_profile': 'grib2-fields', 'fixture': 'actual', 'model': model})
         with database() as cursor:
+            cursor.execute('UPDATE app.jobs SET source_name=%s WHERE id=%s', (source.name, identifier))
             cursor.execute('SELECT * FROM app.jobs WHERE id=%s', (identifier,))
             job = cursor.fetchone()
+            job['request']['source_directory'] = '/evidence'
+            cursor.execute('UPDATE app.jobs SET request=%s WHERE id=%s', (json.dumps(job['request']), identifier))
         directory = ROOT / identifier / uuid.uuid4().hex
         directory.mkdir(parents=True)
         entries = {}
@@ -88,6 +90,8 @@ class CommonCatalogue(unittest.TestCase):
         managed.parent.mkdir()
         shutil.copyfile(self.delivery, managed)
         with database() as cursor:
+            cursor.execute("UPDATE app.jobs SET request=jsonb_set(request,'{source_directory}',%s::jsonb) WHERE id=%s",
+                           (json.dumps('/evidence'), identifier))
             cursor.execute('UPDATE app.jobs SET managed_source=%s, checksum=%s, source_name=%s WHERE id=%s',
                            (managed.relative_to(ROOT).as_posix(), file_hash(managed), self.delivery.name, identifier))
         result = subprocess.run([sys.executable, '-m', 'publication.worker', 'once', '--job', identifier],
@@ -113,6 +117,8 @@ class CommonCatalogue(unittest.TestCase):
         self.assertIsNone(folder.find('{*}Name'))
         return {model.findtext('{*}Title'): model.findall('{*}Layer') for model in folder.findall('{*}Layer')}, frozen
 
+@unittest.skipUnless(os.environ.get('T107_HTTP') == '1', 'requires isolated catalogue stand')
+class CommonCatalogue(CatalogueFixture):
     def test_full_catalogue_variants_and_growing_accumulation(self):
         height = {'typeOfLevel': 'heightAboveGround', 'level': 2}
         temperature = (280, height)
