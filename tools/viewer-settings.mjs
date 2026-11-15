@@ -3,6 +3,59 @@ import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {nativePointPixel} from './viewer-fields.mjs';
 
+/** The same catalogue names must be usable from ordinary field controls. */
+export async function checkCatalogueSettings({call,evaluate,wait,click,select,capture,report,directory,width,height,origin}){
+    await call('Browser.setPermission',{permission:{name:'clipboard-read'},setting:'granted',origin});
+    const observations=[];let commonUrl;
+    for(const [model,group,label,older] of [['WMS107-A','temperature','Температура на высоте',false],
+        ['WMS107-A','wind','Скорость ветра',false],['WMS107-B','pressure','Давление на уровне моря',false],
+        ['WMS107-A','temperature','Температура на высоте',true]]){
+        const index=await evaluate(`[...document.querySelector('#model').options].findIndex(o=>o.value===${JSON.stringify(model)})`);
+        assert.ok(index>=0,'Model is available in ordinary selector');
+        await select('#model',true,index);
+        await wait(`window.captureWeatherEvidence().selected?.model===${JSON.stringify(model)}&&window.captureWeatherEvidence().time_state==='ready'`,'catalogue model ready');
+        // The catalogue is independent of the overlay. Retire its U/V requests
+        // through the visible control before exercising public discovery slots.
+        if(await evaluate("document.getElementById('windToggle').getAttribute('aria-pressed')==='true'&&!document.getElementById('windPanel').hidden")){
+            await click('#windToggle');
+        }
+        await click('#field-group-'+group);
+        await click('.fieldOption[aria-label^="'+label+'"]');
+        await wait("window.captureWeatherEvidence().ready",'catalogue field ready');
+        await click('#settings');
+        if(older){
+            const latest=await capture();await select('#run',false,0);
+            await wait("window.captureWeatherEvidence().time_state==='ready'",'older catalogue run ready');
+            assert.notEqual((await capture()).selected.run,latest.selected.run);
+            await click('#settings');
+        }
+        await click('#wmsCopy');
+        await wait("document.getElementById('copyStatus').textContent==='Адрес скопирован.'",'catalogue URL copied');
+        const copied=await evaluate('navigator.clipboard.readText()');
+        if(commonUrl)assert.equal(copied,commonUrl);commonUrl=copied;
+        const observation=await evaluate(`(async()=>{
+            const state=window.captureWeatherEvidence(),url=document.getElementById('wmsUrl').value,
+                response=await fetch(url),xml=new DOMParser().parseFromString(await response.text(),'application/xml'),
+                name=[...xml.querySelectorAll('Layer > Name')].find(n=>n.textContent===state.selected.wms_name),
+                leaf=name?.parentElement,model=leaf?.parentElement.querySelector(':scope > Title')?.textContent,
+                title=leaf?.querySelector(':scope > Title')?.textContent;
+            return {status:response.status,url,name:name?.textContent,model,title,selected:state.selected,
+                description:document.getElementById('linkSelection').textContent};})()`);
+        assert.equal(observation.status,200);assert.ok(observation.name);assert.equal(observation.model,model);
+        assert.ok(observation.title.startsWith(label),'The requested field was actually selected');
+        assert.equal(observation.description,'Модель: '+model+' · Слой: '+observation.title);
+        assert.equal(copied,observation.url);
+        const screenshot=await call('Page.captureScreenshot',{format:'png'});
+        await writeFile(join(directory,`catalogue-${model}-${group}-${older?'older':'latest'}-${width}x${height}.png`),Buffer.from(screenshot.data,'base64'));
+        await click('#closeDrawer');await click('#wmsQuickCopy');
+        await wait("document.getElementById('wmsQuickStatus').textContent==='Адрес скопирован.'",'catalogue quick URL copied');
+        assert.equal(await evaluate('navigator.clipboard.readText()'),copied);
+        observations.push(observation);
+    }
+    (report.catalogue_settings??=[]).push({width,height,observations});
+    report.checks.push(`${width}x${height}: ordinary model/field selection, exact Russian catalogue names, both clipboard controls`);
+}
+
 /** Visible controls, real public endpoints and an actual clipboard on the same origin. */
 export async function checkSourceSettings({call,evaluate,wait,click,select,capture,report,directory,width,height,origin}){
     const ready=()=>wait('window.captureWeatherEvidence().ready','settings field ready');
@@ -21,10 +74,16 @@ export async function checkSourceSettings({call,evaluate,wait,click,select,captu
     };
     checkIdentity(value,current);
     const endpoint=await evaluate(`(async()=>{const wms=await fetch(document.getElementById('wmsLink').href),xml=await wms.text(),api=await fetch(document.getElementById('apiLink').href),point=await api.json(),metadata=await fetch(document.getElementById('metadataLink').href);
-        const documentXml=new DOMParser().parseFromString(xml,'application/xml'),name=[...documentXml.querySelectorAll('Layer > Name')].at(-1)?.textContent;
+        const documentXml=new DOMParser().parseFromString(xml,'application/xml'),selected=window.captureWeatherEvidence().selected,
+            node=[...documentXml.querySelectorAll('Layer > Name')].find(node=>node.textContent===selected.wms_name),name=node?.textContent,
+            leaf=node?.parentElement,model=leaf?.parentElement?.querySelector(':scope > Title')?.textContent,
+            title=leaf?.querySelector(':scope > Title')?.textContent;
+        if(!name)throw Error('Выбранный вариант отсутствует в общем каталоге WMS');
         const map=new URL(document.getElementById('wmsLink').href);for(const [k,v] of Object.entries({SERVICE:'WMS',VERSION:'1.3.0',REQUEST:'GetMap',LAYERS:name,STYLES:'',CRS:'EPSG:4326',BBOX:'45,15,55,25',WIDTH:'8',HEIGHT:'8',FORMAT:'image/png',TIME:point.valid_time}))map.searchParams.set(k,v);const image=await fetch(map);
-        return {wms:wms.status,xml:xml.includes('WMS_Capabilities'),api:api.status,point,metadata:metadata.status,map:image.status,map_type:image.headers.get('Content-Type')};})()`);
+        return {wms:wms.status,xml:xml.includes('WMS_Capabilities'),api:api.status,point,metadata:metadata.status,map:image.status,map_type:image.headers.get('Content-Type'),
+            catalogue:{name,model,title},description:document.getElementById('linkSelection').textContent};})()`);
     assert.equal(endpoint.wms,200);assert.ok(endpoint.xml);assert.equal(endpoint.api,200);assert.notEqual(endpoint.point.value,null);assert.equal(endpoint.metadata,200);assert.equal(endpoint.map,200);assert.match(endpoint.map_type,/image\/png/);
+    assert.equal(endpoint.description,'Модель: '+endpoint.catalogue.model+' · Слой: '+endpoint.catalogue.title);
     await call('Browser.setPermission',{permission:{name:'clipboard-read'},setting:'granted',origin});
     for(const kind of ['wms','api']){
         await click('#'+kind+'Copy');await wait("document.getElementById('copyStatus').textContent==='Адрес скопирован.'",'URL copied');

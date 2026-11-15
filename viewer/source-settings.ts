@@ -16,6 +16,13 @@ const element=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElemen
 export class SourceSettings {
     private wms='';
     private wmsLoad:Promise<string>|undefined;
+    private catalogue=new Map<string,{model:string;title:string}>();
+    private selectedWms='';
+    private showWmsSelection(){
+        const layer=this.catalogue.get(this.selectedWms);
+        if(layer)element('linkSelection').textContent='Модель: '+layer.model+' · Слой: '+layer.title;
+        else if(this.wms)element('linkSelection').textContent='Выбранный вариант отсутствует в последнем каталоге WMS. Выберите доступный слой в группе модели.';
+    }
     private status(text:string){
         element('copyStatus').textContent=text;
         element('wmsQuickStatus').textContent=text;
@@ -29,11 +36,18 @@ export class SourceSettings {
             const resource=xml.querySelector('Request > GetCapabilities OnlineResource');
             const href=resource?.getAttributeNS('http://www.w3.org/1999/xlink','href');
             if(!href)throw Error('Не удалось получить общую ссылку WMS.');
+            this.catalogue.clear();
+            for(const name of xml.querySelectorAll('Layer > Name')){
+                const leaf=name.parentElement!,model=leaf.parentElement!;
+                this.catalogue.set(name.textContent!,{model:model.querySelector(':scope > Title')?.textContent??'',
+                    title:leaf.querySelector(':scope > Title')?.textContent??''});
+            }
             const url=new URL(href,location.origin);
             if(url.origin!==location.origin||url.pathname!=='/gis/v1/wms'||!url.searchParams.has('snapshot'))throw Error('Некорректная общая ссылка WMS.');
             // Keep only the advertised immutable reference, suitable for QGIS' URL field.
             url.search=new URLSearchParams({snapshot:url.searchParams.get('snapshot')!}).toString();
             this.wms=url.href;
+            this.showWmsSelection();
             const input=element<HTMLInputElement>('wmsUrl'),link=element<HTMLAnchorElement>('wmsLink');
             input.value=this.wms;input.disabled=false;link.href=this.wms;link.setAttribute('aria-disabled','false');
             for(const id of ['wmsCopy','wmsQuickCopy'])element<HTMLButtonElement>(id).disabled=false;
@@ -80,7 +94,9 @@ export class SourceSettings {
         const nodes:HTMLElement[]=[];
         for(const [label,value] of rows){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;nodes.push(dt,dd);}
         element('metadata').replaceChildren(...nodes);
-        element('linkSelection').textContent='Модель: '+source.model+' · Слой: '+title+', '+source.units;
+        this.selectedWms=source.wms_name??'';
+        element('linkSelection').textContent='Модель: '+source.model+' · Слой: '+title;
+        this.showWmsSelection();
         let api='';
         const wms=this.wms;
         if(!wms&&!this.wmsLoad)void this.loadWms().catch(()=>this.status('Не удалось получить общую ссылку WMS. Повторите копирование.'));

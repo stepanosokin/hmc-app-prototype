@@ -50,7 +50,8 @@ def ingest(clock: str, report_path: Path, all_fields: bool = False,
             metadata = [field_metadata(frame,index,config,sample_inventory=False,all_fields=all_fields) for index,frame in enumerate(frames,1)]
             if len({(m['model'],m['reference_time']) for m in metadata})!=1:
                 raise ValueError('Один исходный файл должен содержать один расчёт модели')
-            if len({(m.get('field','T_G:surface:0'),m['valid_time']) for m in metadata})!=len(metadata):
+            if len({(m.get('field','T_G:surface:0'),m['valid_time'], m['native_grid_sha256'],
+                     m['ensemble_member']) for m in metadata})!=len(metadata):
                 raise ValueError('Повторяется поле и срок в одном исходном файле')
             specs = [m['source_crs'] for m in metadata]
             del frames

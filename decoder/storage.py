@@ -46,6 +46,8 @@ def field_metadata(frame: bytes, hour: int, crs_config: dict | None = None,
         identity = {**metadata['raw_identity'], 'second_surface_hex': raw[4][28:34].hex(),
                     'product_template':metadata['product_template'],
                     'statistical_process':interval['statistical_process'] if interval else None}
+        if interval:
+            identity.update({key: interval[key] for key in ('time_increment_type', 'time_increment_unit', 'time_increment')})
         bound = max(abs(metadata['values']['min'] or 0), abs(metadata['values']['max'] or 0)) * 2**-23
         metadata.update(field='GRIB2:' + hashlib.sha256(canonical(identity)).hexdigest(),
                         field_profile='grib2-fields/1', field_identity=identity,

@@ -35,6 +35,18 @@ class CommonWms(unittest.TestCase):
         url = urlsplit(resource.attrib['{http://www.w3.org/1999/xlink}href'])
         return root, url.path, {key: value[0] for key, value in parse_qs(url.query).items()}
 
+    def temperature(self, root):
+        leaf = root.find(".//{*}Layer[{*}Title='ICON-EU']/{*}Layer[{*}Name]")
+        assert leaf is not None
+        return leaf
+
+    def original_model_unavailable(self):
+        response = requests.get(self.base + '/gis/v1/wms', timeout=35)
+        self.assertIn(response.status_code, (200, 404))
+        if response.status_code == 200:
+            root = ET.fromstring(response.content)
+            self.assertIsNone(root.find(".//{*}Layer[{*}Title='ICON-EU']"))
+
     def test_common_discovery_advertises_one_frozen_catalogue(self):
         response = requests.get('http://gateway:8000/gis/v1/wms',
                                 params={'SERVICE': 'WMS', 'REQUEST': 'GetCapabilities'}, timeout=30)
@@ -54,13 +66,20 @@ class CommonWms(unittest.TestCase):
         self.assertEqual(frozen.path, '/gis/v1/wms')
         self.assertIn('snapshot=', frozen.query)
         self.assertTrue(root.findall('.//{*}Layer/{*}Name'))
+        folder = root.find('.//{*}Capability/{*}Layer')
+        assert folder is not None
+        self.assertEqual(folder.findtext('{*}Title'), 'Гидрометцентр')
+        self.assertIsNone(folder.find('{*}Name'))
+        for model in folder.findall('{*}Layer'):
+            self.assertIsNone(model.find('{*}Name'))
+            for leaf in model.findall('{*}Layer'):
+                self.assertEqual(leaf.findtext('{*}Style/{*}Title'), leaf.findtext('{*}Title'))
 
     def test_maps_identify_legend_and_exact_time_preserve_native_values(self):
         root, path, frozen = self.connection()
-        leaf = root.find('.//{*}Layer[{*}Name]')
-        assert leaf is not None
+        leaf = self.temperature(root)
         name = leaf.findtext('{*}Name')
-        self.assertEqual(leaf.findtext('{*}Title'), 'Температура поверхности, K')
+        self.assertEqual(leaf.findtext('{*}Title'), 'Температура поверхности')
         abstract = leaf.findtext('{*}Abstract') or ''
         choices = [s for s in self.get('/api/v1/catalogue').json()['selections'] if s['revision'] in abstract]
         self.assertGreaterEqual(len(choices), 2)
@@ -124,7 +143,7 @@ class CommonWms(unittest.TestCase):
     def test_retained_catalogue_survives_publication_but_not_expiry_or_withdrawal(self):
         from publication import retention, grib_sync
         root, path, frozen = self.connection()
-        name = root.findtext('.//{*}Layer/{*}Name')
+        name = self.temperature(root).findtext('{*}Name')
         operations = [frozen, {**frozen, 'REQUEST': 'GetMap', 'LAYERS': name, 'STYLES': '', 'CRS': 'EPSG:4326',
             'BBOX': '45,15,55,25', 'WIDTH': '8', 'HEIGHT': '8', 'FORMAT': 'image/png'},
             {**frozen, 'REQUEST': 'GetLegendGraphic', 'LAYER': name, 'FORMAT': 'image/png'}]
@@ -136,7 +155,7 @@ class CommonWms(unittest.TestCase):
         latest, _, new_frozen = self.connection()
         self.assertNotEqual(new_frozen, frozen)
         retained = ET.fromstring(self.get(path, frozen).content)
-        self.assertEqual(retained.findtext('.//{*}Dimension'), root.findtext('.//{*}Dimension'))
+        self.assertEqual(self.temperature(retained).findtext('{*}Dimension'), self.temperature(root).findtext('{*}Dimension'))
         self.assertEqual([self.get(path, params).content for params in operations[1:]], before)
         configuration, _, _ = retention.snapshot()
         older_runs = sorted({s['run'] for s in self.get('/api/v1/catalogue').json()['selections'] if s['fixture'] == 'actual'})
@@ -148,7 +167,7 @@ class CommonWms(unittest.TestCase):
             for params in operations:
                 self.get(path, {**params, **new_frozen}, expected=410)
             self.assertTrue(self.get('/api/v1/catalogue').json()['selections'])
-            self.get(expected=404)
+            self.original_model_unavailable()
         finally:
             retention.configure(configuration)
         with tempfile.TemporaryDirectory() as directory:
@@ -157,7 +176,7 @@ class CommonWms(unittest.TestCase):
             withdrawn = grib_sync.apply(plan, empty, 'wms106-disposable', remove_all=True)
         for params in operations:
             self.get(path, params, expected=410)
-        self.get(expected=404)
+        self.original_model_unavailable()
         # Upgrade an actual collected archive: the old schema has no model
         # column, and GC has already removed old catalogue rows and manifests.
         for arguments in (['submit', '--clock', '2026-10-19T05:00:00Z', '--hours', '1', '--fixture', 'overlap'], ['once']):
@@ -176,6 +195,6 @@ class CommonWms(unittest.TestCase):
         self.get()
         self.get(path, frozen, expected=410)
         Path('/evidence/common-wms-lifecycle.json').write_text(json.dumps({'status': 'passed',
-            'retained_times': root.findtext('.//{*}Dimension'), 'latest_times': latest.findtext('.//{*}Dimension'),
+            'retained_times': self.temperature(root).findtext('{*}Dimension'), 'latest_times': self.temperature(latest).findtext('{*}Dimension'),
             'expiry_operations': 4, 'withdrawal_operations': 4, 'withdrawal': withdrawn,
             'legacy_collected_tombstone_upgrade': removed_manifests}, indent=2, default=str))

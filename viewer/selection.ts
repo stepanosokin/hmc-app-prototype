@@ -8,7 +8,7 @@ export interface Selection {
     field_short_name?:string;field_level_type?:string;
     field_surfaces?:{type:number;scale_factor:number;scaled_value:number;value:number|null}[];
     display_blocks?: number; wind_axis?: 'u'|'v'; wind_pair?: string; uv_relative_to_grid?: boolean; wind_v?:Selection;
-    native_grid_sha256: string; member: string | null; wms: string;
+    native_grid_sha256: string; member: string | null; wms: string; wms_name?:string;
 }
 export interface PublishedGroup {key: string; selection: Selection; times: (Selection|null)[]; start: number}
 export const referenceTime=(run: string)=>run.slice(run.lastIndexOf('/')+1);

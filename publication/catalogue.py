@@ -4,14 +4,14 @@ from collections import OrderedDict
 from threading import Lock
 
 from decoder.sampling import canonical
-from publication import revisions
+from publication import revisions, common_wms
 from publication.domain import load_manifest
 from publication.native_display import profile
 
 MAX_BYTES=4*1024**2
 IDENTITY_KEYS=('model','run','field','level','valid_time','native_grid_sha256','member')
 DISCOVERY_KEYS=IDENTITY_KEYS+('units','fixture','native_version','field_profile','field_label','field_short_name',
-    'field_level_type','field_surfaces','display_blocks','interval','wind_axis','wind_pair','uv_relative_to_grid','derived')
+    'field_level_type','field_surfaces','display_blocks','interval','wind_axis','wind_pair','uv_relative_to_grid','derived','wms_name')
 _legacy_cache: OrderedDict=OrderedDict()
 _lock=Lock()
 
@@ -19,6 +19,7 @@ _lock=Lock()
 def discovery(batch:dict) -> dict:
     descriptor=batch['source'].get('field_descriptor',{})
     result={**{key:batch['identity'][key] for key in IDENTITY_KEYS},
+        'wms_name':common_wms.connection_name(batch),
         'units':descriptor.get('units','K'),'fixture':batch.get('fixture','actual'),
         'native_version':profile(batch['source'].get('source_crs'),batch['source'].get('field_profile'))[2]}
     if descriptor:
@@ -65,6 +66,13 @@ def compact(revision_rows:list[dict],legacy_rows:list[dict],expired:set[str]) ->
         reference=(entry['manifest_path'],entry['manifest_sha256'],selection)
         if reference in batch_ids:return batch_ids[reference]
         saved=entry.get('discovery') or legacy_discovery(*reference[:2])
+        if 'wms_name' not in saved:
+            # Old instantaneous discovery records already contain the complete
+            # WMS identity. Only intervals and U/V aliases need raw metadata.
+            wms_name = (legacy_discovery(*reference[:2])['wms_name']
+                        if saved.get('interval') or saved.get('wind_axis') else
+                        common_wms.name({'identity': saved, 'source': {}}))
+            saved={**saved, 'wms_name': wms_name}
         record={key:saved[key] for key in DISCOVERY_KEYS if key in saved}
         identity={key:record[key] for key in ('field','level','valid_time','native_grid_sha256','member')}
         if record['run']!=run or revisions.batch_key(identity)!=entry['key']:

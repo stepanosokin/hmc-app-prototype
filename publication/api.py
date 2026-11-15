@@ -41,6 +41,7 @@ def links(manifest: dict) -> dict:
     prefix = request.headers.get('X-Publication-Prefix', '')
     descriptor = manifest['source'].get('field_descriptor',{})
     return {'selection': selection, **identity, 'units': descriptor.get('units','K'), 'state': 'published',
+            'wms_name':common_wms.connection_name(manifest),
             **({key:manifest['source'][key] for key in ('derived','derived_from')} if manifest['source'].get('derived') else {}),
             **({'field_label':descriptor['label'],'field_profile':manifest['source']['field_profile'],
                 'display_blocks':descriptor['display_blocks'],'interval':descriptor['interval'],
@@ -514,11 +515,8 @@ def create_app() -> Flask:
         if params['REQUEST'] != 'GetCapabilities' and token is None:
             raise ValueError('Получите общую ссылку закреплённого каталога WMS в приложении.')
         token, manifests = common_wms.snapshot(token)
-        fields: dict[str, list[dict]] = {}
-        for manifest in manifests:
-            if manifest['source'].get('field_descriptor', {}).get('wind_axis'):
-                continue
-            fields.setdefault(common_wms.name(manifest), []).append(manifest)
+        fields = common_wms.fields(manifests)
+        titles = common_wms.titles(fields)
         prefix = request.headers.get('X-Publication-Prefix', '')
         if not prefix.startswith('http'):
             prefix = request.headers.get('X-Publication-Origin', '') + prefix
@@ -527,7 +525,7 @@ def create_app() -> Flask:
             key = params.get('LAYER') if params['REQUEST'] == 'GetLegendGraphic' else params.get('LAYERS')
             if key not in fields:
                 raise KeyError('Неизвестный слой общего WMS.')
-            return shared_field(fields[key][0], params, key, operation_url)
+            return shared_field(fields[key], params, key, operation_url, titles[key])
         if set(params) != {'SERVICE', 'VERSION', 'REQUEST'} or params['SERVICE'] != 'WMS' or params['VERSION'] != '1.3.0':
             raise ValueError('Поддерживается GetCapabilities WMS 1.3.0 без фильтра слоёв.')
         ns = '{http://www.opengis.net/wms}'
@@ -535,7 +533,7 @@ def create_app() -> Flask:
         model_nodes: dict[str, ET.Element] = {}
         for key, choices in fields.items():
             manifest = choices[0]
-            response = shared_field(manifest, params, key, operation_url)
+            response = shared_field(choices, params, key, operation_url, titles[key])
             tree = ET.fromstring(response.get_data())
             leaf = tree.find('.//' + ns + 'Layer[' + ns + 'Name]')
             if leaf is None:
@@ -544,6 +542,7 @@ def create_app() -> Flask:
             if abstract is None:
                 abstract = ET.SubElement(leaf, ns + 'Abstract')
             abstract.text = ('Расчёт: ' + manifest['identity']['run'] + '; редакция: ' + manifest['identity']['revision']
+                             + '; единицы: ' + manifest['source'].get('field_descriptor', {}).get('units', 'K')
                              + '; сроки: ' + ', '.join(sorted(m['identity']['valid_time'] for m in choices)))
             if root is None:
                 root = tree
@@ -553,7 +552,7 @@ def create_app() -> Flask:
                 if old is not None:
                     capability.remove(old)
                 parent = ET.SubElement(capability, ns + 'Layer')
-                ET.SubElement(parent, ns + 'Title').text = 'Метеорология'
+                ET.SubElement(parent, ns + 'Title').text = 'Гидрометцентр'
                 for crs in ('EPSG:4326', 'EPSG:3857'):
                     ET.SubElement(parent, ns + 'CRS').text = crs
             model = manifest['identity']['model']
@@ -571,15 +570,17 @@ def create_app() -> Flask:
         ET.SubElement(get, ns + 'OnlineResource', {'{http://www.w3.org/1999/xlink}href': operation_url})
         return Response(ET.tostring(root, encoding='utf-8', xml_declaration=True), content_type='application/xml')
 
-    def shared_field(manifest, params, layer_name, operation_url):
+    def shared_field(choices, params, layer_name, operation_url, title):
+        manifest = choices[0]
         identity = manifest['identity']
         field_id = identity['field'].removeprefix('GRIB2:') if manifest['source'].get('field_profile') else None
         return wms(identity['run'], identity['revision'], field_id, params, layer_name, operation_url,
-                   common_wms.title(manifest))
+                   title, [links(item) for item in choices])
 
     @app.get('/gis/v1/runs/<path:run_id>/revisions/<revision>/wms')
     @app.get('/gis/v1/runs/<path:run_id>/revisions/<revision>/fields/<field_id>/wms')
-    def wms(run_id, revision, field_id=None, supplied=None, public_name=None, operation_url=None, title=None):
+    def wms(run_id, revision, field_id=None, supplied=None, public_name=None, operation_url=None, title=None,
+            selected_candidates=None):
         _, _, retained = retention.snapshot()
         matches = [row for row in retained if row['run'] == run_id and row['wms_revision'] == revision]
         if matches and all(row['state'] == 'expired' for row in matches):
@@ -590,12 +591,14 @@ def create_app() -> Flask:
             row = cursor.fetchone()
             cursor.execute('SELECT selection FROM app.catalogue')
             legacy = cursor.fetchall()
-        if row is not None:
+        if selected_candidates is not None:
+            candidates = selected_candidates
+        elif row is not None:
             candidates = revision_links(row,'GRIB2:'+field_id if field_id is not None else None)
         else:
             candidates = [links(resolve(item['selection'])) for item in legacy if item['selection'] not in g.expired_roots]
             candidates = [item for item in candidates if item['run'] == run_id and item['revision'] == revision]
-        if field_id is not None:
+        if field_id is not None and selected_candidates is None:
             candidates=[item for item in candidates if item['field']=='GRIB2:'+field_id]
         if not candidates:
             raise KeyError('GIS selection')
@@ -614,7 +617,7 @@ def create_app() -> Flask:
             params.setdefault('TIME', min(item['valid_time'] for item in candidates))
             chosen = [item for item in candidates if item['valid_time'] == params.get('TIME')]
         elif operation == 'GetLegendGraphic':
-            chosen = candidates[:1]
+            chosen = [min(candidates, key=lambda item: item['valid_time'])]
         if len(chosen) != 1 and operation != 'GetCapabilities':
             raise KeyError('GIS layer/time')
         manifest = resolve(chosen[0]['selection'])
@@ -725,6 +728,10 @@ def create_app() -> Flask:
             payload += ('\nМодель: ' + manifest['identity']['model'] + '\nРасчёт: ' + run_id
                         + '\nРедакция: ' + revision + '\nСрок: ' + manifest['identity']['valid_time']
                         + '\nЕдиницы: ' + manifest['source'].get('field_descriptor', {}).get('units', 'K') + '\n').encode()
+            interval = manifest['source'].get('field_descriptor', {}).get('interval')
+            if interval:
+                payload += ('Интервал: ' + interval['start'] + ' — ' + interval['end']
+                            + '; статистическая операция: ' + str(interval['statistical_process']) + '\n').encode()
         response = Response(payload, content_type=result.headers.get('Content-Type', 'application/xml'))
         response.headers['Cache-Control'] = 'private, no-cache'
         response.set_etag(hashlib.sha256(json.dumps({'run': run_id, 'revision': revision,

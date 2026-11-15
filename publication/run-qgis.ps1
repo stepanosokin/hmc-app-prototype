@@ -4,9 +4,11 @@ param(
     [ValidateSet('Prepare','Complete')][string]$Phase = 'Prepare',
     [switch]$Development,
     [switch]$SkipBuild,
-    [switch]$CommonWms
+    [switch]$CommonWms,
+    [switch]$FullCatalogue
 )
 $ErrorActionPreference = 'Stop'
+if ($FullCatalogue -and -not $CommonWms) { throw 'FullCatalogue requires CommonWms' }
 . (Join-Path $PSScriptRoot 'process.ps1')
 Set-Location (Split-Path $PSScriptRoot -Parent)
 $directory = Join-Path (Get-Location) "data/reports/t11/$Project"
@@ -38,7 +40,7 @@ if ($Phase -eq 'Prepare') {
     try { $listener.Start() } finally { $listener.Stop() }
     New-Item -ItemType Directory -Force $directory,$secretDirectory | Out-Null
     $ownsProject = $true
-    @{project=$Project;port=$Port;development=[bool]$Development;common_wms=[bool]$CommonWms} | ConvertTo-Json |
+    @{project=$Project;port=$Port;development=[bool]$Development;common_wms=[bool]$CommonWms;full_catalogue=[bool]$FullCatalogue} | ConvertTo-Json |
         Set-Content -Encoding ascii (Join-Path $directory 'run-state.json')
     $lines = @('GEOSERVER_ADMIN_USER=t11operator')
     foreach ($name in @('POSTGRES_PASSWORD','WORKER_PASSWORD','API_PASSWORD','MOSAIC_PASSWORD','GEOSERVER_ADMIN_PASSWORD','GATEWAY_PASSWORD')) {
@@ -77,6 +79,17 @@ if ($Phase -eq 'Prepare') {
     }
     Check access-regression @('run','--rm','--env','T8_HTTP=1','--entrypoint','python','check',
         '-m','unittest','discover','-s','tests','-p','test_publication_access.py','-k','policies','-v')
+    if ($FullCatalogue) {
+        if (-not $Development) {
+            # T5's exact catalogue baseline precedes the independent models
+            # below. Keep its full restart comparison on that unchanged set.
+            Check t5-restart @('restart','api','gateway','geoserver')
+            Check t5-restart-readiness @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions','--ready-only')
+            Check t5-restart-verification @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions')
+        }
+        Check full-catalogue @('run','--rm','--env','T107_HTTP=1','--entrypoint','python','check',
+            '-m','unittest','discover','-s','tests','-p','test_common_wms_catalogue.py','-k','full_catalogue','-v')
+    }
     Check desktop-key @('run','--rm','--volume',"${secretDirectory}:/secrets",'--entrypoint','python','worker',
         '-m','publication.access','create','--organization','t11-desktop','--profile','all','--out','/secrets/key')
     @{base="http://127.0.0.1:$Port"; key_file=(Join-Path $secretDirectory 'key'); report_directory=$directory} |
@@ -84,7 +97,7 @@ if ($Phase -eq 'Prepare') {
     Write-Output "Desktop gate pending. Run publication/qgis_desktop.py in QGIS with config: $secretDirectory/desktop.json"
 } else {
     $state = Get-Content -Raw (Join-Path $directory 'run-state.json') | ConvertFrom-Json
-    if ($state.project -ne $Project -or $state.port -ne $Port -or $state.development -ne [bool]$Development -or [bool]$state.common_wms -ne [bool]$CommonWms) {
+    if ($state.project -ne $Project -or $state.port -ne $Port -or $state.development -ne [bool]$Development -or [bool]$state.common_wms -ne [bool]$CommonWms -or [bool]$state.full_catalogue -ne [bool]$FullCatalogue) {
         throw 'Complete must use the original project, port and mode'
     }
     $ownsProject = $true
@@ -103,10 +116,11 @@ if ($Phase -eq 'Prepare') {
         $commonDesktop = Get-Content -Raw -Encoding UTF8 (Join-Path $directory 'common-desktop.json') | ConvertFrom-Json
         if ($commonDesktop.status -ne 'passed' -or $commonDesktop.qgis_version -ne '3.44.11-Solothurn' -or
             $commonDesktop.input_inventory_sha256 -ne $desktop.input_inventory_sha256) { throw 'Ordinary common-WMS desktop gate has not passed on frozen inputs' }
+        if ($FullCatalogue -and -not $commonDesktop.full_catalogue) { throw 'Ordinary full-catalogue desktop gate is required' }
     }
     Check restart @('restart','api','gateway','geoserver')
     Check restart-readiness @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions','--ready-only')
-    if (-not $Development) {
+    if (-not $Development -and -not $FullCatalogue) {
         Check t5-restart @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions')
     }
     Check wms-restart @('run','--rm','--env','T11_HTTP=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_publication_qgis.py','-v')
@@ -114,6 +128,10 @@ if ($Phase -eq 'Prepare') {
     Check runtime @('run','--rm','--entrypoint','python','check','-m','publication.runtime')
     if ($CommonWms) {
         Check common-wms-restart @('run','--rm','--env','T11_HTTP=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_common_wms.py','-v')
+        if ($FullCatalogue) {
+            Check full-catalogue-restart @('run','--rm','--env','T107_HTTP=1','--env','T107_RESTART=1','--entrypoint','python','check',
+                '-m','unittest','discover','-s','tests','-p','test_common_wms_catalogue.py','-k','restart','-v')
+        }
         Check common-wms-lifecycle @('run','--rm','--env','T11_HTTP=1','--env','T106_LIFECYCLE=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_common_wms.py','-k','retained_catalogue','-v')
     }
     Check service-logs @('logs','--no-color','api','gateway','geoserver','db') | Out-Null

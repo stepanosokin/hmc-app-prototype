@@ -167,8 +167,8 @@ def commit_revision(job: dict, directory: Path, run: str, base: dict | None, ent
     manifest_relative = manifest.relative_to(ROOT).as_posix()
     loaded = load_revision(manifest_relative, revision_checksum)
     # Recheck every referenced batch before making this revision eligible.
-    for entry in loaded['batches']:
-        selected(loaded, entry)
+    from publication import common_wms
+    common_wms.titles(common_wms.fields([selected(loaded, entry) for entry in loaded['batches']]))
     if file_hash(source) != checksum:
         raise ValueError('source changed during publication')
     recovery.checkpoint(job, 'publication')
@@ -251,9 +251,16 @@ def process(job: dict) -> None:
         base = latest(numerical.manifest['run'])
         key = batch_key(batch['identity'])
         previous = dict(pending) if pending else {entry['key']:entry for entry in base['batches']} if base else {}
-        entries = {entry['key']: entry for entry in previous.values()
-                   if not (entry['valid_time']==batch['identity']['valid_time']
-                           and entry.get('field','T_G:surface:0')==batch['identity']['field'])}
+        # Upgrade interval field IDs without deleting other grids, members or
+        # fixed sampling rules. Replace only the same scientific field/time.
+        from publication import common_wms
+        legacy_identity = {k: v for k, v in metadata.get('field_identity', {}).items()
+                           if k not in ('time_increment_type', 'time_increment_unit', 'time_increment')}
+        old_field = 'GRIB2:' + hashlib.sha256(canonical(legacy_identity)).hexdigest()
+        entries = {old_key: entry for old_key, entry in previous.items()
+                   if not (entry['valid_time'] == batch['identity']['valid_time']
+                           and entry.get('field', 'T_G:surface:0') in (batch['identity']['field'], old_field)
+                           and common_wms.name(load_manifest(entry['manifest_path'], entry['manifest_sha256'])) == common_wms.name(batch))}
         entries[key] = {'key': key, 'valid_time': batch['identity']['valid_time'],
                         'field':batch['identity']['field'],
                         'manifest_path': relative, 'manifest_sha256': batch_checksum}

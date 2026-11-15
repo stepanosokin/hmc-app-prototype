@@ -80,12 +80,12 @@ def tree():
     print(rows)
 
 
-def select_leaf():
+def select_leaf(layer_name=None):
     control = widget.findChild(QTreeWidget, 'lstLayers')
     iterator = QTreeWidgetItemIterator(control)
     while iterator.value():
         item = iterator.value()
-        if item.text(1) == selected_leaf:
+        if item.text(1) == (layer_name or selected_leaf):
             control.clearSelection()
             item.setSelected(True)
             control.setCurrentItem(item)
@@ -101,7 +101,7 @@ def add():
     QTimer.singleShot(0, button.click)
 
 
-def capture_state(label):
+def capture_state(label, center=(20, 50), units='K', expected=None):
     """Observe the actual dialog-added provider through map, Identify and legend."""
     from qgis.core import (QgsMapSettings, QgsMapRendererSequentialJob, QgsCoordinateReferenceSystem,
                            QgsRectangle, QgsDateTimeRange)
@@ -112,7 +112,8 @@ def capture_state(label):
     settings = QgsMapSettings()
     settings.setLayers([layer])
     settings.setDestinationCrs(QgsCoordinateReferenceSystem('EPSG:4326'))
-    settings.setExtent(QgsRectangle(15, 45, 25, 55))
+    x, y = center
+    settings.setExtent(QgsRectangle(x-5, y-5, x+5, y+5))
     settings.setOutputSize(QSize(640, 360))
     settings.setBackgroundColor(QColor(0, 0, 0, 0))
     job = QgsMapRendererSequentialJob(settings)
@@ -122,8 +123,12 @@ def capture_state(label):
     assert not image.isNull() and image.pixelColor(320, 180).alpha() > 0
     image.save(str(report / (label + '-map.png')))
     helper = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'publication/qgis_desktop.py'))
-    text = helper['identify_in_canvas'](layer, 'EPSG:4326', 20, 50, .001, QgsDateTimeRange(QDateTime(), QDateTime()))
-    assert 'GRAY_INDEX' in text and 'Редакция:' in text and 'Единицы: K' in text
+    text = helper['identify_in_canvas'](layer, 'EPSG:4326', x, y, .001, QgsDateTimeRange(QDateTime(), QDateTime()))
+    assert 'GRAY_INDEX' in text and 'Редакция:' in text and 'Единицы: ' + units in text
+    if expected is not None:
+        import re
+        value = re.search(r'GRAY_INDEX\s*=\s*([^\s]+)', text)
+        assert value and abs(float(value[1])-expected) <= .0001, text
     loop = QEventLoop()
     images, errors = [], []
     fetcher = layer.dataProvider().getLegendGraphicFetcher(settings)
