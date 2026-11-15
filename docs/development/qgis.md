@@ -1,5 +1,9 @@
 # Desktop QGIS validation
 
+For common-WMS add/save/reopen/refresh probes, first read the
+[ordinary connection procedure](../qgis.md#обычное-подключение-публичного-слоя),
+which records the agreed snapshot-link contract from #105/#106.
+
 For desktop QGIS or scoped WMS changes, use the two-phase
 [T11 runner and desktop procedure](../qgis.md#воспроизведение-приёмки).
 Its full mode includes T5 publication/restart, the T8 policy scenario and the

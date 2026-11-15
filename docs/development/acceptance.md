@@ -68,6 +68,13 @@ implements this ordering. During Development, complete the new fixture through
 its expected failure/recovery branch before freezing the full service/desktop
 gate; check GRIB interval construction and the CLI's actual JSON error channel.
 
+Wait for the runner's Prepare process to exit successfully before mutating its
+stand with another scenario. Serialize publication/withdrawal fixtures within
+one project. Keep synthetic source provenance bound to its actual fixture
+directory and pass that same scope to withdrawal preview/apply; the private
+actual-sample directory remains a separate source. Use fresh model names and
+report paths for focused retries on a retained Development stand.
+
 For catalogue/discovery edits, run the existing sample-free `test_catalogue.py`
 checks before service allocation. Local Runtime/All and manual CI include them;
 their 82-revision fixture detects repeated manifest reads and lost batch sharing.
@@ -111,6 +118,10 @@ path selection with the changed runtime and runner dependencies before freezing.
 T8 uses [verify_recovery.py](../../publication/verify_recovery.py); the
 [TLS checker](../../tools/check-tls.mjs) adds its own inputs. Include missing
 paths in the affected gate's initial/final inventories.
+For service source copies, use the generated inventory directly with
+[copy-validation-inputs.mjs](../../tools/copy-validation-inputs.mjs), following
+[evidence storage](../validation/evidence-storage.md). Copying the exact list
+prevents a second, handwritten selector from silently omitting frozen inputs.
 
 Reuse an unaffected unit/Python suite after a viewer-only fix when its source,
 fixtures, configuration, dependencies and toolchain are unchanged. Preserve the

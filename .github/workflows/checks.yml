@@ -61,6 +61,8 @@ jobs:
       - name: Check documentation links and administrator command syntax
         shell: powershell
         run: ./tools/check-documentation.ps1
+      - name: Check manifest-based service input copies without services
+        run: node --test tools/test-copy-validation-inputs.mjs
       - name: Reject invalid documentation examples and missing links
         shell: powershell
         run: ./tools/check-documentation-tests.ps1

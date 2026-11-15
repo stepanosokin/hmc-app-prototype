@@ -1,5 +1,11 @@
 # Retrospective basis
 
+The [common WMS publication retrospective](retro-wms-updates.md) follows #108:
+service source copies now consume the runner's exact manifest with resource-free
+regressions in local Windows/manual CI. Acceptance guidance serializes mutating
+fixtures after Prepare; the QGIS pointer brings the agreed pinned-link contract
+before desktop probe construction. The accepted application remains unchanged.
+
 The [common WMS catalogue retrospective](retro-wms-catalogue.md) follows #107:
 existing compact-catalogue regressions now run in local Runtime/manual CI.
 Acceptance guidance brings multi-field fixture compatibility and error-channel
