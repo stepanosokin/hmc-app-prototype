@@ -107,7 +107,7 @@ def verify_desktop(config_path):
                 settings.setDestinationCrs(QgsCoordinateReferenceSystem(crs))
                 # Larger than the advertised image limit; the provider must tile
                 # automatically without maxWidth/maxHeight overrides in its URI.
-                settings.setOutputSize(QSize(1204, 700))
+                settings.setOutputSize(QSize(3201, 1801))
                 settings.setBackgroundColor(QColor(0, 0, 0, 0))
                 settings.setIsTemporal(True)
                 settings.setTemporalRange(temporal_range)
@@ -185,7 +185,7 @@ def verify_desktop(config_path):
                         assert value and abs(float(value[1])-probe['value_K']) <= .0001, actual
                         standard_identify.append({'crs': crs, 'time': item['valid_time'],
                             'expected_K': probe['value_K'], 'identify': actual,
-                            'canvas': [1204, 700], 'uri_time': False, 'dpi_size_overrides': False})
+                            'canvas': [3201, 1801], 'uri_time': False, 'dpi_size_overrides': False})
                     observations.append({'crs': crs, 'time': item['valid_time'], 'native': [lon, lat],
                                          'expected_K': probe['value_K'], 'identify': text})
             loop = QEventLoop()
@@ -271,19 +271,33 @@ def identify_in_canvas(layer, crs, x, y, delta, temporal_range):
     """Exercise the actual Identify tool without touching the user's canvas."""
     from qgis.core import QgsCoordinateReferenceSystem, QgsRectangle, QgsIdentifyContext
     from qgis.gui import QgsMapCanvas, QgsMapToolIdentify
+    from qgis.PyQt.QtCore import Qt
+    from qgis.PyQt.QtWidgets import QApplication, QFrame
     canvas = QgsMapCanvas()
-    canvas.resize(1204, 700)
-    canvas.setDestinationCrs(QgsCoordinateReferenceSystem(crs))
-    canvas.setExtent(QgsRectangle(x-delta, y-delta, x+delta, y+delta))
-    canvas.setLayers([layer])
-    context = QgsIdentifyContext()
-    context.setTemporalRange(temporal_range)
-    tool = QgsMapToolIdentify(canvas)
+    tool = None
     try:
+        canvas.setFrameShape(QFrame.NoFrame)
+        canvas.setRenderFlag(False)
+        canvas.setAttribute(Qt.WA_DontShowOnScreen)
+        canvas.resize(3201, 1801)
+        # A hidden, never-shown QGraphicsView retains its initial viewport size.
+        # Let Qt initialize the real layout without displaying a user window.
+        canvas.show()
+        QApplication.processEvents()
+        assert canvas.mapSettings().outputSize().width() == 3201
+        assert canvas.mapSettings().outputSize().height() == 1801
+        canvas.setDestinationCrs(QgsCoordinateReferenceSystem(crs))
+        canvas.setExtent(QgsRectangle(x-delta, y-delta, x+delta, y+delta))
+        canvas.setLayers([layer])
+        context = QgsIdentifyContext()
+        context.setTemporalRange(temporal_range)
+        tool = QgsMapToolIdentify(canvas)
         results = tool.identify(canvas.width()//2, canvas.height()//2, [layer],
                                 QgsMapToolIdentify.TopDownAll, context)
         return '\n'.join(str(value) for result in results for value in result.mAttributes.values())
     finally:
+        canvas.hide()
         canvas.setLayers([])
-        tool.deleteLater()
+        if tool is not None:
+            tool.deleteLater()
         canvas.deleteLater()

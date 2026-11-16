@@ -70,7 +70,12 @@ class UsageBudgets(unittest.TestCase):
         params = {'SERVICE': 'WMS', 'VERSION': '1.3.0', 'REQUEST': 'GetMap', 'LAYERS': 'temperature',
                   'STYLES': '', 'FORMAT': 'image/png', 'CRS': 'EPSG:4326', 'BBOX': '45,10,55,30',
                   'WIDTH': '32', 'HEIGHT': '32', 'TIME': selected['valid_time']}
-        if os.environ.get('T106_WMS') == '1':
+        if os.environ.get('T109_WMS') == '1':
+            seed = json.loads(Path('/evidence/common-multilayer.json').read_text())
+            from urllib.parse import urlencode
+            selected = {**selected, 'wms': '/gis/v1/wms?' + urlencode(seed['snapshot'])}
+            params = {key: value for key, value in seed['params'].items() if key != 'snapshot'}
+        elif os.environ.get('T106_WMS') == '1':
             import xml.etree.ElementTree as ET
             from urllib.parse import urlsplit
             response = requests.get(base+'/gis/v1/wms', timeout=30)
@@ -160,6 +165,8 @@ class UsageBudgets(unittest.TestCase):
         base, selected, params = self.wms_fixture()
         path = '/org'+selected['wms']
         observations = {}
+        suffix = '-' + uuid.uuid4().hex[:8]
+        deadline_org, revoke_org, disconnect_org = ('t9-wms-' + name + suffix for name in ('deadline', 'revoke', 'disconnect'))
         marker = Path('/assets/.t9-wms-delay')
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -186,47 +193,47 @@ class UsageBudgets(unittest.TestCase):
 
             marker.touch()
             try:
-                _, timed = credential('timed', 't9-wms-deadline', 1)
+                _, timed = credential('timed', deadline_org, 1)
                 with ThreadPoolExecutor(max_workers=2) as executor:
                     first = executor.submit(get, timed)
-                    observe('t9-wms-deadline', lambda rows: any(row['backend_started'] for row in rows))
+                    observe(deadline_org, lambda rows: any(row['backend_started'] for row in rows))
                     second = executor.submit(get, timed)
                     self.assertEqual(first.result().status_code, 504)
                     self.assertEqual(second.result().status_code, 504)
-                rows = observe('t9-wms-deadline', lambda rows: any(row['backend_done'] for row in rows))
+                rows = observe(deadline_org, lambda rows: any(row['backend_done'] for row in rows))
                 self.assertEqual(sum(row['backend_started'] for row in rows), 1)
                 # Completed backend alone does not erase the 40s timeout lease.
                 self.assertEqual(get(timed).status_code, 504)
-                observations['deadline'] = self.command('usage', '--organization', 't9-wms-deadline')['requests']
+                observations['deadline'] = self.command('usage', '--organization', deadline_org)['requests']
                 self.assertEqual(sum(row['backend_started'] for row in observations['deadline']), 1)
 
-                _, keeper = credential('keeper', 't9-wms-revoke')
-                revoked, victim = credential('victim', 't9-wms-revoke')
+                _, keeper = credential('keeper', revoke_org)
+                revoked, victim = credential('victim', revoke_org)
                 with ThreadPoolExecutor(max_workers=2) as executor:
                     first = executor.submit(get, keeper)
-                    observe('t9-wms-revoke', lambda rows: any(row['backend_started'] for row in rows))
+                    observe(revoke_org, lambda rows: any(row['backend_started'] for row in rows))
                     second = executor.submit(get, victim)
-                    observe('t9-wms-revoke', lambda rows: len(rows) == 2 and not rows[-1]['admitted'])
+                    observe(revoke_org, lambda rows: len(rows) == 2 and not rows[-1]['admitted'])
                     result = subprocess.run([sys.executable, '-m', 'publication.access', 'revoke', '--id', revoked['id']],
                                             capture_output=True, timeout=10)
                     self.assertEqual(result.returncode, 0)
                     self.assertEqual(second.result().status_code, 401)
                     self.assertEqual(first.result().status_code, 200)
-                observations['revoked'] = self.command('usage', '--organization', 't9-wms-revoke')['requests']
+                observations['revoked'] = self.command('usage', '--organization', revoke_org)['requests']
                 self.assertFalse(observations['revoked'][-1]['backend_started'])
 
-                _, cancel = credential('cancel', 't9-wms-disconnect')
+                _, cancel = credential('cancel', disconnect_org)
                 with ThreadPoolExecutor(max_workers=1) as executor:
                     first = executor.submit(get, cancel)
-                    observe('t9-wms-disconnect', lambda rows: any(row['backend_started'] for row in rows))
+                    observe(disconnect_org, lambda rows: any(row['backend_started'] for row in rows))
                     connection = socket.create_connection(('gateway', 8000), timeout=3)
                     try:
                         connection.sendall(('GET '+path+'?'+urlencode(params)+' HTTP/1.1\r\nHost: gateway\r\nX-API-Key: '
                                             +cancel['X-API-Key']+'\r\nConnection: close\r\n\r\n').encode())
-                        observe('t9-wms-disconnect', lambda rows: len(rows) == 2 and not rows[-1]['admitted'])
+                        observe(disconnect_org, lambda rows: len(rows) == 2 and not rows[-1]['admitted'])
                     finally:
                         connection.close()
-                    rows = observe('t9-wms-disconnect', lambda rows: len(rows) == 2 and rows[-1]['status'] is not None)
+                    rows = observe(disconnect_org, lambda rows: len(rows) == 2 and rows[-1]['status'] is not None)
                     self.assertEqual(rows[-1]['status'], 504)
                     self.assertFalse(rows[-1]['backend_started'])
                     self.assertEqual(first.result().status_code, 200)
@@ -242,7 +249,7 @@ class UsageBudgets(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             for name, limits in (('rate', {'requests': 1}), ('bytes', {'bytes': 1024})):
-                organization = 't9-wms-'+name
+                organization = 't9-wms-'+name+'-'+uuid.uuid4().hex[:8]
                 issue(organization, 'all', root/name)
                 headers = {'X-API-Key': (root/name).read_text().strip()}
                 policy = root/'policy'

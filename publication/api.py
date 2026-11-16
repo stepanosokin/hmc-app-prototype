@@ -7,6 +7,7 @@ import time
 import os
 import sys
 import re
+import io
 import xml.etree.ElementTree as ET
 from urllib.parse import quote
 
@@ -173,6 +174,11 @@ def create_app() -> Flask:
 
     @app.errorhandler(KeyError)
     def unavailable(error):
+        if request.path == '/gis/v1/wms':
+            if error.args == ('Неизвестный слой общего WMS.',):
+                return jsonify(code='LayerNotDefined', description='Неизвестный слой общего WMS.'), 404
+            if error.args == ('GIS layer/time',):
+                return jsonify(code='InvalidDimensionValue', description='Точный срок отсутствует хотя бы у одного выбранного слоя.'), 404
         return jsonify(code='NotFound', description='Слой или точный срок отсутствует в закреплённом каталоге.'
                        if request.path == '/gis/v1/wms' else 'unavailable published selection'), 404
 
@@ -522,6 +528,8 @@ def create_app() -> Flask:
             prefix = request.headers.get('X-Publication-Origin', '') + prefix
         operation_url = prefix + '/gis/v1/wms?snapshot=' + token + '&'
         if params['REQUEST'] != 'GetCapabilities':
+            if params['REQUEST'] in ('GetMap', 'GetFeatureInfo') and ',' in params.get('LAYERS', ''):
+                return shared_layers(fields, params, operation_url, titles)
             key = params.get('LAYER') if params['REQUEST'] == 'GetLegendGraphic' else params.get('LAYERS')
             if key not in fields:
                 raise KeyError('Неизвестный слой общего WMS.')
@@ -569,6 +577,70 @@ def create_app() -> Flask:
         get = ET.SubElement(ET.SubElement(ET.SubElement(legend, ns + 'DCPType'), ns + 'HTTP'), ns + 'Get')
         ET.SubElement(get, ns + 'OnlineResource', {'{http://www.w3.org/1999/xlink}href': operation_url})
         return Response(ET.tostring(root, encoding='utf-8', xml_declaration=True), content_type='application/xml')
+
+    def shared_layers(fields, params, operation_url, titles):
+        """Validate the whole selection before composing ordered, bounded results."""
+        from PIL import Image
+        names = params['LAYERS'].split(',')
+        if len(set(names)) != len(names) or any(not name for name in names):
+            raise ValueError('Повторяющийся или пустой слой WMS.')
+        if any(name not in fields for name in names):
+            raise KeyError('Неизвестный слой общего WMS.')
+        styles = params.get('STYLES', '').split(',') if params.get('STYLES') else [''] * len(names)
+        if len(styles) != len(names) or any(style not in ('', 'raster') for style in styles):
+            raise ValueError('Недопустимые стили WMS.')
+        if params.get('TRANSPARENT', 'false').lower() not in ('true', 'false'):
+            raise ValueError('Недопустимая прозрачность WMS.')
+        queried = params.get('QUERY_LAYERS', '').split(',') if params['REQUEST'] == 'GetFeatureInfo' else names
+        if len(set(queried)) != len(queried) or any(name not in names for name in queried):
+            raise ValueError('QUERY_LAYERS должен быть частью LAYERS.')
+        # Even a non-queried map layer must have the exact explicit time.
+        for name in names:
+            if 'TIME' in params and not any(m['identity']['valid_time'] == params['TIME'] for m in fields[name]):
+                raise KeyError('GIS layer/time')
+        composed = None
+        texts = []
+        etags = []
+        for name, style in zip(names, styles):
+            if name not in queried:
+                continue
+            if time.time() >= g.deadline:
+                raise WorkLimit(504)
+            selected = {**params, 'LAYERS': name, 'STYLES': style}
+            if params['REQUEST'] == 'GetFeatureInfo':
+                selected['QUERY_LAYERS'] = name
+            else:
+                # Only the final canvas receives the requested opaque background.
+                selected['TRANSPARENT'] = 'true'
+            response = shared_field(fields[name], selected, name, operation_url, titles[name])
+            etags.append(response.headers['ETag'])
+            if params['REQUEST'] == 'GetFeatureInfo':
+                texts.append('Слой: ' + titles[name] + '\n' + response.get_data(as_text=True))
+            else:
+                with Image.open(io.BytesIO(response.get_data())) as image:
+                    rgba = image.convert('RGBA')
+                if composed is None:
+                    composed = rgba
+                else:
+                    composed.alpha_composite(rgba)
+        if params['REQUEST'] == 'GetFeatureInfo':
+            result = Response('\n'.join(texts), content_type='text/plain; charset=utf-8')
+        else:
+            assert composed is not None
+            if params.get('TRANSPARENT', 'false').lower() != 'true':
+                background = Image.new('RGBA', composed.size, 'white')
+                background.alpha_composite(composed)
+                composed = background.convert('RGB')
+            output = io.BytesIO()
+            composed.save(output, format='PNG')
+            result = Response(output.getvalue(), content_type='image/png')
+        if time.time() >= g.deadline:
+            raise WorkLimit(504)
+        # A multi-model result has no single run/revision header.
+        g.pop('identity', None)
+        result.headers['Cache-Control'] = 'private, no-cache'
+        result.set_etag(hashlib.sha256(json.dumps([operation_url, params, etags], sort_keys=True).encode()).hexdigest())
+        return result
 
     def shared_field(choices, params, layer_name, operation_url, title):
         manifest = choices[0]
