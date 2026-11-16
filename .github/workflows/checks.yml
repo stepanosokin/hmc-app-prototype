@@ -61,6 +61,10 @@ jobs:
       - name: Check documentation links and administrator command syntax
         shell: powershell
         run: ./tools/check-documentation.ps1
+      - name: Check the QGIS desktop source plan before service acceptance
+        run: |
+          node tools/check-qgis-preflight.mjs
+          node --test tools/test-qgis-preflight.mjs
       - name: Check manifest-based service input copies without services
         run: node --test tools/test-copy-validation-inputs.mjs
       - name: Reject invalid documentation examples and missing links

@@ -32,6 +32,8 @@ try {
         Invoke-Check node @('--test', 'tools/test-viewer-map-picks.mjs')
     }
     if ($Scope -in @('All', 'Windows')) {
+        Invoke-Check node @('tools/check-qgis-preflight.mjs')
+        Invoke-Check node @('--test', 'tools/test-qgis-preflight.mjs')
         Invoke-Check node @('--test', 'tools/test-copy-validation-inputs.mjs')
         foreach ($script in @('check-publication-process', 'check-documentation', 'check-documentation-tests', 'check-native-display-inputs', 'check-viewer-fixtures-tests', 'check-field-nodata-preflight-tests', 'check-retention-preflight-tests')) {
             Invoke-Check powershell @('-NoProfile', '-File', "tools/$script.ps1")

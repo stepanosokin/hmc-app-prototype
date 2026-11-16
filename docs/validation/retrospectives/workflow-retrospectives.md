@@ -1,5 +1,10 @@
 # Retrospective basis
 
+The [multilayer WMS retrospective](retro-wms-multilayer.md) follows #109:
+a resource-free QGIS source-plan guard now runs in Windows local/manual CI;
+desktop guidance checks MCP ports and asynchronous Add readiness, while cleanup
+verifies the actual listener child rather than only a launcher PID.
+
 The [common WMS publication retrospective](retro-wms-updates.md) follows #108:
 service source copies now consume the runner's exact manifest with resource-free
 regressions in local Windows/manual CI. Acceptance guidance serializes mutating

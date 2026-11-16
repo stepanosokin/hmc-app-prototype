@@ -4,6 +4,13 @@ For common-WMS add/save/reopen/refresh probes, first read the
 [ordinary connection procedure](../qgis.md#обычное-подключение-публичного-слоя),
 which records the agreed snapshot-link contract from #105/#106.
 
+Before allocating a T11 stand, run `node tools/check-qgis-preflight.mjs`.
+This source-only check compares the pinned renderer/Identify sizes with the
+current GetMap limit and requires layout initialization plus actual viewport
+assertions before Identify. Its negative fixtures run in local Windows/All and
+manual CI. It neither imports QGIS nor proves desktop compatibility: complete
+the pinned-client Development probe before freezing an expensive full gate.
+
 For desktop QGIS or scoped WMS changes, use the two-phase
 [T11 runner and desktop procedure](../qgis.md#воспроизведение-приёмки).
 Its full mode includes T5 publication/restart, the T8 policy scenario and the
@@ -29,7 +36,11 @@ instance. Check local availability before desktop testing. If the QGIS MCP plugi
 is missing, request its installation and MCP connection setup from the user;
 wait for approval before installation and its associated local QGIS/MCP setup.
 For an installed but unreachable plugin, first check the running QGIS instance
-and connection configuration. Use the Python-console fallback only when the
+and compare its actual server port/PID with the configured MCP instance. A port
+mismatch is not a missing plugin; confirm the responding window before desktop
+work and preserve other instances. Temporary transport helpers follow
+[local-process cleanup](cleanup.md#temporary-local-processes).
+Use the Python-console fallback only when the
 user explicitly chooses it; continue independent work while awaiting a reply.
 
 Each QGIS MCP `execute_code` call has its own namespace. For a multi-call ordinary
@@ -37,6 +48,12 @@ dialog interaction, keep the probe in a uniquely named temporary attribute on
 `qgis.utils`, queue dialog actions in separate calls, and remove that attribute
 with the temporary connection/layers during cleanup. This preserves UI state
 without assuming Python variables survive the next tool invocation.
+
+Queued dialog actions return before asynchronous layer loading finishes.
+After Add, read the expected owned layer count and provider readiness in a later
+MCP call before capturing evidence. Poll boundedly through the Qt event loop;
+keep failed/early observations separate and mark a phase complete only after
+its final map, Identify and legend checks. A timer firing is not a ready signal.
 
 For QGIS reviews, trace temporal state separately through map rendering and
 identify. The renderer clones its raster pipe; setting its time does not set

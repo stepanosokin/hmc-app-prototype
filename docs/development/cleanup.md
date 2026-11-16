@@ -1,5 +1,16 @@
 # Test environment cleanup
 
+## Temporary local processes
+
+For a task-owned local proxy or helper, record its unique script path and the
+process owning its listening socket. On Windows, a launcher returned by
+Start-Process can be a shim whose child owns the socket. Stopping the launcher
+does not establish cleanup: match the actual listener/child to the task script,
+stop only those owned processes, then verify their sockets are closed. Preserve
+unrelated listeners and the user's QGIS instances; avoid logging full command
+lines or environment values. The [multilayer WMS retrospective](../validation/retrospectives/retro-wms-multilayer.md)
+records the observed shim/child case and the final cleanup receipt.
+
 ## Failed-job cleanup in a retained live stand
 
 When an operation fails before catalogue switching, preserve the running stand
