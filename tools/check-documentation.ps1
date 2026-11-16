@@ -14,6 +14,7 @@ param(
         'docs/development-workflow.md',
         'docs/development/browser.md',
         'docs/development/services.md',
+        'docs/development/live-update.md',
         'docs/development/qgis.md',
         'docs/development/acceptance.md',
         'docs/development/cleanup.md',

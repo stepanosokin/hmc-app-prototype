@@ -28,6 +28,7 @@ try {
         Invoke-Check node @('--test', 'tools/test-archive-validation.mjs')
         Invoke-Check node @('--test', 'tools/test-validation-summary.mjs')
         Invoke-Check node @('--test', 'tools/test-viewer-runtime.mjs')
+        Invoke-Check node @('--test', 'tools/test-live-validation.mjs')
         Invoke-Check node @('--test', 'tools/test-viewer-select-option.mjs')
         Invoke-Check node @('--test', 'tools/test-viewer-map-picks.mjs')
     }
@@ -35,7 +36,7 @@ try {
         Invoke-Check node @('tools/check-qgis-preflight.mjs')
         Invoke-Check node @('--test', 'tools/test-qgis-preflight.mjs')
         Invoke-Check node @('--test', 'tools/test-copy-validation-inputs.mjs')
-        foreach ($script in @('check-publication-process', 'check-documentation', 'check-documentation-tests', 'check-native-display-inputs', 'check-viewer-fixtures-tests', 'check-field-nodata-preflight-tests', 'check-retention-preflight-tests')) {
+        foreach ($script in @('check-publication-process', 'check-prepared-validation-tests', 'check-documentation', 'check-documentation-tests', 'check-native-display-inputs', 'check-viewer-fixtures-tests', 'check-field-nodata-preflight-tests', 'check-retention-preflight-tests')) {
             Invoke-Check powershell @('-NoProfile', '-File', "tools/$script.ps1")
         }
         Invoke-Check node @('--test', 'tools/test-weather-check-options.mjs')

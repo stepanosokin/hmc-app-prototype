@@ -222,3 +222,9 @@ comparisons of checkout-filtered or ignored inputs. The existing QGIS preflight
 now guards T11 suite placement; focused browser and input-verification guidance
 cover the remaining failures. Accepted #110 evidence and third-party skills
 remain unchanged.
+
+The [live WMS deployment retrospective](retro-live-wms105.md) records repeated
+PowerShell stderr failures, incomplete preparation before archival, missing
+first-failure HTTP diagnostics and false resource comparisons. Small validation
+tools reuse the existing process launcher and archive copier; local/manual CI
+checks use synthetic inputs without changing the live stack.

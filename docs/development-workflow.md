@@ -45,6 +45,7 @@ For particle appearance changes, start with [wind-particle review](development/b
 | Change | During development | Final acceptance |
 | --- | --- | --- |
 | Documentation only | Documentation link check on changed files | Link check; verify recorded hashes when completing existing evidence |
+| Existing live deployment without source changes | [Live-update checks](development/live-update.md): checked processes, HTTP receipts and resource comparison | Same checks on the deployed build; archive preparation must succeed before copying evidence; this does not repeat product acceptance |
 | Revalidation CLI scope / browser input driver only | Resource-free plan rejection and select-value checks | Same regressions, PowerShell syntax, local/CI wiring and documentation; unchanged application code does not require service/browser acceptance |
 | Viewer fixture preflight / read-only build comparison / report-summary tooling | Resource-free fixture/summary/build regressions | Same regressions, PowerShell syntax and local/CI wiring; compare served modules for the build probe; unchanged application runners do not require service/browser gates |
 | Service-runner test selection only | Resource-free selection guard and negative fixtures | Same guard, Windows/CI wiring and the affected Development sequence on a fresh stand; unchanged publication/runtime paths do not require repeating T5 or the full retention gate |
