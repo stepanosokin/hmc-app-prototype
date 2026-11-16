@@ -7,8 +7,12 @@ which records the agreed snapshot-link contract from #105/#106.
 Before allocating a T11 stand, run `node tools/check-qgis-preflight.mjs`.
 This source-only check compares the pinned renderer/Identify sizes with the
 current GetMap limit and requires layout initialization plus actual viewport
-assertions before Identify. Its negative fixtures run in local Windows/All and
-manual CI. It neither imports QGIS nor proves desktop compatibility: complete
+assertions before Identify. The default invocation also checks the pinned T11
+suite order: expanded final modes run the full suite on T5's baseline after its
+restart verification and before independent WMS fixtures; Development and
+unexpanded modes keep it in Complete. Source-plan drift fails for review rather
+than silently skipping this check. Its negative fixtures run in local Windows/All
+and manual CI. It neither imports QGIS nor proves desktop compatibility: complete
 the pinned-client Development probe before freezing an expensive full gate.
 
 For desktop QGIS or scoped WMS changes, use the two-phase

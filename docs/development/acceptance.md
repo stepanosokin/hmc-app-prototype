@@ -167,11 +167,17 @@ After staging, compare the actual index blobs with the selected input hashes;
 repeat against HEAD after commit. `git add --renormalize -- <exact-path>` applies
 an intentional attribute change to an already staged file. A clean working tree
 alone does not establish byte identity.
-For a large set of tracked inputs, read committed object identities once with
-`git ls-tree -rz HEAD` (or staged identities with `git ls-files --stage -z`),
-then compare the path/object map with the input inventory in one process.
-Retain the per-input prospective-filter check before acceptance. Thousands of
-individual `git rev-parse` processes add overhead without stronger verification.
+Before comparing an inventory with Git, read the tracked path/object map once
+with `git ls-tree -rz HEAD` (or staged identities with `git ls-files --stage -z`).
+Classify each entry: changed tracked source, unchanged baseline, or generated /
+external runtime artifact. Compare changed tracked inputs to raw blobs; for an
+unchanged baseline, require the same baseline/HEAD object and the existing
+checkout filter. Check generated bundles and external assets against their raw
+frozen sizes/hashes, recording them separately from committed sources. Rebuild
+generated modules when proving their relationship to the committed sources.
+Retain the per-input prospective-filter check before acceptance; classify paths
+before issuing blob reads. Per-file `git show`/`rev-parse` loops add overhead
+and fail on ignored runtime assets.
 For new tracked validation records, run the staged diff check before the ticket commit:
 an unstaged check omits new files. Preserve raw historical input snapshots;
 report their existing whitespace separately from changed source/documentation
@@ -179,11 +185,11 @@ checks, with the exact snapshot-only exclusion recorded in validation.
 
 For Node subprocesses reading a repository-wide Git index, set an explicit output
 buffer large enough for the archive (T13 used 64 MiB), or stream the output.
-Compare new/changed tracked inputs to raw Git blobs; preserve external evidence
-against its recorded hashes independently of Git. Compare
-unchanged baseline files using their existing checkout filters. Preserve the
-exact raw bytes in the validation snapshot. Existing baseline CRLF normalization
-is distinct from an input changing during acceptance.
+Preserve the exact raw bytes in every validation snapshot and verify external
+evidence independently of Git. Existing baseline CRLF normalization is distinct
+from an input changing during acceptance. The
+[integrated WMS retrospective](../validation/retrospectives/retro-wms-integrated.md)
+records the failed raw-blob and ignored-build comparisons behind this procedure.
 
 
 Capture a long Compose run's full console output in its project report directory

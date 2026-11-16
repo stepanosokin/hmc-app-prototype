@@ -42,13 +42,47 @@ export function checkQgisDesktopPlan(wmsSource, desktopSource) {
     return {status: 'passed', proof: 'source-plan-only', map_limit: limit, render: sizes[0], identify: sizes[1]};
 }
 
+/** Pinned runner source guard; no PowerShell, services or historical archives are executed. */
+export function checkQgisSuitePlan(source) {
+    source = source.replaceAll('\r\n', '\n').replace(/^\s*#.*$/gm, '');
+    const suites = [...source.matchAll(/^\s*Check full-suite @.*$/gm)];
+    if (suites.length !== 2) throw Error('Expected two full-suite commands in the pinned QGIS plan');
+    if (suites.some(match => match[0].trim() !== "Check full-suite @('run','--rm','--env','T4_HTTP=1','check')"))
+        throw Error('Review changed full-suite arguments in the pinned QGIS plan');
+    const complete = one(source, /^\} else \{\n    \$state = /gm, 'Complete phase');
+    const expanded = one(source,
+        /^    if \(\$FullCatalogue -or \$PublicationUpdates -or \$MultiLayer\) \{\n\s*if \(-not \$Development\) \{([\s\S]*?)^        \}\n    \}/gm,
+        'expanded final mode guard');
+    const baseline = one(expanded[1], /^\s*Check full-suite @/gm, 'T5 baseline full suite');
+    let previous = -1;
+    for (const name of ['t5-restart', 't5-restart-readiness', 't5-restart-verification']) {
+        const step = one(expanded[1], new RegExp(`^\\s*Check ${name} @`, 'gm'), name);
+        if (step.index <= previous || step.index >= baseline.index)
+            throw Error('Full suite must follow T5 restart verification');
+        previous = step.index;
+    }
+    for (const name of ['full-catalogue', 'publication-updates', 'multilayer']) {
+        const fixture = one(source, new RegExp(`^\\s*Check ${name} @`, 'gm'), name);
+        if (fixture.index <= expanded.index + expanded[0].length || fixture.index >= complete.index)
+            throw Error('Independent WMS fixtures must follow the baseline suite in Prepare');
+    }
+    const other = one(source,
+        /^    if \(\$Development -or \(-not \$FullCatalogue -and -not \$PublicationUpdates -and -not \$MultiLayer\)\) \{\n\s*Check full-suite @\('run','--rm','--env','T4_HTTP=1','check'\)\n    \}/gm,
+        'Complete suite mode guard');
+    if (expanded.index >= complete.index || other.index <= complete.index)
+        throw Error('Full suites belong to their pinned Prepare/Complete phases');
+    return {status: 'passed', proof: 'source-plan-only', expanded_final: 'Prepare', other_modes: 'Complete'};
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     try {
         const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
         const args = process.argv.slice(2);
         if (args.length !== 0 && args.length !== 2) throw Error('Use [wms.py qgis_desktop.py] or no arguments');
         const files = args.length ? args : ['publication/wms.py', 'publication/qgis_desktop.py'].map(file => path.join(root, file));
-        console.log(JSON.stringify(checkQgisDesktopPlan(...files.map(file => fs.readFileSync(file, 'utf8')))));
+        const desktop = checkQgisDesktopPlan(...files.map(file => fs.readFileSync(file, 'utf8')));
+        const suite = args.length ? undefined : checkQgisSuitePlan(fs.readFileSync(path.join(root, 'publication/run-qgis.ps1'), 'utf8'));
+        console.log(JSON.stringify({...desktop, ...(suite ? {suite} : {})}));
     } catch (error) {
         console.error(`QGIS preflight: ${error.message}`);
         process.exitCode = 1;

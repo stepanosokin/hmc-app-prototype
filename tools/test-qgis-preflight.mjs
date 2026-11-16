@@ -5,12 +5,13 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {checkQgisDesktopPlan} from './check-qgis-preflight.mjs';
+import {checkQgisDesktopPlan, checkQgisSuitePlan} from './check-qgis-preflight.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const wms = read('publication/wms.py');
 const desktop = read('publication/qgis_desktop.py');
+const runner = read('publication/run-qgis.ps1');
 const cli = fileURLToPath(new URL('./check-qgis-preflight.mjs', import.meta.url));
 
 function changed(source, before, after) {
@@ -23,6 +24,50 @@ test('current source plan checks a canvas above the current GetMap limit', () =>
         status: 'passed', proof: 'source-plan-only', map_limit: 3000,
         render: [3201, 1801], identify: [3201, 1801]
     });
+});
+
+test('expanded final acceptance runs the full suite once on T5 before WMS fixtures', () => {
+    assert.deepEqual(checkQgisSuitePlan(runner), {
+        status: 'passed', proof: 'source-plan-only', expanded_final: 'Prepare', other_modes: 'Complete'
+    });
+    assert.deepEqual(checkQgisSuitePlan(runner.replaceAll('\n', '\r\n')), checkQgisSuitePlan(runner));
+});
+
+test('rejects the old suite placement after the independent WMS fixtures', () => {
+    const suite = "            Check full-suite @('run','--rm','--env','T4_HTTP=1','check')\n";
+    const late = changed(runner, suite, '').replace('    Check desktop-key @(', suite + '    Check desktop-key @(');
+    assert.throws(() => checkQgisSuitePlan(late), /T5 baseline full suite/);
+});
+
+test('rejects missing, duplicate or early suite execution', () => {
+    const suite = "Check full-suite @('run','--rm','--env','T4_HTTP=1','check')";
+    assert.throws(() => checkQgisSuitePlan(changed(runner, suite, '# removed')), /full-suite commands/);
+    assert.throws(() => checkQgisSuitePlan(runner + '\n' + suite), /full-suite commands/);
+    const early = changed(runner, '            ' + suite + '\n', '')
+        .replace("            Check t5-restart @(", '            ' + suite + "\n            Check t5-restart @(");
+    assert.throws(() => checkQgisSuitePlan(early), /must follow T5 restart verification/);
+});
+
+test('rejects fixtures moved ahead of the baseline suite', () => {
+    const fixture = "        Check full-catalogue @('run'";
+    const early = changed(runner, fixture, "        Check renamed-catalogue @('run'")
+        .replace('    if ($FullCatalogue -or', "    Check full-catalogue @('run')\n    if ($FullCatalogue -or");
+    assert.throws(() => checkQgisSuitePlan(early), /must follow the baseline suite/);
+});
+
+test('rejects weakened full-suite arguments or an additional differently configured suite', () => {
+    const suite = "Check full-suite @('run','--rm','--env','T4_HTTP=1','check')";
+    assert.throws(() => checkQgisSuitePlan(changed(runner, suite, "Check full-suite @('run','--rm','check')")), /arguments/);
+    assert.throws(() => checkQgisSuitePlan(runner + "\nCheck full-suite @('run','--rm','check')"), /full-suite commands/);
+});
+
+test('rejects mode drift that skips or duplicates the suite', () => {
+    for (const [before, after] of [
+        ['if ($FullCatalogue -or $PublicationUpdates -or $MultiLayer)', 'if ($FullCatalogue -or $PublicationUpdates)'],
+        ['if (-not $Development) {', 'if ($Development) {'],
+        ['if ($Development -or (-not $FullCatalogue -and -not $PublicationUpdates -and -not $MultiLayer))',
+            'if ($Development -or (-not $FullCatalogue -and -not $PublicationUpdates))']
+    ]) assert.throws(() => checkQgisSuitePlan(changed(runner, before, after)), /Expected one/);
 });
 
 test('rejects the old small render and Identify canvases independently', () => {
@@ -75,6 +120,7 @@ test('default CLI works outside the repository working directory', () => {
     const result = spawnSync(process.execPath, [cli], {cwd: os.tmpdir(), encoding: 'utf8'});
     assert.equal(result.status, 0, result.stderr);
     assert.equal(JSON.parse(result.stdout).proof, 'source-plan-only');
+    assert.deepEqual(JSON.parse(result.stdout).suite, checkQgisSuitePlan(runner));
 });
 
 test('Windows local and manual CI run the guard and its regressions', () => {

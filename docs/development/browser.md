@@ -181,6 +181,13 @@ overlay loading before changing deadlines or limits. The catalogue-only scenario
 can turn wind off through its visible control; full wind coverage remains in
 the ordinary browser matrix.
 
+For a short-landscape run selector covered by a publication notice, open settings
+before dismissing the visible notice and selecting the run. The forecast panel
+can hide that notice through CSS while its `hidden` property remains false.
+Observe the actual visible/hit-tested control at each step; a DOM flag alone
+does not establish clickability. Recheck both portrait and landscape after
+changing this sequence. See the [integrated WMS retrospective](../validation/retrospectives/retro-wms-integrated.md).
+
 For time-switch changes, run `-TimeSwitch -TimeSwitchOnly` on each required
 platform first; status-layout fixes can use `-TimeStatusOnly` with those flags.
 Inspect the focused full-page phone screenshots before freezing the full gate.

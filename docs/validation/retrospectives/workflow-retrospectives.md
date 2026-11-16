@@ -215,3 +215,10 @@ excessive tracker output. The existing documentation checker now covers ADMIN.md
 and parses its PowerShell examples without executing them; regression fixtures
 run in Windows local checks and manual CI. Preparation and tracker guidance
 reuse existing tools; runtime and third-party skills remain unchanged.
+
+The [integrated WMS retrospective](retro-wms-integrated.md) records the late
+suite/catalogue-budget conflict, CSS-hidden publication notice and naive Git
+comparisons of checkout-filtered or ignored inputs. The existing QGIS preflight
+now guards T11 suite placement; focused browser and input-verification guidance
+cover the remaining failures. Accepted #110 evidence and third-party skills
+remain unchanged.
