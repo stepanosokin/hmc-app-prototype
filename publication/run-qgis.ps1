@@ -90,6 +90,10 @@ if ($Phase -eq 'Prepare') {
             Check t5-restart @('restart','api','gateway','geoserver')
             Check t5-restart-readiness @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions','--ready-only')
             Check t5-restart-verification @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions')
+            # The numerical hierarchy regression follows every /ogc link on
+            # T5's baseline. Combining all independent WMS fixtures can exceed
+            # its unchanged public response budget; test those fixtures below.
+            Check full-suite @('run','--rm','--env','T4_HTTP=1','check')
         }
     }
     if ($FullCatalogue) {
@@ -153,7 +157,9 @@ if ($Phase -eq 'Prepare') {
         Check t5-restart @('run','--rm','--entrypoint','python','check','-m','publication.verify_revisions')
     }
     Check wms-restart @('run','--rm','--env','T11_HTTP=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_publication_qgis.py','-v')
-    Check full-suite @('run','--rm','--env','T4_HTTP=1','check')
+    if ($Development -or (-not $FullCatalogue -and -not $PublicationUpdates -and -not $MultiLayer)) {
+        Check full-suite @('run','--rm','--env','T4_HTTP=1','check')
+    }
     Check runtime @('run','--rm','--entrypoint','python','check','-m','publication.runtime')
     if ($CommonWms) {
         Check common-wms-restart @('run','--rm','--env','T11_HTTP=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_common_wms.py','-v')

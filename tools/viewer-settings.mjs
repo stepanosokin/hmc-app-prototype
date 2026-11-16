@@ -23,6 +23,10 @@ export async function checkCatalogueSettings({call,evaluate,wait,click,select,ca
         await click('.fieldOption[aria-label^="'+label+'"]');
         await wait("window.captureWeatherEvidence().ready",'catalogue field ready');
         await click('#settings');
+        if(older&&width>height&&await evaluate("!document.getElementById('updates').hidden")){
+            await click('#declineUpdate');
+            await wait("document.getElementById('updates').hidden",'publication notice dismissed before run selection');
+        }
         if(older){
             const latest=await capture();await select('#run',false,0);
             await wait("window.captureWeatherEvidence().time_state==='ready'",'older catalogue run ready');
