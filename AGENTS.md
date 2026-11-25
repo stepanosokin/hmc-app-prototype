@@ -35,7 +35,7 @@ scoped to that archive rather than disabling ignores repository-wide.
 
 Keep project-specific workflow changes in this repository's agent instructions. Leave original third-party skills, including Matt Pocock's skills, unchanged unless the user explicitly requests edits to those skills.
 
-Before every implementation, ask the user to choose a testing level: **без тестов**, **минимальный**, **базовый** or **средний**. Wait for their answer before starting implementation.
+Before every implementation, ask the user to choose a testing level: **без тестов**, **минимальный**, **средний** or **максимальный**. Wait for their answer before starting implementation.
 
 Before every implementation, agree with the user on the test environment and how tests will be run. Start implementation only after both the testing level and these execution details have been explicitly agreed. For **без тестов**, explicitly agree that tests will not be run.
 
