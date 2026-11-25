@@ -19,15 +19,26 @@ async function windParticleFixtures(origin){
     const field=component();field.wind=component();
     const container=document.createElement('div');container.style.cssText='width:20px;height:20px;position:relative';document.body.append(container);
     const wind=new WindArrows(field);wind.attach(container);
-    const canvas=container.querySelector('canvas'),ctx=canvas.getContext('2d');
+    const canvas=container.querySelector('canvas');
+    const readback=document.createElement('canvas');readback.width=20;readback.height=20;
+    const ctx=readback.getContext('2d',{willReadFrequently:true});
     const view={width:20,height:20,origin:[0,20],scale:10};
     const projection={forward:p=>p,inverse:p=>p};
     let now=1000,placement=.5;
     Math.random=()=>placement;
     Object.defineProperty(performance,'now',{value:()=>now,configurable:true});
     const draw=(paused=false,mode='EPSG:3857',center=[0,0])=>{now+=50;wind.draw(view,projection,center,mode,paused);};
-    const pixels=()=>Array.from(ctx.getImageData(0,0,20,20).data);
+    const pixels=()=>{ctx.clearRect(0,0,20,20);ctx.drawImage(canvas,0,0);return Array.from(ctx.getImageData(0,0,20,20).data);};
     const ink=()=>pixels().filter((_,i)=>i%4===3).reduce((a,b)=>a+b,0);
+    const slowTrailPeak=step=>{
+        const duplicate=new WindArrows(field);duplicate.attach(container);
+        const source=container.lastElementChild;
+        try{
+            for(let elapsed=0;elapsed<=500;elapsed+=step){now+=step;duplicate.draw(view,projection,[0,0],'EPSG:3857');}
+            ctx.clearRect(0,0,20,20);ctx.drawImage(source,0,0);
+            return Math.max(...Array.from(ctx.getImageData(0,0,20,20).data).filter((_,i)=>i%4===3));
+        }finally{duplicate.remove();}
+    };
     const masks=()=>[new Uint8Array(field.blocks[0],258*258*4),new Uint8Array(field.wind.blocks[0],258*258*4)];
     const reset=()=>{placement=.5;masks().forEach(m=>m.fill(1));for(const part of [field,field.wind])new Float32Array(part.blocks[0],0,258*258).fill(1);wind.clear();view.origin[0]+=.0001;draw();for(const arrow of wind.arrows)arrow.age=.5;for(let i=0;i<5;i++)draw();expect('Living particle has a visible trail',ink()>0);};
     const fadeOut=name=>{
@@ -80,6 +91,14 @@ async function windParticleFixtures(origin){
         reset();wind.clear();draw(true);expect('Explicit clear does not restore old history',ink()===0);
         reset();const bytes=wind.bytes(20,20);for(let i=0;i<600;i++)draw();
         expect('Trail storage remains bounded across repeated lifetimes',wind.bytes(20,20)===bytes);
+        reset();placement=.5;view.origin[0]+=.0001;draw();
+        for(let i=0;i<1022;i++){now+=1;wind.draw(view,projection,[0,0],'EPSG:3857');}
+        const beforeWrap=ink();
+        for(let i=0;i<100;i++){now+=1;wind.draw(view,projection,[0,0],'EPSG:3857');}
+        expect('Trail stays visible across 1024 frames in one view',beforeWrap>0&&ink()>0&&wind.bytes(20,20)===bytes);
+        const coarse=slowTrailPeak(50),fine=slowTrailPeak(5);
+        expect('More closely spaced segments do not make the same slow trail progressively brighter',coarse>0&&fine<=coarse*1.2);
+        samples.push({case:'subpixel overlap',step_ms:[50,5],peak_alpha:[coarse,fine]});
         // Constant-wind population for visual review of birth/respawn and partial coverage.
         let seed=123456789;Math.random=()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;};
         container.style.width='640px';container.style.height='360px';view.width=640;view.height=360;view.origin=[0,360];view.scale=180;
@@ -88,6 +107,7 @@ async function windParticleFixtures(origin){
         draw();capture('constant-initial');for(let i=0;i<16;i++)draw();capture('constant-motion');
         for(let i=0;i<160;i++)draw();capture('constant-respawn');view.origin[0]-=120;draw();for(let i=0;i<20;i++)draw();capture('constant-view-change');
         expect('Constant-wind population retains partial coverage',wind.evidence().visible>0&&wind.evidence().visible<wind.evidence().arrows);
+        wind.remove();expect('Removing wind discards its visible canvas',!container.querySelector('canvas'));
         return {checks,samples,frames,configuration,scope:'Real Canvas, constant U/V, deterministic clock/placement, single-particle pixels and seeded population; supplements actual-source acceptance'};
     }finally{wind.remove();container.remove();}
 }

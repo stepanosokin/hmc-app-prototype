@@ -1,5 +1,6 @@
 import type {FieldData} from './field.js';
 import {nativePosition} from './source-crs.js';
+import {WindTrails,trailBytes,TRAIL_DECAY_SECONDS,TRAIL_SEGMENTS} from './wind-trails.ts';
 
 function sample(field:FieldData,xy:number[]):number|undefined{
     const grid=field.metadata.grid,[west,south,east,north]=grid.outer_cell_edges_wsen,[ny,nx]=grid.shape_yx;
@@ -54,17 +55,18 @@ export function earthComponents(u:number,v:number,metadata:FieldData['metadata']
 }
 
 interface Geometry {width:number;height:number;origin:number[];scale:number}
-interface Arrow {x:number;y:number;dx:number;dy:number;valid:boolean;retiring:boolean;fade:number;age:number;trail:Float32Array;head:number;size:number}
+interface Arrow {x:number;y:number;dx:number;dy:number;valid:boolean;retiring:boolean;fade:number;age:number;trailStart:number;hasTrail:boolean}
 type WindProjection={forward:(xy:number[])=>number[];inverse:(xy:number[])=>number[]};
 
 const PARTICLE_LIFETIME_SECONDS=6.8;
 const PARTICLE_FADE_FRACTION=.2;
 const PARTICLE_PLACEMENT_ATTEMPTS=8;
-// Bounded per-particle history: x0, y0, x1, y1, birth age, opacity.
-const TRAIL_SEGMENTS=1024,TRAIL_STRIDE=6,TRAIL_DECAY_SECONDS=5,TRAIL_ALPHA_BUCKETS=32;
 const particleCount=(width:number,height:number)=>Math.min(8192,Math.max(1,Math.round(width*height/(1440*900)*2400)));
+const particleBytes=(count:number)=>count*64+trailBytes(count);
 /** Reserve particle histories before allocating them, including a future resize. */
-export function windParticleBytes(cssWidth:number,cssHeight:number){return particleCount(cssWidth,cssHeight)*(64+TRAIL_SEGMENTS*TRAIL_STRIDE*4);}
+export function windParticleBytes(cssWidth:number,cssHeight:number){return particleBytes(particleCount(cssWidth,cssHeight));}
+/** Backing store and retained composited image for the wind canvas. */
+export function windCanvasBytes(width:number,height:number){return width*height*8;}
 
 export function screenVelocity(p:number[],wind:{east:number;north:number},projection:WindProjection){
     const speed=Math.hypot(wind.east,wind.north);
@@ -81,6 +83,8 @@ export function screenVelocity(p:number[],wind:{east:number;north:number},projec
 /** Bounded decorative advection: direction/speed come from U/V, never trajectories. */
 export class WindArrows {
     private canvas:HTMLCanvasElement|undefined;
+    private gl:WebGL2RenderingContext|undefined;
+    private trails:WindTrails|undefined;
     private arrows:Arrow[]=[];
     private last=0;
     private cursor=0;
@@ -91,28 +95,49 @@ export class WindArrows {
     private field:FieldData;
     private display:{projection:WindProjection;center:number[];mode:string;visible:(p:number[])=>boolean}|undefined;
     constructor(field:FieldData){this.field=field;}
-    attach(container:HTMLElement){
-        this.canvas=document.createElement('canvas');this.canvas.className='windArrows';
-        this.canvas.setAttribute('aria-hidden','true');
-        Object.assign(this.canvas.style,{position:'absolute',inset:'0',width:'100%',height:'100%',pointerEvents:'none'});
-        container.append(this.canvas);
+    attach(container:HTMLElement,repaint?:()=>void){
+        const canvas=document.createElement('canvas');this.canvas=canvas;canvas.className='windArrows';
+        canvas.setAttribute('aria-hidden','true');
+        Object.assign(canvas.style,{position:'absolute',inset:'0',width:'100%',height:'100%',pointerEvents:'none'});
+        canvas.addEventListener('webglcontextlost',event=>{
+            if(this.canvas!==canvas)return;
+            event.preventDefault();this.trails=undefined;this.viewKey='';this.last=0;
+        });
+        canvas.addEventListener('webglcontextrestored',()=>{if(this.canvas===canvas)repaint?.();});
+        container.append(canvas);
         this.arrows=[];
     }
     bytes(width:number,height:number){
         const css=this.canvas?.getBoundingClientRect();
-        const histories=Math.max(this.arrows.length,particleCount(css?.width??0,css?.height??0))*(64+TRAIL_SEGMENTS*TRAIL_STRIDE*4);
-        return (this.field.wind?.blocks.reduce((n,b)=>n+b.byteLength,0)??0)+width*height*4+histories;
+        const count=Math.max(this.arrows.length,particleCount(css?.width??0,css?.height??0));
+        return (this.field.wind?.blocks.reduce((n,b)=>n+b.byteLength,0)??0)+windCanvasBytes(width,height)+particleBytes(count);
     }
-    clear(){this.canvas?.getContext('2d')?.clearRect(0,0,this.canvas.width,this.canvas.height);for(const arrow of this.arrows)arrow.size=0;this.last=0;}
+    clear(){
+        this.trails?.clear();
+        for(const arrow of this.arrows){arrow.hasTrail=false;arrow.trailStart=0;}
+        this.last=0;
+    }
     draw(view:Geometry,projection:WindProjection,center:number[],mode:string,paused=false){
-        const canvas=this.canvas;if(!canvas)return;
+        const canvas=this.canvas;if(!canvas)return false;
+        const css=canvas.getBoundingClientRect();
+        if(!view.width||!view.height||!css.width||!css.height)return false;
         if(canvas.width!==view.width||canvas.height!==view.height){canvas.width=view.width;canvas.height=view.height;}
-        const ctx=canvas.getContext('2d');if(!ctx)return;
-        const css=canvas.getBoundingClientRect(),count=particleCount(css.width,css.height);
-        if(count!==this.arrows.length)this.arrows=Array.from({length:count},()=>({x:Math.random(),y:Math.random(),dx:0,dy:0,valid:false,retiring:false,fade:0,age:Math.random(),trail:new Float32Array(TRAIL_SEGMENTS*TRAIL_STRIDE),head:0,size:0}));
+        const gl=this.gl??canvas.getContext('webgl2',{antialias:false,depth:false,preserveDrawingBuffer:true});
+        if(!gl)throw Error('WebGL 2 недоступен для следов ветра.');
+        this.gl=gl;
+        if(gl.isContextLost())return false;
+        const count=particleCount(css.width,css.height);
+        if(count!==this.arrows.length){
+            this.trails?.dispose();this.trails=undefined;this.viewKey='';
+            this.arrows=Array.from({length:count},()=>({x:Math.random(),y:Math.random(),dx:0,dy:0,valid:false,retiring:false,fade:0,age:Math.random(),trailStart:0,hasTrail:false}));
+        }
+        const trails=this.trails??=new WindTrails(gl,count,PARTICLE_LIFETIME_SECONDS);
         const key=JSON.stringify([view.width,view.height,view.origin,view.scale,center,mode]);
         const moved=key!==this.viewKey;this.viewKey=key;
-        if(moved){this.viewChanges++;ctx.clearRect(0,0,canvas.width,canvas.height);for(const arrow of this.arrows){arrow.valid=false;arrow.retiring=false;arrow.fade=0;arrow.size=0;}}
+        if(moved){
+            this.viewChanges++;trails.clear();
+            for(const arrow of this.arrows){arrow.valid=false;arrow.retiring=false;arrow.fade=0;arrow.trailStart=0;arrow.hasTrail=false;}
+        }
         const now=performance.now(),dt=!paused&&this.last?Math.min(.05,(now-this.last)/1000):0;this.last=now;this.frames++;
         const geographic=(x:number,y:number)=>projection.inverse([(x*view.width-view.origin[0])/view.scale,(view.origin[1]-y*view.height)/view.scale]);
         const visible=(p:number[])=>{
@@ -122,7 +147,7 @@ export class WindArrows {
             return Math.sin(p[1]*rad)*Math.sin(center[1]*rad)+Math.cos(p[1]*rad)*Math.cos(center[1]*rad)*Math.cos((p[0]-center[0])*rad)>0;
         };
         this.display={projection,center:[...center],mode,visible};
-        if(paused&&!moved&&this.frames>1)return;
+        if(paused&&!moved&&this.frames>1)return true;
         const updateVelocity=(arrow:Arrow)=>{
             arrow.valid=false;
             const p=geographic(arrow.x,arrow.y);
@@ -135,7 +160,7 @@ export class WindArrows {
             return true;
         };
         const respawn=(arrow:Arrow,age=0)=>{
-            arrow.age=age;arrow.head=0;arrow.size=0;arrow.retiring=false;arrow.fade=0;
+            arrow.age=age;arrow.trailStart=trails.frame;arrow.hasTrail=false;arrow.retiring=false;arrow.fade=0;
             // Independent uniform coordinates avoid lattice patterns and bands.
             // Reject gaps and the hidden hemisphere with bounded retries.
             for(let attempt=0;attempt<PARTICLE_PLACEMENT_ATTEMPTS;attempt++){
@@ -152,18 +177,17 @@ export class WindArrows {
             const arrow=this.arrows[this.cursor++%this.arrows.length];
             if(arrow.retiring)continue;
             if(!updateVelocity(arrow)){
-                if(arrow.size)retire(arrow);else respawn(arrow,moved?Math.random():0);
+                if(arrow.hasTrail)retire(arrow);else respawn(arrow,moved?Math.random():0);
             }
         }
         this.paints++;
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        const paths=Array.from({length:TRAIL_ALPHA_BUCKETS},()=>new Path2D());
-        const dpr=canvas.width/canvas.getBoundingClientRect().width;
-        for(const arrow of this.arrows){
+        trails.begin();
+        const dpr=canvas.width/css.width;
+        for(let index=0;index<this.arrows.length;index++){
+            const arrow=this.arrows[index];
             arrow.age+=dt/PARTICLE_LIFETIME_SECONDS;
             if(arrow.retiring)arrow.fade+=dt/(PARTICLE_LIFETIME_SECONDS*PARTICLE_FADE_FRACTION);
             if(arrow.age>=1||arrow.retiring&&arrow.fade>=1)respawn(arrow);
-            if(!arrow.valid&&!arrow.retiring)continue;
             if(arrow.valid){
                 const previousX=arrow.x*view.width,previousY=arrow.y*view.height;
                 arrow.x+=arrow.dx*dt*dpr/view.width;arrow.y+=arrow.dy*dt*dpr/view.height;
@@ -172,24 +196,17 @@ export class WindArrows {
                 else{
                     const x=arrow.x*view.width,y=arrow.y*view.height,length=Math.hypot(arrow.dx,arrow.dy);
                     const dx=arrow.dx/length,dy=arrow.dy/length;
-                    const offset=arrow.head*TRAIL_STRIDE;
-                    arrow.trail.set([dt?previousX:x-dx*3*dpr,dt?previousY:y-dy*3*dpr,x,y,arrow.age,Math.min(1,arrow.age*5)*.65],offset);
-                    arrow.head=(arrow.head+1)%TRAIL_SEGMENTS;arrow.size=Math.min(TRAIL_SEGMENTS,arrow.size+1);
+                    trails.segment(index,dt?previousX:x-dx*3*dpr,dt?previousY:y-dy*3*dpr,x,y,arrow.age);
+                    arrow.hasTrail=true;
                 }
             }
             // Smoothstep reaches zero with zero slope before history is reused.
             const remaining=Math.max(0,Math.min(1,(1-arrow.age)/PARTICLE_FADE_FRACTION,1-arrow.fade));
             const opacity=remaining*remaining*(3-2*remaining);
-            for(let i=0;i<arrow.size;i++){
-                const j=((arrow.head-1-i+TRAIL_SEGMENTS)%TRAIL_SEGMENTS)*TRAIL_STRIDE;
-                const alpha=arrow.trail[j+5]*Math.exp(-(arrow.age-arrow.trail[j+4])*PARTICLE_LIFETIME_SECONDS/TRAIL_DECAY_SECONDS)*opacity;
-                const bucket=Math.round(alpha*TRAIL_ALPHA_BUCKETS);if(!bucket)continue;
-                paths[bucket-1].moveTo(arrow.trail[j],arrow.trail[j+1]);paths[bucket-1].lineTo(arrow.trail[j+2],arrow.trail[j+3]);
-            }
+            trails.particle(index,arrow.age,arrow.hasTrail?opacity:0,arrow.trailStart);
         }
-        ctx.lineCap='round';ctx.strokeStyle='#eef6ff';ctx.lineWidth=.65*dpr;
-        for(let i=0;i<paths.length;i++){ctx.globalAlpha=(i+1)/TRAIL_ALPHA_BUCKETS;ctx.stroke(paths[i]);}
-        ctx.globalAlpha=1;
+        trails.draw(view.width,view.height,dpr,dt);
+        return true;
     }
     evidence(){
         const grid=this.field.metadata.grid,[ny,nx]=grid.shape_yx,[w,s]=grid.outer_cell_edges_wsen,[dx,dy]=grid.spacing_degrees_xy;
@@ -205,5 +222,10 @@ export class WindArrows {
             identity:this.field.metadata.identity,display_mode:this.display?.mode,display_center:this.display?.center,
             orientation:this.field.metadata.uv_relative_to_grid?'grid':'geographic',scope:'U/V directions; display-speed animation, not forecast trajectories'};
     }
-    remove(){this.canvas?.remove();this.canvas=undefined;this.arrows=[];this.display=undefined;this.field={...this.field,blocks:[],wind:undefined};}
+    remove(){
+        this.trails?.dispose();this.trails=undefined;
+        this.gl?.getExtension('WEBGL_lose_context')?.loseContext();this.gl=undefined;
+        this.canvas?.remove();this.canvas=undefined;this.arrows=[];this.display=undefined;
+        this.field={...this.field,blocks:[],wind:undefined};
+    }
 }

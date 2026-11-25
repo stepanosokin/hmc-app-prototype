@@ -111,8 +111,9 @@ try{
         }
         assert.equal(stable,5,'Initial camera settled before checking frozen wind pixels');
         await click('#windPause');await check(width+' pause enabled','captureWeatherEvidence().wind_overlay.paused');
-        const ink="(()=>{const c=document.querySelector('.windArrows');return c.getContext('2d').getImageData(0,0,c.width,c.height).data;})()";
+        const ink="(()=>{const c=document.querySelector('.windArrows'),copy=document.createElement('canvas');copy.width=c.width;copy.height=c.height;const ctx=copy.getContext('2d',{willReadFrequently:true});ctx.drawImage(c,0,0);return ctx.getImageData(0,0,c.width,c.height).data;})()";
         await pause(100);await evaluate('globalThis.__pausedInk='+ink);const pausedStart=await snapshot();await pause(400);const pausedEnd=await snapshot();
+        await check(width+' paused wind remains visible','globalThis.__pausedInk.some((v,i)=>i%4===3&&v>0)');
         report.pause_diagnostics={start:pausedStart.wind,end:pausedEnd.wind,start_geometry:pausedStart.view_geometry,end_geometry:pausedEnd.view_geometry};
         assert.equal(pausedEnd.wind.paints,pausedStart.wind.paints,'No wind paint operations while paused');
         const delta=await evaluate(`(()=>{const a=globalThis.__pausedInk,b=${ink};let delta=0;for(let i=0;i<a.length;i+=4){delta=Math.max(delta,Math.abs(a[i+3]-b[i+3]));for(let c=0;c<3;c++)delta=Math.max(delta,Math.abs(a[i+c]*a[i+3]/255-b[i+c]*b[i+3]/255));}delete globalThis.__pausedInk;return delta;})()`);

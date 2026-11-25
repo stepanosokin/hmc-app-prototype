@@ -2,7 +2,7 @@ import {FieldLoader,json,PublicationExpired,DISPLAY_LEVEL,displayBlockBound,type
 import type {PublishedGroup,Selection} from './selection.js';
 import {pointValue,type Position} from './series.js';
 import {nativePosition} from './source-crs.js';
-import {earthComponents,WindArrows,windParticleBytes} from './wind.js';
+import {earthComponents,WindArrows,windCanvasBytes,windParticleBytes} from './wind.js';
 import {windAtTime,windGroups,windLevel,windValue,windVariant} from './wind-values.js';
 
 export interface WindEntry {time:string;state:'loading'|'missing'|'value'|'error'|'outside_coverage'|'native_nodata';speed?:number;direction?:number|null}
@@ -45,15 +45,18 @@ export class WindOverlay {
     private frame=()=>{
         const host=this.host?.();
         if(!this.shown||!this.enabled||!this.arrows||!host?.ready){this.arrows?.clear();return;}
-        const size=this.map.getCanvas().width+','+this.map.getCanvas().height;
-        if(size!==this.canvasSize){
-            try{this.admit(0);this.canvasSize=size;}catch(error){
-                this.arrows.remove();this.arrows=undefined;this.field=undefined;this.state='error';this.status=this.failureStatus(error);this.ui();return;
+        const canvas=this.map.getCanvas(),css=canvas.getBoundingClientRect();
+        const size=[canvas.width,canvas.height,css.width,css.height].join(',');
+        try{
+            if(size!==this.canvasSize){
+                this.admit(0);this.canvasSize=size;
             }
+            if(this.resumeOnReady&&this.state==='ready'&&this.allowFrame){this.paused=false;this.resumeOnReady=false;this.ui();}
+            const drawn=this.arrows.draw(host.geometry(),host.projection,host.center,host.mode,this.paused);
+            if(drawn&&!document.hidden&&!this.paused)this.map.triggerRepaint();
+        }catch(error){
+            this.arrows.remove();this.arrows=undefined;this.field=undefined;this.state='error';this.status=this.failureStatus(error);this.ui();return;
         }
-        if(this.resumeOnReady&&this.state==='ready'&&this.allowFrame){this.paused=false;this.resumeOnReady=false;this.ui();}
-        this.arrows.draw(host.geometry(),host.projection,host.center,host.mode,this.paused);
-        if(!document.hidden&&!this.paused)this.map?.triggerRepaint();
     };
     constructor(private changed:()=>void,private admit:(bytes:number)=>void){
         document.getElementById('windPause')!.onclick=()=>{
@@ -69,7 +72,7 @@ export class WindOverlay {
     mount(map:any,host:()=>any){
         if(this.paused)this.resumeOnReady=true;
         this.unmount();this.map=map;this.host=host;map.on('render',this.frame);
-        if(this.field){this.arrows=new WindArrows(this.field);this.arrows.attach(map.getCanvasContainer());}
+        if(this.field){this.arrows=new WindArrows(this.field);this.arrows.attach(map.getCanvasContainer(),()=>map.triggerRepaint());}
         map.triggerRepaint();
     }
     unmount(){this.map?.off('render',this.frame);this.arrows?.remove();this.arrows=undefined;this.map=undefined;this.host=undefined;}
@@ -125,13 +128,16 @@ export class WindOverlay {
                 if(!Number.isInteger(blocks)||blocks<1||blocks>64)throw Error('Некорректный размер поля ветра');
                 const canvas=this.map?.getCanvas();
                 const css=canvas?.getBoundingClientRect();
-                const bytes=blocks*332820*2+2*1024**2+(canvas?.width??0)*(canvas?.height??0)*4+windParticleBytes(css?.width??0,css?.height??0);
+                const bytes=blocks*332820*2+2*1024**2+windCanvasBytes(canvas?.width??0,canvas?.height??0)+windParticleBytes(css?.width??0,css?.height??0);
                 this.admit(bytes);this.reservation=bytes;
                 const field=await this.loader.load(current);
                 if(serial!==this.serial)return;
                 this.reservation=0;this.field=field;this.canvasSize='';this.admit(0);this.state='ready';
                 this.status=field.metadata.all_nodata||field.wind?.metadata.all_nodata?'Нет данных ветра · '+this.levelLabel:'Ветер · '+this.levelLabel+' · частицы по потоку';
-                if(this.map){this.arrows=new WindArrows(field);this.arrows.attach(this.map.getCanvasContainer());this.map.triggerRepaint();}
+                if(this.map){
+                    const map=this.map;
+                    this.arrows=new WindArrows(field);this.arrows.attach(map.getCanvasContainer(),()=>map.triggerRepaint());map.triggerRepaint();
+                }
                 this.ui();
             }catch(error){if(serial!==this.serial)return;
                 this.reservation=0;this.state='error';this.field=undefined;
