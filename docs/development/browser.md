@@ -54,6 +54,20 @@ it does not establish physical-device acceptance or statistical uniformity.
 
 ## Other browser changes
 
+For independent background/isolines and two-row point comparison, use
+`node tools/check-contours.mjs <fresh-report-dir> chrome --independent-layers --point-comparison`
+with `HMC_WIND_GATEWAY` pointing to the isolated publication gateway. The report
+directory must be a new child of `data/reports/contours74`. Use the browser and
+viewports agreed for the ticket. Before starting the browser, inspect
+`/api/v1/catalogue?view=compact` on that gateway. The comparison fixture needs
+one revision containing surface temperature at four consecutive times and
+surface pressure at the first, third and fourth. Confirm the 2 m temperature,
+the 10 m wind pair and the 100 m wind speed used for the disabled-option check.
+Verify both native point readings and capture the curves in the desktop card
+and in the scrolled mobile drawer. The
+[fixture and verification record](../validation/point-comparison-116.md)
+names the archived preparation scripts and GRIB hashes.
+
 Point-series / popup-chart changes: the focused gate is the T27 runner
 `tools/run-weather-viewer.ps1 -PointSeries -Offline` (add `-WithEdge`; `T13_FOCUSED=1`
 keeps desktop to one viewport); see [viewer/README.md](../../viewer/README.md) for the

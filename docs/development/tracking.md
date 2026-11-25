@@ -10,6 +10,11 @@ after satisfying the [ticket completion conditions](../../AGENTS.md#ticket-compl
 close the ticket using standing user authorization and verify the closed state
 and completed checklist together. Checklist maintenance is also already authorized.
 
+When the session concerns a named live stand, report its served version in the
+handoff alongside the Git commit. Verify the served JavaScript with the
+[live-update HTTP checks](live-update.md#http-и-ресурсы). If the user requests
+deployment, record its result separately using that procedure.
+
 Use the GitHub connector for issue reads. In this session it allowed reads but
 returned `403 Resource not accessible by integration` on writes. When an
 authorized issue update encounters that limitation, use the existing

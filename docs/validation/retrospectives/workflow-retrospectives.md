@@ -1,5 +1,10 @@
 # Retrospective basis
 
+The [independent layers and point comparison retrospective](retro-independent-layers-115-116.md)
+follows #115 and #116 and records the live rollout. Handoff reports the served
+version for a named live stand. Acceptance prepares isolated Viewer assets
+before Docker; browser guidance checks the comparison catalogue before Chrome.
+
 The [point-series retrospective](retro-point-series-114.md) follows #114
 and its live rollout. Acceptance now checks Viewer mount isolation and the
 service image before provisioning. Browser guidance covers frozen-stand

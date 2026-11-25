@@ -10,6 +10,10 @@ checkout. When live serves that directory, build in a separate checkout and
 use its source and runtime mounts for the test Viewer. Verify both mount sources
 before opening the browser. A different project name or port still shares the
 host files if the mount sources are the same.
+For a fresh Viewer checkout, run `node viewer/prepare.mjs` there before the
+build and before opening a Docker project. It checks the vendor lock and
+prepares `land.js`, the native-display contract, and field icons. For offline
+preparation, seed the isolated checkout from the existing vendor cache first.
 Define the delivery target in acceptance: implementation, an isolated stand or
 an explicitly named live stand. Preserve the user's requested outcome when
 writing criteria: a verified command's existence establishes capability;
