@@ -91,6 +91,7 @@ try{
     if($UpdatesOnly){$env:T15_UPDATES_ONLY='1';$env:T13_FOCUSED='1'}
     $env:T13_REPORT_DIRECTORY=Join-Path $directory 'browser'
     Invoke-CheckedProcess -FilePath node -ArgumentList @('tools/check-weather-viewer.mjs') -ReportDirectory $directory -Name browser
+    if($PointSeries -and -not $InitialLoadRepeats){Check point-series-gateway @('run','--rm','--env','T4_HTTP=1','--env','T114_STORAGE_FAULT=1','--entrypoint','python','check','-m','unittest','discover','-s','tests','-p','test_point_series.py','-v')}
     if($PointSeries -and -not $InitialLoadRepeats){Check series-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-series-reference.py','browser')}
     if($TimeSwitch -and -not $TimeStatusOnly){Check time-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-time-reference.py','browser')}
     if($Updates){Check update-comparison @('run','--rm','--env','PYTHONPATH=/app','--volume',"$((Get-Location).Path):/workspace:ro",'--entrypoint','python','check','/workspace/tools/viewer-update-reference.py','browser')}

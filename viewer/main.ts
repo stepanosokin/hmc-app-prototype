@@ -5,7 +5,7 @@ import {WeatherLayer} from './weather-layer.js';
 import {nativeToWgs} from './native-layer.js';
 import {nativePosition} from './source-crs.js';
 import {LocalContext} from './local-context.js';
-import {PointSeries,pointValue,SERIES_BUDGET,type PointResult,type Position} from './series.js';
+import {PointSeries,pointValue,forecastPoints,SERIES_BUDGET,type PointResult,type Position} from './series.js';
 import {PointChart} from './point-chart.js';
 import {SourceSettings,type SourceDescription} from './source-settings.js';
 import {FieldPicker,fieldPresentation,fieldNumber,legendNumber} from './fields.js';
@@ -31,8 +31,9 @@ const charts=new Map<string,PointChart>();
 const CATALOGUE_BUDGET=24*1024**2;
 const sourceSettings=new SourceSettings();
 const fieldPicker=new FieldPicker(target=>setGroup(target,true));
-const series=new PointSeries(pointValue,seriesChanged);
+const series=new PointSeries(forecastPoints,seriesChanged);
 function seriesChanged(){
+    wind.setPoints(series.windEntries);
     if(series.expired&&timeState!=='expired'&&timeState!=='withdrawn'){
         cancelTime();timeState='expired';if(layer)layer.fieldVisible=false;map?.triggerRepaint();displayed=undefined;metadata=undefined;point=undefined;
         selectionDetails();syncWind();notice('Публикация истекла. Перевыберите публикацию.');renderPoint('Публикация истекла');return;
@@ -43,12 +44,15 @@ function seriesChanged(){
         renderPoint();
     }else for(const [id,chart] of charts)if(id!=='mobilePoint'||!hidden($(id)))chart.update(series,index,valueText);
 }
-function ensureSeries(initial?:PointResult){if(group&&position)void series.load(group,position,initial);}
+function ensureSeries(initial?:PointResult){
+    if(group&&position&&timeState!=='expired'&&timeState!=='withdrawn')
+        void series.load(group,position,wind.pointGroup,initial);
+}
 const validation=new URLSearchParams(location.search).get('validation')==='1';
 const validationFixtures=validation&&new URLSearchParams(location.search).get('fixtures')==='1';
 let groups:PublishedGroup[]=[],group:PublishedGroup|undefined,index=0,mode:Mode='laea-rf';
 let selected:Selection|undefined,data:FieldData|undefined,map:any,layer:WeatherLayer|undefined;
-let position:Position|undefined,point:PointResult|undefined,pointController=new AbortController();
+let position:Position|undefined,point:PointResult|undefined;
 let center=[19.5,53],viewVersion=0,selectionVersion=0,mapWork=Promise.resolve();
 let mapMode:Mode='mercator';
 let mapBaseCenter:number[]=[],mapBaseProjection:any;
@@ -69,11 +73,15 @@ function admitOverlay(bytes:number){
 }
 const contours=new ContourOverlay(admitOverlay,()=>unit);
 const coastline=new CoastlineOverlay(admitOverlay,rendererFailure);
-const wind=new WindOverlay(()=>{wind.points(position);if(position)renderPoint();fieldPicker.layout();},bytes=>{
+const wind=new WindOverlay(()=>{
+    queueMicrotask(()=>ensureSeries());
+    if(position)renderPoint();
+    fieldPicker.layout();
+},bytes=>{
     const base=stagingBase();
     if(base+bytes+timeStagingBytes+updateStagingBytes+SERIES_BUDGET+CATALOGUE_BUDGET>MAP_RESOURCE_BUDGET_BYTES)
         throw Error('Превышен общий бюджет числовых ресурсов.');
-});
+},()=>{void series.retry();});
 function syncWind(){
     const available=timeState==='ready'||timeState==='missing';
     const eligible=timeState!=='expired'&&timeState!=='withdrawn';
@@ -145,13 +153,13 @@ function syncTime(){control('time').value=String(index);$<HTMLInputElement>('tim
     $<HTMLButtonElement>('previous').disabled=index===0;$<HTMLButtonElement>('next').disabled=index===(group?.times.length??1)-1;}
 function setGroup(newGroup:PublishedGroup,preservePoint=false){
     const time=group?group.start+index*3600000:newGroup.start;
-    if(preservePoint){cancelUpdate();pointController.abort();series.clear();point=undefined;}
+    if(preservePoint){cancelUpdate();series.clear();wind.clearPoints();point=undefined;}
     else clearPoint();
     group=newGroup;index=0;
     if(preservePoint){let distance=Infinity;group.times.forEach((item,i)=>{const delta=Math.abs(group!.start+i*3600000-time);if(item&&delta<distance){distance=delta;index=i;}});}
-    timeState='missing';runControls();timeControls();ensureSeries();void chooseTime(index);
+    timeState='missing';runControls();timeControls();void chooseTime(index);
 }
-function clearPoint(){reselectController.abort();series.clear();wind.clearPoints();cancelUpdate();pointController.abort();point=undefined;position=undefined;pointCollapsed=false;
+function clearPoint(){reselectController.abort();series.clear();wind.clearPoints();cancelUpdate();point=undefined;position=undefined;pointCollapsed=false;
     $('drawer').hidden=true;$('settings').setAttribute('aria-expanded','false');placePoint();if(group)selectionDetails();}
 function releaseLayer(){
     coastline.unmount();
@@ -205,7 +213,7 @@ async function chooseTime(next:number){
     if(timeState==='withdrawn'){notice('Публикация снята. Перевыберите публикацию в настройках.');return;}
     if(series.expired||timeState==='expired'){notice('Публикация истекла. Перевыберите публикацию в настройках.');return;}
     if(!group)return;index=Math.max(0,Math.min(group.times.length-1,next));syncTime();
-    cancelTime();cancelUpdate();pointController.abort();point=undefined;wind.releaseFrame();wind.visible(false);
+    cancelTime();cancelUpdate();point=undefined;wind.releaseFrame();wind.visible(false);
     const version=++selectionVersion;++viewVersion;
     selected=group.times[index]??undefined;
     timeState=selected?'loading':'missing';timeError='';
@@ -365,7 +373,6 @@ function placePoint(){
 }
 function renderPoint(message=pointMessage){
     pointMessage=message;
-    wind.points(position);
     if(group)sourceSettings.update(group,index,selected,position,metadata,timeState,displayed,
         timeState==='ready'?data?.metadata.grid.outer_cell_edges_wsen:undefined,timestamp);
     $('sheetPoint').hidden=!position;$('clearMobilePoint').hidden=!position;
@@ -389,7 +396,7 @@ function renderPoint(message=pointMessage){
             'Выборка: '+point.selection+'. Редакция: '+point.revision+'. Источник: '+JSON.stringify(point.source):'');
         if(position){
             let chart=charts.get(id);if(!chart){chart=new PointChart(next=>void chooseTime(next));charts.set(id,chart);}
-            chart.setWind(wind.entries,wind.enabled,wind.levelLabel,wind.state==='ready'?'':wind.status);
+            chart.setWind(wind.entries,wind.enabled,wind.levelLabel,wind.state==='ready'?'':wind.status,wind.pointGroup?.key);
             if(id!=='mobilePoint'||!hidden(container))chart.update(series,index,valueText);
             if(chart.element.parentElement!==container)container.append(chart.element);
         }
@@ -410,7 +417,7 @@ async function pickScreen(event:any){
     const projected=layer.project([candidate.lng,candidate.lat]);
     if(Math.hypot(projected.x-pixel[0],projected.y-pixel[1])>.5)return;
     screenPick={pixel:[pixel[0]*dpr,pixel[1]*dpr],...g,center:[...center],mode:mode==='orthographic'?'hmc:orthographic':mode==='laea-rf'?laeaRfId:mode==='laea'?'EPSG:3576':'mercator'};
-    cancelUpdate();pointController.abort();series.clear();
+    cancelUpdate();series.clear();wind.clearPoints();
     position=candidate;point=undefined;pointCollapsed=false;
     renderPoint(timeState==='loading'?'Загрузка значения выбранного срока…':timeState==='missing'?'Срок отсутствует':timeState==='error'?'Не удалось загрузить выбранный срок':'');
     ensureSeries();if(mobile())openDrawer(true);
@@ -423,7 +430,7 @@ async function refreshPoint(current:Selection,candidate:Position){
 function changeProjection(next:Mode,fit=false){
     const loading=timeState==='loading';
     if(loading){cancelTime();++selectionVersion;}
-    cancelUpdate();pointController.abort();pointController=new AbortController();
+    cancelUpdate();
     const current=selected,candidate=position;
     const version=selectionVersion;
     mode=next;control('projection').value=mode;
@@ -521,7 +528,7 @@ async function reselectPublication(){
         if(!target){notice('Доступных публикаций нет. Повторите перевыбор позже.');return;}
         const valid=previous?previous.start+index*3600000:target.start;
         groups=available;group=target;index=Math.max(0,Math.min(target.times.length-1,Math.round((valid-target.start)/3600000)));
-        series.clear();point=undefined;timeState='missing';runControls();timeControls();ensureSeries();void chooseTime(index);
+        series.clear();wind.clearPoints();point=undefined;timeState='missing';runControls();timeControls();void chooseTime(index);
     }catch{if(!owner.signal.aborted&&owner===reselectController&&version===selectionVersion&&previous===group)
         notice('Не удалось перевыбрать публикацию. Повторите попытку в настройках.');}
 }
@@ -585,7 +592,7 @@ async function checkUpdates(manual=false){
         if(group&&!latest.some(item=>item.key===group!.key)){
             const validTime=group.start+index*3600000;
             const replacement=withdrawnReplacement(group,latest,validTime);
-            cancelTime();cancelUpdate();pointController.abort();reselectController.abort();
+            cancelTime();cancelUpdate();reselectController.abort();
             ++selectionVersion;++viewVersion;
             series.clear();point=undefined;position=undefined;
             if(layer)layer.fieldVisible=false;map?.triggerRepaint();
@@ -634,11 +641,11 @@ async function acceptPublication(newRun=false){
         if(owner!==map||oldSelection!==selected)return;
         candidate=await prepareLayer(field,owner,signal);
         signal.throwIfAborted();if(owner!==map||oldSelection!==selected)return;
-        pointController.abort();replaceLayer(candidate);
+        replaceLayer(candidate);
         data=field;metadata=description;selected=current;displayed=current;timeState='ready';group=target;index=targetIndex;
         if(mode!=='mercator'&&!candidate.context)candidate.context=new LocalContext(map,coverage(mode==='orthographic'),mode);
         groups=catalogueSnapshot;pendingGroups=undefined;updateStagingBytes=0;runControls();timeControls();selectionDetails();syncWind();
-        series.clear();point=nextPoint;if(newRun){position=undefined;pointCollapsed=false;}
+        series.clear();wind.clearPoints();point=nextPoint;if(newRun){position=undefined;pointCollapsed=false;}
         ensureSeries(nextPoint);
         candidate.setPalette(alternate);renderPoint('');updateActions();
         updateMessage('Публикация обновлена по вашему запросу.');layout();
@@ -662,7 +669,7 @@ async function boot(){
         setGroup(initial);
     }catch(error){notice((error as Error).name==='AbortError'?'Загрузка отменена.':'Сервис прогнозов недоступен. Откройте настройки и повторите загрузку.');}
 }
-addEventListener('pagehide',()=>{clearInterval(poll);contours.dispose();wind.dispose();reselectController.abort();series.clear();cancelTime();cancelUpdate();catalogueController.abort();++viewVersion;++selectionVersion;data=undefined;loader.cancel();pointController.abort();bootController.abort();cancelAnimationFrame(inertia);ownedCanvas=undefined;releaseLayer();map?.remove();});
+addEventListener('pagehide',()=>{clearInterval(poll);contours.dispose();wind.dispose();reselectController.abort();series.clear();cancelTime();cancelUpdate();catalogueController.abort();++viewVersion;++selectionVersion;data=undefined;loader.cancel();bootController.abort();cancelAnimationFrame(inertia);ownedCanvas=undefined;releaseLayer();map?.remove();});
 // Read-only numerical evidence surface, enabled solely by an explicit validation URL.
 function numericalView(){
     if(!layer?.ready||lost||layer.wind||timeState!=='ready'||updateBusy||timeStagingBytes||updateStagingBytes)return undefined;

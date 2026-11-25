@@ -9,6 +9,7 @@ import {checkUpdates} from './viewer-updates.mjs';
 import {checkWithdrawal} from './viewer-withdrawal.mjs';
 import {checkTimeSwitch} from './viewer-time-switch.mjs';
 import {checkPointSeries} from './viewer-point-series.mjs';
+import {measurePointSeries} from './viewer-point-benchmark.mjs';
 import {checkSourceSettings,checkCatalogueSettings} from './viewer-settings.mjs';
 import {measureViewer} from './viewer-workload.mjs';
 import {checkFieldGroups,nativePointPixel} from './viewer-fields.mjs';
@@ -159,6 +160,12 @@ try{
         report.gpu=await evaluate("(()=>{const gl=document.querySelector('.maplibregl-canvas').getContext('webgl2'),debug=gl.getExtension('WEBGL_debug_renderer_info');return {renderer:gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER),version:gl.getParameter(gl.VERSION),highp_precision:gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER,gl.HIGH_FLOAT).precision,max_texture_size:gl.getParameter(gl.MAX_TEXTURE_SIZE),max_array_layers:gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)};})()");
         if(android){
             await wait("document.visibilityState==='visible'",'unlocked visible Galaxy tab');
+        }
+        if(process.env.T114_POINT_BENCHMARK){
+            assert.ok(focused&&!android,'Point benchmark uses one desktop viewport');
+            await measurePointSeries({call,evaluate,wait,click,select,capture,report,
+                variant:process.env.T114_POINT_BENCHMARK,wind:process.env.T114_WIND==='1',model:process.env.T114_MODEL});
+            continue;
         }
         if(process.env.T107_CATALOGUE==='1'){
             await checkCatalogueSettings({call,evaluate,wait,click,select,capture,report,directory,width,height,origin});

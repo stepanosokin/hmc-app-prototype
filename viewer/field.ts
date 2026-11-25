@@ -44,13 +44,13 @@ function requestSlot(signal:AbortSignal):Promise<()=>void>{
         else{requestQueue.push(start);signal.addEventListener('abort',abort,{once:true});}
     });
 }
-async function response(url: string, signal: AbortSignal): Promise<Response> {
-    for(let attempt=0;attempt<3;attempt++){
+async function response(url: string, signal: AbortSignal, attempts=3): Promise<Response> {
+    for(let attempt=0;attempt<attempts;attempt++){
         const release=await requestSlot(signal);
         let result:Response;
         try{result=await fetch(localURL(url),{signal:AbortSignal.any([signal,AbortSignal.timeout(15000)]),cache:'no-store'});}
         finally{release();}
-        if(result.status===429&&attempt<2){
+        if(result.status===429&&attempt+1<attempts){
             await new Promise<void>((resolve,reject)=>{
                 const abort=()=>{clearTimeout(timer);reject(signal.reason);};
                 const timer=setTimeout(()=>{signal.removeEventListener('abort',abort);resolve();},1000);
@@ -63,8 +63,8 @@ async function response(url: string, signal: AbortSignal): Promise<Response> {
     }
     throw Error('Сервис занят. Повторите загрузку.');
 }
-export async function json<T>(url: string,signal: AbortSignal,limit=1024*1024): Promise<T> {
-    const result=await response(url,signal);
+export async function json<T>(url: string,signal: AbortSignal,limit=1024*1024,attempts=3): Promise<T> {
+    const result=await response(url,signal,attempts);
     if(limit>4*1024**2||Number(result.headers.get('Content-Length'))>limit)throw Error('Слишком большой ответ сервиса.');
     const bytes=await result.arrayBuffer();
     if(bytes.byteLength>limit)throw Error('Слишком большой ответ сервиса.');

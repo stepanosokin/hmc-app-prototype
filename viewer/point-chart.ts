@@ -1,5 +1,5 @@
 import type {PointSeries,SeriesEntry} from './series.js';
-import type {WindEntry} from './wind-overlay.js';
+import type {WindEntry} from './series.js';
 import {windBarb,windDescription} from './wind-values.js';
 const labels={loading:'Загрузка',missing:'Срок отсутствует',outside_coverage:'Вне покрытия',native_nodata:'Нет данных в нативной ячейке',error:'Ошибка запроса',value:''};
 const utc=(time:string)=>new Intl.DateTimeFormat('ru-RU',{timeZone:'UTC',dateStyle:'short',timeStyle:'short'}).format(new Date(time))+' UTC';
@@ -26,6 +26,7 @@ export class PointChart {
     private windLabel=document.createElement('small');
     private windEntries=new Map<string,WindEntry>();
     private windEnabled=false;
+    private windKey='';
     private width=264;
     private format:(value:number,units:string)=>string=String;
     private fullBuilds=0;
@@ -64,7 +65,12 @@ export class PointChart {
         this.plot.className='pointPlot';this.plot.append(this.svg);
         this.element.append(this.caption,this.status,this.windLabel,this.plot,this.range,this.tooltip,this.select,this.retry);
     }
-    setWind(entries:Map<string,WindEntry>,enabled:boolean,label:string,status:string){
+    setWind(entries:Map<string,WindEntry>,enabled:boolean,label:string,status:string,key=''){
+        if(key!==this.windKey||!enabled&&this.windEnabled){
+            this.windKey=key;
+            this.svg.querySelectorAll('.windBarb,.windGap').forEach(node=>node.remove());
+            this.barbs.clear();
+        }
         this.windEntries=entries;this.windEnabled=enabled;
         this.windLabel.hidden=!enabled;this.windLabel.textContent='Ветер · '+label+' · флажки в узлах · «откуда»'+(status?'. '+status:'');
         this.windLabel.title='Короткое перо — 5 узлов, полное — 10, треугольник — 50. Точная скорость в подписи — м/с.';
@@ -74,9 +80,7 @@ export class PointChart {
         if(this.key!==series.key){this.key=series.key;this.fullBuilds=0;this.rebuildsWhileBusy=0;this.buildMs=0;this.barbBuilds=0;this.barbReuses=0;this.barbs.clear();this.svg.replaceChildren();}
         this.series=series;this.selected=selected;this.format=format;
         if(changed||!this.element.isConnected)this.preview=selected;
-        // During loading the series fills in one entry at a time; rebuilding the whole
-        // SVG on each entry is O(n²). Only refresh the cheap text/controls now and
-        // defer the single full build until the series settles.
+        // Keep the settled scalar plot while a wind selection or retry loads.
         if(series.busy){this.refreshMeta();return;}
         const start=performance.now();
         const entries=series.entries,values=entries.flatMap(e=>e.result?.value!=null?[e.result.value]:[]);
@@ -102,6 +106,7 @@ export class PointChart {
                     placeBarb(cached.node,i,direction,cached.calm);nodes.push(cached.node);this.barbReuses++;continue;
                 }
                 const barb=windBarb(wind.speed),calm=direction===null||barb.calm,node=calm?svgElement('circle',{fill:'none',stroke:'currentColor'}):svgElement('g',{});
+                node.classList.add('windBarb');
                 placeBarb(node,i,direction,calm);
                 if(!calm){
                     const symbol=svgElement('g',{transform:barb.transform});
@@ -109,7 +114,7 @@ export class PointChart {
                     const title=svgElement('title',{});title.textContent=entry.time+' · '+windDescription({speed:wind.speed,direction});node.append(title);
                 }
                 this.barbs.set(entry.time,{speed:wind.speed,direction,calm,node});this.barbBuilds++;nodes.push(node);
-            }else{const label=svgElement('text',{x:x(i),y:30,'text-anchor':'middle'});label.textContent=wind?.state==='loading'?'…':wind?.state==='error'?'!':'—';nodes.push(label);}
+            }else{const label=svgElement('text',{x:x(i),y:30,'text-anchor':'middle',class:'windGap'});label.textContent=wind?.state==='loading'?'…':wind?.state==='error'?'!':'—';nodes.push(label);}
         }
         const times=new Set(entries.map(entry=>entry.time));
         for(const time of this.barbs.keys())if(!times.has(time))this.barbs.delete(time);
@@ -139,7 +144,7 @@ export class PointChart {
         this.status.textContent=series.expired?'Публикация истекла. Перевыберите публикацию.':
             series.busy?`Загрузка ряда: ${successes} из ${entries.filter(e=>e.selection).length}`:
             errors?`${successes?'Частичный ряд':'Не удалось загрузить ряд'} · ошибок: ${errors}`:'Ближайшая нативная ячейка · весь опубликованный прогноз';
-        this.retry.hidden=!errors||series.expired;this.retry.disabled=series.busy;
+        this.retry.hidden=(!errors&&![...this.windEntries.values()].some(entry=>entry.state==='error'))||series.expired;this.retry.disabled=series.busy;
         this.range.max=String(Math.max(0,entries.length-1));this.range.value=String(this.preview);
         this.range.disabled=series.expired||!entries.length;this.select.disabled=this.range.disabled;
         this.describe();

@@ -113,14 +113,19 @@ def write_once(path: Path, value: dict) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-@lru_cache(maxsize=64)
-def load_manifest(relative: str, checksum: str) -> dict:
+def load_manifest_metadata(relative: str, checksum: str) -> dict:
     path = asset_path(ROOT, relative)
     if file_hash(path) != checksum:
         raise ValueError('publication manifest integrity failed')
     manifest = json.loads(path.read_bytes())
     if manifest['pipeline_version'] != PIPELINE:
         raise ValueError('unsupported pipeline')
+    return manifest
+
+
+@lru_cache(maxsize=64)
+def load_manifest(relative: str, checksum: str) -> dict:
+    manifest = load_manifest_metadata(relative, checksum)
     for name, expected in manifest['assets'].items():
         target = asset_path(ROOT, name)
         if target.stat().st_size != expected['bytes'] or file_hash(target) != expected['sha256']:
@@ -128,19 +133,28 @@ def load_manifest(relative: str, checksum: str) -> dict:
     return manifest
 
 
+def resolve_revision(revision: str) -> dict:
+    from publication.revisions import load_revision
+
+    with database() as cursor:
+        cursor.execute('SELECT manifest_path,manifest_sha256 FROM app.revisions WHERE revision=%s', (revision,))
+        row = cursor.fetchone()
+    if row is None:
+        raise KeyError('unavailable published revision')
+    try:
+        return load_revision(row['manifest_path'], row['manifest_sha256'])
+    except (OSError, ValueError, KeyError, TypeError, ValidationError) as error:
+        raise PublicationUnavailable('published revision unavailable') from error
+
+
 def resolve(selection: str) -> dict:
     from publication.retention import ensure
     ensure(selection.split('.', 1)[0])
     if '.' in selection:
-        from publication.revisions import load_revision, selected
+        from publication.revisions import selected
         revision, key = selection.split('.', 1)
-        with database() as cursor:
-            cursor.execute('SELECT manifest_path,manifest_sha256 FROM app.revisions WHERE revision=%s', (revision,))
-            row = cursor.fetchone()
-        if row is None:
-            raise KeyError('unavailable published revision')
+        manifest = resolve_revision(revision)
         try:
-            manifest = load_revision(row['manifest_path'], row['manifest_sha256'])
             entries = [entry for entry in manifest['batches'] if entry['key'] == key]
             if not entries:
                 raise KeyError('unavailable time in revision')

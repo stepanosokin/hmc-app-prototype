@@ -99,10 +99,10 @@ export async function checkUpdates({call,evaluate,wait,select,click,capture,orig
     await evaluate("Object.assign(window.__navigationGate,{stage:'point',hit:false,released:false,resume:null})");
     await pick(false);await wait('window.__navigationGate.hit','old mode point held');
     const heldSeries=(await capture()).series.key;
-    const heldRequests=report.requests.filter(item=>item.url.includes('/point?')).length;
+    const heldRequests=report.requests.filter(item=>item.url.includes('/point-series?')).length;
     await select('#projection',true,1);await ready();
     assert.equal((await capture()).series.key,heldSeries,'Projection retains the same pending series');
-    assert.equal(report.requests.filter(item=>item.url.includes('/point?')).length,heldRequests,'Projection does not replace pending point requests');
+    assert.equal(report.requests.filter(item=>item.url.includes('/point-series?')).length,heldRequests,'Projection does not replace pending point requests');
     await evaluate('window.__navigationGate.resume();window.__navigationGate.stage=null');
     await wait('window.captureWeatherEvidence().point!=null','new mode point');
     const newPoint=(await capture()).point;

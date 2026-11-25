@@ -24,6 +24,7 @@ from publication import revisions
 from publication import retention
 from publication import budgets
 from publication import numerical
+from publication import point_series
 from publication import native_display
 from publication import wms as wms_options
 from publication import common_wms
@@ -77,12 +78,17 @@ def create_app() -> Flask:
     tile_cache = TileCache()
     native_cache = TileCache(cap=16 * 1024**2)
     native_work = ProcessChannel('publication.native_process', 332820)
+    series_work = ProcessChannel('publication.point_series', point_series.MAX_RESPONSE_BYTES)
     # Load reader code during service startup, without warming any field data.
     # Native readiness is still established separately by metadata probes.
     try:
         native_work.run('native-initialize', {}, 10)
     except (WorkLimit, OSError):
         print(json.dumps({'native_reader': 'initialization-deferred'}), file=sys.stderr, flush=True)
+    try:
+        series_work.run('initialize', {}, 5)
+    except (WorkLimit, OSError):
+        print(json.dumps({'point_series_reader': 'initialization-deferred'}), file=sys.stderr, flush=True)
     work = threading.BoundedSemaphore(4)
 
     @app.before_request
@@ -366,6 +372,19 @@ def create_app() -> Flask:
             args['valid_time'], args['lon'], args['lat'], args.get('crs'))
         g.identity = manifest['identity']
         return jsonify(result)
+
+    @app.get('/api/v1/point-series')
+    def forecast_point_series():
+        args = arguments({'selection', 'lon', 'lat'}, {'wind_u', 'wind_v', 'from'})
+        now = time.time()
+        deadline = min(g.deadline - 0.25, now + 13)
+        result = series_work.run('sample', {'args': args, 'deadline': deadline}, deadline - now)
+        if result.get('identity'):
+            g.identity = result['identity']
+        response = Response(result['body'], status=result.get('status', 200), content_type='application/json')
+        if response.status_code == 503:
+            response.headers['Retry-After'] = '2'
+        return response
 
     def tile_description(manifest):
         selection = manifest['selection']

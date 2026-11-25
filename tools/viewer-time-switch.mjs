@@ -118,11 +118,11 @@ export async function checkTimeSwitch({call,evaluate,wait,select,click,capture,o
             await select('#time',true,0);await ready();
         }
         await wait('!window.captureWeatherEvidence().series.busy','pinned point series complete');
-        const requestsBefore=report.requests.filter(item=>item.url.includes('/point?')).length;
+        const requestsBefore=report.requests.filter(item=>item.url.includes('/point-series?')).length;
         await select('#time',true,2);await ready();
         await select('#time',true,0);await ready();
         assert.equal((await capture()).point.selection,before.selected.selection);
-        assert.equal(report.requests.filter(item=>item.url.includes('/point?')).length,requestsBefore,'Cached series replaces time-only point requests');
+        assert.equal(report.requests.filter(item=>item.url.includes('/point-series?')).length,requestsBefore,'Cached series replaces time-only point requests');
         await select('#time',true,1);
         const gap=await capture();assert.equal(gap.ready,false);assert.equal(gap.point,undefined);assert.deepEqual(gap.position,before.position);
         assert.equal(gap.displayed,undefined);

@@ -15,12 +15,20 @@ export async function checkPointSeries({call,evaluate,wait,select,click,capture,
     };
     const mobile=await evaluate("matchMedia('(max-width:700px), (max-height:600px) and (orientation:landscape)').matches");
     const host='#mobilePoint';
-    // Only HTTP failure is synthetic; every successful value keeps real gateway bytes.
+    // Only one per-time result is synthetic; all successful values come from the gateway.
     await evaluate(`(()=>{const original=fetch;window.__seriesFault=3;window.__seriesCalls=[];window.fetch=async(input,options)=>{
-        const url=String(input);if(url.includes('/point?')){window.__seriesCalls.push(url);const t=new URL(url,location.origin).searchParams.get('valid_time');
-        if(window.__seriesFault===3&&t.endsWith('03:00:00Z'))return new Response('{}',{status:503});}
-        return original(input,options);};})()`);
+        const url=String(input),response=await original(input,options);
+        if(!url.includes('/point?')&&!url.includes('/point-series?'))return response;
+        window.__seriesCalls.push(url);
+        if(!url.includes('/point-series?')||window.__seriesFault!==3||!response.ok)return response;
+        const body=await response.json();
+        body.scalar=body.scalar.map(entry=>entry.time.endsWith('03:00:00Z')?{time:entry.time,status:'error'}:entry);
+        return Response.json(body);};})()`);
+    const networkStart=report.requests.length;
     await pick();await complete();
+    const numerical=report.requests.slice(networkStart).filter(({url})=>/\/api\/v1\/point(?:-series)?\?/.test(url));
+    assert.equal(numerical.length,1,'One real gateway request per click');
+    assert.equal(new URL(numerical[0].url).pathname,'/api/v1/point-series');
     const charts=await evaluate("window.captureWeatherEvidence().point_charts");
     assert.ok(Array.isArray(charts)&&charts.length>=1,'Chart rebuild counters exposed');
     for(const chart of charts)assert.equal(chart.rebuilds_while_busy,0,'No full chart rebuild while the point series loads');
@@ -44,11 +52,11 @@ export async function checkPointSeries({call,evaluate,wait,select,click,capture,
     await checkGraph(mobile?host:'#pointContent');
     if(!mobile)await click('#showPoint');
     let state=await capture();assert.equal(state.series.entries.filter(e=>e.state==='value').length,23);
-    assert.equal(state.series.entries[2].state,'error');assert.equal(state.series.requests,24);
+    assert.equal(state.series.entries[2].state,'error');assert.equal(state.series.requests,1);
     assert.equal(await evaluate(`${JSON.stringify(host)}&&document.querySelector(${JSON.stringify(host+' .realPointChart p')}).textContent.includes('Частичный')`),true);
     const count=await evaluate('window.__seriesCalls.length');
     await evaluate('window.__seriesFault=0');await click(host+' .realPointChart button:last-child');await complete();
-    state=await capture();assert.equal(state.series.requests,25);assert.equal(state.series.entries.filter(e=>e.state==='value').length,24);
+    state=await capture();assert.equal(state.series.requests,2);assert.equal(state.series.entries.filter(e=>e.state==='value').length,24);
     await checkGraph(host);
     assert.equal(await evaluate('window.__seriesCalls.length'),count+1);
     const identity=state.series.key;
@@ -58,7 +66,7 @@ export async function checkPointSeries({call,evaluate,wait,select,click,capture,
     await click('#settings');await select('#units',true,0);await click('#sheetPoint');
     assert.equal(await evaluate('window.__seriesCalls.length'),reuseCount,'Units reuse canonical kelvin values');
     const result={width,height,physical_android:android,position:state.position,entries:state.series.entries,
-        requests:state.series.requests,elapsed_ms:state.series.elapsed_ms,modes:[],synthetic:'HTTP 503 for +3 h; successful responses are real'};
+        requests:state.series.requests,elapsed_ms:state.series.elapsed_ms,modes:[],synthetic:'Temporary error for +3 h; successful responses are real'};
     (report.point_series??=[]).push(result);
     for(const [mode,projectionIndex] of [['mercator',0],['orthographic',1],['laea',2]]){
         if(projectionIndex){await click('#settings');await select('#projection',true,projectionIndex);await ready();await click('#showPoint');}

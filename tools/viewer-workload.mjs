@@ -140,14 +140,18 @@ export async function measureViewer({call,evaluate,wait,click,select,capture,ori
             modeResult.observed_end=new Date().toISOString();view.measurements.push(modeResult);
             await writeFile(join(directory,'workload-progress.json'),JSON.stringify(view,null,2)+'\n');
         }
-        // One canonical point request fails; every successful response remains
-        // real gateway data. Only the failed entry is retried.
+        // Fail one time within a real gateway response.
         await click('#settings');await select('#projection',true,0);await settle('window.captureWeatherEvidence().ready');await click('#closeDrawer');
         const faultTime=(await capture()).series.entries.find(e=>e.selection)?.selection.valid_time;
         assert.ok(faultTime);
         await evaluate(`(()=>{window.__t19Fetch=fetch;window.__t19FaultTime=${JSON.stringify(faultTime)};
-            window.fetch=(input,options)=>{const url=String(input);if(url.includes('/point?')&&new URL(url,location.origin).searchParams.get('valid_time')===window.__t19FaultTime)
-                return Promise.resolve(new Response('{}',{status:503}));return window.__t19Fetch(input,options);};})()`);
+            window.fetch=async(input,options)=>{
+                const response=await window.__t19Fetch(input,options);
+                if(!String(input).includes('/point-series?')||!window.__t19FaultTime||!response.ok)return response;
+                const body=await response.json();
+                body.scalar=body.scalar.map(entry=>entry.time===window.__t19FaultTime?{time:entry.time,status:'error'}:entry);
+                return Response.json(body);
+            };})()`);
         await click('#showPoint');await click('#clearMobilePoint');
         // The preceding projection/pan measurements may leave all probe cells
         // offscreen. This fault supplement starts from the data coverage.

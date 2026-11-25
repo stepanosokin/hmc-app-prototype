@@ -1,11 +1,9 @@
-import {FieldLoader,json,PublicationExpired,DISPLAY_LEVEL,displayBlockBound,type FieldData,type NativeMetadata} from './field.js';
+import {FieldLoader,PublicationExpired,DISPLAY_LEVEL,displayBlockBound,type FieldData} from './field.js';
 import type {PublishedGroup,Selection} from './selection.js';
-import {pointValue,type Position} from './series.js';
-import {nativePosition} from './source-crs.js';
-import {earthComponents,WindArrows,windCanvasBytes,windParticleBytes} from './wind.js';
-import {windAtTime,windGroups,windLevel,windValue,windVariant} from './wind-values.js';
+import type {WindEntry} from './series.js';
+import {WindArrows,windCanvasBytes,windParticleBytes} from './wind.js';
+import {windAtTime,windGroups,windLevel,windVariant} from './wind-values.js';
 
-export interface WindEntry {time:string;state:'loading'|'missing'|'value'|'error'|'outside_coverage'|'native_nodata';speed?:number;direction?:number|null}
 /** Independent overlay owns one U/V pair and a compact, pinned point series. */
 export class WindOverlay {
     enabled=true;
@@ -35,8 +33,7 @@ export class WindOverlay {
     private field:FieldData|undefined;
     private arrows:WindArrows|undefined;
     private reservation=0;
-    private pointController=new AbortController();
-    private pointKey='';
+    private points:WindEntry[]|undefined;
     private map:any;
     private host:(()=>any)|undefined;
     private shown=true;
@@ -58,7 +55,7 @@ export class WindOverlay {
             this.arrows.remove();this.arrows=undefined;this.field=undefined;this.state='error';this.status=this.failureStatus(error);this.ui();return;
         }
     };
-    constructor(private changed:()=>void,private admit:(bytes:number)=>void){
+    constructor(private changed:()=>void,private admit:(bytes:number)=>void,retryPoints=()=>{}){
         document.getElementById('windPause')!.onclick=()=>{
             this.paused=!this.paused;this.resumeOnReady=false;this.ui();this.map?.triggerRepaint();
         };
@@ -67,7 +64,10 @@ export class WindOverlay {
             if(this.paused)this.resumeOnReady=true;
             this.level=(e.target as HTMLSelectElement).value||undefined;this.initialized=true;this.levelLabel='';this.refresh();
         };
-        document.getElementById('windRetry')!.onclick=()=>{this.key='';this.pointKey='';this.refresh();};
+        document.getElementById('windRetry')!.onclick=()=>{
+            if(this.state==='error'){this.key='';this.refresh();}
+            retryPoints();
+        };
     }
     mount(map:any,host:()=>any){
         if(this.paused)this.resumeOnReady=true;
@@ -94,12 +94,14 @@ export class WindOverlay {
     }
     private refresh(){
         const available=this.source?windGroups(this.groups,this.source):[];
+        const previousGroup=this.group?.key;
         if(!this.initialized&&available.length){
             const near=available.find(g=>g.selection.field_level_type==='heightAboveGround'&&Number(g.selection.level)===10);
             this.level=near?windVariant(near.selection):available.length===1?windVariant(available[0].selection):undefined;
             this.initialized=true;
         }
         this.group=available.find(g=>windVariant(g.selection)===this.level);
+        if(this.group?.key!==previousGroup)this.clearPoints();
         if(this.group)this.levelLabel=windLevel(this.group.selection);
         const select=document.getElementById('windLevel') as HTMLSelectElement;
         select.replaceChildren(new Option('Выберите уровень ветра',''),...available.map(g=>new Option(windLevel(g.selection),windVariant(g.selection))));
@@ -119,7 +121,6 @@ export class WindOverlay {
         else if(!this.level)this.status='Выберите уровень ветра';
         else if(!this.group)this.status='Ветер: '+(this.levelLabel||'выбранный уровень')+' недоступен';
         else this.status=current?'Загрузка ветра · '+this.levelLabel:'Нет данных ветра · '+this.levelLabel+' · выбранный срок';
-        if(this.pointKey&&!this.pointKey.startsWith((this.group?.key??'!')+'|'))this.clearPoints();
         this.ui();
         if(!current)return;
         void (async()=>{
@@ -152,52 +153,19 @@ export class WindOverlay {
         pause.disabled=!this.enabled||this.state!=='ready';
         const message=document.getElementById('windStatus')!;
         if(message.textContent!==this.status)message.textContent=this.status;
-        document.getElementById('windRetry')!.hidden=this.state!=='error'&&![...this.entries.values()].some(e=>e.state==='error');
+        this.pointRetryStatus();
         this.changed();
     }
-    clearPoints(){this.pointController.abort();this.pointController=new AbortController();this.entries.clear();this.pointKey='';}
-    points(position:Position|undefined){
-        if(!this.enabled||!this.group||!position){if(this.pointKey){this.clearPoints();this.ui();}return;}
-        const group=this.group,key=group.key+'|'+position.lng+','+position.lat;
-        if(key===this.pointKey)return;
-        this.clearPoints();this.pointKey=key;
-        const signal=this.pointController.signal;
-        const times=group.times;
-        for(let i=0;i<times.length;i++){const time=new Date(group.start+i*3600000).toISOString();this.entries.set(time,{time,state:times[i]?.wind_v?'loading':'missing'});}
-        void (async()=>{
-            try{
-                const first=times.find(s=>s?.wind_v);if(!first)return;
-                const metadata=this.field?.metadata??await json<NativeMetadata>(first.native_display,signal);
-                if(metadata.identity.native_grid_sha256!==first.native_grid_sha256||typeof metadata.uv_relative_to_grid!=='boolean'||
-                    !metadata.source_crs||metadata.grid.shape_yx.length!==2)throw Error('Несогласованная геометрия ветра');
-                for(let i=0;i<times.length;i++){
-                    signal.throwIfAborted();const current=times[i],entry=this.entries.get(new Date(group.start+i*3600000).toISOString())!;
-                    if(!current?.wind_v)continue;
-                    try{
-                        const [u,v]=await Promise.all([pointValue(current,position,signal),pointValue(current.wind_v,position,signal)]);
-                        signal.throwIfAborted();
-                        if(u.value===null||v.value===null){entry.state=u.reason==='outside_coverage'||v.reason==='outside_coverage'?'outside_coverage':'native_nodata';}
-                        else{
-                            if(!u.cell||!v.cell||u.cell.row!==v.cell.row||u.cell.column!==v.cell.column)throw Error('Разные ячейки U/V');
-                            const grid=metadata.source_grid??metadata.grid;
-                            const [w,s]=grid.outer_cell_edges_wsen,[dx,dy]=grid.spacing_degrees_xy;
-                            const xy=[w+(u.cell.column+.5)*dx,s+(u.cell.row+.5)*dy],geographic=nativePosition(metadata.source_crs,xy,true);
-                            if(typeof current.uv_relative_to_grid!=='boolean')throw Error('Не задана ориентация компонент');
-                            const earth=earthComponents(u.value,v.value,{...metadata,uv_relative_to_grid:current.uv_relative_to_grid},xy,geographic,p=>nativePosition(metadata.source_crs,p,true));
-                            if(!earth)throw Error('Не определено направление ветра');
-                            Object.assign(entry,windValue(earth.east,earth.north),{state:'value'});
-                        }
-                    }catch(error){if(signal.aborted)return;if(error instanceof PublicationExpired)throw error;entry.state='error';}
-                    this.ui();
-                }
-            }catch(error){if(signal.aborted)return;
-                if(error instanceof PublicationExpired){
-                    this.releaseFrame();this.state='error';this.status=this.failureStatus(error);
-                    for(const entry of this.entries.values()){entry.state='error';delete entry.speed;delete entry.direction;}
-                }else for(const entry of this.entries.values())if(entry.state==='loading')entry.state='error';
-                this.ui();
-            }
-        })();
+    private pointRetryStatus(){
+        document.getElementById('windRetry')!.hidden=this.state!=='error'&&![...this.entries.values()].some(e=>e.state==='error');
+    }
+    get pointGroup(){return this.enabled?this.group:undefined;}
+    clearPoints(){this.points=undefined;this.entries=new Map();}
+    setPoints(points:WindEntry[]){
+        if(this.points===points)return;
+        this.points=points;
+        this.entries=new Map(points.map(point=>[point.time,point]));
+        this.pointRetryStatus();
     }
     evidence(){return {enabled:this.enabled,paused:this.paused,resume_pending:this.resumeOnReady,level:this.level,label:this.levelLabel,state:this.state,status:this.status,
         selection:this.key,bytes:this.bytes(),failure:this.failure,point_entries:[...this.entries.values()],arrows:this.arrows?.evidence()};}

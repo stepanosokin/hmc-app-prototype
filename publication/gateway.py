@@ -25,7 +25,7 @@ from publication.process_channel import ProcessChannel
 
 ROUTES = (
     re.compile(r'gis/v1/wms'),
-    re.compile(r'api/v1/(?:catalogue|point|modules|models|runs|revisions|openapi\.json)'),
+    re.compile(r'api/v1/(?:catalogue|point|point-series|modules|models|runs|revisions|openapi\.json)'),
     re.compile(r'ogc(?:/(?:conformance|collections(?:/[0-9a-f.]+(?:/position)?)?))?'),
     re.compile(r'api/v1/jobs/[0-9a-f-]{36}'),
     re.compile(r'api/v1/selections/[0-9a-f.]+/(?:tiles\.json|tiles/[234]/[0-9]+/[0-9]+/[0-9]+\.f32)'),
@@ -116,7 +116,7 @@ def create_app() -> Flask:
         path = request.path[5:] if protected else request.path[1:]
         # Store categories, never client-supplied URLs/query strings.
         operation = ('tile-metadata' if path.endswith(('/tiles.json', '/native.json')) else 'tile' if '/tiles/' in path or '/native/' in path or '/display/1/experiment/' in path
-                     else 'wms' if path.startswith('gis/') else 'point' if path == 'api/v1/point'
+                     else 'wms' if path.startswith('gis/') else 'point' if path in ('api/v1/point', 'api/v1/point-series')
                      else 'position' if path.endswith('/position') else 'discovery' if path.startswith('ogc')
                      or path in ('api/v1/modules', 'api/v1/models', 'api/v1/runs', 'api/v1/revisions', 'api/v1/openapi.json')
                      else 'catalogue' if path == 'api/v1/catalogue' else 'job' if path.startswith('api/v1/jobs/') else 'unknown')

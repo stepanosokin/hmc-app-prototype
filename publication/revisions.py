@@ -150,15 +150,18 @@ def load_revision(relative: str, checksum: str) -> dict:
     return value
 
 
-def selected(revision: dict, entry: dict) -> dict:
-    batch = load_manifest(entry['manifest_path'], entry['manifest_sha256'])
+def selected(revision: dict, entry: dict, *, numerical_only: bool = False) -> dict:
+    from publication.domain import load_manifest_metadata
+
+    load = load_manifest_metadata if numerical_only else load_manifest
+    batch = load(entry['manifest_path'], entry['manifest_sha256'])
     if batch_key(batch['identity']) != entry['key'] or batch['identity']['run'] != revision['run']:
         raise ValueError('revision batch identity mismatch')
     identity = {**batch['identity'], 'revision': revision['revision']}
     return {**batch, 'identity': identity, 'selection': revision['revision'] + '.' + entry['key'],
             'batch_selection': batch['selection'], 'completeness': revision['completeness'],
-            'revision_times': sorted({item['valid_time'] for item in revision['batches']
-                                      if item.get('field','T_G:surface:0')==identity['field']}),
+            **({} if numerical_only else {'revision_times': sorted({item['valid_time'] for item in revision['batches']
+                                      if item.get('field','T_G:surface:0')==identity['field']})}),
             'fixture': batch.get('fixture', 'actual')}
 
 

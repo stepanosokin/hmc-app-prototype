@@ -35,7 +35,7 @@ export async function checkWithdrawal({call,evaluate,wait,select,click,capture,r
     assert.equal(await evaluate("document.getElementById('availability').textContent"),'Публикация снята');
     assert.equal(await evaluate("document.getElementById('linkPoint').textContent"),'Публикация снята. Перевыберите публикацию.');
     assert.equal(await evaluate("!document.getElementById('wmsCopy').disabled&&document.getElementById('apiCopy').disabled"),true);
-    const pointRequests=()=>report.requests.filter(item=>item.url.includes('/point?')).length;
+    const pointRequests=()=>report.requests.filter(item=>item.url.includes('/point-series?')).length;
     const requestsBefore=pointRequests();
     await click('#closeDrawer');await click('#map');
     await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');

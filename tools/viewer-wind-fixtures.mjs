@@ -110,16 +110,22 @@ async function windFixtures(origin){
         if(throwFetch)throw new TypeError('Failed to fetch');
         if(fail)return new Response('unavailable',{status:503});
         const query=new URL(String(input),origin);
-        if(query.pathname==='/api/v1/point'){
+        if(query.pathname==='/api/v1/point-series'){
+            if(pointMode==='expired')return new Response('expired',{status:410});
             const s=selections.get(query.searchParams.get('selection'));
-            if(pointMode==='expire-next'&&s.selection.endsWith('-next'))return new Response('expired',{status:410});
-            if(pointMode==='error'&&s.wind_axis==='v')return new Response('unavailable',{status:503});
-            const reason=['outside_coverage','native_nodata'].includes(pointMode)?pointMode:null;
-            const identity=Object.fromEntries(['model','run','revision','field','level','valid_time','native_grid_sha256','member'].map(k=>[k,s[k]]));
-            const geo=nativePosition(reference.specs[0],[.5,.5],true);
-            return new Response(JSON.stringify({selection:s.selection,run:s.run,revision:s.revision,valid_time:s.valid_time,field:s.field,units:s.units,
-                value:reason?null:pointMode==='calm'?0:s.wind_axis==='u'?3:4,reason,identity,spatial_selection:'nearest-native-cell',temporal_selection:'exact',source:{synthetic_fixture:true},
-                cell:reason?null:{row:pointMode==='mismatch'&&s.wind_axis==='v'?1:0,column:0,lon:geo[0],lat:geo[1]}}));
+            const sample=component=>{
+                const reason=['outside_coverage','native_nodata'].includes(pointMode)?pointMode:null;
+                const identity=Object.fromEntries(['model','run','revision','field','level','valid_time','native_grid_sha256','member'].map(k=>[k,component[k]]));
+                return {status:'sampled',result:{...identity,selection:component.selection,units:component.units,
+                    value:reason?null:pointMode==='calm'?0:component.wind_axis==='u'?3:4,reason,identity,
+                    spatial_selection:'nearest-native-cell',temporal_selection:'exact',source:{synthetic_fixture:true},
+                    cell:reason?null:{row:pointMode==='mismatch'&&component.wind_axis==='v'?1:0,column:0,lon:.5,lat:.5}}};
+            };
+            const u=selections.get(query.searchParams.get('wind_u')),v=selections.get(query.searchParams.get('wind_v'));
+            return Response.json({scalar:[{time,...sample(s)}],...(u&&v?{
+                wind:[{time,u:sample(u),v:pointMode==='error'?{status:'error'}:sample(v),status:pointMode==='error'?'error':'sampled'}],
+                source_crs:reference.specs[0],
+            }:{})});
         }
         if(String(input).endsWith('native.json')){
             const s=selections.get(String(input).split('/').at(-2));
@@ -160,22 +166,26 @@ async function windFixtures(origin){
     wind=make();throwFetch=true;wind.update([ten],base,Date.parse(time));await settled(wind);
     expect('Native fetch errors are localized in Russian',wind.state==='error'&&!/[A-Za-z]/.test(wind.status)&&wind.status.includes('Повторите'));
     throwFetch=false;wind.dispose();
-    const pointsSettled=async wind=>{for(let i=0;i<100&&[...wind.entries.values()].some(e=>e.state==='loading');i++)await pause(10);};
+    const {PointSeries,forecastPoints}=await import(origin+'/build/series.js');
+    const points=wind=>{
+        const series=new PointSeries(forecastPoints,()=>wind.setPoints(series.windEntries));
+        return series;
+    };
     for(const mode of ['value','calm','outside_coverage','native_nodata','error','mismatch']){
-        pointMode=mode;wind=make();wind.update([ten],base,Date.parse(time));await settled(wind);wind.points({lng:1,lat:1});await pointsSettled(wind);
+        pointMode=mode;wind=make();wind.update([ten],base,Date.parse(time));await settled(wind);
+        const before=requests.length;
+        await points(wind).load(ten,{lng:1,lat:1},wind.pointGroup);
+        expect('One point-series request supplies both panels: '+mode,requests.length===before+1);
         const entry=[...wind.entries.values()][0];
         if(mode==='value')expect('Popup computes physical speed from both canonical components',entry.state==='value'&&entry.speed===5&&entry.direction!==null);
         else if(mode==='calm')expect('Popup calm has speed zero and no direction',entry.state==='value'&&entry.speed===0&&entry.direction===null);
         else expect('Popup '+mode+' is an explicit gap',entry.state===(mode==='mismatch'?'error':mode)&&entry.speed===undefined);
         wind.dispose();
     }
-    const nextTime=new Date(Date.parse(time)+3600000).toISOString();
-    const nextV={...ten.selection.wind_v,selection:ten.selection.wind_v.selection+'-next',valid_time:nextTime};
-    const nextU={...ten.selection,selection:ten.selection.selection+'-next',valid_time:nextTime,wind_v:nextV};
-    selections.set(nextU.selection,nextU);selections.set(nextV.selection,nextV);
-    pointMode='expire-next';wind=make();wind.update([{...ten,key:'expiry-series',times:[ten.selection,nextU]}],base,Date.parse(time));await settled(wind);
-    wind.points({lng:1,lat:1});await pointsSettled(wind);
-    expect('Expiry removes already loaded wind values and retires the map frame',wind.state==='error'&&wind.status.includes('истекла')&&[...wind.entries.values()].every(e=>e.state==='error'&&e.speed===undefined)&&wind.bytes()===0);
+    pointMode='expired';wind=make();wind.update([ten],base,Date.parse(time));await settled(wind);
+    const series=points(wind);await series.load(ten,{lng:1,lat:1},wind.pointGroup);
+    expect('Expiry clears both numerical panels',series.expired&&series.entries.every(e=>!e.result)&&
+        [...wind.entries.values()].every(e=>e.state==='error'&&e.speed===undefined));
     wind.dispose();
     return {scope:'Synthetic levels/races/failures, point-chart wind symbol caching and independent projected U/V references; not real forecast values',checks,requests:requests.length,projectionCounts,maximumError};
 }

@@ -47,6 +47,12 @@ def sample(selection: str, run: str, revision: str, field: str, valid_time: str,
     if any(identity[key] != value for key, value in
            [('run', run), ('revision', revision), ('field', field), ('valid_time', valid_time)]):
         raise KeyError('selection mismatch')
+    return manifest, sample_manifest(manifest, lon, lat, crs)
+
+
+def sample_manifest(manifest: dict, lon: str, lat: str, crs: str | None = None) -> dict:
+    identity = manifest['identity']
+    run, revision, field, valid_time = (identity[key] for key in ('run', 'revision', 'field', 'valid_time'))
     numerical = sampler(manifest)
     try:
         item = next(item for item in numerical.manifest['fields']
@@ -97,7 +103,7 @@ def sample(selection: str, run: str, revision: str, field: str, valid_time: str,
                   spatial_selection='nearest-native-cell', temporal_selection='exact')
     if item['metadata'].get('field_profile'):
         result['interval']=item['metadata']['interval']
-    return manifest, result
+    return result
 
 
 def coverage(point: dict) -> dict:

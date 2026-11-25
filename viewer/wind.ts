@@ -35,7 +35,7 @@ export function earthWind(field:FieldData,xy:number[],geographic:number[],invers
     return earthComponents(wind.u,wind.v,field.metadata,xy,geographic,inverse);
 }
 
-export function earthComponents(u:number,v:number,metadata:FieldData['metadata'],xy:number[],geographic:number[],inverse:(xy:number[])=>number[]){
+export function earthComponents(u:number,v:number,metadata:Pick<FieldData['metadata'],'source_crs'|'uv_relative_to_grid'>,xy:number[],geographic:number[],inverse:(xy:number[])=>number[]){
     if(!Number.isFinite(u)||!Number.isFinite(v))return;
     if(!metadata.uv_relative_to_grid)return {east:u,north:v};
     const speed=Math.hypot(u,v);if(speed===0)return {east:0,north:0};

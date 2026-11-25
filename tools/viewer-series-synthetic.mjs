@@ -31,19 +31,24 @@ const fixtures=`(()=>{
                 root.batches=root.batches.filter(index=>!body.batches[index].valid_time.endsWith('02:00:00Z'));
             return Response.json(body);
         }
-        if(!url.includes('/point?'))return original(input,options);
+        if(!url.includes('/point-series?'))return original(input,options);
         test.calls.push(url);
-        const time=new URL(url,location.origin).searchParams.get('valid_time');
-        if(test.mode==='all-error'||test.mode==='gaps'&&time.endsWith('05:00:00Z'))return new Response('{}',{status:503});
+        if(test.mode==='all-error')return new Response('{}',{status:503});
         if(test.mode==='expired')return new Response('{}',{status:410});
         const response=await original(input,{...options,signal:undefined});
         // Preserve gateway errors and Retry-After so the real client can retry.
         if(!response.ok)return response;
-        if(test.mode==='gaps'&&time.endsWith('06:00:00Z')&&!test.held){
+        if(test.mode==='gaps'&&!test.held){
             test.held=true;await new Promise(resolve=>test.release=resolve);test.released=true;
         }
-        if(test.mode==='gaps'&&(time.endsWith('03:00:00Z')||time.endsWith('04:00:00Z'))){
-            const body=await response.json();body.value=null;body.reason=time.endsWith('03:00:00Z')?'native_nodata':'outside_coverage';body.cell=null;
+        if(test.mode==='gaps'){
+            const body=await response.json();
+            for(const entry of body.scalar){
+                if(entry.time.endsWith('05:00:00Z')){entry.status='error';delete entry.result;}
+                else if(entry.time.endsWith('03:00:00Z')||entry.time.endsWith('04:00:00Z')){
+                    entry.result.value=null;entry.result.reason=entry.time.endsWith('03:00:00Z')?'native_nodata':'outside_coverage';
+                }
+            }
             return Response.json(body);
         }
         return response;

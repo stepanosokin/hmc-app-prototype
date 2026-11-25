@@ -16,7 +16,7 @@ export const navigationDelays=`(()=>{
     const fetchOriginal=window.fetch;
     window.fetch=async(input,options)=>{
         const url=String(input),tile=url.includes('/native/')&&url.endsWith('.f32');
-        const response=await fetchOriginal(input,tile||url.includes('/point?')?{...options,signal:undefined}:options);
+        const response=await fetchOriginal(input,tile||url.includes('/point-series?')?{...options,signal:undefined}:options);
         if(tile)await hold('fetch',url);
         return response;
     };
@@ -24,10 +24,10 @@ export const navigationDelays=`(()=>{
     Response.prototype.arrayBuffer=async function(){const bytes=await arrayBuffer.call(this);
         if(this.url.includes('/native/'))await hold('decode',this.url);
         if(this.url.includes('/api/v1/catalogue'))await hold('catalogue',this.url);
-        if(this.url.includes('/point?'))await hold('point',this.url);return bytes;};
+        if(this.url.includes('/point-series?'))await hold('point',this.url);return bytes;};
     Response.prototype.text=async function(){const bytes=await text.call(this);
         if(this.url.includes('/api/v1/catalogue'))await hold('catalogue',this.url);
-        if(this.url.includes('/point?'))await hold('point',this.url);return bytes;};
+        if(this.url.includes('/point-series?'))await hold('point',this.url);return bytes;};
     const raf=window.requestAnimationFrame,caf=window.cancelAnimationFrame,cancelled=new Set();
     window.requestAnimationFrame=callback=>{
         const id=raf(async time=>{
