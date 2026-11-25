@@ -46,7 +46,7 @@ export async function checkFieldGroups({call,evaluate,wait,click,select,capture,
         const names=await evaluate("[...document.querySelectorAll('#fieldButtons>button')].map(b=>b.textContent)");
         for(const required of ['Температура','Давление','Влажность','Ветер'])assert.ok(names.includes(required),required);
         scene.icon_visuals=[];
-        const ids=await evaluate("[...document.querySelectorAll('#fieldButtons>button')].map(b=>b.id)");
+        const ids=await evaluate("[...document.querySelectorAll('#fieldButtons>button[id^=field-group-]')].map(b=>b.id)");
         for(const basemap of ['dark','light'])for(const font of ['system','courier']){
             await select('#basemap',true,basemap==='dark'?0:1);await select('#font',true,font==='system'?0:1);
             for(const groupId of ids){
@@ -55,13 +55,13 @@ export async function checkFieldGroups({call,evaluate,wait,click,select,capture,
                     const menu=document.querySelector('#fieldMenu'),rail=document.querySelector('#fieldButtons');
                     await Promise.all([...document.querySelectorAll('#fieldGroups img')].map(i=>i.decode()));
                     const rect=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
-                    return {menu:rect(menu),menu_background:getComputedStyle(menu).backgroundColor,rail:rect(rail),groups:[...rail.children].map(b=>({label:b.getAttribute('aria-label'),background:getComputedStyle(b).backgroundColor,rect:rect(b),icon:!!b.querySelector('.fieldIcon')})),
+                    return {menu:rect(menu),menu_background:getComputedStyle(menu).backgroundColor,rail:rect(rail),groups:[...rail.querySelectorAll('[id^=field-group-]')].map(b=>({label:b.getAttribute('aria-label'),background:getComputedStyle(b).backgroundColor,rect:rect(b),icon:!!b.querySelector('.fieldIcon')})),
                         options:[...menu.querySelectorAll('.fieldOption')].map(b=>({label:b.getAttribute('aria-label'),level:b.querySelector('.fieldLevel').textContent,background:getComputedStyle(b).backgroundColor,rect:rect(b),icon:!!b.querySelector('.fieldIcon')})),
                         scroll:document.documentElement.scrollWidth,projection:document.querySelector('label[for=projection]').textContent,accessibleProjection:document.querySelector('#projection').getAttribute('aria-label')};})()`);
                 assert.equal(visual.projection,'Проекция');assert.equal(visual.accessibleProjection,'Проекция');
                 assert.ok(visual.menu.left>=0&&visual.menu.right<=width&&visual.menu.top>=0&&visual.menu.bottom<=height,'Icon menu fits viewport');
                 assert.match(visual.menu_background,/0\.1\)$/,'Nested group menu also has alpha 0.10');
-                assert.ok(visual.scroll<=width&&visual.rail.width<=54,'Compact icon rail without horizontal overflow');
+                assert.ok(visual.scroll<=width&&visual.rail.width<=58,'Compact icon rail without horizontal overflow');
                 assert.ok(visual.groups.every(g=>g.label&&g.icon&&g.rect.height>=44&&/0\.1\)$/.test(g.background)),'Every group has a name, icon, 44px target and alpha 0.10');
                 assert.ok(visual.options.length&&visual.options.every(o=>o.label&&o.level&&o.icon&&o.rect.width>=44&&/0\.1\)$/.test(o.background)),'Every field has an icon, Russian name, level, usable target and alpha 0.10');
                 const shot=await call('Page.captureScreenshot',{format:'png'}),name=`icons-${width}-${height}-${basemap}-${font}-${groupId}.png`;
@@ -70,6 +70,7 @@ export async function checkFieldGroups({call,evaluate,wait,click,select,capture,
                 await click('#'+groupId);
             }
         }
+        await click('#contour-empty');
         await select('#basemap',true,0);await select('#font',true,0);
         const pixel=await nativePointPixel(evaluate);
         assert.ok(pixel,'An unobstructed point inside the published native footprint');
@@ -140,15 +141,16 @@ export async function checkFieldGroups({call,evaluate,wait,click,select,capture,
         await enter();await wait("document.querySelector('#fieldMenu').hidden&&window.captureWeatherEvidence().ready",'keyboard selects field');
         assert.equal(await evaluate("document.activeElement.id"),'field-group-wind','Keyboard selection restores group focus');
         scene.keyboard=focusedLabel;
-        const options=await evaluate("[...document.querySelector('#run').options].map(o=>JSON.parse(o.value)[3])");
-        assert.ok(options.every(field=>field===(scene.groups.at(-1).selected.field)),'Run control contains only the selected field');
+        const options=await evaluate("[...document.querySelector('#run').options].map(o=>JSON.parse(o.value))");
+        assert.ok(options.every(key=>key[0]===scene.groups.at(-1).selected.model)&&new Set(options.map(key=>key[2])).size===options.length,'Run control lists unique revisions of the selected model');
         scene.heap=await call('Runtime.getHeapUsage');
         if(width===1440){
             await click('#settings');
             const models=await evaluate("[...document.querySelector('#model').options].map(o=>o.value)");
             const icon=models.indexOf('ICON-EU');assert.ok(icon>=0);
-            await select('#model',true,icon);await wait('window.captureWeatherEvidence().ready','control model');
-            assert.deepEqual(await evaluate("[...document.querySelectorAll('#fieldButtons>button')].map(b=>b.textContent)"),['Температура'],'Model switch replaces available groups');
+            await select('#model',true,icon);
+            await wait("document.getElementById('model').value==='ICON-EU'&&document.getElementById('field-empty').ariaPressed==='true'",'control model');
+            assert.deepEqual(await evaluate("[...document.querySelectorAll('#fieldButtons>button')].map(b=>b.textContent)"),['Пусто','Температура'],'Model switch replaces available groups');
         }
     }
     if(process.env.T19_CORPUS){
@@ -158,7 +160,7 @@ export async function checkFieldGroups({call,evaluate,wait,click,select,capture,
         await wait('window.captureWeatherEvidence().ready','pressure before retained revision choice');
         await click('#settings');
         const options=await evaluate("[...document.querySelector('#run').options].map(o=>JSON.parse(o.value))");
-        const option=options.findIndex(key=>key[2]===pinned.revision&&key[3]===pinned.field);
+        const option=options.findIndex(key=>key[2]===pinned.revision);
         assert.ok(option>=0,'Pinned old revision remains in normalized discovery');
         await select('#run',true,option);
         await wait(`window.captureWeatherEvidence().ready&&window.captureWeatherEvidence().selected.revision===${JSON.stringify(pinned.revision)}`,'explicit retained revision');

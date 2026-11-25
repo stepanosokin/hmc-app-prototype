@@ -40,7 +40,7 @@ try{
  await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:dpr,mobile:false});report.viewport={width,height,dpr,scope:'Desktop browser with responsive viewport; not physical Android'};
  report.browser=await call('Browser.getVersion');
  const start=performance.now();await call('Page.navigate',{url:origin+'/?validation=1'});
- const readState=()=>evaluate("(()=>{const s=window.captureWeatherEvidence?.(),c=s?.contours,w=s?.wind_overlay;return {ready:s?.ready??false,field:s?.displayed?.field_short_name,mode:s?.mode,managed_bytes:s?.managed_bytes,managed_budget_bytes:s?.managed_budget_bytes,wind:w?{state:w.state,status:w.status,visible:s?.wind?.visible}:null,button:Boolean(document.getElementById('contourToggle')),canvas:Boolean(document.querySelector('.fieldContours')),contours:c?{state:c.state,message:c.message,enabled:c.enabled,worker_active:c.worker_active,curves:c.curves}:null};})()");
+ const readState=()=>evaluate("(()=>{const s=window.captureWeatherEvidence?.(),c=s?.contours,w=s?.wind_overlay;return {ready:s?.ready??false,field:s?.displayed?.field_short_name,mode:s?.mode,managed_bytes:s?.managed_bytes,managed_budget_bytes:s?.managed_budget_bytes,wind:w?{state:w.state,status:w.status,visible:s?.wind?.visible}:null,button:Boolean(document.querySelector('#contourToggle,#contour-empty')),canvas:Boolean(document.querySelector('.fieldContours')),contours:c?{state:c.state,message:c.message,enabled:c.enabled,worker_active:c.worker_active,curves:c.curves}:null};})()");
  let state;
  for(let i=0;i<600;i++){
   state=await readState();
@@ -83,10 +83,14 @@ try{
  if(process.argv.includes('--interaction')){
   const click=async selector=>{const p=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2};})()`);for(const type of ['mousePressed','mouseReleased'])await call('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,...p});};
   if(!await evaluate("document.getElementById('legendPanel').open"))await click('#legendPanel>summary');
-  const selection=await evaluate('captureWeatherEvidence().displayed.selection');await click('#contourToggle');
+  const current=await evaluate(`(()=>{const s=captureWeatherEvidence().displayed;
+    return {selection:s.selection,field:s.field,group:document.querySelector('#contourButtons [id^="contour-group-"][aria-pressed="true"]')?.id};})()`);
+  await click(current.group?'#contour-empty':'#contourToggle');
   assert.equal(await evaluate('captureWeatherEvidence().contours.enabled'),false);assert.equal(await evaluate('captureWeatherEvidence().contours.worker_active'),false);
-  assert.equal(await evaluate('captureWeatherEvidence().displayed.selection'),selection);
-  await click('#contourToggle');await pause(200);
+  assert.equal(await evaluate('captureWeatherEvidence().displayed.selection'),current.selection);
+  if(current.group){await click('#'+current.group);await click('#contourMenu .fieldOption[data-field='+JSON.stringify(current.field)+']');}
+  else await click('#contourToggle');
+  await pause(200);
   assert.equal(await evaluate('captureWeatherEvidence().contours.enabled'),true);report.toggle='off/on passed; raster selection retained';
  }
  }

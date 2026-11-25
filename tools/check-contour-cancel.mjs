@@ -111,7 +111,7 @@ try{
         function frame(t){if(last!==undefined)window.__contourProbe.gap=Math.max(window.__contourProbe.gap,t-last);last=t;
             if(t-sampled>100){sampled=t;const s=window.captureWeatherEvidence?.();if(s){window.__contourProbe.peak_managed_bytes=Math.max(window.__contourProbe.peak_managed_bytes,s.managed_bytes||0);if(s.contours.worker_active)window.__contourProbe.worker_frames++;}}
             requestAnimationFrame(frame);}requestAnimationFrame(frame);
-        const Original=window.Worker;window.Worker=class extends Original{constructor(url,options){if(window.__contourFail&&String(url).includes('contour-worker'))throw Error('Test worker allocation fault');super(url,options);}};
+        const Original=window.Worker;window.Worker=class extends Original{constructor(url,options){if(window.__contourFail&&/contour-(surface-)?worker/.test(String(url)))throw Error('Test worker allocation fault');super(url,options);}};
     }`});
 
     const settled=async(name)=>{
@@ -123,16 +123,18 @@ try{
         await click('#field-group-'+group);await wait("!document.getElementById('fieldMenu').hidden",'field menu');
         const selector='#fieldMenu .fieldOption[data-field='+JSON.stringify(source.field)+']';await click(selector);
         await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.field==='+JSON.stringify(source.field),'selected '+short);
+        await click('#contour-group-'+group);
+        await click('#contourMenu .fieldOption[data-field='+JSON.stringify(source.field)+']');
         await settled('contours '+short);return source;
     };
 
     report.scope='Focused supplement: held real worker completion, actual cancellation and non-persisted toggle; same frozen production viewer';
-    await call('Page.addScriptToEvaluateOnNewDocument',{source:"{\n const Previous=window.Worker;\n window.Worker=class extends Previous{\n  constructor(url,options){super(url,options);if(!String(url).includes('contour-worker'))return;\n   this.addEventListener('message',event=>{if(window.__holdContour&&event.data.type==='result'){\n    event.stopImmediatePropagation();window.__heldContour=()=>this.dispatchEvent(new MessageEvent('message',{data:event.data}));\n   }});\n  }\n };\n}"});
+    await call('Page.addScriptToEvaluateOnNewDocument',{source:"{\n const Previous=window.Worker;\n window.Worker=class extends Previous{\n  constructor(url,options){super(url,options);if(!/contour-(surface-)?worker/.test(String(url)))return;\n   this.addEventListener('message',event=>{if(window.__holdContour&&event.data.type==='result'){\n    event.stopImmediatePropagation();window.__heldContour=()=>this.dispatchEvent(new MessageEvent('message',{data:event.data}));\n   }});\n  }\n };\n}"});
     await call('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
     await call('Page.navigate',{url:origin+'/?validation=1'});await wait('window.captureWeatherEvidence?.().ready','initial field');await settled('initial contours');
     if(!await evaluate("document.getElementById('legendPanel').open"))await click('#legendPanel>summary');
     if((await snapshot()).selected.model!==targetModel){await select('#model',targetModel);await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().selected.model==='+JSON.stringify(targetModel),'model');}
-    await choose('sp','pressure');
+    await choose('t','temperature');
     await evaluate('window.__holdContour=true');await click('#zoomIn');
     await wait('Boolean(window.__heldContour)','held real contour result');
     const old=(await snapshot()).displayed.selection;await capture('held-result');
@@ -145,7 +147,7 @@ try{
     assert.equal(after.contours.selection,before.contours.selection);assert.equal(after.contours.build_ms,before.contours.build_ms);
     assert.equal(after.contours.cache_entries,before.contours.cache_entries);assert.equal(after.contours.bytes,before.contours.bytes);
     assert.equal(after.contours.curves,before.contours.curves);report.checks.push('Late real worker result rejected after immutable selection change');await capture('stale-rejected');
-    await click('#zoomIn');await wait('captureWeatherEvidence().contours.worker_active','active worker');await click('#contourToggle');
+    await click('#zoomIn');await wait('captureWeatherEvidence().contours.worker_active','active worker');await click('#contour-empty');
     await check('Toggle cancels worker and retains the raster', '(()=>{const s=captureWeatherEvidence();return s.ready&&!s.contours.enabled&&!s.contours.worker_active&&s.contours.labels.length===0&&s.displayed.selection==='+JSON.stringify(after.displayed.selection)+';})()');
     await pause(500);await capture('canceled');
     await call('Page.reload');await wait('window.captureWeatherEvidence?.().ready','reloaded field');await settled('reloaded contours');

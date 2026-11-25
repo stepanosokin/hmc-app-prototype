@@ -8,24 +8,26 @@ import {resolve,join,dirname,sep,extname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {nativePointPixel} from './viewer-fields.mjs';
 import {restrictRuntimeNetwork} from './viewer-network.mjs';
+import {selectViewerOption} from './viewer-select-option.mjs';
 
 
 const directory=resolve(process.argv[2]),browser=process.argv[3]??'chrome';
 assert.ok(['chrome','edge'].includes(browser));
 const focused=process.argv.includes('--focused'),started=performance.now();
+const independentLayers=process.argv.includes('--independent-layers');
 let browserStarted=0,checksStarted=0,checksEnded=0;
 assert.ok(directory.startsWith(resolve('data/reports/contours74')+sep));
 const gateway=process.env.HMC_WIND_GATEWAY??'http://127.0.0.1:8140';
 assert.match(gateway,/^http:\/\/127\.0\.0\.1:\d+$/);
 const executable=browser==='edge'?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':'C:/Program Files/Google/Chrome/Application/chrome.exe';
 await mkdir(directory,{recursive:false});
-const report={scope:'Native contours #74: frozen viewer and real published APIs; emulation is not physical Android',
+const report={scope:(independentLayers?'Independent forecast layers #115':'Native contours #74')+': frozen viewer and real published APIs; emulation is not physical Android',
     browser,gateway,starting_commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),checks:[],inputs:{},errors:[],screenshots:[],states:[],requests:[],cleanup:{}};
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const freeze=async(source,target)=>{const bytes=await readFile(source);report.inputs[source]=sha(bytes);await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes);};
 for(const entry of await readdir('viewer',{withFileTypes:true}))if(entry.isFile()&&/\.(?:ts|js|json|css|html|mjs)$/.test(entry.name))
     await freeze('viewer/'+entry.name,join(directory,'inputs/viewer',entry.name));
-for(const path of ['tools/check-contours.mjs','tools/viewer-fields.mjs','tools/viewer-network.mjs','tools/check-contour-reference.py','tools/check-contour-reference.mjs'])await freeze(path,join(directory,'inputs',path));
+for(const path of ['tools/check-contours.mjs','tools/viewer-fields.mjs','tools/viewer-network.mjs','tools/viewer-select-option.mjs','tools/check-contour-reference.py','tools/check-contour-reference.mjs'])await freeze(path,join(directory,'inputs',path));
 await freeze('tests/fixtures/wind/rotated-reference.json',join(directory,'inputs/tests/fixtures/wind/rotated-reference.json'));
 const build=join(directory,'site/build');
 const profile=join(directory,'profile'),pause=ms=>new Promise(r=>setTimeout(r,ms));
@@ -85,7 +87,7 @@ try{
     const wait=async(expression,name)=>{console.log(JSON.stringify({phase:name}));for(let i=0;i<450;i++){if(await evaluate(expression))return;await pause(100);}throw Error('Timeout: '+name);};
     const check=async(name,expression)=>{assert.equal(await evaluate(expression),true,name);report.checks.push(name);};
     const click=async selector=>{const b=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...b});await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...b});};
-    const select=async(selector,value)=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+    const select=(selector,value)=>selectViewerOption(evaluate,selector,value);
     const snapshot=()=>evaluate('captureWeatherEvidence()');
     const capture=async name=>{const r=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,name+'.png'),Buffer.from(r.data,'base64'));report.screenshots.push(name+'.png');
         const state=await snapshot(),metrics=await call('Performance.getMetrics');
@@ -111,30 +113,135 @@ try{
         function frame(t){if(last!==undefined)window.__contourProbe.gap=Math.max(window.__contourProbe.gap,t-last);last=t;
             if(t-sampled>100){sampled=t;const s=window.captureWeatherEvidence?.();if(s){window.__contourProbe.peak_managed_bytes=Math.max(window.__contourProbe.peak_managed_bytes,s.managed_bytes||0);if(s.contours.worker_active)window.__contourProbe.worker_frames++;}}
             requestAnimationFrame(frame);}requestAnimationFrame(frame);
-        const Original=window.Worker;window.Worker=class extends Original{constructor(url,options){if(window.__contourFail&&String(url).includes('contour-worker'))throw Error('Test worker allocation fault');super(url,options);}};
+        const Original=window.Worker;window.Worker=class extends Original{constructor(url,options){if(window.__contourFail&&/contour-(surface-)?worker/.test(String(url)))throw Error('Test worker allocation fault');super(url,options);}};
     }`});
 
     const settled=async(name)=>{
         await wait("(()=>{const s=captureWeatherEvidence(),c=s.contours,mode={mercator:'mercator',orthographic:'hmc:orthographic',laea:'EPSG:3576','laea-rf':'hmc:laea-rf'}[s.mode];return c.view?.mode===mode&&(c.state==='error'||['ready','empty'].includes(c.state)&&!c.worker_active&&c.curves!==undefined);})()",name);
         const s=await snapshot();assert.ok(['ready','empty'].includes(s.contours.state),JSON.stringify({state:s.contours.state,message:s.contours.message,selection:s.contours.selection}));
     };
-    const choose=async(short,group)=>{
+    const chooseColumn=async(short,group,kind)=>{
         const source=catalogue.templates.find(t=>t.model===targetModel&&t.field_short_name===short);assert.ok(source,short);
-        await click('#field-group-'+group);await wait("!document.getElementById('fieldMenu').hidden",'field menu');
-        const selector='#fieldMenu .fieldOption[data-field='+JSON.stringify(source.field)+']';await click(selector);
+        await click('#'+kind+'-group-'+group);await wait(`!document.getElementById('${kind}Menu').hidden`,'field menu');
+        await click('#'+kind+'Menu .fieldOption[data-field='+JSON.stringify(source.field)+']');
+        return source;
+    };
+    const choose=async(short,group)=>{
+        const source=await chooseColumn(short,group,'field');
         await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.field==='+JSON.stringify(source.field),'selected '+short);
+        await chooseColumn(short,group,'contour');
         await settled('contours '+short);return source;
     };
     for(const [width,height] of focused?[[1440,900]]:[[1440,900],[360,740],[640,360]]){
         await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
-        await call('Page.navigate',{url:origin+'/?validation=1'});await wait('window.captureWeatherEvidence?.().ready','initial field');
+        await call('Page.navigate',{url:origin+'/?validation=1'+(independentLayers?'&fixtures=1':'')});await wait('window.captureWeatherEvidence?.().ready','initial field');
         await settled('initial contours');
+        if(independentLayers){
+            await check('map has matching field columns with isolines on the left',`(()=>{
+                const a=document.querySelector('#contourButtons'),b=document.querySelector('#fieldButtons');
+                return Boolean(a&&b&&a.getBoundingClientRect().left<b.getBoundingClientRect().left&&a.innerText===b.innerText);
+            })()`);
+            await check('initial temperature selected for both layers',"['contour','field'].every(kind=>document.getElementById(kind+'-group-temperature').ariaPressed==='true')");
+            await check('separate legend without the old switch',"!document.getElementById('contourToggle')&&!document.getElementById('contourPanel').hidden");
+            if((await snapshot()).selected.model!==targetModel){
+                await select('#model',targetModel);
+                await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().selected.model==='+JSON.stringify(targetModel),'pressure model');
+            }
+            const before=await snapshot();
+            const source=await chooseColumn('sp','pressure','contour');
+            await wait("document.querySelector('#contourLegend').textContent.includes('Изобары проведены через')&&!document.querySelector('#contourScale').hidden",'pressure lines beside original background');
+            assert.equal((await snapshot()).displayed.selection,before.displayed.selection,'Choosing isolines preserves the background selection and time');
+            await check('isoline legend has field name, visible levels and pressure interval',`(()=>{
+                const title=document.querySelector('#contourTitle').textContent;
+                const values=[...document.querySelectorAll('#contourTicks span')].map(e=>Number(e.textContent.replace(',','.')));
+                return title.includes('Давление')&&title.includes('гПа')&&values.length>1&&values.every((v,i)=>Number.isFinite(v)&&(!i||v>values[i-1]));
+            })()`);
+            await capture(width+'-independent-layers');
+            if(width===1440){
+                const elevated=await chooseColumn('2t','temperature','field');
+                await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.field==='+JSON.stringify(elevated.field),'background vertical level');
+                await check('background level changes without replacing the pressure isolines',"document.getElementById('contour-group-pressure').ariaPressed==='true'&&!document.getElementById('contourScale').hidden");
+                await chooseColumn('t','temperature','field');await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.field==='+JSON.stringify(before.displayed.field),'surface background');
+                const pointPixel=await nativePointPixel(evaluate);assert.ok(pointPixel);
+                for(const type of ['mousePressed','mouseReleased'])await call('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,...pointPixel});
+                const apiField=field=>`(()=>{const link=document.querySelector('#apiLink');return link.href&&new URL(link.href).searchParams.get('layer')===${JSON.stringify(field)};})()`;
+                await wait(apiField(before.displayed.field),'point API uses background');
+                const pointAndSeries=(field,unit)=>`(()=>{
+                    const s=captureWeatherEvidence(),card=document.querySelector('#pointContent');
+                    return s.point?.field===${JSON.stringify(field)}&&Number.isFinite(s.point.value)&&
+                        card.querySelector('.pointValue').textContent.includes(${JSON.stringify(unit)})&&
+                        Boolean(card.querySelector('.realPointChart .selectedValue'));
+                })()`;
+                const temperaturePoint=pointAndSeries(before.displayed.field,'°C');
+                const pressurePoint=pointAndSeries(source.field,'гПа');
+                await wait(temperaturePoint,'temperature point and chart');
+                await check('background supplies point value and graph',temperaturePoint);
+                await click('#field-empty');
+                await wait(apiField(source.field),'point API switches to isolines');
+                await wait(pressurePoint,'pressure point and chart');
+                await check('isolines supply point value and graph after disabling the background',pressurePoint);
+                await check('isolines remain visible with no background',"document.getElementById('legendPanel').hidden&&!document.getElementById('contourScale').hidden");
+                await capture(width+'-isolines-only');
+                await click('#contour-empty');
+                await check('both empty leaves no forecast legend, point or API link',`['legendPanel','contourPanel','pointCard','apiLink'].every(id=>document.getElementById(id).hidden)`);
+                await check('empty selections preserve the model and wind controls',"document.getElementById('model').value!==''&&!document.getElementById('windPanel').hidden");
+                await chooseColumn('t','temperature','field');
+                await wait('captureWeatherEvidence().ready','restore background');
+                await chooseColumn('sp','pressure','contour');
+                await settled('restore pressure lines');
+                const nextDisabled=await evaluate("document.getElementById('next').disabled");
+                if(!focused)assert.equal(nextDisabled,false,'Acceptance fixture must publish a second forecast time');
+                if(!nextDisabled){
+                    await click('#next');
+                    await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.valid_time!=='+JSON.stringify(before.displayed.valid_time),'next published time');
+                    await check('missing isolines preserve the background',"!document.getElementById('legendPanel').hidden&&document.getElementById('contourLegend').textContent.includes('Нет данных на выбранный срок')");
+                    await chooseColumn('t','temperature','contour');await settled('temperature lines at the next time');
+                    await chooseColumn('sp','pressure','field');
+                    await check('missing background preserves the time and isolines',"document.getElementById('legendSource').textContent.includes('Нет данных на выбранный срок')&&!document.getElementById('contourScale').hidden");
+                    await chooseColumn('sp','pressure','contour');
+                    await check('current missing time is retained and offered times require data',`(()=>{
+                        const time=document.getElementById('time');return time.selectedOptions[0].disabled&&[...time.options].filter(option=>!option.disabled).length===1;
+                    })()`);
+                    await click('#field-empty');await click('#contour-empty');
+                    await check('empty choices offer all published times',"[...document.getElementById('time').options].filter(option=>!option.disabled).length>=2");
+                }
+                const secondModel=catalogue.templates.find(t=>t.model!==targetModel&&t.field==='T_G:surface:0')?.model;
+                if(!focused)assert.ok(secondModel,'Acceptance fixture must publish a second model');
+                if(secondModel){
+                    await chooseColumn('t','temperature','field');await wait('captureWeatherEvidence().ready','restore temperature');
+                    await chooseColumn('sp','pressure','contour');
+                    await select('#model',secondModel);
+                    await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.model==='+JSON.stringify(secondModel),'temperature retained across models');
+                    await check('model change clears unmatched pressure only',"document.getElementById('contourPanel').hidden&&document.getElementById('contour-empty').ariaPressed==='true'&&!document.getElementById('legendPanel').hidden");
+                    const anotherRun=await evaluate(`(()=>{const run=document.getElementById('run');
+                        return [...run.options].map(option=>option.value).find(value=>JSON.parse(value)[1]!==JSON.parse(run.value)[1]);})()`);
+                    if(!focused)assert.ok(anotherRun,'Acceptance fixture must publish a second run');
+                    if(anotherRun){
+                        await select('#run',anotherRun);
+                        await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.run==='+JSON.stringify(JSON.parse(anotherRun)[1]),'other model run');
+                        await check('run change retains background selection and disabled contours',"document.getElementById('field-group-temperature').ariaPressed==='true'&&document.getElementById('contourPanel').hidden");
+                    }
+                    await select('#model',targetModel);
+                    await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.model==='+JSON.stringify(targetModel),'restore pressure model');
+                    await chooseColumn('sp','pressure','contour');await settled('recover pressure contours');
+                    await select('#projection','orthographic');await settled('orthographic contours');
+                    await click('#fit');await settled('center globe at forecast coverage');
+                    for(let i=0;i<9;i++)await click('#east');
+                    await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',buttons:1,clickCount:1,x:720,y:740});
+                    await call('Input.dispatchMouseEvent',{type:'mouseMoved',button:'left',buttons:1,x:720,y:200});
+                    await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',buttons:0,clickCount:1,x:720,y:200});
+                    await wait("document.getElementById('contourLegend').textContent.includes('Нет изолиний в видимой области')",'weather field behind the horizon');
+                    await check('empty viewport hides the scale and retains the interval',"document.getElementById('contourScale').hidden&&document.getElementById('contourLegend').textContent.includes('Изобары проведены через')");
+                }
+            }
+            continue;
+        }
         if(!await evaluate("document.getElementById('legendPanel').open"))await click('#legendPanel>summary');
-        await check('default enabled '+width,"document.getElementById('contourToggle').getAttribute('aria-pressed')==='true'");
+        await check('default enabled '+width,"document.getElementById('contour-empty').getAttribute('aria-pressed')==='false'");
         await capture(width+'-initial');
-        const before=await snapshot();await click('#contourToggle');
+        const before=await snapshot();await click('#contour-empty');
         await check('toggle retains field '+width,'(()=>{const s=captureWeatherEvidence();return !s.contours.enabled&&s.contours.labels.length===0&&s.displayed.selection==='+JSON.stringify(before.displayed.selection)+';})()');
-        await click('#contourToggle');await settled('toggle on');
+        await chooseColumn(before.displayed.field_short_name,'temperature','contour');await settled('toggle on');
         if((await snapshot()).selected.model!==targetModel){await select('#model',targetModel);await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().selected.model==='+JSON.stringify(targetModel),'actual multiple fields');}
         await choose('sp','pressure');
         await check('pressure hPa '+width,"document.querySelector('.unit').textContent==='гПа'");
@@ -154,7 +261,10 @@ try{
                         if(process.argv.includes('--diagnostics')&&!['unknown','lsrr','crr'].includes(source.field_short_name))continue;
                         await click('#'+button);await click('#fieldMenu .fieldOption[data-field='+JSON.stringify(entry.field)+']');
                         await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.field==='+JSON.stringify(entry.field),'tour '+entry.label);
-                        await wait("['ready','empty'].includes(captureWeatherEvidence().contours.state)",'tour contours');
+                        await click('#contour-group-'+button.slice('field-group-'.length));
+                        const contourTile='#contourMenu .fieldOption[data-field='+JSON.stringify(entry.field)+']';
+                        if(await evaluate(`document.querySelector(${JSON.stringify(contourTile)}).disabled`)){await click('#contourMenu .fieldMenuClose');continue;}
+                        await click(contourTile);await settled('tour contours');
                         const state=await snapshot();assert.ok(state.contours.profile?.step||state.contours.state==='empty');
                         assert.ok(state.managed_bytes<=state.managed_budget_bytes);await capture('tour-'+model.replace(/[^a-z0-9-]/gi,'_')+'-'+report.states.length);
                     }

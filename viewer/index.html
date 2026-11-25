@@ -13,7 +13,13 @@
   <section class="panel selection" aria-label="Выбранный прогноз"><h1>Поле прогноза</h1><div id="reference"></div><div id="valid"></div><small id="selectionIdentity"></small><button id="settings" aria-expanded="false" aria-controls="drawer">Источник и настройки</button></section>
   <section class="panel projectionControl" aria-label="Проекция карты"><label for="projection">Проекция</label><select id="projection" aria-label="Проекция" aria-describedby="projectionStatus"><option value="mercator">Меркатор</option><option value="orthographic">Глобус</option><option value="laea">LAEA — Арктика (EPSG:3576)</option><option value="laea-rf" selected>LAEA - РФ</option></select><small id="projectionStatus" role="status"></small><button id="useMercator" hidden>Перейти в Меркатор</button></section>
   </div></details>
-  <aside id="fieldGroups" class="fieldGroups" aria-label="Поля выбранной модели"><nav id="fieldButtons" aria-label="Группы показателей"></nav><section id="fieldMenu" class="panel fieldMenu" aria-label="Показатели и уровни" hidden></section><button id="wmsQuickCopy" title="Скопировать общий URL WMS" aria-label="Скопировать общий URL WMS" disabled>WMS</button><small id="wmsQuickStatus" class="panel" role="status" aria-live="polite"></small></aside>
+  <aside id="fieldGroups" class="fieldGroups" aria-label="Поля выбранной модели">
+    <div class="fieldColumns">
+      <div id="contourPicker"><span>Изолинии</span><nav id="contourButtons" aria-label="Показатели изолиний"></nav><section id="contourMenu" class="panel fieldMenu" aria-label="Показатели и уровни изолиний" hidden></section></div>
+      <div id="backgroundPicker"><span>Фон</span><nav id="fieldButtons" aria-label="Показатели фона"></nav><section id="fieldMenu" class="panel fieldMenu" aria-label="Показатели и уровни фона" hidden></section></div>
+    </div>
+    <button id="wmsQuickCopy" title="Скопировать общий URL WMS" aria-label="Скопировать общий URL WMS" disabled>WMS</button><small id="wmsQuickStatus" class="panel" role="status" aria-live="polite"></small>
+  </aside>
   <details id="navigationPanel" class="navigation" aria-label="Навигация по карте" open><summary class="panel widgetToggle">Карта</summary><div class="widgetBody"><button id="fit">К области данных</button><div><button id="zoomIn" aria-label="Приблизить">+</button><button id="zoomOut" aria-label="Отдалить">−</button><button id="west" aria-label="Сдвинуть карту к западу">←</button><button id="east" aria-label="Сдвинуть карту к востоку">→</button></div></div></details>
   <div id="notice" class="panel notice" role="status" aria-live="polite"></div>
   <div id="pointMarker" hidden aria-hidden="true"></div>
@@ -25,7 +31,8 @@
     <button id="windPause" type="button" aria-pressed="false" disabled>Пауза</button>
     <small id="windStatus" role="status" aria-live="polite">Загрузка доступных уровней…</small><button id="windRetry" hidden>Повторить загрузку ветра</button>
   </section>
-  <details id="legendPanel" class="panel legend" aria-label="Шкала выбранного поля" open><summary class="widgetToggle"><span id="legendSummary">Поле прогноза</span></summary><div class="widgetBody"><div><span id="legendTitle">Поле прогноза</span> <b class="unit">°C</b></div><div class="ramp"></div><div class="ticks"><span>−20</span><span>0</span><span>20</span><span>40</span></div><small id="legendSource">Числовые данные</small><button id="contourToggle" aria-pressed="false">Изолинии</button><small id="contourLegend" role="status">Изолинии выключены</small><button id="contourRetry" hidden>Повторить изолинии</button></div></details>
+  <details id="legendPanel" class="panel legend" aria-label="Шкала фона" open><summary class="widgetToggle"><span id="legendSummary">Поле прогноза</span></summary><div class="widgetBody"><div><span id="legendTitle">Поле прогноза</span> <b class="unit">°C</b></div><div class="ramp"></div><div class="ticks"><span>−20</span><span>0</span><span>20</span><span>40</span></div><small id="legendSource">Числовые данные</small></div></details>
+  <details id="contourPanel" class="panel legend" aria-label="Условные обозначения изолиний" open hidden><summary class="widgetToggle"><span id="contourTitle">Изолинии</span></summary><div class="widgetBody"><div id="contourScale" hidden><div class="contourLine" aria-hidden="true"></div><div id="contourTicks" class="contourTicks"></div></div><small id="contourLegend" role="status"></small><button id="contourRetry" hidden>Повторить изолинии</button></div></details>
   </div>
   <section id="drawer" class="panel drawer" aria-label="Подробности и настройки" hidden>
     <nav class="sheetTabs" aria-label="Содержимое панели"><button id="sheetSettings">Настройки</button><button id="sheetPoint" hidden>Точка</button></nav>

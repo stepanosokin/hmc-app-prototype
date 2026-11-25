@@ -1,7 +1,8 @@
 import type {FieldData} from './field.js';
 import type {Selection} from './selection.js';
 import {contourProfile} from './display-units.js';
-import {lineLength,mapWidthKm,nativeViewWindow} from './contour-geometry.js';
+import {clipScreenLine,lineLength,mapWidthKm,nativeViewWindow} from './contour-geometry.js';
+import {fieldPresentation} from './fields.js';
 
 interface View {origin:number[];scale:number;width:number;height:number;center:number[];mode:string}
 type Points=Float32Array|Float64Array|Uint16Array;
@@ -15,7 +16,7 @@ function at(points:Points,distance:number,quantum=1){
 }
 /** One bounded, cancellable native-cell worker; no raster pixels or extra HTTP requests. */
 export class ContourOverlay {
-    enabled=true;
+    get enabled(){return Boolean(this.selection);}
     private field:FieldData|undefined;
     private selection:Selection|undefined;
     private map:any;
@@ -41,47 +42,69 @@ export class ContourOverlay {
     private drawnKey='';
     private widthKey='';
     private widthKm=0;
-    constructor(private admit:(bytes:number)=>void,private temperatureUnit:()=>string){
+    private levels:number[]=[];
+    private tickKey='';
+    private loadFailed=false;
+    constructor(private admit:(bytes:number)=>void,private temperatureUnit:()=>string,retryLoad:()=>void){
         this.canvas.className='fieldContours';this.canvas.setAttribute('aria-hidden','true');
-        document.getElementById('contourToggle')!.onclick=()=>{
-            this.enabled=!this.enabled;
-            if(!this.enabled){this.cancel();this.clear();this.state='disabled';}else this.requested='';
-            this.ui();this.map?.triggerRepaint();
-        };
         document.getElementById('contourRetry')!.onclick=()=>{
+            if(this.loadFailed){retryLoad();return;}
             this.requested='';this.state='loading';this.message='Построение изолиний…';this.ui();this.map?.triggerRepaint();
         };
     }
     bytes(){return this.canvas.width*this.canvas.height*4+[...this.cache.values()].reduce((n,f)=>n+f.bytes,0)+this.reservation;}
     private cancel(){clearTimeout(this.timer);this.timer=undefined;this.worker?.terminate();this.worker=undefined;this.reservation=0;this.serial++;}
-    private clear(){this.canvas.getContext('2d')?.clearRect(0,0,this.canvas.width,this.canvas.height);this.labels=[];this.drawnKey='';}
+    private clear(){this.canvas.getContext('2d')?.clearRect(0,0,this.canvas.width,this.canvas.height);this.labels=[];this.levels=[];this.drawnKey='';}
     private reset(){this.cancel();this.cache.clear();this.shown=undefined;this.requested='';this.drawnKey='';this.clear();}
     cancelBuilding(){this.cancel();this.requested='';}
-    update(field:FieldData|undefined,selection:Selection|undefined){
-        if(field!==this.field){
-            this.reset();this.field=field;this.selection=selection;
+    update(field:FieldData|undefined,selection:Selection|undefined,message?:string,failed=false){
+        if(field!==this.field||selection?.selection!==this.selection?.selection){
+            this.reset();this.field=field;
             this.profile=undefined;
             this.failure='';
-            this.state=field?'loading':'missing';this.message=field?'Построение изолиний…':'Нет поля для изолиний';
-        }else this.selection=selection;
+            this.state=field?'loading':selection?'missing':'disabled';this.message=field?'Построение изолиний…':'Нет данных на выбранный срок';
+        }
+        this.selection=selection;this.loadFailed=failed;
+        if(message){this.state=failed?'error':'missing';this.message=message;}
         this.ui();
+        this.map?.triggerRepaint();
     }
     theme(light:boolean){this.light=light;this.color=light?'#707070':'#000000';this.map?.triggerRepaint();}
     mount(map:any,host:()=>any){this.unmount();this.map=map;this.host=host;map.getCanvasContainer().append(this.canvas);map.on('render',this.frame);}
     unmount(){this.reset();if(this.map)this.map.off('render',this.frame);this.map=undefined;this.host=undefined;this.canvas.remove();this.canvas.width=0;this.canvas.height=0;}
     private ui(){
-        const button=document.getElementById('contourToggle')!,legend=document.getElementById('contourLegend')!;
-        button.setAttribute('aria-pressed',String(this.enabled));button.textContent='Изолинии';
+        const panel=document.getElementById('contourPanel')!,legend=document.getElementById('contourLegend')!;
+        panel.hidden=!this.selection;
         const p=this.profile;
         const units=p?.temperature&&this.temperatureUnit()==='K'?'K':p?.unit;
-        legend.textContent=!this.enabled?'Изолинии выключены':['ready','empty'].includes(this.state)&&p?
-            `${p.noun} проведены через ${p.step} ${units}${this.field?.metadata.display_level?' · сглаженная поверхность':''}${this.state==='empty'?' · '+this.message:''}${p.note?' · '+p.note:''}`:
-            this.message+(p?.note?' · '+p.note:'');
+        const title=document.getElementById('contourTitle')!;
+        const label=this.selection?'Изолинии · '+fieldPresentation(this.selection).label+(units?' · '+units:''):'Изолинии';
+        if(title.textContent!==label)title.textContent=label;
+        const built=(this.state==='ready'||this.state==='empty')&&p;
+        const levels=built?this.levels:[];
+        const status=built?`${p.noun} проведены через ${p.step} ${units}${levels.length?'':' · Нет изолиний в видимой области'}${p.note?' · '+p.note:''}`:this.message;
+        if(legend.textContent!==status)legend.textContent=status;
+        const scale=document.getElementById('contourScale')!,ticks=document.getElementById('contourTicks')!;
+        scale.hidden=!levels.length;
+        const key=JSON.stringify([units,levels]);
+        if(this.tickKey!==key){
+            this.tickKey=key;
+            const count=Math.min(4,levels.length);
+            const markers=Array.from({length:count},(_,i)=>{
+                const span=document.createElement('span'),index=count===1?0:Math.round(i*(levels.length-1)/(count-1));
+                span.textContent=this.levelText(levels[index]);return span;
+            });
+            ticks.replaceChildren(...markers);
+        }
         document.getElementById('contourRetry')!.hidden=this.state!=='error'||!this.enabled;
+    }
+    private levelText(level:number){
+        const value=level+(this.profile?.temperature&&this.temperatureUnit()==='K'?273.15:0);
+        return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2,useGrouping:false}).format(value);
     }
     private frame=()=>{
         const host=this.host?.();
-        if(!host?.ready||!host.fieldVisible||!this.field||!this.selection||!this.enabled){this.clear();return;}
+        if(!host?.ready||!this.field||!this.selection)return;
         if(this.field.metadata.portrayal_baseline||this.selection.wind_v){this.clear();this.message='Для векторного слоя изолинии не применяются';this.state='missing';this.ui();return;}
         try{
             const g=host.geometry(),width=this.map.getContainer().clientWidth,height=this.map.getContainer().clientHeight,dpr=g.width/width;
@@ -104,7 +127,7 @@ export class ContourOverlay {
                 const projection=host.projection;
                 this.timer=setTimeout(()=>this.build(key,view,serial,(xy:number[])=>projection.inverse(xy)),100);
             }
-            this.draw(view);
+            this.draw(view);this.ui();
         }catch(error){this.fail(error);}
     };
     private build(key:string,view:View,serial:number,inverse:(xy:number[])=>number[]){
@@ -154,7 +177,7 @@ export class ContourOverlay {
         const ratio=view.scale/frame.view.scale;
         // Enlarging old simplified geometry would enlarge its pixel error as well.
         if(ratio>1.001)return;
-        const occupied:number[][]=[],used=new Set<number>();
+        const occupied:number[][]=[],used=new Set<number>(),visible=new Set<number>();
         ctx.strokeStyle=this.color;ctx.fillStyle=this.color;ctx.lineWidth=1;ctx.font=getComputedStyle(document.body).font;
         ctx.font='12px '+font;ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.lineCap='round';
         ctx.beginPath();const texts:{x:number;y:number;angle:number;text:string}[]=[];
@@ -165,8 +188,7 @@ export class ContourOverlay {
             const transform=(p:number[])=>[view.origin[0]+(p[0]*quantum+offset-frame.view.origin[0])*ratio,view.origin[1]+(p[1]*quantum+offset-frame.view.origin[1])*ratio];
             let label:{x:number;y:number;angle:number;text:string;low:number;high:number}|undefined;
             if(this.labels.length<6&&!used.has(curve.level)&&this.state==='ready')for(const fraction of [.5,.32,.68]){
-                const value=curve.level+(this.profile?.temperature&&this.temperatureUnit()==='K'?273.15:0);
-                const text=new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2,useGrouping:false}).format(value),w=ctx.measureText(text).width+8;
+                const text=this.levelText(curve.level),w=ctx.measureText(text).width+8;
                 const distance=total*fraction,p=transform(at(points,distance,quantum)),a=transform(at(points,Math.max(0,distance-w/Math.abs(ratio)/2),quantum)),b=transform(at(points,Math.min(total,distance+w/Math.abs(ratio)/2),quantum));
                 if(Math.hypot(b[0]-a[0],b[1]-a[1])<w*.85)continue;
                 const box=[p[0]-w/2-4,p[1]-w/2-4,p[0]+w/2+4,p[1]+w/2+4];
@@ -178,16 +200,25 @@ export class ContourOverlay {
             const stroke=(low:number,high:number)=>{
                 if(high<=low)return;
                 const first=transform(low===0?[points[0],points[1]]:at(points,low,quantum));ctx.moveTo(first[0],first[1]);let distance=0;
+                let previous=first;
+                const lineTo=(x:number,y:number)=>{
+                    ctx.lineTo(x,y);
+                    if(!visible.has(curve.level)){
+                        if((x>=0&&x<=view.width&&y>=0&&y<=view.height)||clipScreenLine([...previous,x,y],view.width,view.height,0).length)
+                            visible.add(curve.level);
+                        previous=[x,y];
+                    }
+                };
                 for(let i=2;i<points.length;i+=2){distance+=Math.hypot(points[i]-points[i-2],points[i+1]-points[i-1])*quantum;
-                    if(distance>low&&distance<high)ctx.lineTo(view.origin[0]+(points[i]*quantum+offset-frame.view.origin[0])*ratio,view.origin[1]+(points[i+1]*quantum+offset-frame.view.origin[1])*ratio);}
-                const last=transform(high===total?[points[points.length-2],points[points.length-1]]:at(points,high,quantum));ctx.lineTo(last[0],last[1]);
+                    if(distance>low&&distance<high)lineTo(view.origin[0]+(points[i]*quantum+offset-frame.view.origin[0])*ratio,view.origin[1]+(points[i+1]*quantum+offset-frame.view.origin[1])*ratio);}
+                const last=transform(high===total?[points[points.length-2],points[points.length-1]]:at(points,high,quantum));lineTo(last[0],last[1]);
             };
             if(label){stroke(0,label.low);stroke(label.high,total);texts.push(label);
                 this.labels.push({level:curve.level,x:label.x,y:label.y,angle:label.angle,text:label.text,gap:[label.low,label.high]});}
             else stroke(0,total);
         }
         ctx.stroke();for(const label of texts){ctx.save();ctx.translate(label.x,label.y);ctx.rotate(label.angle);ctx.fillText(label.text,0,0);ctx.restore();}
-        this.drawMs=performance.now()-start;
+        this.levels=[...visible].sort((a,b)=>a-b);this.drawMs=performance.now()-start;
     }
     evidence(){return {enabled:this.enabled,state:this.state,message:this.message,selection:this.field?.metadata.selection,profile:this.profile,
         labels:this.labels,bytes:this.bytes(),worker_active:Boolean(this.worker),cache_entries:this.cache.size,cache_hits:this.cacheHits,

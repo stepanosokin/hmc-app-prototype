@@ -1,5 +1,5 @@
-import type {Selection,PublishedGroup} from './selection.js';
-import {displaySpec,displayNumber} from './display-units.js';
+import {selectionAt,type Selection,type PublishedGroup} from './selection.ts';
+import {contourProfile,displaySpec,displayNumber} from './display-units.js';
 
 const kinds:Record<string,[string,string,string,string]>={
     T_G:['temperature','Температура','Температура','Основные показатели'],
@@ -108,15 +108,9 @@ export function fieldTile(source:Selection){
         label:[presentation.label,interval,displaySpec(source).unit].filter(Boolean).join(' · ')};
 }
 
-/** Match the nearest available time used when switching to another field. */
+/** Show a duration only when published for the selected time. */
 export function fieldAtTime(target:PublishedGroup,time:number){
-    let nearest=target.selection,distance=Infinity;
-    for(const source of target.times){
-        if(!source)continue;
-        const delta=Math.abs(Date.parse(source.valid_time)-time);
-        if(delta<distance){nearest=source;distance=delta;}
-    }
-    return nearest;
+    return selectionAt(target,time)??{...target.selection,interval:null};
 }
 
 function fieldIcon(name:string){
@@ -129,34 +123,39 @@ function fieldIcon(name:string){
 
 /** Owns only field controls. Publication and time selection stay with the viewer. */
 export class FieldPicker {
-    private root=document.getElementById('fieldGroups')!;
-    private buttons=document.getElementById('fieldButtons')!;
-    private menu=document.getElementById('fieldMenu')!;
+    private root:HTMLElement;
+    private buttons:HTMLElement;
+    private menu:HTMLElement;
     private open='';
     private fields:ReturnType<typeof modelFields>=[];
     private current:PublishedGroup|undefined;
+    private selected:Selection|undefined;
     private groups:PublishedGroup[]|undefined;
     private time=0;
-    private choose:(target:PublishedGroup)=>void;
     private hint=document.createElement('div');
-    constructor(choose:(target:PublishedGroup)=>void){
-        this.choose=choose;
-        this.hint.id='fieldHint';this.hint.className='panel fieldHint';this.hint.hidden=true;this.hint.setAttribute('role','tooltip');this.root.append(this.hint);
+    private kind:'field'|'contour';
+    private choose:(target?:PublishedGroup)=>void;
+    constructor(kind:'field'|'contour',choose:(target?:PublishedGroup)=>void){
+        this.kind=kind;this.choose=choose;
+        this.root=document.getElementById(kind==='field'?'backgroundPicker':'contourPicker')!;
+        this.buttons=document.getElementById(kind+'Buttons')!;
+        this.menu=document.getElementById(kind+'Menu')!;
+        this.hint.id=kind+'Hint';this.hint.className='panel fieldHint';this.hint.hidden=true;this.hint.setAttribute('role','tooltip');this.root.append(this.hint);
         document.addEventListener('pointerdown',event=>{if(!this.root.contains(event.target as Node))this.close();});
         document.addEventListener('keydown',event=>{if(event.key==='Escape'&&this.open){event.stopImmediatePropagation();this.close(true);}},true);
         addEventListener('resize',()=>this.layout());this.buttons.addEventListener('scroll',()=>this.layout());
     }
-    update(groups:PublishedGroup[],current:PublishedGroup|undefined,time=current?.start??0){
-        const same=this.groups===groups&&this.current===current;
+    update(groups:PublishedGroup[],current:PublishedGroup|undefined,selected:Selection|undefined,time=current?.start??0){
+        const same=this.groups===groups&&this.current===current&&this.selected===selected;
         if(this.time!==time)this.close();this.time=time;
         if(same)return;
-        this.groups=groups;this.current=current;this.close();
+        this.groups=groups;this.current=current;this.selected=selected;this.close();
         if(!current){this.buttons.replaceChildren();return;}
         this.fields=modelFields(groups,current);
         const seen=new Set<string>(),buttons:HTMLButtonElement[]=[];
         for(const field of this.fields){
             if(seen.has(field.id))continue;seen.add(field.id);
-            const button=document.createElement('button');button.id='field-group-'+field.id;
+            const button=document.createElement('button');button.id=this.kind+'-group-'+field.id;
             const label=document.createElement('span');label.className='srOnly';label.textContent=field.group;
             button.append(fieldIcon(field.id==='other'?'other':field.id),label);button.title=field.group;
             button.setAttribute('aria-label',field.group);
@@ -164,33 +163,38 @@ export class FieldPicker {
                 this.hint.style.right=(innerWidth-rect.left+8)+'px';this.hint.style.top=rect.top+'px';};
             button.onpointerenter=event=>{if(event.pointerType!=='touch')hint();};button.onfocus=hint;
             button.onpointerleave=button.onblur=()=>{this.hint.hidden=true;};
-            button.setAttribute('aria-controls','fieldMenu');button.setAttribute('aria-expanded','false');
-            button.setAttribute('aria-pressed',String(field.id===fieldPresentation(current.selection).id));
+            button.setAttribute('aria-controls',this.menu.id);button.setAttribute('aria-expanded','false');
+            button.setAttribute('aria-pressed',String(Boolean(selected&&field.id===fieldPresentation(selected).id)));
             button.onclick=()=>this.open===field.id?this.close():this.show(field.id);
             buttons.push(button);
         }
-        this.buttons.replaceChildren(...buttons);this.layout();
+        const empty=document.createElement('button');empty.id=this.kind+'-empty';empty.textContent='Пусто';
+        empty.setAttribute('aria-pressed',String(!selected));
+        empty.onclick=()=>{this.close();this.choose();document.getElementById(empty.id)?.focus();};
+        this.buttons.replaceChildren(empty,...buttons);this.layout();
     }
     close(focus=false){
-        const button=document.getElementById('field-group-'+this.open);
+        const button=document.getElementById(this.kind+'-group-'+this.open);
         button?.setAttribute('aria-expanded','false');this.open='';this.menu.hidden=true;
         if(focus)button?.focus();
         this.hint.hidden=true;
     }
     private show(id:string){
         this.close();this.open=id;
-        document.getElementById('field-group-'+id)!.setAttribute('aria-expanded','true');
+        document.getElementById(this.kind+'-group-'+id)!.setAttribute('aria-expanded','true');
         const title=document.createElement('h2');title.textContent=this.fields.find(f=>f.id===id)!.group;
         const close=document.createElement('button');close.textContent='Закрыть';close.className='fieldMenuClose';close.onclick=()=>this.close(true);
-        const preview=document.createElement('p');preview.className='fieldPreview';preview.id='fieldPreview';
-        const selected=this.current?fieldTile(fieldAtTime(this.current,this.time)).label:'';
+        const preview=document.createElement('p');preview.className='fieldPreview';preview.id=this.kind+'Preview';
+        const picked=this.fields.find(({target})=>target.selection.field===this.selected?.field&&target.selection.level===this.selected?.level)?.target;
+        const selected=this.selected?fieldTile(picked?fieldAtTime(picked,this.time):this.selected).label:'';
         preview.textContent=selected?'Выбрано: '+selected:'Выберите показатель';
         const content:HTMLElement[]=[title,close,preview];let previous='',grid:HTMLElement;
         for(const field of this.fields.filter(f=>f.id===id)){
             if(field.section!==previous){const heading=document.createElement('h3');heading.textContent=field.section;
                 grid=document.createElement('div');grid.className='fieldGrid';content.push(heading,grid);previous=field.section;}
             const button=document.createElement('button');button.className='fieldOption';button.dataset.field=field.target.selection.field;
-            button.setAttribute('aria-pressed',String(field.target.key===this.current?.key));
+            const source=field.target.selection;
+            button.setAttribute('aria-pressed',String(source.field===this.selected?.field&&source.level===this.selected?.level));
             const tile=fieldTile(fieldAtTime(field.target,this.time));button.title=tile.label;button.setAttribute('aria-label',tile.label);
             const label=document.createElement('span');label.className='srOnly';label.textContent=field.label;
             const variant=document.createElement('b');variant.className='fieldVariant';variant.textContent=tile.variant;
@@ -199,18 +203,24 @@ export class FieldPicker {
             const units=document.createElement('small');units.textContent=displaySpec(field.target.selection).unit;
             button.append(fieldIcon(tile.icon),label,variant,level,...(tile.interval?[interval]:[]),units);
             button.onfocus=button.onpointerenter=()=>{preview.textContent=tile.label;};
-            button.onclick=()=>{this.close(true);this.choose(field.target);};grid!.append(button);
+            const unavailable=this.kind==='contour'&&(Boolean(source.wind_v)||!contourProfile(source,0).step);
+            if(unavailable){
+                const reason=document.createElement('small');reason.textContent='Изолинии для этого показателя не настроены';
+                button.append(reason);button.setAttribute('aria-label',tile.label+'. '+reason.textContent);button.disabled=true;
+            }else button.onclick=()=>{this.close();this.choose(field.target);document.getElementById(this.kind+'-group-'+id)?.focus();};
+            grid!.append(button);
         }
         this.menu.replaceChildren(...content);this.menu.hidden=false;this.layout();
     }
     layout(){
         const rail=this.buttons.getBoundingClientRect(),timeline=document.getElementById('timelinePanel')!.getBoundingClientRect();
         const legend=(document.getElementById('legendDock')??document.getElementById('legendPanel'))!.getBoundingClientRect();
-        const bottom=Math.min(timeline.top-10,legend.right>rail.left&&legend.top>rail.top?legend.top-10:timeline.top-10);
-        this.buttons.style.maxHeight=Math.max(40,bottom-rail.top)+'px';
+        const bottom=legend.right>rail.left&&legend.top>rail.top?Math.min(timeline.top,legend.top):timeline.top;
+        this.buttons.style.maxHeight=Math.max(40,bottom-rail.top-38)+'px';
         if(!this.open)return;
-        const button=document.getElementById('field-group-'+this.open)!.getBoundingClientRect();
-        this.menu.style.right=(innerWidth-rail.left+8)+'px';this.menu.style.maxHeight=Math.max(80,timeline.top-24)+'px';
+        const button=document.getElementById(this.kind+'-group-'+this.open)!.getBoundingClientRect();
+        const columns=this.root.parentElement!.getBoundingClientRect();
+        this.menu.style.right=(innerWidth-columns.left+8)+'px';this.menu.style.maxHeight=Math.max(80,timeline.top-24)+'px';
         this.menu.style.top=Math.max(10,Math.min(button.top,timeline.top-this.menu.offsetHeight-12))+'px';
     }
 }

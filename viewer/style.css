@@ -31,19 +31,19 @@ main{position:fixed;overflow:hidden}
 h1{font-size:16px;margin:0 0 8px;font-weight:600}h2{font-size:16px;margin:5px 0 9px}
 .selection button{margin-top:8px;width:100%}.selection small{margin-top:5px;font-size:9px}
 .srOnly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
-.fieldGroups{position:absolute;right:16px;top:16px;width:54px;z-index:7}
+.fieldGroups{position:absolute;right:16px;top:16px;width:116px;z-index:7}
 #wmsQuickCopy{width:100%;margin-top:5px;padding:7px 2px;font-size:11px}
-#wmsQuickStatus{position:absolute;right:60px;bottom:0;width:220px;padding:8px;pointer-events:none}
+#wmsQuickStatus{position:absolute;right:122px;bottom:0;width:220px;padding:8px;pointer-events:none}
 #wmsQuickStatus:empty{display:none}
 body:has(#drawer:not([hidden]):not(.pointMode)) #wmsQuickStatus{display:none}
-#fieldButtons{display:grid;gap:5px;overflow:auto;padding:3px;scrollbar-width:thin}
-#fieldButtons>button{height:48px;min-height:48px;width:100%;padding:8px;display:grid;place-items:center;color:inherit;background:rgba(22,44,58,.10);backdrop-filter:blur(6px)}
-#fieldButtons>button[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-#fieldButtons>button[aria-expanded=true]{outline:2px solid var(--sky);outline-offset:0}
+.fieldColumns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.fieldColumns>div>span{display:block;text-align:center;font-size:10px;margin-bottom:3px}.fieldColumns nav{display:grid;gap:5px;overflow:auto hidden;overflow-x:hidden;overflow-y:auto;padding:3px;scrollbar-width:thin}
+.fieldColumns nav>button{height:48px;min-width:0;min-height:48px;width:100%;padding:5px;display:grid;place-items:center;color:inherit;background:rgba(22,44,58,.10);backdrop-filter:blur(6px)}
+.fieldColumns nav>button[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.fieldColumns nav>button[aria-expanded=true]{outline:2px solid var(--sky);outline-offset:0}
 .fieldIcon{display:block;width:28px;height:28px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 1px 1px #07141e60)}
 .fieldGlyph{font-size:28px;line-height:28px;font-weight:700;color:var(--sky);filter:none}
 .fieldHint{position:fixed;z-index:9;padding:6px 9px;background:rgba(22,44,58,.96);pointer-events:none;max-width:220px}
-.fieldMenu{position:fixed;width:min(310px,calc(100vw - 88px));padding:12px;overflow:auto;background:rgba(22,44,58,.10);z-index:8;text-shadow:0 1px 2px #07141e,0 0 3px #07141e}
+.fieldMenu{position:fixed;width:min(310px,calc(100vw - 151px));padding:12px;overflow:auto;background:rgba(22,44,58,.10);z-index:8;text-shadow:0 1px 2px #07141e,0 0 3px #07141e}
 .fieldMenu h2{padding-right:65px;margin:0 0 14px}.fieldMenu h3{font-size:11px;color:var(--muted);margin:14px 0 5px;font-weight:500}
 .fieldMenuClose{position:absolute;right:10px;top:10px;font-size:10px}
 .fieldPreview{margin:0 0 8px;font-size:10px;color:var(--muted);overflow-wrap:anywhere;min-height:28px}
@@ -51,7 +51,7 @@ body:has(#drawer:not([hidden]):not(.pointMode)) #wmsQuickStatus{display:none}
 .fieldOption{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;min-width:0;width:100%;padding:7px 4px;text-align:center;min-height:78px;overflow-wrap:anywhere;background:rgba(22,44,58,.10)}
 .fieldVariant{font-size:10px;font-weight:600;line-height:1.2}.fieldVariant:empty{display:none}
 .fieldLevel{font-size:10px;line-height:1.3}.fieldOption small{font-size:9px;line-height:1.2}.fieldOption[aria-pressed=true]{box-shadow:inset 0 0 0 1px var(--sky)}
-.basemapLight #fieldButtons>button{background:rgba(239,245,246,.10)}
+.basemapLight .fieldColumns nav>button{background:rgba(239,245,246,.10)}
 .basemapLight .fieldOption{background:rgba(239,245,246,.10)}
 .basemapLight .fieldMenu{background:rgba(239,245,246,.10);text-shadow:0 1px 2px #fff,0 0 3px #fff}
 .basemapLight .fieldHint{background:rgba(239,245,246,.96)}
@@ -66,7 +66,8 @@ body:has(#drawer:not([hidden]):not(.pointMode)) #wmsQuickStatus{display:none}
 .navigation .widgetBody{display:grid;gap:6px}.navigation .widgetBody>div{display:flex;gap:5px}.navigation button{background:var(--panel);backdrop-filter:blur(6px);min-width:32px;min-height:32px;text-shadow:inherit}
 .notice{bottom:156px;left:50%;transform:translateX(-50%);padding:7px 10px;max-width:350px;font-size:11px;pointer-events:none}
 .legend{right:16px;bottom:156px;width:204px;padding:10px}
-.legend .widgetBody>div:first-child{display:flex;justify-content:space-between}
+#legendPanel .widgetBody>div:first-child{display:flex;justify-content:space-between}
+#contourPanel>.widgetToggle{display:block}
 .ramp{height:9px;border-radius:3px;background:linear-gradient(90deg,#7272b5,#529abd,#70c8b2,#d6d67f,#edab68,#c96761);margin-top:7px}
 .ticks{display:flex;justify-content:space-between;font-size:10px;margin-top:3px}.legend small{margin-top:4px;font-size:9px}
 .timeline{left:16px;right:16px;bottom:25px;padding:10px 12px}
@@ -104,7 +105,7 @@ dl{font-size:11px}dt{color:var(--muted);margin-top:6px}dd{margin:2px 0;overflow-
 .drawer{overflow-x:hidden;overflow-wrap:anywhere}.drawer select{min-width:0;max-width:100%}
 .point strong.pointMessage,#mobilePoint strong.pointMessage{font-size:13px}
 @media(max-width:700px), (max-height:600px) and (orientation:landscape){
-  .widgetToggle{display:list-item;cursor:pointer;min-height:32px;padding:7px 9px;font-size:11px;list-style-position:inside}
+  .widgetToggle,#contourPanel>.widgetToggle{display:list-item;cursor:pointer;min-height:32px;padding:7px 9px;font-size:11px;list-style-position:inside}
   .widgetToggle small{padding-left:13px;font-size:10px}
   .widgetToggle:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
   .forecastControls{display:block;position:absolute;left:10px;top:66px;width:min(248px,calc(100% - 120px));z-index:4}
@@ -122,8 +123,8 @@ dl{font-size:11px}dt{color:var(--muted);margin-top:6px}dd{margin:2px 0;overflow-
   body{font-size:11px}.brand{left:10px;top:10px;padding:6px 8px;gap:7px}.brand strong{font-size:14px}.brand small{font-size:9px}.symbol{width:25px;height:25px;font-size:9px}
   .model{left:10px;top:66px;width:min(248px,calc(100% - 72px));padding:4px 8px}.model select{width:130px;padding:3px 6px}
   .selection{left:10px;top:108px;width:min(248px,calc(100% - 72px));padding:8px 9px}h1{font-size:14px;margin:0 0 5px}.selection small{font-size:9px}.selection button{padding:4px 6px;margin-top:6px}
-  .fieldGroups{right:10px;top:66px;width:48px}#fieldButtons{gap:4px;padding:2px}#fieldButtons>button{height:44px;min-height:44px;padding:7px}
-  .fieldMenu{width:min(310px,calc(100vw - 78px));padding:10px}.fieldMenu h2{font-size:14px}.fieldOption{font-size:11px}
+  .fieldGroups{right:10px;top:66px;width:108px} .fieldColumns nav{gap:4px;padding:2px}.fieldColumns nav>button{height:44px;min-height:44px;padding:7px}
+  .fieldMenu{width:min(310px,calc(100vw - 138px));padding:10px}.fieldMenu h2{font-size:14px}.fieldOption{font-size:11px}
   .projectionControl label{font-size:10px}.projectionControl small{overflow-wrap:anywhere}.projectionControl button{font-size:10px;padding:4px}
   .navigation{left:10px;bottom:200px;gap:4px}.navigation button{font-size:10px;min-width:30px;min-height:30px;padding:5px 7px}
   .legend{right:10px;bottom:200px;width:155px;padding:7px}.legend small{font-size:8px}.legend .ramp{margin-top:5px;height:8px}.ticks{font-size:9px}
@@ -160,4 +161,6 @@ dl{font-size:11px}dt{color:var(--muted);margin-top:6px}dd{margin:2px 0;overflow-
 @media(max-width:700px),(max-height:600px) and (orientation:landscape){.drawer.pointMode{z-index:10;height:min(60dvh,480px)}}
 @media(max-height:600px) and (orientation:landscape){.drawer.pointMode{height:auto;bottom:calc(var(--time-height,34px) + 31px);width:min(360px,calc(100vw - 300px))}}
 .coastline{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
-.fieldContours{position:absolute;inset:0;z-index:2;pointer-events:none}#contourToggle,#contourRetry{font-size:11px;padding:5px 8px;margin-top:6px}#contourToggle[aria-pressed="true"]{box-shadow:inset 0 0 0 1px currentColor}#contourLegend{display:block;font-size:10px;margin-top:5px;overflow-wrap:anywhere}
+.fieldContours{position:absolute;inset:0;z-index:2;pointer-events:none}#contourRetry{font-size:11px;padding:5px 8px;margin-top:6px}#contourLegend{display:block;font-size:10px;margin-top:5px;overflow-wrap:anywhere}
+
+.contourLine{height:1px;background:currentColor;margin:8px 0 4px}.contourTicks{display:flex;justify-content:space-between;gap:4px;font-size:10px}.contourTicks span:only-child{margin:auto}

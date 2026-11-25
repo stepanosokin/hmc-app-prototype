@@ -69,10 +69,10 @@ export class SourceSettings {
         }
         element('wmsQuickCopy').onclick=()=>element<HTMLButtonElement>('wmsCopy').click();
     }
-    update(group:PublishedGroup,index:number,current:Selection|undefined,position:Position|undefined,
+    update(group:PublishedGroup,validTime:number,current:Selection|undefined,position:Position|undefined,
         description:SourceDescription|undefined,state:State,shown:Selection|undefined,
         bounds:number[]|undefined,format:(time:string)=>string,temperatureUnit='C'){
-        const source=group.selection,time=new Date(group.start+index*3600000).toISOString();
+        const source=group.selection,time=new Date(validTime).toISOString();
         const units=displaySpec(source,temperatureUnit).unit;
         const title=fieldPresentation(source).label;
         element('sourceDescription').textContent=source.model+' · '+title+'. '+(source.wind_v?'Карта: частицы по потоку U/V и цветная скорость ветра. Ряд точки: компонента U ветра.':'Значение точки — ближайшая нативная ячейка; отображение — билинейная интерполяция.');

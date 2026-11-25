@@ -90,8 +90,12 @@ The representation of a published field and its geographic context on the web ma
 _Avoid_: Treating a display choice as a change to the source grid or the external numerical/GIS contract.
 
 **Field isoline**:
-A line joining equal display values of the selected meteorological field at its selected valid time and vertical surface or level. An isobar is a pressure-field isoline.
+A line joining equal display values of a meteorological field at its valid time and vertical surface or level. An isobar is a pressure-field isoline.
 _Avoid_: Confusing field isolines with geographic grid lines or wind trajectories.
+
+**Forecast background**:
+The colour fill of a meteorological field on the forecast map. Its quantity and vertical surface or level can be chosen independently of the field shown by isolines at the same forecast time.
+_Avoid_: Using background for the geographic basemap.
 
 **Field-isoline interval**:
 The constant difference between consecutive isoline values for a field in its displayed units and map-scale class.

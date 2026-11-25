@@ -64,12 +64,12 @@ test('compact captions distinguish variants, height, cloud bounds and forecast i
     assert.equal(fieldTile(group('x','unrecognized','surface',0,{units:'unknown',field_label:'Поле GRIB 0.6.1'}).selection).icon,'other');
 });
 
-test('interval caption uses the actual nearest available forecast time, including gaps and ties',()=>{
+test('interval caption uses the selected forecast time and omits it for gaps',()=>{
     const hour=n=>'2026-10-27T0'+n+':00:00Z';
     const source=n=>({...group('tp','tp','surface',0,{units:'kg m**-2'}).selection,valid_time:hour(n),
         interval:{start:hour(0),end:hour(n),statistical_process:1}});
     const first=source(1),last=source(3),target={selection:first,times:[first,null,last],start:Date.parse(hour(1))};
     assert.equal(fieldTile(fieldAtTime(target,Date.parse(hour(3)))).interval,'за 3 ч');
-    assert.equal(fieldAtTime(target,Date.parse(hour(2))),first);
-    assert.equal(fieldAtTime(target,Date.parse(hour(4))),last);
+    assert.equal(fieldTile(fieldAtTime(target,Date.parse(hour(2)))).interval,'');
+    assert.equal(fieldTile(fieldAtTime(target,Date.parse(hour(4)))).interval,'');
 });

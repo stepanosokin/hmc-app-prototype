@@ -13,6 +13,61 @@ export interface Selection {
 export interface PublishedGroup {key: string; selection: Selection; times: (Selection|null)[]; start: number}
 export const referenceTime=(run: string)=>run.slice(run.lastIndexOf('/')+1);
 
+export const FORECAST_HOUR=3600000;
+export function sameForecast(a:Selection,b:Selection){
+    return a.model===b.model&&a.run===b.run&&a.revision===b.revision;
+}
+export function sameField(a:Selection,b:Selection){
+    return a.field===b.field&&a.level===b.level&&a.member===b.member;
+}
+export function fieldMatch(groups:PublishedGroup[],choice:Selection|undefined){
+    if(!choice)return undefined;
+    let match:PublishedGroup|undefined;
+    for(const candidate of groups){
+        if(!sameField(candidate.selection,choice))continue;
+        if(candidate.selection.native_grid_sha256===choice.native_grid_sha256)return candidate;
+        match??=candidate;
+    }
+    return match;
+}
+export function modelFieldMatch(groups:PublishedGroup[],choice:Selection|undefined){
+    const exact=fieldMatch(groups,choice);
+    if(exact||!choice)return exact;
+    const quantity=(source:Selection)=>source.field==='T_G:surface:0'?'t':source.field_short_name;
+    const level=(source:Selection)=>source.field==='T_G:surface:0'?'surface':source.field_level_type;
+    const secondSurface=(source:Selection)=>source.field_surfaces?.[1]?.type===255?undefined:source.field_surfaces?.[1];
+    const short=quantity(choice),surface=secondSurface(choice);
+    if(!short||short==='unknown'||!level(choice))return undefined;
+    return groups.find(({selection})=>{
+        const other=secondSurface(selection);
+        return quantity(selection)===short&&level(selection)===level(choice)&&Number(selection.level)===Number(choice.level)&&
+            other?.type===surface?.type&&other?.value===surface?.value&&selection.units===choice.units&&
+            selection.member===choice.member&&(selection.interval?.statistical_process??null)===(choice.interval?.statistical_process??null);
+    });
+}
+export function selectionAt(group:PublishedGroup|undefined,time:number){
+    return group?.times[(time-group.start)/FORECAST_HOUR]??undefined;
+}
+
+/** Keep the shared timeline independent of each field's forecast series. */
+export function mapFields(catalogue:PublishedGroup[],publication:PublishedGroup,background:Selection|undefined,isolines:Selection|undefined,time:number){
+    const run=catalogue.filter(item=>sameForecast(item.selection,publication.selection));
+    const fill=fieldMatch(run,background),lines=fieldMatch(run,isolines);
+    const source=background??isolines,primary=background?fill:lines;
+    const available=new Set<number>();
+    const visible=source?[fill,lines]:run;
+    for(const field of visible){
+        if(!field)continue;
+        field.times.forEach((selection,i)=>{if(selection)available.add(field.start+i*FORECAST_HOUR);});
+    }
+    const slots=new Set([time,...available]);
+    primary?.times.forEach((_,i)=>slots.add(primary.start+i*FORECAST_HOUR));
+    const timeSlots=[...slots].sort((a,b)=>a-b);
+    const selection=primary?.selection??(source?{...source,model:publication.selection.model,run:publication.selection.run,revision:publication.selection.revision}:publication.selection);
+    return {group:primary??{key:publication.key,selection,times:[],start:time},isolines:lines,timeSlots,
+        available:timeSlots.flatMap((stamp,i)=>available.has(stamp)?[i]:[]),index:timeSlots.indexOf(time)};
+}
+
 /** Catalogue ordering preserves publication order, including corrected revisions. */
 export function publishedGroups(selections: Selection[],validationFixtures=false): PublishedGroup[] {
     const groups=new Map<string,PublishedGroup>();
