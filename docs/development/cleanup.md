@@ -58,6 +58,11 @@ reporting cleanup as complete. An explicit project with only orphaned networks
 or volumes can be retired through the same command. When no container remains,
 the helper discovers the conventional T4/T5/T6 report path; use
 `-ReportDirectory data/reports/<relative-path>` for a custom report location.
+If Docker reports a missing container or removal in progress during retirement,
+relist the exact project's containers first. For an owned `--rm` container,
+stop it if it is still running and wait until Docker removes it. Then rerun
+retirement with the original report directory to archive and verify the remaining
+resources, including orphaned networks and volumes.
 Run `powershell -NoProfile -File tools/check-publication-retirement.ps1` after
 changing the helper. This exercises real disposable resources, failed archival,
 named/anonymous-volume removal and preservation of unrelated resources.

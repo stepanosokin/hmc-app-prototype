@@ -4,6 +4,12 @@ For explicit user exclusions, see [check deferrals](#explicit-check-deferrals).
 
 In a worktree, resolve its root with `git rev-parse --show-toplevel` and resolve
 shared private inputs explicitly instead of counting parent-directory segments.
+Before building a Viewer for an isolated check, inspect the actual mounts of
+any running live Viewer. `viewer/build.mjs` writes `data/viewer/build` in its own
+checkout. When live serves that directory, build in a separate checkout and
+use its source and runtime mounts for the test Viewer. Verify both mount sources
+before opening the browser. A different project name or port still shares the
+host files if the mount sources are the same.
 Define the delivery target in acceptance: implementation, an isolated stand or
 an explicitly named live stand. Preserve the user's requested outcome when
 writing criteria: a verified command's existence establishes capability;
@@ -84,6 +90,11 @@ For a shortened recovery scenario, reuse the seed preparation in
 [run-recovery.ps1](../../publication/run-recovery.ps1), including the accepted
 encoder decision and its bound evidence. Check those files on the host before
 allocating Compose resources or submitting the first worker job.
+
+For full local T5 or T27 acceptance, build `Dockerfile.publication` from the
+candidate checkout with the existing [Runtime build command](../../tools/check-local.ps1).
+Pass the resulting image with `-Image` and record its image ID. Source mounts
+update Python files, while the image supplies their system dependencies.
 
 For actual-sample acceptance, verify that the configured private sample exists
 and matches `SAMPLE_SHA256` in `decoder/inspect_forecast.py` before allocating

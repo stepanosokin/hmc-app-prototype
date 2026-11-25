@@ -75,18 +75,40 @@ runners. `check-wind-overlay.mjs` accepts `chrome`/`edge`;
 set `HMC_WIND_BROWSER` when Chrome is not at
 `C:\Program Files\Google\Chrome\Application` (unified resolution is #91). Its
 `--fixtures-only` summary reports `fixture_checks`/`total_checks` separately from
-live `checks`; `validation-summary.mjs` exposes the same groups. T27 has no
-paced proxy: its 24-time burst exhausts a shared stand's request slots, so run it
-only from `run-weather-viewer.ps1`, which seeds a fresh stack
-(`check-wind-overlay.mjs` already paces its proxy).
+live `checks`; `validation-summary.mjs` exposes the same groups. Run the T27
+matrix on the stack seeded by `run-weather-viewer.ps1`. Use the
+[live update checks](live-update.md#http-и-ресурсы) for deployment smoke checks
+on an existing stand.
 
 When T27 fails before the browser matrix is trustworthy, rerun the runner with
 `-KeepStack`: it prints the viewer/gateway URLs and leaves the seeded stack in
 place instead of retiring it. Iterate with `node tools/check-weather-viewer.mjs`
 and a fresh `T13_REPORT_DIRECTORY` (`T13_VIEWER`, `T13_BROWSER`,
 `T13_FOCUSED=1`, `T27_POINT_SERIES=1`), then retire explicitly with
-`tools/retire-publication-project.ps1`. Redirect Compose/GeoSever output to a log
-and read the final JSON line; the full log is rarely needed in context.
+`tools/retire-publication-project.ps1`. Use the
+[bounded process output](acceptance.md) for Compose and GeoServer logs.
+
+For an intermittent Chrome CDP interception failure on a frozen stand, keep
+the failed report and check its browser cleanup. A retained stand can be reused
+once its source and runtime hashes, image, publication and configuration match
+the recorded inputs. Rerun the complete selected browser matrix with a new
+profile and report directory, keeping its original network restrictions. Use
+the passing report for the subsequent comparisons and finalize the service
+checks and retirement. A failure from the offline interception check leaves the
+browser attempt failed even if its last viewport completed all assertions.
+
+For forecast-series timing comparisons, run
+[`tools/check-weather-viewer.mjs`](../../tools/check-weather-viewer.mjs)
+with `T13_FOCUSED=1`, `T114_POINT_BENCHMARK=before` or `after`,
+and `T114_WIND=1` for the combined series. Use `T114_MODEL` when selecting
+one model from several publications. Serve the baseline
+and candidate builds on the same isolated gateway and verify their served bytes
+and configuration. Compare the same publication, field and point. Record the
+conditions of the first and repeated click, the request count, the first visible
+value and the complete graph with any requested wind symbols. Before ingesting
+a new long fixture, check both storage reservation and the worker's wall-clock
+budget for the full message count, including any derived fields. If using
+separate fixtures for length and real U/V, record the scope and reason.
 
 Projection dependencies: `viewer/geometry.js` registers the map CRS;
 `native-layer.js` implements GPU inverse geometry; `local-context.js` projects

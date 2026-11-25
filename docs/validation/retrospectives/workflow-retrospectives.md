@@ -1,5 +1,10 @@
 # Retrospective basis
 
+The [point-series retrospective](retro-point-series-114.md) follows #114
+and its live rollout. Acceptance now checks Viewer mount isolation and the
+service image before provisioning. Browser guidance covers frozen-stand
+retries and paired timings. Cleanup covers Docker auto-removal races.
+
 The [multilayer WMS retrospective](retro-wms-multilayer.md) follows #109:
 a resource-free QGIS source-plan guard now runs in Windows local/manual CI;
 desktop guidance checks MCP ports and asynchronous Add readiness, while cleanup
