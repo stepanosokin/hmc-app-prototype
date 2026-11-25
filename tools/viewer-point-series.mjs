@@ -35,7 +35,7 @@ export async function checkPointSeries({call,evaluate,wait,select,click,capture,
     if(!mobile){
         const byId=Object.fromEntries(charts.map(chart=>[chart.id,chart]));
         assert.ok(byId.pointContent?.full_builds>=1,'Visible desktop popup rebuilds its chart');
-        assert.equal(byId.mobilePoint?.full_builds,0,'Hidden mobile copy is not rebuilt during series load');
+        assert.equal(byId.mobilePoint?.full_builds??0,0,'Hidden mobile copy is not rebuilt during series load');
     }
     report.point_chart_builds=charts;
     const checkGraph=async host=>{

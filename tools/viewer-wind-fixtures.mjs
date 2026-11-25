@@ -16,9 +16,10 @@ async function windFixtures(origin){
     const expect=(name,ok)=>{if(!ok)throw Error(name);checks.push(name);};
     const chart=new PointChart(()=>{});document.body.append(chart.element);
     const times=Array.from({length:8},(_,i)=>new Date(Date.UTC(2026,9,28,i)).toISOString());
-    const entries=times.map(time=>({time,state:'value',result:{value:1,units:'Pa'}}));
+    const entries=times.map(time=>({time,selection:true,state:'value',result:{value:1,units:'Pa'}}));
     const windMap=(speed=(i)=>i<4?90:200,direction=(i)=>[0,90,180,270][i%4])=>new Map(times.map((time,i)=>[time,{time,state:'value',speed:speed(i),direction:direction(i)}]));
-    const draw=(wind,list=entries,selected=0)=>{chart.setWind(wind,true,'synthetic','');chart.update({key:'strong-wind',entries:list},selected,String);};
+    const row=(key,entries)=>({kind:'background',label:'Давление',series:{key,entries},format:String});
+    const draw=(wind,list=entries,selected=0)=>{chart.setWind(wind,true,'synthetic','');chart.update([row('strong-wind',list)],Date.parse(list[selected].time));};
     draw(windMap());
     const svg=chart.element.querySelector('svg'),symbols=[...svg.querySelectorAll('g[transform^="translate"]')],built=chart.evidence().barb_builds;
     expect('Strong-wind barbs retain all marks inside the wind band at four directions',symbols.length===8&&built===8&&symbols.every(g=>{
@@ -54,22 +55,23 @@ async function windFixtures(origin){
     const css=document.createElement('link');css.rel='stylesheet';css.href=origin+'/style.css';
     await new Promise((resolve,reject)=>{css.onload=resolve;css.onerror=reject;document.head.append(css);});
     let chosen=-1;
-    const responsive=new PointChart(index=>{chosen=index;});document.body.append(responsive.element);
+    const responsive=new PointChart(time=>{chosen=time;});document.body.append(responsive.element);
     for(const count of [9,25])for(const width of [240,264,320])for(const enabled of [true,false]){
         responsive.element.style.width=width+'px';
-        const entries=Array.from({length:count},(_,i)=>({time:new Date(Date.UTC(2026,9,28,i)).toISOString(),state:'value',result:{value:i,units:'Pa'}}));
+        const entries=Array.from({length:count},(_,i)=>({time:new Date(Date.UTC(2026,9,28,i)).toISOString(),selection:true,state:'value',result:{value:i,units:'Pa'}}));
+        const lastTime=Date.parse(entries.at(-1).time);
         responsive.setWind(new Map(entries.map(e=>[e.time,{time:e.time,state:'value',speed:12,direction:270}])),enabled,'synthetic','');
-        responsive.update({key:'responsive-'+count,entries},0,String);
+        responsive.update([row('responsive-'+count,entries)],Date.parse(entries[0].time));
         const plot=responsive.element.querySelector('.pointPlot');
         expect('No horizontal chart overflow: '+count+' times, '+width+'px, wind '+enabled,plot.clientWidth>0&&plot.scrollWidth<=plot.clientWidth);
         expect('Entire forecast remains rendered: '+count+' times, '+width+'px, wind '+enabled,responsive.element.querySelectorAll('.seriesValue,.selectedValue').length===count);
         expect('Every wind symbol remains rendered: '+count+' times, '+width+'px, wind '+enabled,responsive.element.querySelectorAll('g[transform^="translate"]').length===(enabled?count:0));
         const range=responsive.element.querySelector('input');range.value=String(count-1);range.dispatchEvent(new Event('input'));
         range.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
-        expect('Last time remains selectable by keyboard: '+count+' times, '+width+'px, wind '+enabled,chosen===count-1);
+        expect('Last time remains selectable by keyboard: '+count+' times, '+width+'px, wind '+enabled,chosen===lastTime);
         const graph=responsive.element.querySelector('svg'),rect=graph.getBoundingClientRect();
         graph.dispatchEvent(new MouseEvent('click',{clientX:rect.right-rect.width*12/264,clientY:rect.top+rect.height/2}));
-        expect('Last time remains selectable on fitted chart: '+count+' times, '+width+'px, wind '+enabled,chosen===count-1);
+        expect('Last time remains selectable on fitted chart: '+count+' times, '+width+'px, wind '+enabled,chosen===lastTime);
     }
     responsive.element.remove();css.remove();
     const reference=await(await fetch(origin+'/wind-reference.json')).json();

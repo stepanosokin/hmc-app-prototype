@@ -48,8 +48,7 @@ export function legendNumber(value:number,source:Selection){
 export function fieldPresentation(source:Selection){
     if(source.field==='T_G:surface:0')return {id:'temperature',group:'Температура',section:'Основные показатели',label:'Температура поверхности'};
     const kind=kinds[source.field_short_name??''];
-    if(!kind)return {id:'other',group:'Другое',section:'Прочие показатели',label:source.field_label??'Неизвестный показатель GRIB'};
-    const [id,group,base,section]=kind;
+    const [id,group,base,section]=kind??['other','Другое',source.field_label??'Неизвестный показатель GRIB','Прочие показатели'];
     const surfaces=source.field_surfaces;
     if(surfaces?.length===2&&surfaces[1].type!==255){
         const label=(s:typeof surfaces[number])=>s.type===1?'поверхность':s.type===100&&s.value!==null?
@@ -63,6 +62,7 @@ export function fieldPresentation(source:Selection){
     const type=source.field_level_type;
     const level=type==='heightAboveGround'?'на высоте '+source.level+' м':
         type==='surface'?'поверхность':type==='meanSea'?'уровень моря':
+        type==='isobaricInhPa'?source.level+' гПа':type==='isobaricInPa'?Number(source.level)/100+' гПа':
         type==='isobaricLayer'?'изобарический слой · уровень '+source.level:'уровень '+source.level+' · тип не определён';
     let label=base+' · '+level;
     if(source.field_short_name==='prmsl'||source.field_short_name==='sp')label=base;

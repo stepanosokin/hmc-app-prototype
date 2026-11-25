@@ -44,9 +44,12 @@ export class ContourOverlay {
     private widthKm=0;
     private levels:number[]=[];
     private tickKey='';
+    private ticks=document.getElementById('contourTicks')!;
+    private tickResize=new ResizeObserver(()=>this.layoutTicks());
     private loadFailed=false;
     constructor(private admit:(bytes:number)=>void,private temperatureUnit:()=>string,retryLoad:()=>void){
         this.canvas.className='fieldContours';this.canvas.setAttribute('aria-hidden','true');
+        this.tickResize.observe(this.ticks);
         document.getElementById('contourRetry')!.onclick=()=>{
             if(this.loadFailed){retryLoad();return;}
             this.requested='';this.state='loading';this.message='Построение изолиний…';this.ui();this.map?.triggerRepaint();
@@ -84,19 +87,44 @@ export class ContourOverlay {
         const levels=built?this.levels:[];
         const status=built?`${p.noun} проведены через ${p.step} ${units}${levels.length?'':' · Нет изолиний в видимой области'}${p.note?' · '+p.note:''}`:this.message;
         if(legend.textContent!==status)legend.textContent=status;
-        const scale=document.getElementById('contourScale')!,ticks=document.getElementById('contourTicks')!;
+        const scale=document.getElementById('contourScale')!;
         scale.hidden=!levels.length;
         const key=JSON.stringify([units,levels]);
         if(this.tickKey!==key){
             this.tickKey=key;
-            const count=Math.min(4,levels.length);
-            const markers=Array.from({length:count},(_,i)=>{
-                const span=document.createElement('span'),index=count===1?0:Math.round(i*(levels.length-1)/(count-1));
-                span.textContent=this.levelText(levels[index]);return span;
+            const min=levels[0],max=levels[levels.length-1];
+            const markers=levels.map(level=>{
+                const marker=document.createElement('span'),label=document.createElement('span');
+                marker.className='contourTick';
+                marker.dataset.level=String(level);
+                marker.style.left=(min===max?50:(level-min)/(max-min)*100)+'%';
+                marker.title=label.textContent=this.levelText(level);
+                label.className='contourTickLabel';
+                marker.append(label);
+                return marker;
             });
-            ticks.replaceChildren(...markers);
+            this.ticks.replaceChildren(...markers);
+            this.layoutTicks();
         }
         document.getElementById('contourRetry')!.hidden=this.state!=='error'||!this.enabled;
+    }
+    private layoutTicks(){
+        const width=this.ticks.clientWidth;
+        if(!width)return;
+        const ticks=Array.from(this.ticks.querySelectorAll<HTMLElement>('.contourTick'));
+        const last=ticks.at(-1);
+        const lastLabel=last?.firstElementChild as HTMLElement|undefined;
+        const rightLimit=width-(lastLabel?.offsetWidth??0)-6;
+        let end=-6;
+        for(const [i,tick] of ticks.entries()){
+            const label=tick.firstElementChild as HTMLElement;
+            const x=width*parseFloat(tick.style.left)/100;
+            const left=i===0&&ticks.length>1?0:tick===last&&ticks.length>1?width-label.offsetWidth:x-label.offsetWidth/2;
+            const right=left+label.offsetWidth;
+            const show=tick===last||left>=end+6&&right<=rightLimit;
+            label.style.visibility=show?'visible':'hidden';
+            if(show)end=right;
+        }
     }
     private levelText(level:number){
         const value=level+(this.profile?.temperature&&this.temperatureUnit()==='K'?273.15:0);
@@ -221,8 +249,8 @@ export class ContourOverlay {
         this.levels=[...visible].sort((a,b)=>a-b);this.drawMs=performance.now()-start;
     }
     evidence(){return {enabled:this.enabled,state:this.state,message:this.message,selection:this.field?.metadata.selection,profile:this.profile,
-        labels:this.labels,bytes:this.bytes(),worker_active:Boolean(this.worker),cache_entries:this.cache.size,cache_hits:this.cacheHits,
+        labels:this.labels,visible_levels:this.levels,bytes:this.bytes(),worker_active:Boolean(this.worker),cache_entries:this.cache.size,cache_hits:this.cacheHits,
         curves:this.shown?.curves.length,stats:this.shown?.stats,build_ms:this.shown?.elapsed_ms,draw_ms:this.drawMs,color:this.color,view:this.view,width_km:this.widthKm,failure:this.failure,
         native_grid:this.field?.metadata.grid,encoding_max_abs_error:this.field?.metadata.encoding_max_abs_error};}
-    dispose(){this.unmount();this.field=undefined;this.selection=undefined;}
+    dispose(){this.tickResize.disconnect();this.unmount();this.field=undefined;this.selection=undefined;}
 }

@@ -81,13 +81,12 @@ export async function checkSeriesSynthetic({call,evaluate,wait,select,click,capt
     let state=await capture();assert.equal(state.series.key,key);assert.notDeepEqual(state.position,oldPosition);
     assert.deepEqual(state.series.entries.slice(0,6).map(e=>e.state),['value','missing','native_nodata','outside_coverage','error','value']);
     if(!mobile)await click('#showPoint');
-    // Select the gap through the graph's keyboard interface; it clears map and number.
+    // Preview an unpublished gap and leave the current forecast selection in place.
     assert.equal(await evaluate(`document.querySelectorAll(${JSON.stringify(host+' svg path')}).length`),18,'No line crosses the four known gaps');
     await previewSeriesTime({call,evaluate,wait,click,android,host,index:1});
-    await click(host+' .realPointChart button:not([hidden])');
-    await wait("window.captureWeatherEvidence().time_state==='missing'",'graph selects gap');
-    state=await capture();assert.equal(state.frame_visible,false);assert.equal(state.point,undefined);
-    assert.equal(state.series.key,key);assert.match(await evaluate(`document.querySelector(${JSON.stringify(host+' .realPointChart output')}).textContent`),/Срок отсутствует/);
+    assert.equal(await evaluate(`document.querySelector(${JSON.stringify(host+' .realPointChart button')}).disabled`),true);
+    state=await capture();assert.equal(state.selected.selection,before.selected.selection);
+    assert.equal(state.series.key,key);assert.match(await evaluate(`document.querySelector(${JSON.stringify(host+' .realPointChart output')}).textContent`),/Нет данных/);
     await click('#next');await ready();
     assert.equal((await capture()).point.reason,'native_nodata');
     await click('#next');await ready();assert.equal((await capture()).point.reason,'outside_coverage');
@@ -99,7 +98,7 @@ export async function checkSeriesSynthetic({call,evaluate,wait,select,click,capt
     await click(host+' svg');
     assert.equal(await evaluate('window.__seriesSynthetic.calls.length'),count+1,'Expired graph cannot retry');
     const shot=await call('Page.captureScreenshot',{format:'png'});await writeFile(join(directory,'series-synthetic-expired.png'),Buffer.from(shot.data,'base64'));
-    report.series_synthetic={loading,states:before.series.entries.map(e=>e.state),late_response_rejected:true,gap_clears_map:true,
+    report.series_synthetic={loading,states:before.series.entries.map(e=>e.state),late_response_rejected:true,unpublished_gap_not_selectable:true,
         expired_clears_values:true,expired_requires_reselection:true,scope:'Synthetic gaps/nodata/outside/503/410/delay supplement real data'};
     await evaluate("window.__seriesSynthetic.mode='reselect-hold'");await click('#settings');await click('#retry');
     await wait('window.__seriesSynthetic.catalogueHeld','held expired reselect catalogue');

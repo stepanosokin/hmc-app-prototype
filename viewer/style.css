@@ -104,6 +104,15 @@ dl{font-size:11px}dt{color:var(--muted);margin-top:6px}dd{margin:2px 0;overflow-
 .drawer .sheetTabs button{width:auto;flex:0 1 auto;padding:4px 8px}
 .drawer{overflow-x:hidden;overflow-wrap:anywhere}.drawer select{min-width:0;max-width:100%}
 .point strong.pointMessage,#mobilePoint strong.pointMessage{font-size:13px}
+.pointReadings{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px}
+.pointReading{min-width:0;overflow-wrap:anywhere}
+.pointOrigins p+p{margin-top:10px}
+.realPointChart g[data-point-layer=isolines]{--isoline-series:#454b52;filter:drop-shadow(0 0 1px #fff)}
+.realPointChart g[data-point-layer=isolines] .forecastLine,
+.realPointChart g[data-point-layer=isolines] .selectedValue{stroke:var(--isoline-series)}
+.realPointChart g[data-point-layer=isolines] .forecastLine{stroke-dasharray:4 3}
+.realPointChart g[data-point-layer=isolines] circle{fill:var(--isoline-series);r:1.5px}
+.realPointChart g[data-point-layer=isolines] .selectedValue{r:2.5px;stroke-width:1}
 @media(max-width:700px), (max-height:600px) and (orientation:landscape){
   .widgetToggle,#contourPanel>.widgetToggle{display:list-item;cursor:pointer;min-height:32px;padding:7px 9px;font-size:11px;list-style-position:inside}
   .widgetToggle small{padding-left:13px;font-size:10px}
@@ -164,3 +173,8 @@ dl{font-size:11px}dt{color:var(--muted);margin-top:6px}dd{margin:2px 0;overflow-
 .fieldContours{position:absolute;inset:0;z-index:2;pointer-events:none}#contourRetry{font-size:11px;padding:5px 8px;margin-top:6px}#contourLegend{display:block;font-size:10px;margin-top:5px;overflow-wrap:anywhere}
 
 .contourLine{height:1px;background:currentColor;margin:8px 0 4px}.contourTicks{display:flex;justify-content:space-between;gap:4px;font-size:10px}.contourTicks span:only-child{margin:auto}
+.contourTicks:has(.contourTick){position:relative;display:block;height:16px}
+.contourTick{position:absolute;top:-4px;width:1px;height:4px;background:currentColor}
+.contourTickLabel{position:absolute;top:5px;left:0;width:max-content;transform:translateX(-50%)}
+.contourTick:first-child:not(:only-child) .contourTickLabel{transform:none}
+.contourTick:last-child:not(:only-child) .contourTickLabel{transform:translateX(-100%)}

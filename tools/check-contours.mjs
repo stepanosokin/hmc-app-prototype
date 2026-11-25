@@ -15,13 +15,15 @@ const directory=resolve(process.argv[2]),browser=process.argv[3]??'chrome';
 assert.ok(['chrome','edge'].includes(browser));
 const focused=process.argv.includes('--focused'),started=performance.now();
 const independentLayers=process.argv.includes('--independent-layers');
+const pointComparison=process.argv.includes('--point-comparison');
+assert.ok(!pointComparison||independentLayers,'Point comparison requires the independent layers fixture');
 let browserStarted=0,checksStarted=0,checksEnded=0;
 assert.ok(directory.startsWith(resolve('data/reports/contours74')+sep));
 const gateway=process.env.HMC_WIND_GATEWAY??'http://127.0.0.1:8140';
 assert.match(gateway,/^http:\/\/127\.0\.0\.1:\d+$/);
 const executable=browser==='edge'?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':'C:/Program Files/Google/Chrome/Application/chrome.exe';
 await mkdir(directory,{recursive:false});
-const report={scope:(independentLayers?'Independent forecast layers #115':'Native contours #74')+': frozen viewer and real published APIs; emulation is not physical Android',
+const report={scope:(pointComparison?'Point comparison and isoline scale #116':independentLayers?'Independent forecast layers':'Native contours #74')+': frozen viewer and real published APIs; emulation is not physical Android',
     browser,gateway,starting_commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),checks:[],inputs:{},errors:[],screenshots:[],states:[],requests:[],cleanup:{}};
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const freeze=async(source,target)=>{const bytes=await readFile(source);report.inputs[source]=sha(bytes);await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes);};
@@ -132,14 +134,20 @@ try{
         await chooseColumn(short,group,'contour');
         await settled('contours '+short);return source;
     };
+    const pickPoint=async()=>{
+        const pixel=await nativePointPixel(evaluate);assert.ok(pixel);
+        for(const type of ['mousePressed','mouseReleased'])await call('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,...pixel});
+    };
+    const pointReading=(host,layer,unit)=>`document.querySelector('${host} [data-point-layer="${layer}"] .pointValue')?.textContent.includes(${JSON.stringify(unit)})`;
+    const bothReadings=host=>`${pointReading(host,'background','°C')}&&${pointReading(host,'isolines','гПа')}`;
     for(const [width,height] of focused?[[1440,900]]:[[1440,900],[360,740],[640,360]]){
         await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
         await call('Page.navigate',{url:origin+'/?validation=1'+(independentLayers?'&fixtures=1':'')});await wait('window.captureWeatherEvidence?.().ready','initial field');
         await settled('initial contours');
         if(independentLayers){
-            await check('map has matching field columns with isolines on the left',`(()=>{
+            await check('map has matching field columns with background on the left',`(()=>{
                 const a=document.querySelector('#contourButtons'),b=document.querySelector('#fieldButtons');
-                return Boolean(a&&b&&a.getBoundingClientRect().left<b.getBoundingClientRect().left&&a.innerText===b.innerText);
+                return Boolean(a&&b&&b.getBoundingClientRect().left<a.getBoundingClientRect().left&&a.innerText===b.innerText);
             })()`);
             await check('initial temperature selected for both layers',"['contour','field'].every(kind=>document.getElementById(kind+'-group-temperature').ariaPressed==='true')");
             await check('separate legend without the old switch',"!document.getElementById('contourToggle')&&!document.getElementById('contourPanel').hidden");
@@ -153,8 +161,16 @@ try{
             assert.equal((await snapshot()).displayed.selection,before.displayed.selection,'Choosing isolines preserves the background selection and time');
             await check('isoline legend has field name, visible levels and pressure interval',`(()=>{
                 const title=document.querySelector('#contourTitle').textContent;
-                const values=[...document.querySelectorAll('#contourTicks span')].map(e=>Number(e.textContent.replace(',','.')));
-                return title.includes('Давление')&&title.includes('гПа')&&values.length>1&&values.every((v,i)=>Number.isFinite(v)&&(!i||v>values[i-1]));
+                const ticks=[...document.querySelectorAll('#contourTicks .contourTick')];
+                const values=ticks.map(tick=>Number(tick.dataset.level));
+                const positions=ticks.map(tick=>parseFloat(tick.style.left));
+                const levels=captureWeatherEvidence().contours.visible_levels;
+                const min=values[0],max=values.at(-1);
+                const labels=ticks.map(tick=>tick.firstElementChild).filter(label=>getComputedStyle(label).visibility==='visible');
+                const bounds=labels.map(label=>label.getBoundingClientRect());
+                return title.includes('Давление')&&title.includes('гПа')&&values.length>1&&
+                    JSON.stringify(values)===JSON.stringify(levels)&&positions.every((p,i)=>Math.abs(p-(values[i]-min)/(max-min)*100)<.001)&&
+                    ticks.every(tick=>tick.getBoundingClientRect().height>=3)&&bounds.length>0&&bounds.every((box,i)=>!i||box.left>=bounds[i-1].right);
             })()`);
             await capture(width+'-independent-layers');
             if(width===1440){
@@ -162,8 +178,7 @@ try{
                 await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.field==='+JSON.stringify(elevated.field),'background vertical level');
                 await check('background level changes without replacing the pressure isolines',"document.getElementById('contour-group-pressure').ariaPressed==='true'&&!document.getElementById('contourScale').hidden");
                 await chooseColumn('t','temperature','field');await wait('captureWeatherEvidence().ready&&captureWeatherEvidence().displayed.field==='+JSON.stringify(before.displayed.field),'surface background');
-                const pointPixel=await nativePointPixel(evaluate);assert.ok(pointPixel);
-                for(const type of ['mousePressed','mouseReleased'])await call('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,...pointPixel});
+                await pickPoint();
                 const apiField=field=>`(()=>{const link=document.querySelector('#apiLink');return link.href&&new URL(link.href).searchParams.get('layer')===${JSON.stringify(field)};})()`;
                 await wait(apiField(before.displayed.field),'point API uses background');
                 const pointAndSeries=(field,unit)=>`(()=>{
@@ -175,10 +190,82 @@ try{
                 const temperaturePoint=pointAndSeries(before.displayed.field,'°C');
                 const pressurePoint=pointAndSeries(source.field,'гПа');
                 await wait(temperaturePoint,'temperature point and chart');
-                await check('background supplies point value and graph',temperaturePoint);
+                if(pointComparison){
+                    const row=(layer,unit)=>pointReading('#pointContent',layer,unit);
+                    const bothRows=bothReadings('#pointContent');
+                    await wait(bothRows,'both point values and units');
+                    await check('point shows background then isolines with separate colours and scales',`(()=>{
+                        const card=document.querySelector('#pointContent');
+                        const [background,isolines]=card.querySelectorAll('.pointReading');
+                        const b=card.querySelector('g[data-point-layer="background"]'),c=card.querySelector('g[data-point-layer="isolines"]');
+                        const spread=group=>{const y=[...group.querySelectorAll('circle')].map(node=>Number(node.getAttribute('cy')));return Math.max(...y)-Math.min(...y);};
+                        return background.dataset.pointLayer==='background'&&isolines.dataset.pointLayer==='isolines'&&
+                            background.getBoundingClientRect().left<isolines.getBoundingClientRect().left&&
+                            background.innerText.includes('Температур')&&isolines.innerText.includes('Давление')&&
+                            getComputedStyle(b.querySelector('.forecastLine')).stroke!==getComputedStyle(c.querySelector('.forecastLine')).stroke&&
+                            Math.abs(spread(b)-68)<.01&&Math.abs(spread(c)-68)<.01&&
+                            card.querySelectorAll('.pointProvenance').length===2;
+                    })()`);
+                    await check('both readings match canonical native samples for the same point',`(async()=>{
+                        const state=captureWeatherEvidence(),base=new URL(document.querySelector('#apiLink').href),pressure=new URL(base);
+                        pressure.searchParams.set('layer',${JSON.stringify(source.field)});
+                        pressure.searchParams.set('selection',state.contours.selection);
+                        const results=await Promise.all([base,pressure].map(async url=>{
+                            const response=await fetch(url);if(!response.ok)throw Error('Point reference: '+response.status);return response.json();
+                        }));
+                        const value=layer=>parseFloat(document.querySelector('#pointContent [data-point-layer="'+layer+'"] .pointValue').textContent.replace(',','.'));
+                        return results.every(result=>result.spatial_selection==='nearest-native-cell'&&result.temporal_selection==='exact'&&
+                            result.revision===state.selected.revision&&result.valid_time===state.selected.valid_time)&&
+                            Math.abs(value('background')-(results[0].value-273.15))<=.0051&&
+                            Math.abs(value('isolines')-results[1].value/100)<=.0051;
+                    })()`);
+                    await wait("document.querySelectorAll('#pointContent .windBarb').length===2",'published wind symbols on both sides of the gap');
+                    await check('one wind strip shares the time axis',`(()=>{
+                        const chart=document.querySelector('#pointContent .realPointChart');
+                        return [...chart.querySelectorAll('.windBarb')].every(node=>!node.closest('g[data-point-layer]'))&&
+                            chart.querySelector('text:last-child').textContent.endsWith('UTC')&&chart.querySelectorAll('small').length===1;
+                    })()`);
+                    await capture(width+'-two-point-series');
+                    await chooseColumn('t','temperature','contour');
+                    await wait("document.querySelectorAll('#pointContent .pointReading').length===1",'identical fields are combined');
+                    await check('same field shows one background graph',`(()=>{const svg=document.querySelector('#pointContent svg');
+                        return svg.querySelector('g[data-point-layer="background"]')&&!svg.querySelector('g[data-point-layer="isolines"]');
+                    })()`);
+                    await chooseColumn('2t','temperature','contour');
+                    await wait(`${row('isolines','°C')}&&document.querySelector('#pointContent .pointReading[data-point-layer="isolines"]').innerText.includes('2 м')`,'different levels remain separate');
+                    await chooseColumn('sp','pressure','contour');
+                    await wait(bothRows,'restore pressure for shared chart');
+                    await wait("document.querySelectorAll('#pointContent svg g[data-point-layer=\"isolines\"] circle').length===3",'pressure values on either side of the gap');
+                    const plot=await evaluate(`(()=>{const svg=document.querySelector('#pointContent svg'),rect=svg.getBoundingClientRect();
+                        const second=svg.querySelectorAll('g[data-point-layer="background"] circle')[1];
+                        return {x:rect.left+rect.width*Number(second.getAttribute('cx'))/svg.viewBox.baseVal.width,y:rect.top+rect.height*.6};
+                    })()`);
+                    await call('Input.dispatchMouseEvent',{type:'mouseMoved',...plot});
+                    await wait("document.querySelector('#pointContent output').textContent.includes('Нет данных')",'hover shows the isoline gap');
+                    await check('hover describes UTC and both fields without changing time',`(()=>{
+                        const output=document.querySelector('#pointContent output').textContent;
+                        return output.includes('UTC')&&output.includes('°C')&&output.includes('Давление')&&
+                            document.querySelector('#pointContent .pointReading[data-point-layer="isolines"] .pointValue').textContent.includes('гПа');
+                    })()`);
+                    for(const type of ['mousePressed','mouseReleased'])await call('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,...plot});
+                    await wait(row('isolines','Нет данных'),'explicit chart click selects the published middle slot');
+                    await check('gap preserves the other row and both distant pressure values',`(()=>{
+                        const path=document.querySelector('#pointContent svg g[data-point-layer="isolines"]');
+                        const circles=path.querySelectorAll('circle'),segments=path.querySelectorAll('.forecastLine');
+                        return ${row('background','°C')}&&circles.length===3&&segments.length===1&&
+                            segments[0].getAttribute('d').startsWith('M'+circles[1].getAttribute('cx')+',');
+                    })()`);
+                    await click('#previous');await wait(bothRows,'return to the first published slot');
+                    await click('#contour-group-wind');
+                    await check('wind at 100 m remains visible and disabled in the isoline column',`
+                        [...document.querySelectorAll('#contourMenu .fieldOption')].some(button=>button.disabled&&button.innerText.includes('100 м')&&
+                            button.innerText.includes('Изолинии для этого показателя не настроены'))`);
+                    await click('#contourMenu .fieldMenuClose');
+                }
                 await click('#field-empty');
                 await wait(apiField(source.field),'point API switches to isolines');
                 await wait(pressurePoint,'pressure point and chart');
+                await wait("!document.getElementById('contourScale').hidden",'pressure legend settles after turning off the background');
                 await check('isolines supply point value and graph after disabling the background',pressurePoint);
                 await check('isolines remain visible with no background',"document.getElementById('legendPanel').hidden&&!document.getElementById('contourScale').hidden");
                 await capture(width+'-isolines-only');
@@ -200,7 +287,7 @@ try{
                     await check('missing background preserves the time and isolines',"document.getElementById('legendSource').textContent.includes('Нет данных на выбранный срок')&&!document.getElementById('contourScale').hidden");
                     await chooseColumn('sp','pressure','contour');
                     await check('current missing time is retained and offered times require data',`(()=>{
-                        const time=document.getElementById('time');return time.selectedOptions[0].disabled&&[...time.options].filter(option=>!option.disabled).length===1;
+                        const time=document.getElementById('time');return time.selectedOptions[0].disabled&&[...time.options].some(option=>!option.disabled);
                     })()`);
                     await click('#field-empty');await click('#contour-empty');
                     await check('empty choices offer all published times',"[...document.getElementById('time').options].filter(option=>!option.disabled).length>=2");
@@ -233,6 +320,25 @@ try{
                     await wait("document.getElementById('contourLegend').textContent.includes('Нет изолиний в видимой области')",'weather field behind the horizon');
                     await check('empty viewport hides the scale and retains the interval',"document.getElementById('contourScale').hidden&&document.getElementById('contourLegend').textContent.includes('Изобары проведены через')");
                 }
+            }
+            if(pointComparison&&width!==1440){
+                await pickPoint();
+                await wait(bothReadings('#mobilePoint'),'two native values in the mobile drawer');
+                await check('mobile drawer renders two labelled rows and a fitted chart',`(()=>{
+                    const card=document.querySelector('#mobilePoint'),plot=card.querySelector('.pointPlot');
+                    const [left,right]=card.querySelectorAll('.pointReading');
+                    return card.checkVisibility()&&left.getBoundingClientRect().left<right.getBoundingClientRect().left&&
+                        plot.clientWidth>0&&plot.scrollWidth<=plot.clientWidth&&plot.querySelectorAll('g[data-point-layer]').length===2;
+                })()`);
+                await capture(width+'-mobile-point-comparison');
+                await evaluate("document.querySelector('#mobilePoint .pointPlot').scrollIntoView({block:'center'})");
+                await check('both curves fit the scrolled mobile drawer',`(()=>{
+                    const plot=document.querySelector('#mobilePoint .pointPlot'),drawer=document.querySelector('#drawer');
+                    const a=plot.getBoundingClientRect(),b=drawer.getBoundingClientRect();
+                    return Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>80&&
+                        plot.querySelectorAll('g[data-point-layer]:has(.forecastLine)').length===2;
+                })()`);
+                await capture(width+'-mobile-point-chart');
             }
             continue;
         }
